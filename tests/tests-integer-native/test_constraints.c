@@ -48,11 +48,39 @@ static int rt_u64(const asn_TYPE_descriptor_t *td, uint64_t v) {
     return ok ? 0 : 4;
 }
 
+/* APER proof: validate, encode, decode, compare, and identical re-encode. */
+static int rt_aper_u64(const asn_TYPE_descriptor_t *td, uint64_t v) {
+    uint64_t in = v;
+    uint64_t *out = 0;
+    uint8_t first[64], second[64];
+    asn_enc_rval_t e1, e2;
+    asn_dec_rval_t dr;
+    size_t bytes1, bytes2;
+    if(!co(td, &in)) return 1;
+    e1 = aper_encode_to_buffer(td, 0, &in, first, sizeof(first));
+    if(e1.encoded < 0) return 2;
+    bytes1 = ((size_t)e1.encoded + 7) / 8;
+    dr = aper_decode_complete(0, td, (void **)&out, first, bytes1);
+    if(dr.code != RC_OK || !out || *out != v || !co(td, out)) {
+        if(out) ASN_STRUCT_FREE(*td, out);
+        return 3;
+    }
+    e2 = aper_encode_to_buffer(td, 0, out, second, sizeof(second));
+    ASN_STRUCT_FREE(*td, out);
+    if(e2.encoded < 0 || e2.encoded != e1.encoded) return 4;
+    bytes2 = ((size_t)e2.encoded + 7) / 8;
+    return bytes1 == bytes2 && memcmp(first, second, bytes1) == 0 ? 0 : 5;
+}
+
 int main(void) {
     /* T5 = INTEGER (0..UINT64_MAX), uint64_t */
     CK("T5 UPER+BER 0", rt_u64(&asn_DEF_T5, 0) == 0);
     CK("T5 UPER+BER UINT64_MAX", rt_u64(&asn_DEF_T5, 18446744073709551615ULL) == 0);
     CK("T5 UPER+BER 2^63", rt_u64(&asn_DEF_T5, 9223372036854775808ULL) == 0);
+    CK("T5 APER 0 validate+round-trip+re-encode", rt_aper_u64(&asn_DEF_T5, 0) == 0);
+    CK("T5 APER 12345 validate+round-trip+re-encode", rt_aper_u64(&asn_DEF_T5, 12345) == 0);
+    CK("T5 APER UINT64_MAX validate+round-trip+re-encode",
+       rt_aper_u64(&asn_DEF_T5, UINT64_MAX) == 0);
     { uint64_t v = 18446744073709551615ULL; CK("T5 MAX in-range", co(&asn_DEF_T5, &v)); }
 
     /* T6 = INTEGER (2^64-6 .. 2^64-1), uint64_t */
@@ -63,6 +91,7 @@ int main(void) {
 
     /* T1 = INTEGER (0..255), uint64_t */
     CK("T1 UPER+BER 255", rt_u64(&asn_DEF_T1, 255) == 0);
+    CK("T1 ordinary constrained APER", rt_aper_u64(&asn_DEF_T1, 123) == 0);
     { uint64_t v = 256; CK("T1 256 rejected", !co(&asn_DEF_T1, &v)); }
 
     /* T4 = INTEGER (0..2^63-1), uint64_t */

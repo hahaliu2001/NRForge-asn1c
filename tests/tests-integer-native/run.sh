@@ -143,7 +143,7 @@ echo
 build_and_run() {  # $1=mode $2=test-source
     local mode="$1" src="$2" g="$work/gen_$mode"
     rm -rf "$g"; mkdir -p "$g"
-    ( cd "$g" && "$ASN1C" -S "$SKELDIR" -finteger-native-type=$mode "$ASN1" >/dev/null 2>&1 )
+    ( cd "$g" && "$ASN1C" -S "$SKELDIR" -gen-APER -finteger-native-type=$mode "$ASN1" >/dev/null 2>&1 )
     cp "$here/$src" "$g/"
     ( cd "$g"
       for f in $(ls *.c | grep -vxE "converter-example.c|$src"); do

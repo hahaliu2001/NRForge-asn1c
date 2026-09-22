@@ -63,8 +63,7 @@ regardless of storage.
   the width-aware `NativeInteger` codec (`field_width`/`field_unsigned` in
   `asn_INTEGER_specifics_t`); the legacy `field_width == 0` path (ENUMERATED
   and any descriptor that doesn't set it) is byte-for-byte unchanged.
-- PER/OER bound *descriptors* (`asn_per_constraint_t`) still store bounds as
-  `intmax_t`; an additive `asn_integer_constraint_t` (asn_cval_t-based) and
-  `asn_cval_compute_range()` are provided in `asn_constraint_value.h` as the
-  foundation for migrating those descriptors. Range *width* (`range_bits`) is
-  already computed correctly (e.g. `T6` encodes in 3 bits).
+- Legacy PER bound descriptors retain their `intmax_t` layout. Generated
+  INTEGER descriptors add an optional `asn_integer_constraint_t` pointer when
+  either bound exceeds `intmax_t`; APER consumes those exact tagged bounds.
+  Ordinary signed and constrained INTEGER descriptors keep the legacy path.

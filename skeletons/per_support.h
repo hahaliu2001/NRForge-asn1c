@@ -27,11 +27,17 @@ typedef struct asn_per_constraint_s {
 	intmax_t lower_bound;		/* "lb" value */
 	intmax_t upper_bound;		/* "ub" value */
 } asn_per_constraint_t;
+struct asn_integer_constraint_s;
 typedef struct asn_per_constraints_s {
 	asn_per_constraint_t value;
 	asn_per_constraint_t size;
 	int (*value2code)(unsigned int value);
 	int (*code2value)(unsigned int code);
+	/*
+	 * Optional exact INTEGER bounds.  Legacy generated descriptors leave this
+	 * NULL; INTEGER APER uses it when a bound does not fit intmax_t.
+	 */
+	const struct asn_integer_constraint_s *integer;
 } asn_per_constraints_t;
 
 /* Temporary compatibility layer. Will get removed. */

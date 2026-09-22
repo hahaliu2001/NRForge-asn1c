@@ -3290,6 +3290,33 @@ asn1c_per_bound_fits_legacy_literal(asn1c_integer_t value) {
 }
 
 static int
+asn1c_per_range_needs_exact_integer_bounds(const asn1cnst_range_t *range) {
+    if(!range || range->left.type != ARE_VALUE
+       || range->right.type != ARE_VALUE)
+        return 0;
+#ifdef HAVE_128_BIT_INT
+    {
+        const asn1c_integer_t min = -(asn1c_integer_t)INTMAX_MAX - 1;
+        return range->left.value < min
+            || range->left.value > (asn1c_integer_t)INTMAX_MAX
+            || range->right.value < min
+            || range->right.value > (asn1c_integer_t)INTMAX_MAX;
+    }
+#else
+    return 0;
+#endif
+}
+
+static void
+emit_exact_integer_bound(arg_t *arg, const asn1cnst_edge_t *edge) {
+    const char *value = asn1p_itoa(edge->value);
+    if(edge->value < 0)
+        OUT("{ ACV_SINT, { .s = INTMAX_C(%s) } }", value);
+    else
+        OUT("{ ACV_UINT, { .u = UINTMAX_C(%s) } }", value);
+}
+
+static int
 emit_single_member_PER_constraint(arg_t *arg, asn1cnst_range_t *range, int alphabetsize, const char *type) {
     if(!range || range->incompatible || range->not_PER_visible) {
         OUT("{ APC_UNCONSTRAINED,\t-1, -1,  0,  0 }");
@@ -3541,6 +3568,8 @@ emit_member_PER_constraints(arg_t *arg, asn1p_expr_t *expr, const char *pfx) {
 	int save_target = arg->target->target;
 	asn1cnst_range_t *range;
 	asn1p_expr_type_e etype;
+	int exact_integer_bounds = 0;
+	char exact_name[256];
 
 	etype = expr_get_type(arg, expr);
 
@@ -3576,6 +3605,30 @@ emit_member_PER_constraints(arg_t *arg, asn1p_expr_t *expr, const char *pfx) {
 	}
 
 	REDIR(OT_CTDEFS);
+
+	/*
+	 * Preserve the compact legacy descriptor for all existing users.  INTEGER
+	 * ranges outside intmax_t additionally get an exact tagged descriptor.
+	 */
+	if(etype == ASN_BASIC_INTEGER) {
+		range = asn1constraint_compute_PER_range(expr->Identifier, etype,
+			expr->combined_constraints, ACT_EL_RANGE, 0, 0,
+			CPR_ignore_extension_additions);
+		exact_integer_bounds = asn1c_per_range_needs_exact_integer_bounds(range);
+		if(exact_integer_bounds) {
+			snprintf(exact_name, sizeof(exact_name), "asn_PER_%s_%s_exact_%d",
+				pfx, MKID(expr), expr->_type_unique_index);
+			GEN_INCLUDE_STD("asn_constraint_value");
+			OUT("static const asn_integer_constraint_t %s = {\n", exact_name);
+			INDENT(+1);
+			emit_exact_integer_bound(arg, &range->left); OUT(",\n");
+			emit_exact_integer_bound(arg, &range->right); OUT(",\n");
+			OUT("0, 0, 0, 0\n");
+			INDENT(-1);
+			OUT("};\n");
+		}
+		asn1constraint_range_free(range);
+	}
 
     OUT_NOINDENT("#if !defined(ASN_DISABLE_UPER_SUPPORT) || !defined(ASN_DISABLE_APER_SUPPORT)\n");
 	if(!(expr->_type_referenced)) {
@@ -3757,8 +3810,13 @@ emit_member_PER_constraints(arg_t *arg, asn1p_expr_t *expr, const char *pfx) {
 		DEBUG("No PER value map necessary for %s", MKID(expr));
 		OUT("0, 0\t/* No PER character map necessary */\n");
 	} else {
-		OUT("0, 0\t/* No PER value map */\n");
+		if(exact_integer_bounds)
+			OUT("0, 0,\t/* No PER value map */\n");
+		else
+			OUT("0, 0\t/* No PER value map */\n");
 	}
+	if(exact_integer_bounds)
+		OUT("&%s\t/* Exact INTEGER bounds */\n", exact_name);
 
 	INDENT(-1);
 

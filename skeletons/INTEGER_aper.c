@@ -5,6 +5,7 @@
  */
 #include <asn_internal.h>
 #include <INTEGER.h>
+#include <asn_constraint_value.h>
 
 /* Return ceil(log2(v)) for positive v. */
 static unsigned
@@ -18,6 +19,23 @@ aper_log2_ceil_size(size_t v) {
     }
 
     return bits;
+}
+
+static int
+aper_exact_uint_bounds(const asn_integer_constraint_t *ict,
+                       uintmax_t *lb, uintmax_t *ub) {
+    if(!ict) return -1;
+    if(ict->lower_bound.kind == ACV_UINT) *lb = ict->lower_bound.value.u;
+    else if(ict->lower_bound.kind == ACV_SINT
+            && ict->lower_bound.value.s >= 0)
+        *lb = (uintmax_t)ict->lower_bound.value.s;
+    else return -1;
+    if(ict->upper_bound.kind == ACV_UINT) *ub = ict->upper_bound.value.u;
+    else if(ict->upper_bound.kind == ACV_SINT
+            && ict->upper_bound.value.s >= 0)
+        *ub = (uintmax_t)ict->upper_bound.value.s;
+    else return -1;
+    return *ub < *lb ? -1 : 0;
 }
 
 asn_dec_rval_t
@@ -41,6 +59,34 @@ INTEGER_decode_aper(const asn_codec_ctx_t *opt_codec_ctx,
 
     if(!constraints) constraints = td->encoding_constraints.per_constraints;
     ct = constraints ? &constraints->value : 0;
+
+    if(constraints && constraints->integer && ct
+       && (ct->flags & APC_CONSTRAINED) && ct->range_bits > 16) {
+        uintmax_t lb, ub, offset = 0, value;
+        size_t max_range_bytes, len;
+        unsigned length_bits;
+        if(aper_exact_uint_bounds(constraints->integer, &lb, &ub))
+            ASN__DECODE_FAILED;
+        max_range_bytes = ((size_t)ct->range_bits + 7) >> 3;
+        length_bits = aper_log2_ceil_size(max_range_bytes);
+        {
+            int lm1 = per_get_few_bits(pd, length_bits);
+            if(lm1 < 0) ASN__DECODE_STARVED;
+            len = (size_t)lm1 + 1;
+        }
+        if(len > max_range_bytes || len > sizeof(offset)) ASN__DECODE_FAILED;
+        if(aper_get_align(pd) < 0) ASN__DECODE_FAILED;
+        while(len-- > 0) {
+            int octet = per_get_few_bits(pd, 8);
+            if(octet < 0) ASN__DECODE_STARVED;
+            offset = (offset << 8) | (unsigned)octet;
+        }
+        if(offset > ub - lb || offset > UINTMAX_MAX - lb)
+            ASN__DECODE_FAILED;
+        value = lb + offset;
+        if(asn_umax2INTEGER(st, value)) ASN__DECODE_FAILED;
+        return rval;
+    }
 
     if(ct && ct->flags & APC_EXTENSIBLE) {
         inext = per_get_few_bits(pd, 1);
@@ -283,6 +329,33 @@ INTEGER_encode_aper(const asn_TYPE_descriptor_t *td,
     ct = constraints ? &constraints->value : 0;
 
     er.encoded = 0;
+
+    if(constraints && constraints->integer && ct
+       && (ct->flags & APC_CONSTRAINED) && ct->range_bits > 16) {
+        uintmax_t lb, ub, value, offset, tmp;
+        size_t max_range_bytes, num_bytes = 0, i;
+        unsigned length_bits;
+        uint8_t obuf[sizeof(uintmax_t)];
+        if(aper_exact_uint_bounds(constraints->integer, &lb, &ub)
+           || asn_INTEGER2umax(st, &value) || value < lb || value > ub)
+            ASN__ENCODE_FAILED;
+        offset = value - lb;
+        max_range_bytes = ((size_t)ct->range_bits + 7) >> 3;
+        length_bits = aper_log2_ceil_size(max_range_bytes);
+        tmp = offset;
+        do { num_bytes++; tmp >>= 8; } while(tmp);
+        if(num_bytes > max_range_bytes) ASN__ENCODE_FAILED;
+        tmp = offset;
+        for(i = 0; i < num_bytes; i++) {
+            obuf[num_bytes - i - 1] = (uint8_t)tmp;
+            tmp >>= 8;
+        }
+        if(per_put_few_bits(po, num_bytes - 1, length_bits)
+           || aper_put_align(po) < 0
+           || per_put_many_bits(po, obuf, 8 * num_bytes))
+            ASN__ENCODE_FAILED;
+        ASN__ENCODED_OK(er);
+    }
 
     if(ct) {
         int inext = 0;
