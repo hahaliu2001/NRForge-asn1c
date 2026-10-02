@@ -42,6 +42,7 @@ Copyright (c) 2022-2026 Mouse <5923577+mouse07410@users.noreply.github.com> and 
 #include <asn1fix_export.h>
 
 #include <asn1c_compat.h> /* Portable basename(3) and dirname(3) */
+#include "typed_poc.h"
 
 #ifdef _WIN32
 #include <io.h>
@@ -106,6 +107,7 @@ main(int ac, char **av) {
     int i;                          /* Index in some loops */
     int exit_code = 0;              /* Exit code */
     int complex_threshold = 4;      /* Threshold for switching structures to ptrs */
+    char *typed_poc_message = NULL;
 
     /*
      * Process command-line options.
@@ -148,7 +150,9 @@ main(int ac, char **av) {
             print_arg__fix_n_print = 1;
             break;
         case 'f':
-            if(strcmp(optarg, "all-defs-global") == 0) {
+            if(strncmp(optarg, "typed-poc=", 10) == 0) {
+                typed_poc_message = strdup(optarg + 10);
+            } else if(strcmp(optarg, "all-defs-global") == 0) {
                 asn1_compiler_flags |= A1C_ALL_DEFS_GLOBAL;
             } else if(strcmp(optarg, "bless-SIZE") == 0) {
                 asn1_fixer_flags |= A1F_EXTENDED_SizeConstraint;
@@ -524,6 +528,11 @@ main(int ac, char **av) {
             goto cleanup;
         }
         return 0;
+    }
+
+    if(typed_poc_message) {
+        exit_code = asn1c_typed_poc(asn, typed_poc_message) ? EX_DATAERR : 0;
+        goto cleanup;
     }
 
     /*

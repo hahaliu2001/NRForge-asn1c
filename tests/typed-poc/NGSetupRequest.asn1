@@ -1,0 +1,37 @@
+TypedNgSetup DEFINITIONS AUTOMATIC TAGS ::= BEGIN
+Criticality ::= ENUMERATED { reject, ignore, notify }
+Presence ::= ENUMERATED { optional, mandatory, ... }
+GlobalRANNodeID ::= SEQUENCE { value INTEGER }
+RANNodeName ::= UTF8String
+SupportedTAItem ::= SEQUENCE { value INTEGER }
+SupportedTAList ::= SEQUENCE OF SupportedTAItem
+PagingDRX ::= ENUMERATED { v32, v64 }
+UERetentionInformation ::= ENUMERATED { retrieve, doNotRetrieve }
+id-GlobalRANNodeID INTEGER ::= 1
+id-RANNodeName INTEGER ::= 2
+id-SupportedTAList INTEGER ::= 3
+id-DefaultPagingDRX INTEGER ::= 4
+id-UERetentionInformation INTEGER ::= 5
+NGAP-PROTOCOL-IES ::= CLASS {
+  &id INTEGER UNIQUE,
+  &criticality Criticality,
+  &Value,
+  &presence Presence
+} WITH SYNTAX { ID &id CRITICALITY &criticality TYPE &Value PRESENCE &presence }
+ProtocolIE-Field { NGAP-PROTOCOL-IES : IEs } ::= SEQUENCE {
+  id NGAP-PROTOCOL-IES.&id({IEs}),
+  criticality NGAP-PROTOCOL-IES.&criticality({IEs}),
+  value NGAP-PROTOCOL-IES.&Value({IEs}{@id})
+}
+ProtocolIE-Container { NGAP-PROTOCOL-IES : IEs } ::= SEQUENCE OF ProtocolIE-Field {{IEs}}
+NGSetupRequestIEs NGAP-PROTOCOL-IES ::= {
+  { ID id-GlobalRANNodeID CRITICALITY reject TYPE GlobalRANNodeID PRESENCE mandatory } |
+  { ID id-RANNodeName CRITICALITY ignore TYPE RANNodeName PRESENCE optional } |
+  { ID id-SupportedTAList CRITICALITY reject TYPE SupportedTAList PRESENCE mandatory } |
+  { ID id-DefaultPagingDRX CRITICALITY ignore TYPE PagingDRX PRESENCE mandatory } |
+  { ID id-UERetentionInformation CRITICALITY ignore TYPE UERetentionInformation PRESENCE optional }, ...
+}
+NGSetupRequest ::= SEQUENCE {
+  protocolIEs ProtocolIE-Container { {NGSetupRequestIEs} }
+}
+END
