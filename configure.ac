@@ -369,6 +369,7 @@ asn1-tools/unber/Makefile                   \
 asn1-tools/Makefile                         \
 libasn1compiler/Makefile                    \
 libasn1common/Makefile                      \
+libasn1typed/Makefile                       \
 libasn1parser/Makefile                      \
 libasn1print/Makefile                       \
 libasn1fix/Makefile                         \
