@@ -1,0 +1,25 @@
+OrdinaryTypes DEFINITIONS ::= BEGIN
+
+PersonName ::= UTF8String
+Age ::= INTEGER
+Enabled ::= BOOLEAN
+DisplayName ::= PrintableString
+
+Person ::= SEQUENCE {
+    name PersonName,
+    age Age OPTIONAL,
+    enabled Enabled,
+    rawCount INTEGER
+}
+
+PersonList ::= SEQUENCE OF Person
+BoundedPersonList ::= SEQUENCE (SIZE(1..256)) OF Person
+
+PagingDRX ::= ENUMERATED {
+    v32,
+    v64,
+    v128,
+    v256
+}
+
+END

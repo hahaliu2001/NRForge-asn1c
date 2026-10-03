@@ -69,6 +69,19 @@ asn1typed_type_ref_init(asn1typed_type_ref_t *ref,
 	}
 	ref->module = module_copy;
 	ref->source_name = name_copy;
+	ref->kind = ASN1TYPED_REF_NAMED;
+	ref->primitive_kind = ASN1TYPED_PRIMITIVE_INVALID;
+	return 0;
+}
+
+int
+asn1typed_type_ref_init_primitive(asn1typed_type_ref_t *ref,
+		asn1typed_primitive_kind_e primitive_kind) {
+	if(!ref || primitive_kind <= ASN1TYPED_PRIMITIVE_INVALID ||
+		primitive_kind > ASN1TYPED_PRIMITIVE_PRINTABLE_STRING) return -1;
+	memset(ref, 0, sizeof(*ref));
+	ref->kind = ASN1TYPED_REF_PRIMITIVE;
+	ref->primitive_kind = primitive_kind;
 	return 0;
 }
 
@@ -78,6 +91,8 @@ asn1typed_type_ref_clear(asn1typed_type_ref_t *ref) {
 	free(ref->module);
 	free(ref->source_name);
 	ref->module = ref->source_name = NULL;
+	ref->kind = ASN1TYPED_REF_NAMED;
+	ref->primitive_kind = ASN1TYPED_PRIMITIVE_INVALID;
 }
 
 void
@@ -194,6 +209,52 @@ asn1typed_type_set_element_type(asn1typed_type_t *type,
 		asn1typed_type_ref_init(&ref, ref_module, ref_source_name)) return -1;
 	asn1typed_type_ref_clear(&type->element_type);
 	type->element_type = ref;
+	return 0;
+}
+
+int
+asn1typed_type_set_primitive(asn1typed_type_t *type,
+		asn1typed_primitive_kind_e primitive_kind) {
+	if(!type || type->kind != ASN1TYPED_TYPE_PRIMITIVE ||
+		primitive_kind <= ASN1TYPED_PRIMITIVE_INVALID ||
+		primitive_kind > ASN1TYPED_PRIMITIVE_PRINTABLE_STRING) return -1;
+	type->primitive_kind = primitive_kind;
+	return 0;
+}
+
+int
+asn1typed_type_set_element_primitive(asn1typed_type_t *type,
+		asn1typed_primitive_kind_e primitive_kind) {
+	asn1typed_type_ref_t ref;
+	if(!type || type->kind != ASN1TYPED_TYPE_SEQUENCE_OF ||
+		asn1typed_type_ref_init_primitive(&ref, primitive_kind)) return -1;
+	asn1typed_type_ref_clear(&type->element_type);
+	type->element_type = ref;
+	return 0;
+}
+
+int
+asn1typed_type_add_primitive_field(asn1typed_type_t *type,
+		const char *source_name, asn1typed_primitive_kind_e primitive_kind,
+		asn1typed_presence_e presence, const char *file, unsigned line) {
+	asn1typed_field_t field;
+	if(!type || type->kind != ASN1TYPED_TYPE_SEQUENCE || !source_name ||
+		!file || presence < ASN1TYPED_PRESENCE_MANDATORY ||
+		presence > ASN1TYPED_PRESENCE_CONDITIONAL) return -1;
+	memset(&field, 0, sizeof(field));
+	field.source_name = asn1typed_strdup(source_name);
+	field.presence = presence;
+	if(!field.source_name || asn1typed_type_ref_init_primitive(&field.type,
+			primitive_kind) ||
+		asn1typed_source_location_init(&field.location, file, line) ||
+		asn1typed_reserve((void **)&type->fields, &type->field_capacity,
+			type->field_count + 1, sizeof(*type->fields))) {
+		free(field.source_name);
+		asn1typed_type_ref_clear(&field.type);
+		asn1typed_source_location_clear(&field.location);
+		return -1;
+	}
+	type->fields[type->field_count++] = field;
 	return 0;
 }
 

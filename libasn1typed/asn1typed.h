@@ -20,6 +20,20 @@ typedef enum asn1typed_presence_e {
 	ASN1TYPED_PRESENCE_CONDITIONAL
 } asn1typed_presence_e;
 
+/* Built-in ASN.1 primitive semantics, independent of any target language. */
+typedef enum asn1typed_primitive_kind_e {
+	ASN1TYPED_PRIMITIVE_INVALID,
+	ASN1TYPED_PRIMITIVE_BOOLEAN,
+	ASN1TYPED_PRIMITIVE_INTEGER,
+	ASN1TYPED_PRIMITIVE_UTF8_STRING,
+	ASN1TYPED_PRIMITIVE_PRINTABLE_STRING
+} asn1typed_primitive_kind_e;
+
+typedef enum asn1typed_ref_kind_e {
+	ASN1TYPED_REF_NAMED,
+	ASN1TYPED_REF_PRIMITIVE
+} asn1typed_ref_kind_e;
+
 typedef struct asn1typed_source_location_s {
 	char *file;
 	unsigned line;
@@ -31,8 +45,10 @@ typedef struct asn1typed_type_identity_s {
 } asn1typed_type_identity_t;
 
 typedef struct asn1typed_type_ref_s {
+	asn1typed_ref_kind_e kind;
 	char *module;
 	char *source_name;
+	asn1typed_primitive_kind_e primitive_kind;
 } asn1typed_type_ref_t;
 
 typedef struct asn1typed_field_s {
@@ -50,6 +66,7 @@ typedef struct asn1typed_enum_item_s {
 typedef struct asn1typed_type_s {
 	asn1typed_type_identity_t identity;
 	asn1typed_type_kind_e kind;
+	asn1typed_primitive_kind_e primitive_kind;
 	asn1typed_source_location_t location;
 	asn1typed_field_t *fields;
 	size_t field_count;
@@ -74,6 +91,8 @@ int asn1typed_source_location_init(asn1typed_source_location_t *location,
 void asn1typed_source_location_clear(asn1typed_source_location_t *location);
 int asn1typed_type_ref_init(asn1typed_type_ref_t *ref,
 		const char *module, const char *source_name);
+int asn1typed_type_ref_init_primitive(asn1typed_type_ref_t *ref,
+		asn1typed_primitive_kind_e primitive_kind);
 void asn1typed_type_ref_clear(asn1typed_type_ref_t *ref);
 int asn1typed_module_init(asn1typed_module_t *module,
 		const char *source_name, const char *file, unsigned line);
@@ -87,6 +106,13 @@ int asn1typed_type_add_field(asn1typed_type_t *type,
 		const char *file, unsigned line);
 int asn1typed_type_set_element_type(asn1typed_type_t *type,
 		const char *ref_module, const char *ref_source_name);
+int asn1typed_type_set_primitive(asn1typed_type_t *type,
+		asn1typed_primitive_kind_e primitive_kind);
+int asn1typed_type_set_element_primitive(asn1typed_type_t *type,
+		asn1typed_primitive_kind_e primitive_kind);
+int asn1typed_type_add_primitive_field(asn1typed_type_t *type,
+		const char *source_name, asn1typed_primitive_kind_e primitive_kind,
+		asn1typed_presence_e presence, const char *file, unsigned line);
 int asn1typed_type_add_enum_item(asn1typed_type_t *type,
 		const char *source_name, const char *file, unsigned line);
 void asn1typed_type_clear(asn1typed_type_t *type);
