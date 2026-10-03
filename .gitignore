@@ -125,6 +125,7 @@ doc/docsrc/*.xdv
 
 # /libasn1typed/
 /libasn1typed/check_asn1typed
+/libasn1typed/check_asn1typed_extract
 /libasn1parser/asn1p_l.c
 /libasn1parser/asn1p_y.c
 /libasn1parser/asn1p_y.h
