@@ -58,7 +58,9 @@ typedef enum asn1typed_criticality_e {
 	ASN1TYPED_CRITICALITY_NOTIFY
 } asn1typed_criticality_e;
 
-/* Codec metadata only. A NULL symbolic_id denotes an ordinary ASN.1 field. */
+/* Raw IOC identity and codec metadata. NULL denotes an ordinary ASN.1 field.
+ * Naming consumers use symbolic_id, preserving the original leading id-.
+ */
 typedef struct asn1typed_ioc_metadata_s {
 	char *symbolic_id;
 	asn1typed_criticality_e criticality;
@@ -67,6 +69,9 @@ typedef struct asn1typed_ioc_metadata_s {
 } asn1typed_ioc_metadata_t;
 
 typedef struct asn1typed_field_s {
+	/* IOC compatibility: T3's identity with one conventional id- removed.
+	 * New naming consumers should use ioc.symbolic_id for IOC fields.
+	 */
 	char *source_name;
 	asn1typed_type_ref_t type;
 	asn1typed_presence_e presence;

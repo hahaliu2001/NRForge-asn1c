@@ -1,4 +1,5 @@
 #include "asn1typed_extract.h"
+#include "asn1typed_name.h"
 #include <asn1fix_export.h>
 #include <asn1_namespace.h>
 
@@ -483,7 +484,8 @@ extract_ioc_row(asn1p_t *tree, asn1typed_type_t *message,
 	}
 	symbol = ioc_value_symbol(cells[0]);
 	if(!symbol || !*symbol) goto bad_id;
-	name = !strncmp(symbol, "id-", 3) ? symbol + 3 : symbol;
+	/* Retain T3 source_name compatibility; naming owns the IOC convention. */
+	name = asn1typed_name_ioc_identity(symbol);
 	if(!*name) goto bad_id;
 	id = ioc_resolve(tree, cells[0], cells[0]->value->value.reference);
 	if(!id || id->meta_type != AMT_VALUE || !id->value ||
