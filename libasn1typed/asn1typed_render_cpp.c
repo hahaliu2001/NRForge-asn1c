@@ -65,24 +65,89 @@ clear_names(struct identifier *names, size_t count) {
 	free(names);
 }
 
+/* The only C++ safety pass, after T4 and before collision registration.
+ * Reject all leading underscores (including global-scope reserved forms) and
+ * double underscores anywhere. T4 currently cannot produce either form;
+ * keep the guard here so that C++ safety does not depend on that accident.
+ *
+ * Development evidence: probes with g++ -std=c++20 and <cstdint>/<string>
+ * found relevant standard-header names exposed by libstdc++'s transitive
+ * includes. errno expands nontrivially; stream macros are self-referential
+ * in that environment. Other implementations need not expose the same names
+ * or use the same expansions.
+ * Production policy: protect the explicit standard-header interface names
+ * below, including the complete C++20 <cerrno> synopsis, unconditionally.
+ * This bounds protection by standard interfaces relevant to the emitted
+ * headers, not by a dump of the development machine's macros. Escape even
+ * when no headers are needed so names never depend on other IR types.
+ * TYPE can retain capitals from one-letter tokens (E-O-F -> EOF), but cannot
+ * contain underscores. Include the reachable standard C object-like macros
+ * and FILE (a global typedef), not implementation-specific extension names.
+ * FIELD cannot contain capitals. Function-like macros do not expand in the
+ * declaration/reference positions emitted here. This bounded policy covers
+ * standard-header names. GNU/platform extensions, consumer/compiler macros
+ * outside this set and extra includes may require a later isolation strategy.
+ * Prefixing allows a collision with ordinary cpp-* source names; the caller
+ * must check the FINAL spelling. No #undef is emitted.
+ */
+static const char *
+cpp_identifier(char **slot) {
+	static const char *const header_names[] = {
+		"stdin", "stdout", "stderr", "BUFSIZ", "EOF", "NULL", "WEOF", "FILE",
+		/* C++20 draft N4861 [cerrno.syn], all listed macros, including errno:
+		 * https://timsong-cpp.github.io/cppwp/n4861/cerrno.syn
+		 * Standard synopsis entries only; no GNU/platform errno additions. */
+		"errno", "E2BIG", "EACCES", "EADDRINUSE", "EADDRNOTAVAIL",
+		"EAFNOSUPPORT", "EAGAIN", "EALREADY", "EBADF", "EBADMSG", "EBUSY",
+		"ECANCELED", "ECHILD", "ECONNABORTED", "ECONNREFUSED", "ECONNRESET",
+		"EDEADLK", "EDESTADDRREQ", "EDOM", "EEXIST", "EFAULT", "EFBIG",
+		"EHOSTUNREACH", "EIDRM", "EILSEQ", "EINPROGRESS", "EINTR", "EINVAL",
+		"EIO", "EISCONN", "EISDIR", "ELOOP", "EMFILE", "EMLINK", "EMSGSIZE",
+		"ENAMETOOLONG", "ENETDOWN", "ENETRESET", "ENETUNREACH", "ENFILE",
+		"ENOBUFS", "ENODATA", "ENODEV", "ENOENT", "ENOEXEC", "ENOLCK",
+		"ENOLINK", "ENOMEM", "ENOMSG", "ENOPROTOOPT", "ENOSPC", "ENOSR",
+		"ENOSTR", "ENOSYS", "ENOTCONN", "ENOTDIR", "ENOTEMPTY",
+		"ENOTRECOVERABLE", "ENOTSOCK", "ENOTSUP", "ENOTTY", "ENXIO",
+		"EOPNOTSUPP", "EOVERFLOW", "EOWNERDEAD", "EPERM", "EPIPE", "EPROTO",
+		"EPROTONOSUPPORT", "EPROTOTYPE", "ERANGE", "EROFS", "ESPIPE", "ESRCH",
+		"ETIME", "ETIMEDOUT", "ETXTBSY", "EWOULDBLOCK", "EXDEV"
+	};
+	char *name = *slot, *escaped;
+	size_t i, n = strlen(name);
+	if(keyword(name)) {
+		escaped = realloc(name, n + 2);
+		if(!escaped) return "out of memory";
+		*slot = name = escaped;
+		name[n++] = '_';
+		name[n] = '\0';
+	}
+	if(name[0] == '_' || strstr(name, "__"))
+		return "implementation-reserved C++ identifier";
+	for(i = 0; i < sizeof(header_names) / sizeof(header_names[0]); ++i) {
+		if(strcmp(name, header_names[i])) continue;
+		escaped = malloc(n + 5);
+		if(!escaped) return "out of memory";
+		memcpy(escaped, "cpp_", 4);
+		memcpy(escaped + 4, name, n + 1);
+		free(name);
+		*slot = escaped;
+		break;
+	}
+	return NULL;
+}
+
 /* Registration checks final spellings AND source keys. No generated name
  * ever goes back through T4; references reuse the declaration's spelling. */
 static const char *
 add_name(struct identifier *names, size_t index, const char *source,
 		asn1typed_name_style_e style) {
 	char *name = NULL;
-	size_t i, n;
+	const char *error;
+	size_t i;
 	if(asn1typed_name_make(source, style, &name) != ASN1TYPED_NAME_OK)
 		return "source identity naming failed";
-	if(keyword(name)) {
-		char *escaped;
-		n = strlen(name);
-		escaped = realloc(name, n + 2);
-		if(!escaped) { free(name); return "out of memory"; }
-		name = escaped;
-		name[n] = '_';
-		name[n + 1] = '\0';
-	}
+	error = cpp_identifier(&name);
+	if(error) { free(name); return error; }
 	for(i = 0; i < index; ++i) {
 		if(!strcmp(names[i].source, source)) {
 			free(name);
@@ -90,7 +155,7 @@ add_name(struct identifier *names, size_t index, const char *source,
 		}
 		if(!strcmp(names[i].name, name)) {
 			free(name);
-			return "C++ identifier collision after keyword escaping";
+			return "C++ identifier collision after safety transformation";
 		}
 	}
 	names[index].source = source;

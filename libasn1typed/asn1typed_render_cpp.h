@@ -15,8 +15,15 @@ extern "C" {
  * declarations in this module (dependency-ready order); recursion is rejected.
  * Supports primitive aliases, enums and mandatory sequences only. INTEGER's
  * int64_t mapping is a baseline, not a claim about unmodeled constraints.
- * Names are derived once from source identity, then keyword-escaped. Each
- * scope enforces one spelling per source identity and unique final spellings;
+ * Names pass once through T4 normalization, keyword suffix escaping (_),
+ * reserved-form rejection (leading _ or any __), and header-macro escaping
+ * (reachable standard C header names gain cpp_; see the implementation list).
+ * Development probes use g++ -std=c++20 with the emitted <cstdint>/<string>.
+ * The portable protection set is bounded by relevant standard-header
+ * interfaces, including the complete C++20 <cerrno> synopsis. GNU/platform
+ * extensions, consumer/compiler macros outside that set and extra headers
+ * are outside the contract and may require a later isolation strategy.
+ * Each scope enforces one spelling per source identity and unique final spellings;
  * duplicate declarations fail, even if their source identities are identical.
  * No files, namespaces, numeric enum values, constraints or codecs are emitted.
  */

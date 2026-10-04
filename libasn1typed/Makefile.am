@@ -14,7 +14,7 @@ libasn1typed_extract_la_LIBADD = \
 
 check_PROGRAMS = check_asn1typed check_asn1typed_extract check_asn1typed_name check_asn1typed_render_cpp
 TESTS = check_asn1typed check_asn1typed_extract check_asn1typed_name check_asn1typed_render_cpp.sh
-TESTS_ENVIRONMENT = CXX="$(CXX)"; export CXX;
+AM_TESTS_ENVIRONMENT = CXX="$(CXX)"; export CXX;
 check_asn1typed_render_cpp_SOURCES = check_asn1typed_render_cpp.c
 check_asn1typed_render_cpp_LDADD = libasn1typed.la
 check_asn1typed_name_SOURCES = check_asn1typed_name.c
