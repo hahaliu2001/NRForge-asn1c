@@ -104,6 +104,7 @@ asn1typed_type_clear(asn1typed_type_t *type) {
 	asn1typed_source_location_clear(&type->location);
 	for(i = 0; i < type->field_count; ++i) {
 		free(type->fields[i].source_name);
+		free(type->fields[i].ioc.symbolic_id);
 		asn1typed_type_ref_clear(&type->fields[i].type);
 		asn1typed_source_location_clear(&type->fields[i].location);
 	}
@@ -115,6 +116,24 @@ asn1typed_type_clear(asn1typed_type_t *type) {
 	}
 	free(type->enum_items);
 	memset(type, 0, sizeof(*type));
+}
+
+int
+asn1typed_field_set_ioc(asn1typed_field_t *field,
+		const char *symbolic_id, asn1typed_criticality_e criticality,
+		int has_numeric_id, intmax_t numeric_id) {
+	char *copy;
+	if(!field || !symbolic_id || !*symbolic_id ||
+		criticality < ASN1TYPED_CRITICALITY_REJECT ||
+		criticality > ASN1TYPED_CRITICALITY_NOTIFY) return -1;
+	copy = asn1typed_strdup(symbolic_id);
+	if(!copy) return -1;
+	free(field->ioc.symbolic_id);
+	field->ioc.symbolic_id = copy;
+	field->ioc.criticality = criticality;
+	field->ioc.has_numeric_id = !!has_numeric_id;
+	field->ioc.numeric_id = has_numeric_id ? numeric_id : 0;
+	return 0;
 }
 
 int

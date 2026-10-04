@@ -2,6 +2,7 @@
 #define ASN1TYPED_H
 
 #include <stddef.h>
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -51,11 +52,26 @@ typedef struct asn1typed_type_ref_s {
 	asn1typed_primitive_kind_e primitive_kind;
 } asn1typed_type_ref_t;
 
+typedef enum asn1typed_criticality_e {
+	ASN1TYPED_CRITICALITY_REJECT,
+	ASN1TYPED_CRITICALITY_IGNORE,
+	ASN1TYPED_CRITICALITY_NOTIFY
+} asn1typed_criticality_e;
+
+/* Codec metadata only. A NULL symbolic_id denotes an ordinary ASN.1 field. */
+typedef struct asn1typed_ioc_metadata_s {
+	char *symbolic_id;
+	asn1typed_criticality_e criticality;
+	int has_numeric_id;
+	intmax_t numeric_id;
+} asn1typed_ioc_metadata_t;
+
 typedef struct asn1typed_field_s {
 	char *source_name;
 	asn1typed_type_ref_t type;
 	asn1typed_presence_e presence;
 	asn1typed_source_location_t location;
+	asn1typed_ioc_metadata_t ioc;
 } asn1typed_field_t;
 
 typedef struct asn1typed_enum_item_s {
@@ -116,6 +132,9 @@ int asn1typed_type_add_primitive_field(asn1typed_type_t *type,
 int asn1typed_type_add_enum_item(asn1typed_type_t *type,
 		const char *source_name, const char *file, unsigned line);
 void asn1typed_type_clear(asn1typed_type_t *type);
+int asn1typed_field_set_ioc(asn1typed_field_t *field,
+		const char *symbolic_id, asn1typed_criticality_e criticality,
+		int has_numeric_id, intmax_t numeric_id);
 
 #ifdef __cplusplus
 }

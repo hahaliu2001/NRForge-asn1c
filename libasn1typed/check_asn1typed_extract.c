@@ -5,6 +5,8 @@
 #include <stdio.h>
 #include <string.h>
 
+void check_asn1typed_ioc(void);
+
 static asn1typed_type_t *
 find_type(asn1typed_module_t *module, const char *name) {
 	size_t i;
@@ -166,5 +168,6 @@ main(void) {
 	assert_ir_cleared(&ir);
 	asn1p_delete(tree);
 	puts("T2 ordinary ASN.1 extraction: PASS (IR valid after parser tree destruction)");
+	check_asn1typed_ioc();
 	return 0;
 }
