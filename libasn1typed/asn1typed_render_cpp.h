@@ -13,12 +13,14 @@ extern "C" {
  * Pass an empty output slot: existing allocations are not freed.
  * IR is borrowed and never changed. Named references must resolve to earlier
  * declarations in this module (dependency-ready order); recursion is rejected.
- * Supports primitive aliases, enums and mandatory sequences only. INTEGER's
+ * Supports primitive aliases, enums, mandatory/optional sequence fields and
+ * named SequenceOf aliases. Conditional presence is rejected. INTEGER's
  * int64_t mapping is a baseline, not a claim about unmodeled constraints.
  * Names pass once through T4 normalization, keyword suffix escaping (_),
  * reserved-form rejection (leading _ or any __), and header-macro escaping
  * (reachable standard C header names gain cpp_; see the implementation list).
- * Development probes use g++ -std=c++20 with the emitted <cstdint>/<string>.
+ * Development probes use g++ -std=c++20 with the emitted headers:
+ * <cstdint>, <optional>, <string>, <vector>.
  * The portable protection set is bounded by relevant standard-header
  * interfaces, including the complete C++20 <cerrno> synopsis. GNU/platform
  * extensions, consumer/compiler macros outside that set and extra headers

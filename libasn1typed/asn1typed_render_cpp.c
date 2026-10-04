@@ -75,6 +75,15 @@ clear_names(struct identifier *names, size_t count) {
  * includes. errno expands nontrivially; stream macros are self-referential
  * in that environment. Other implementations need not expose the same names
  * or use the same expansions.
+ * T6 assessment: C++20 N4861 [optional.syn] and [vector.syn] declare
+ * their interfaces within std (including std::pmr); their specified includes
+ * <compare>/<initializer_list> add no relevant global names or macros.
+ * A differential g++ -std=c++20 -dM -E probe adding <optional>/<vector>
+ * to <cstdint>/<string> found no additional non-underscore macros.
+ * Feature-test macros have reserved double underscores and cannot be emitted
+ * by our identifier pipeline. No portable protection-list extension is needed.
+ * https://timsong-cpp.github.io/cppwp/n4861/optional.syn
+ * https://timsong-cpp.github.io/cppwp/n4861/vector.syn
  * Production policy: protect the explicit standard-header interface names
  * below, including the complete C++20 <cerrno> synopsis, unconditionally.
  * This bounds protection by standard interfaces relevant to the emitted
@@ -175,13 +184,37 @@ primitive(asn1typed_primitive_kind_e kind, int *integer, int *string) {
 	}
 }
 
+/* Fields and SequenceOf elements share the same bounded resolution contract.
+ * Only earlier declarations are visible; never flatten a named alias. */
+static const char *
+resolve_reference(const asn1typed_type_ref_t *ref, const char *module,
+		const struct identifier *types, size_t count, int *integer,
+		int *string, const char **spelling) {
+	size_t k;
+	*spelling = NULL;
+	if(ref->kind == ASN1TYPED_REF_PRIMITIVE) {
+		*spelling = primitive(ref->primitive_kind, integer, string);
+		return *spelling ? NULL : "unsupported primitive kind";
+	}
+	if(ref->kind == ASN1TYPED_REF_NAMED && ref->module && ref->source_name
+			&& !strcmp(ref->module, module)) {
+		for(k = 0; k < count; ++k) {
+			if(!strcmp(ref->source_name, types[k].source)) {
+				*spelling = types[k].name;
+				return NULL;
+			}
+		}
+	}
+	return "unresolved reference: dependency-ready local IR order required";
+}
+
 int
 asn1typed_render_cpp(const asn1typed_module_t *module, char **out,
 		char *diagnostic, size_t diagnostic_size) {
 	struct text_buffer body = {0}, result = {0};
 	struct identifier *types = NULL, *members = NULL;
-	size_t i, j, k, member_count = 0;
-	int integer = 0, string = 0;
+	size_t i, j, member_count = 0;
+	int integer = 0, string = 0, optional = 0, vector = 0;
 	const char *error = "invalid renderer argument", *spelling;
 	char *module_name = NULL;
 #define EMIT(buffer, value) do { if(append(&(buffer), (value))) { \
@@ -213,8 +246,18 @@ asn1typed_render_cpp(const asn1typed_module_t *module, char **out,
 			EMIT(body, " = "); EMIT(body, spelling); EMIT(body, ";\n");
 			continue;
 		}
+		if(type->kind == ASN1TYPED_TYPE_SEQUENCE_OF) {
+			error = resolve_reference(&type->element_type, module->source_name,
+				types, i, &integer, &string, &spelling);
+			if(error) goto fail;
+			vector = 1;
+			EMIT(body, "using "); EMIT(body, types[i].name);
+			EMIT(body, " = std::vector<"); EMIT(body, spelling);
+			EMIT(body, ">;\n");
+			continue;
+		}
 		if(type->kind != ASN1TYPED_TYPE_SEQUENCE && type->kind != ASN1TYPED_TYPE_ENUMERATED) {
-			error = "unsupported type kind (including SequenceOf)"; goto fail;
+			error = "unsupported type kind"; goto fail;
 		}
 		member_count = type->kind == ASN1TYPED_TYPE_SEQUENCE ? type->field_count : type->enum_item_count;
 		if(member_count && (type->kind == ASN1TYPED_TYPE_SEQUENCE ? !type->fields : !type->enum_items)) {
@@ -234,24 +277,25 @@ asn1typed_render_cpp(const asn1typed_module_t *module, char **out,
 			} else {
 				const asn1typed_field_t *field = &type->fields[j];
 				const asn1typed_type_ref_t *ref = &field->type;
-				if(field->presence != ASN1TYPED_PRESENCE_MANDATORY) {
-					error = "unsupported field presence (Optional/Conditional)"; goto fail;
+				if(field->presence != ASN1TYPED_PRESENCE_MANDATORY &&
+						field->presence != ASN1TYPED_PRESENCE_OPTIONAL) {
+					error = "unsupported field presence (Conditional or invalid)"; goto fail;
 				}
 				error = add_name(members, j,
 					field->ioc.symbolic_id ? field->ioc.symbolic_id : field->source_name,
 					field->ioc.symbolic_id ? ASN1TYPED_NAME_IOC_FIELD : ASN1TYPED_NAME_FIELD);
 				if(error) goto fail;
-				spelling = NULL;
-				if(ref->kind == ASN1TYPED_REF_PRIMITIVE) {
-					spelling = primitive(ref->primitive_kind, &integer, &string);
-					if(!spelling) { error = "unsupported primitive kind"; goto fail; }
-				} else if(ref->kind == ASN1TYPED_REF_NAMED && ref->module && ref->source_name) {
-					for(k = 0; k < i; ++k)
-						if(!strcmp(ref->module, module->source_name) &&
-							!strcmp(ref->source_name, types[k].source)) { spelling = types[k].name; break; }
+				error = resolve_reference(ref, module->source_name, types, i,
+					&integer, &string, &spelling);
+				if(error) goto fail;
+				EMIT(body, "    ");
+				if(field->presence == ASN1TYPED_PRESENCE_OPTIONAL) {
+					optional = 1;
+					EMIT(body, "std::optional<");
 				}
-				if(!spelling) { error = "unresolved reference: dependency-ready local IR order required"; goto fail; }
-				EMIT(body, "    "); EMIT(body, spelling); EMIT(body, " ");
+				EMIT(body, spelling);
+				if(field->presence == ASN1TYPED_PRESENCE_OPTIONAL) EMIT(body, ">");
+				EMIT(body, " ");
 				EMIT(body, members[j].name); EMIT(body, ";\n");
 			}
 		}
@@ -259,8 +303,10 @@ asn1typed_render_cpp(const asn1typed_module_t *module, char **out,
 		clear_names(members, member_count); members = NULL; member_count = 0;
 	}
 	if(integer) EMIT(result, "#include <cstdint>\n");
+	if(optional) EMIT(result, "#include <optional>\n");
 	if(string) EMIT(result, "#include <string>\n");
-	if(integer || string) EMIT(result, "\n");
+	if(vector) EMIT(result, "#include <vector>\n");
+	if(integer || optional || string || vector) EMIT(result, "\n");
 	EMIT(result, body.data ? body.data : "");
 	free(body.data);
 	clear_names(types, module->type_count);

@@ -112,6 +112,135 @@ identifier_safety(void) {
 	asn1typed_module_clear(&m);
 }
 
+static void
+optional_sequence_of(void) {
+	static const char expected[] =
+		"#include <cstdint>\n"
+		"#include <optional>\n"
+		"#include <string>\n"
+		"#include <vector>\n\n"
+		"using ItemName = std::string;\n\n"
+		"struct Item {\n    ItemName name;\n};\n\n"
+		"using ItemList = std::vector<Item>;\n\n"
+		"using NumberList = std::vector<std::int64_t>;\n\n"
+		"struct Basket {\n"
+		"    ItemList items;\n"
+		"    std::optional<ItemList> backup_items;\n"
+		"    std::optional<std::int64_t> count;\n"
+		"    NumberList numbers;\n};\n";
+	asn1typed_module_t m = {0};
+	asn1typed_type_t *t;
+	asn1typed_type_ref_t *ref;
+	char *text = NULL, *again = NULL, *saved, diagnostic[256];
+	assert(asn1typed_module_init(&m, "Example", "test", 1) == 0);
+	alias(&m, "ItemName", ASN1TYPED_PRIMITIVE_UTF8_STRING);
+	t = add_type(&m, "Item", ASN1TYPED_TYPE_SEQUENCE);
+	field(t, "name", "ItemName");
+	t = add_type(&m, "ItemList", ASN1TYPED_TYPE_SEQUENCE_OF);
+	assert(asn1typed_type_set_element_type(t, "Example", "Item") == 0);
+	t = add_type(&m, "NumberList", ASN1TYPED_TYPE_SEQUENCE_OF);
+	assert(asn1typed_type_set_element_primitive(t, ASN1TYPED_PRIMITIVE_INTEGER) == 0);
+	t = add_type(&m, "Basket", ASN1TYPED_TYPE_SEQUENCE);
+	field(t, "items", "ItemList");
+	assert(asn1typed_type_add_field(t, "backupItems", "Example", "ItemList",
+		ASN1TYPED_PRESENCE_OPTIONAL, "test", 1) == 0);
+	assert(asn1typed_type_add_primitive_field(t, "count", ASN1TYPED_PRIMITIVE_INTEGER,
+		ASN1TYPED_PRESENCE_OPTIONAL, "test", 1) == 0);
+	field(t, "numbers", "NumberList");
+	assert(asn1typed_render_cpp(&m, &text, diagnostic, sizeof(diagnostic)) == 0);
+	assert(text && !diagnostic[0] && !strcmp(text, expected));
+	assert(asn1typed_render_cpp(&m, &again, diagnostic, sizeof(diagnostic)) == 0);
+	assert(again && text != again && !strcmp(text, again));
+	fputs(text, stdout);
+	free(text); free(again);
+	fprintf(stderr, "PASS T6 complete expected output and deterministic repeat\n");
+
+	ref = &m.types[2].element_type;
+	saved = ref->source_name;
+	ref->source_name = "Basket";
+	failure(&m, "SequenceOf forward element", "dependency-ready");
+	ref->source_name = "Missing";
+	failure(&m, "SequenceOf missing element", "dependency-ready");
+	ref->source_name = "ItemList";
+	failure(&m, "SequenceOf recursive element", "dependency-ready");
+	ref->source_name = NULL;
+	failure(&m, "SequenceOf invalid element identity", "dependency-ready");
+	ref->source_name = saved;
+	saved = ref->module;
+	ref->module = "Other";
+	failure(&m, "SequenceOf external element", "dependency-ready");
+	ref->module = saved;
+	ref->kind = (asn1typed_ref_kind_e)99;
+	failure(&m, "SequenceOf invalid reference kind", "dependency-ready");
+	ref->kind = ASN1TYPED_REF_NAMED;
+	m.types[3].element_type.primitive_kind = ASN1TYPED_PRIMITIVE_INVALID;
+	failure(&m, "SequenceOf unsupported primitive element", "unsupported primitive");
+	m.types[3].element_type.primitive_kind = ASN1TYPED_PRIMITIVE_INTEGER;
+
+	/* An earlier optional field must still obey dependency-ready ordering. */
+	m.types[1].fields[0].presence = ASN1TYPED_PRESENCE_OPTIONAL;
+	ref = &m.types[1].fields[0].type;
+	saved = ref->source_name;
+	ref->source_name = "ItemList";
+	failure(&m, "Optional forward dependency", "dependency-ready");
+	ref->source_name = "Missing";
+	failure(&m, "Optional missing dependency", "dependency-ready");
+	ref->source_name = saved;
+	saved = ref->module;
+	ref->module = "Other";
+	failure(&m, "Optional external dependency", "dependency-ready");
+	ref->module = saved;
+	asn1typed_module_clear(&m);
+}
+
+/* Exact minimal-include outputs also exercise named primitive identity and
+ * inline BOOLEAN. A test-only namespace avoids repeating T5's Age globally. */
+static void
+optional_alias_and_includes(void) {
+	asn1typed_module_t m = {0};
+	asn1typed_type_t *t;
+	char *text = NULL, diagnostic[256];
+	assert(asn1typed_module_init(&m, "Example", "test", 1) == 0);
+	alias(&m, "Age", ASN1TYPED_PRIMITIVE_INTEGER);
+	t = add_type(&m, "OptionalAge", ASN1TYPED_TYPE_SEQUENCE);
+	assert(asn1typed_type_add_field(t, "age", "Example", "Age",
+		ASN1TYPED_PRESENCE_OPTIONAL, "test", 1) == 0);
+	assert(asn1typed_render_cpp(&m, &text, diagnostic, sizeof(diagnostic)) == 0);
+	assert(text && !diagnostic[0] && !strcmp(text,
+		"#include <cstdint>\n#include <optional>\n\n"
+		"using Age = std::int64_t;\n\n"
+		"struct OptionalAge {\n    std::optional<Age> age;\n};\n"));
+	/* Headers already appeared in the actual T6 output before this wrapper. */
+	fputs("namespace alias_test {\n", stdout);
+	fputs(text, stdout);
+	fputs("}\n", stdout);
+	free(text);
+	asn1typed_module_clear(&m);
+
+	assert(asn1typed_module_init(&m, "Example", "test", 1) == 0);
+	t = add_type(&m, "OptionalFlag", ASN1TYPED_TYPE_SEQUENCE);
+	assert(asn1typed_type_add_primitive_field(t, "enabled", ASN1TYPED_PRIMITIVE_BOOLEAN,
+		ASN1TYPED_PRESENCE_OPTIONAL, "test", 1) == 0);
+	assert(asn1typed_render_cpp(&m, &text, diagnostic, sizeof(diagnostic)) == 0);
+	assert(text && !diagnostic[0] && !strcmp(text,
+		"#include <optional>\n\n"
+		"struct OptionalFlag {\n    std::optional<bool> enabled;\n};\n"));
+	fputs(text, stdout);
+	free(text);
+	asn1typed_module_clear(&m);
+
+	assert(asn1typed_module_init(&m, "Example", "test", 1) == 0);
+	t = add_type(&m, "Flags", ASN1TYPED_TYPE_SEQUENCE_OF);
+	assert(asn1typed_type_set_element_primitive(t, ASN1TYPED_PRIMITIVE_BOOLEAN) == 0);
+	assert(asn1typed_render_cpp(&m, &text, diagnostic, sizeof(diagnostic)) == 0);
+	assert(text && !diagnostic[0] && !strcmp(text,
+		"#include <vector>\n\nusing Flags = std::vector<bool>;\n"));
+	fputs(text, stdout);
+	free(text);
+	asn1typed_module_clear(&m);
+	fprintf(stderr, "PASS Optional named alias, inline primitive and minimal T6 includes\n");
+}
+
 int
 main(void) {
 	static const char expected[] =
@@ -170,13 +299,11 @@ main(void) {
 	fprintf(stderr, "PASS complete expected output and deterministic repeat\n");
 
 	t = &m.types[6];
-	t->fields[0].presence = ASN1TYPED_PRESENCE_OPTIONAL;
-	failure(&m, "Optional", "unsupported field presence");
 	t->fields[0].presence = ASN1TYPED_PRESENCE_CONDITIONAL;
 	failure(&m, "Conditional", "unsupported field presence");
 	t->fields[0].presence = ASN1TYPED_PRESENCE_MANDATORY;
 	m.types[7].kind = ASN1TYPED_TYPE_SEQUENCE_OF;
-	failure(&m, "SequenceOf", "unsupported type kind");
+	failure(&m, "SequenceOf missing element", "dependency-ready");
 	m.types[7].kind = ASN1TYPED_TYPE_SEQUENCE;
 	m.types[0].primitive_kind = ASN1TYPED_PRIMITIVE_INVALID;
 	failure(&m, "invalid primitive alias", "unsupported primitive");
@@ -237,6 +364,9 @@ main(void) {
 	free(text);
 	asn1typed_module_clear(&bad);
 	fprintf(stderr, "PASS minimal includes and empty module\n");
+	optional_sequence_of();
+	/* Compile identifier-safety declarations with the new headers present. */
 	identifier_safety();
+	optional_alias_and_includes();
 	return 0;
 }
