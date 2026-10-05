@@ -22,6 +22,12 @@ ProtocolIE-Field { SYNTHETIC-IES : IEs } ::= SEQUENCE {
   value SYNTHETIC-IES.&Value({IEs}{@id})
 }
 ProtocolIE-Container { SYNTHETIC-IES : IEs } ::= SEQUENCE OF ProtocolIE-Field {{IEs}}
+CorrelatedProtocolIE-Field { SYNTHETIC-IES : IEs } ::= SEQUENCE {
+  id SYNTHETIC-IES.&id({IEs}),
+  criticality SYNTHETIC-IES.&criticality({IEs}{@id}),
+  value SYNTHETIC-IES.&Value({IEs}{@id})
+}
+CorrelatedProtocolIE-Container { SYNTHETIC-IES : IEs } ::= SEQUENCE OF CorrelatedProtocolIE-Field {{IEs}}
 RegistrationIEs SYNTHETIC-IES ::= {
   { ID id-NodeID CRITICALITY reject TYPE NodeNumber PRESENCE mandatory } |
   { ID id-NodeName CRITICALITY ignore TYPE LabelText PRESENCE optional } |
@@ -30,6 +36,10 @@ RegistrationIEs SYNTHETIC-IES ::= {
 }
 Registration ::= SEQUENCE {
   protocolIEs ProtocolIE-Container { {RegistrationIEs} }
+}
+ExtensibleRegistration ::= SEQUENCE {
+  protocolIEs CorrelatedProtocolIE-Container { {RegistrationIEs} },
+  ...
 }
 -- Parser-valid counterexample: the supplied set is never used by the element.
 UnrelatedContainer { SYNTHETIC-IES : IEs } ::= SEQUENCE OF INTEGER

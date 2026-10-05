@@ -54,6 +54,25 @@ reject(asn1p_t *tree, const char *label, const char *expected) {
 	reject_message(tree, "Registration", label, expected);
 }
 
+static void
+reject_missing_correlated_relation(asn1p_t *tree, const char *field_name,
+		const char *label) {
+	asn1p_expr_t *decl = declaration(tree, "CorrelatedProtocolIE-Field"), *member;
+	const asn1p_constraint_t *ct = NULL;
+	asn1p_constraint_t *saved;
+	TQ_FOR(member, &decl->specializations.pspec[0].my_clone->members, next) {
+		if(!strcmp(member->Identifier, field_name)) {
+			ct = asn1p_get_component_relation_constraint(member->constraints);
+			break;
+		}
+	}
+	assert(ct && ct->el_count == 2 && ct->elements[1]);
+	saved = ct->elements[1];
+	ct->elements[1] = NULL;
+	reject_message(tree, "ExtensibleRegistration", label, "object-set association");
+	ct->elements[1] = saved;
+}
+
 void
 check_asn1typed_ioc(void) {
 	asn1p_t *tree = fixed_fixture();
@@ -76,6 +95,23 @@ check_asn1typed_ioc(void) {
 	};
 	set = declaration(tree, "RegistrationIEs");
 	assert(set->ioc_table && set->ioc_table->rows == 4);
+	{
+		asn1p_expr_t *extensible = declaration(tree, "ExtensibleRegistration");
+		asn1p_expr_t *payload = TQ_FIRST(&extensible->members);
+		asn1p_expr_t *marker = payload ? TQ_NEXT(payload, next) : NULL;
+		assert(payload && payload->expr_type == A1TC_REFERENCE);
+		assert(marker && marker->expr_type == A1TC_EXTENSIBLE);
+		assert(!TQ_NEXT(marker, next));
+		if(asn1typed_extract_message(tree, "SyntheticIOC", "ExtensibleRegistration",
+				&ir, error, sizeof(error))) {
+			fprintf(stderr, "T3 extension-marker association failed: %s\n", error);
+			assert(0);
+		}
+		assert(ir.types[0].field_count == 4);
+		assert(!strcmp(ir.types[0].fields[0].source_name, "NodeID"));
+		asn1typed_module_clear(&ir);
+		puts("T3 trailing sequence extension marker association: PASS");
+	}
 	if(asn1typed_extract_message(tree, "SyntheticIOC", "Registration",
 			&ir, error, sizeof(error))) {
 		fprintf(stderr, "T3 positive extraction failed: %s\n", error);
@@ -183,6 +219,29 @@ check_asn1typed_ioc(void) {
 		reject(tree, "different open-type object set", "object-set association");
 		ct->elements[0]->value = saved_setting;
 	}
+	{
+		asn1p_expr_t *decl = declaration(tree, "CorrelatedProtocolIE-Field"), *member;
+		const asn1p_constraint_t *ct = NULL;
+		asn1p_ref_t *ref;
+		char *saved_path;
+		TQ_FOR(member, &decl->specializations.pspec[0].my_clone->members, next) {
+			if(!strcmp(member->Identifier, "criticality")) {
+				ct = asn1p_get_component_relation_constraint(member->constraints);
+				break;
+			}
+		}
+		assert(ct && ct->el_count == 2);
+		ref = ct->elements[1]->value->value.reference;
+		saved_path = ref->components[0].name;
+		ref->components[0].name = "@value";
+		reject_message(tree, "ExtensibleRegistration", "wrong criticality id relation",
+			"object-set association");
+		ref->components[0].name = saved_path;
+	}
+	reject_missing_correlated_relation(tree, "criticality",
+		"missing criticality component relation");
+	reject_missing_correlated_relation(tree, "value",
+		"missing Value component relation");
 	{
 		asn1p_expr_t *saved = container->rhs_pspecs;
 		container->rhs_pspecs = NULL;

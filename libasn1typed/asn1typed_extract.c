@@ -368,7 +368,7 @@ static int
 validate_ioc_element(asn1p_t *tree, asn1p_expr_t *container, asn1p_expr_t *set) {
 	asn1p_expr_t *element = TQ_FIRST(&container->members), *body, *member;
 	asn1p_expr_t *class_expr, *id = NULL;
-	const asn1p_constraint_t *value_ct = NULL;
+	const asn1p_constraint_t *criticality_ct = NULL, *value_ct = NULL;
 	unsigned seen = 0;
 	if(!element || TQ_NEXT(element, next) || element->expr_type != A1TC_REFERENCE ||
 		ioc_actual_set(tree, element) != set) return -1;
@@ -394,24 +394,38 @@ validate_ioc_element(asn1p_t *tree, asn1p_expr_t *container, asn1p_expr_t *set) 
 		prefix.comp_count = 1;
 		prefix.ref_expr = NULL; /* Full reference denotes the field, not its class. */
 		if(ioc_resolve(tree, member, &prefix) != class_expr || !ct ||
-			ct->el_count != (bit == 4 ? 2u : 1u)) return -1;
+			(bit == 1 ? ct->el_count != 1u :
+			 bit == 2 ? (ct->el_count < 1u || ct->el_count > 2u) :
+			 ct->el_count != 2u)) return -1;
 		setting = ct->elements[0];
 		if(!setting || setting->type != ACT_EL_VALUE || setting->el_count ||
 			ioc_resolve(tree, member, ioc_set_reference(setting->value)) != set) return -1;
 		if(bit == 1) id = member;
+		if(bit == 2) criticality_ct = ct;
 		if(bit == 4) value_ct = ct;
 	}
-	if(seen != 7 || !id || !id->Identifier || !value_ct) return -1;
+	if(seen != 7 || !id || !id->Identifier || !criticality_ct || !value_ct) return -1;
 	{
-		const asn1p_constraint_t *at = value_ct->elements[1];
-		asn1p_ref_t *ref;
-		const char *path;
-		if(!at || at->type != ACT_EL_VALUE || at->el_count || !at->value ||
-			at->value->type != ATV_REFERENCED) return -1;
-		ref = at->value->value.reference;
-		if(!ref || ref->comp_count != 1 || !ref->components ||
-			!(path = ref->components[0].name) || path[0] != '@' ||
-			strcmp(path + 1, id->Identifier)) return -1;
+		const asn1p_constraint_t *relations[2];
+		size_t relation_count = 0;
+		size_t i;
+		if(criticality_ct->el_count == 2) {
+			if(!criticality_ct->elements[1]) return -1;
+			relations[relation_count++] = criticality_ct->elements[1];
+		}
+		if(!value_ct->elements[1]) return -1;
+		relations[relation_count++] = value_ct->elements[1];
+		for(i = 0; i < relation_count; ++i) {
+			const asn1p_constraint_t *at = relations[i];
+			asn1p_ref_t *ref;
+			const char *path;
+			if(at->type != ACT_EL_VALUE || at->el_count || !at->value ||
+				at->value->type != ATV_REFERENCED) return -1;
+			ref = at->value->value.reference;
+			if(!ref || ref->comp_count != 1 || !ref->components ||
+				!(path = ref->components[0].name) || path[0] != '@' ||
+				strcmp(path + 1, id->Identifier)) return -1;
+		}
 	}
 	return 0;
 }
@@ -421,11 +435,17 @@ validate_ioc_element(asn1p_t *tree, asn1p_expr_t *container, asn1p_expr_t *set) 
 static asn1p_expr_t *
 message_object_set(asn1p_t *tree, asn1p_expr_t *message) {
 	asn1p_expr_t *body = terminal_type(message);
-	asn1p_expr_t *field, *container, *set;
+	asn1p_expr_t *field, *marker, *container, *set;
 	if(!body || body->expr_type != ASN_CONSTR_SEQUENCE) return NULL;
 	field = TQ_FIRST(&body->members);
-	if(!field || TQ_NEXT(field, next) || field->marker.flags != EM_NOMARK ||
+	if(!field || field->marker.flags != EM_NOMARK ||
 		field->expr_type != A1TC_REFERENCE || !field->rhs_pspecs) return NULL;
+	/* An extension marker carries no payload and does not change which
+	 * parameterized field supplies the object-set association. Keep the shape
+	 * bounded to one trailing marker; other sequence members remain invalid. */
+	marker = TQ_NEXT(field, next);
+	if(marker && (marker->expr_type != A1TC_EXTENSIBLE ||
+		TQ_NEXT(marker, next))) return NULL;
 	container = terminal_type(ioc_resolve(tree, field, field->reference));
 	if(!container || container->expr_type != ASN_CONSTR_SEQUENCE_OF) return NULL;
 	set = ioc_actual_set(tree, field);
