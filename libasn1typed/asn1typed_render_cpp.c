@@ -184,28 +184,107 @@ primitive(asn1typed_primitive_kind_e kind, int *integer, int *string) {
 	}
 }
 
-/* Fields and SequenceOf elements share the same bounded resolution contract.
- * Only earlier declarations are visible; never flatten a named alias. */
+/* Resolve raw identities against the complete local table. Never flatten a
+ * named alias or normalize a generated spelling again. */
 static const char *
 resolve_reference(const asn1typed_type_ref_t *ref, const char *module,
 		const struct identifier *types, size_t count, int *integer,
-		int *string, const char **spelling) {
+		int *string, const char **spelling, size_t *dependency) {
 	size_t k;
 	*spelling = NULL;
+	if(dependency) *dependency = SIZE_MAX;
 	if(ref->kind == ASN1TYPED_REF_PRIMITIVE) {
 		*spelling = primitive(ref->primitive_kind, integer, string);
 		return *spelling ? NULL : "unsupported primitive kind";
 	}
-	if(ref->kind == ASN1TYPED_REF_NAMED && ref->module && ref->source_name
-			&& !strcmp(ref->module, module)) {
-		for(k = 0; k < count; ++k) {
-			if(!strcmp(ref->source_name, types[k].source)) {
-				*spelling = types[k].name;
-				return NULL;
-			}
+	if(ref->kind != ASN1TYPED_REF_NAMED)
+		return "invalid reference kind";
+	if(!ref->module || !ref->module[0] || !ref->source_name || !ref->source_name[0])
+		return "invalid named reference identity";
+	if(strcmp(ref->module, module)) return "external module reference unsupported";
+	for(k = 0; k < count; ++k) {
+		if(!strcmp(ref->source_name, types[k].source)) {
+			*spelling = types[k].name;
+			if(dependency) *dependency = k;
+			return NULL;
 		}
 	}
-	return "unresolved reference: dependency-ready local IR order required";
+	return "missing local declaration";
+}
+
+struct declaration_user {
+	size_t index;
+	struct declaration_user *next;
+};
+
+/* Private C++ declaration plan. Reverse edges use O(types + distinct edges)
+ * storage; scanning from index zero selects the smallest CURRENTLY ready node.
+ * SIZE_MAX marks selected nodes and the absence of a named dependency. */
+static const char *
+plan_declarations(const asn1typed_module_t *module,
+		const struct identifier *types, size_t *order) {
+	size_t n = module->type_count, i, j, step, dependency;
+	size_t *remaining = NULL, *seen = NULL;
+	struct declaration_user **users = NULL, *edge;
+	const char *error = "out of memory", *spelling;
+	int integer = 0, string = 0;
+	if(!n) return NULL;
+	remaining = calloc(n, sizeof(*remaining));
+	seen = calloc(n, sizeof(*seen));
+	users = calloc(n, sizeof(*users));
+	if(!remaining || !seen || !users) goto done;
+	for(i = 0; i < n; ++i) seen[i] = SIZE_MAX;
+	for(i = 0; i < n; ++i) {
+		const asn1typed_type_t *type = &module->types[i];
+		size_t count = 0;
+		switch(type->kind) {
+		case ASN1TYPED_TYPE_PRIMITIVE:
+		case ASN1TYPED_TYPE_ENUMERATED: break;
+		case ASN1TYPED_TYPE_SEQUENCE:
+			count = type->field_count;
+			if(count && !type->fields) {
+				error = "invalid member storage"; goto done;
+			}
+			break;
+		case ASN1TYPED_TYPE_SEQUENCE_OF: count = 1; break;
+		default: error = "unsupported type kind"; goto done;
+		}
+		for(j = 0; j < count; ++j) {
+			const asn1typed_type_ref_t *ref = type->kind == ASN1TYPED_TYPE_SEQUENCE
+				? &type->fields[j].type : &type->element_type;
+			error = resolve_reference(ref, module->source_name, types, n,
+				&integer, &string, &spelling, &dependency);
+			if(error) goto done;
+			if(dependency == SIZE_MAX || seen[dependency] == i) continue;
+			seen[dependency] = i;
+			edge = malloc(sizeof(*edge));
+			if(!edge) { error = "out of memory"; goto done; }
+			edge->index = i;
+			edge->next = users[dependency];
+			users[dependency] = edge;
+			++remaining[i];
+		}
+	}
+	for(step = 0; step < n; ++step) {
+		for(i = 0; i < n && remaining[i] != 0; ++i) {}
+		if(i == n) {
+			error = "cyclic or cyclically blocked declaration dependencies";
+			goto done;
+		}
+		order[step] = i;
+		remaining[i] = SIZE_MAX;
+		for(edge = users[i]; edge; edge = edge->next) --remaining[edge->index];
+	}
+	error = NULL;
+done:
+	if(users) for(i = 0; i < n; ++i) {
+		while((edge = users[i]) != NULL) {
+			users[i] = edge->next;
+			free(edge);
+		}
+	}
+	free(users); free(seen); free(remaining);
+	return error;
 }
 
 int
@@ -213,7 +292,8 @@ asn1typed_render_cpp(const asn1typed_module_t *module, char **out,
 		char *diagnostic, size_t diagnostic_size) {
 	struct text_buffer body = {0}, result = {0};
 	struct identifier *types = NULL, *members = NULL;
-	size_t i, j, member_count = 0;
+	size_t i, j, position, member_count = 0;
+	size_t *order = NULL;
 	int integer = 0, string = 0, optional = 0, vector = 0;
 	const char *error = "invalid renderer argument", *spelling;
 	char *module_name = NULL;
@@ -229,7 +309,8 @@ asn1typed_render_cpp(const asn1typed_module_t *module, char **out,
 	free(module_name);
 	if(module->type_count) {
 		types = calloc(module->type_count, sizeof(*types));
-		if(!types) { error = "out of memory"; goto fail; }
+		order = calloc(module->type_count, sizeof(*order));
+		if(!types || !order) { error = "out of memory"; goto fail; }
 	}
 	for(i = 0; i < module->type_count; ++i) {
 		const asn1typed_type_t *type = &module->types[i];
@@ -238,7 +319,14 @@ asn1typed_render_cpp(const asn1typed_module_t *module, char **out,
 		}
 		error = add_name(types, i, type->identity.source_name, ASN1TYPED_NAME_TYPE);
 		if(error) goto fail;
-		if(i) EMIT(body, "\n");
+	}
+	error = plan_declarations(module, types, order);
+	if(error) goto fail;
+	for(position = 0; position < module->type_count; ++position) {
+		const asn1typed_type_t *type;
+		i = order[position];
+		type = &module->types[i];
+		if(position) EMIT(body, "\n");
 		if(type->kind == ASN1TYPED_TYPE_PRIMITIVE) {
 			spelling = primitive(type->primitive_kind, &integer, &string);
 			if(!spelling) { error = "unsupported primitive kind"; goto fail; }
@@ -248,7 +336,7 @@ asn1typed_render_cpp(const asn1typed_module_t *module, char **out,
 		}
 		if(type->kind == ASN1TYPED_TYPE_SEQUENCE_OF) {
 			error = resolve_reference(&type->element_type, module->source_name,
-				types, i, &integer, &string, &spelling);
+				types, module->type_count, &integer, &string, &spelling, NULL);
 			if(error) goto fail;
 			vector = 1;
 			EMIT(body, "using "); EMIT(body, types[i].name);
@@ -285,8 +373,8 @@ asn1typed_render_cpp(const asn1typed_module_t *module, char **out,
 					field->ioc.symbolic_id ? field->ioc.symbolic_id : field->source_name,
 					field->ioc.symbolic_id ? ASN1TYPED_NAME_IOC_FIELD : ASN1TYPED_NAME_FIELD);
 				if(error) goto fail;
-				error = resolve_reference(ref, module->source_name, types, i,
-					&integer, &string, &spelling);
+				error = resolve_reference(ref, module->source_name, types, module->type_count,
+					&integer, &string, &spelling, NULL);
 				if(error) goto fail;
 				EMIT(body, "    ");
 				if(field->presence == ASN1TYPED_PRESENCE_OPTIONAL) {
@@ -309,12 +397,13 @@ asn1typed_render_cpp(const asn1typed_module_t *module, char **out,
 	if(integer || optional || string || vector) EMIT(result, "\n");
 	EMIT(result, body.data ? body.data : "");
 	free(body.data);
+	free(order);
 	clear_names(types, module->type_count);
 	*out = result.data;
 	return 0;
 fail:
 	if(diagnostic && diagnostic_size) snprintf(diagnostic, diagnostic_size, "%s", error);
-	free(body.data); free(result.data);
+	free(body.data); free(result.data); free(order);
 	clear_names(members, member_count);
 	clear_names(types, module ? module->type_count : 0);
 	return -1;

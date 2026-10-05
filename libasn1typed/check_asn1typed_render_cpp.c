@@ -158,37 +158,37 @@ optional_sequence_of(void) {
 	ref = &m.types[2].element_type;
 	saved = ref->source_name;
 	ref->source_name = "Basket";
-	failure(&m, "SequenceOf forward element", "dependency-ready");
+	failure(&m, "SequenceOf mutual cycle", "cyclic");
 	ref->source_name = "Missing";
-	failure(&m, "SequenceOf missing element", "dependency-ready");
+	failure(&m, "SequenceOf missing element", "missing local");
 	ref->source_name = "ItemList";
-	failure(&m, "SequenceOf recursive element", "dependency-ready");
+	failure(&m, "SequenceOf self cycle", "cyclic");
 	ref->source_name = NULL;
-	failure(&m, "SequenceOf invalid element identity", "dependency-ready");
+	failure(&m, "SequenceOf invalid element identity", "invalid named reference");
 	ref->source_name = saved;
 	saved = ref->module;
 	ref->module = "Other";
-	failure(&m, "SequenceOf external element", "dependency-ready");
+	failure(&m, "SequenceOf external element", "external module");
 	ref->module = saved;
 	ref->kind = (asn1typed_ref_kind_e)99;
-	failure(&m, "SequenceOf invalid reference kind", "dependency-ready");
+	failure(&m, "SequenceOf invalid reference kind", "invalid reference kind");
 	ref->kind = ASN1TYPED_REF_NAMED;
 	m.types[3].element_type.primitive_kind = ASN1TYPED_PRIMITIVE_INVALID;
 	failure(&m, "SequenceOf unsupported primitive element", "unsupported primitive");
 	m.types[3].element_type.primitive_kind = ASN1TYPED_PRIMITIVE_INTEGER;
 
-	/* An earlier optional field must still obey dependency-ready ordering. */
+	/* Optional edges participate in cycles exactly like mandatory edges. */
 	m.types[1].fields[0].presence = ASN1TYPED_PRESENCE_OPTIONAL;
 	ref = &m.types[1].fields[0].type;
 	saved = ref->source_name;
 	ref->source_name = "ItemList";
-	failure(&m, "Optional forward dependency", "dependency-ready");
+	failure(&m, "Optional SequenceOf mutual cycle", "cyclic");
 	ref->source_name = "Missing";
-	failure(&m, "Optional missing dependency", "dependency-ready");
+	failure(&m, "Optional missing dependency", "missing local");
 	ref->source_name = saved;
 	saved = ref->module;
 	ref->module = "Other";
-	failure(&m, "Optional external dependency", "dependency-ready");
+	failure(&m, "Optional external dependency", "external module");
 	ref->module = saved;
 	asn1typed_module_clear(&m);
 }
@@ -239,6 +239,187 @@ optional_alias_and_includes(void) {
 	free(text);
 	asn1typed_module_clear(&m);
 	fprintf(stderr, "PASS Optional named alias, inline primitive and minimal T6 includes\n");
+}
+
+/* Capture used IR storage and every owned string, including pointer identities.
+ * Comparing snapshots proves both byte content and array order are unchanged. */
+struct ir_snapshot { unsigned char bytes[32768]; size_t size; };
+
+static void
+snapshot_bytes(struct ir_snapshot *s, const void *p, size_t n) {
+	assert(n <= sizeof(s->bytes) - s->size);
+	if(n) memcpy(s->bytes + s->size, p, n);
+	s->size += n;
+}
+
+static void
+snapshot_string(struct ir_snapshot *s, const char *p) {
+	if(p) snapshot_bytes(s, p, strlen(p) + 1);
+}
+
+static void
+snapshot_ref(struct ir_snapshot *s, const asn1typed_type_ref_t *ref) {
+	snapshot_string(s, ref->module);
+	snapshot_string(s, ref->source_name);
+}
+
+static void
+snapshot_ir(struct ir_snapshot *s, const asn1typed_module_t *m) {
+	size_t i, j;
+	s->size = 0;
+	snapshot_bytes(s, m, sizeof(*m));
+	snapshot_string(s, m->source_name);
+	snapshot_string(s, m->location.file);
+	snapshot_bytes(s, m->types, m->type_count * sizeof(*m->types));
+	for(i = 0; i < m->type_count; ++i) {
+		const asn1typed_type_t *t = &m->types[i];
+		snapshot_string(s, t->identity.module);
+		snapshot_string(s, t->identity.source_name);
+		snapshot_string(s, t->location.file);
+		snapshot_ref(s, &t->element_type);
+		snapshot_bytes(s, t->fields, t->field_count * sizeof(*t->fields));
+		for(j = 0; j < t->field_count; ++j) {
+			snapshot_string(s, t->fields[j].source_name);
+			snapshot_ref(s, &t->fields[j].type);
+			snapshot_string(s, t->fields[j].location.file);
+			snapshot_string(s, t->fields[j].ioc.symbolic_id);
+		}
+		snapshot_bytes(s, t->enum_items, t->enum_item_count * sizeof(*t->enum_items));
+		for(j = 0; j < t->enum_item_count; ++j) {
+			snapshot_string(s, t->enum_items[j].source_name);
+			snapshot_string(s, t->enum_items[j].location.file);
+		}
+	}
+}
+
+static void
+assert_snapshot(const struct ir_snapshot *before, const asn1typed_module_t *m) {
+	struct ir_snapshot after;
+	snapshot_ir(&after, m);
+	assert(before->size == after.size);
+	assert(!memcmp(before->bytes, after.bytes, after.size));
+}
+
+static void
+ordered_success(asn1typed_module_t *m, const char *expected,
+		const char *wrapper, const char *label) {
+	struct ir_snapshot before;
+	char *text = NULL, *again = NULL, diagnostic[256];
+	snapshot_ir(&before, m);
+	assert(asn1typed_render_cpp(m, &text, diagnostic, sizeof(diagnostic)) == 0);
+	assert(text && !diagnostic[0] && !strcmp(text, expected));
+	assert_snapshot(&before, m);
+	assert(asn1typed_render_cpp(m, &again, diagnostic, sizeof(diagnostic)) == 0);
+	assert(again && !diagnostic[0] && !strcmp(text, again));
+	assert_snapshot(&before, m);
+	/* All needed headers have already appeared in the T5/T6 output. */
+	fputs(wrapper, stdout); fputs(text, stdout); fputs("}\n", stdout);
+	free(text); free(again);
+	fprintf(stderr, "PASS %s; exact order, repeat and unchanged IR\n", label);
+}
+
+static void
+declaration_planning(void) {
+	asn1typed_module_t m = {0};
+	asn1typed_type_t *t;
+	struct ir_snapshot before;
+	char *saved;
+	assert(asn1typed_module_init(&m, "Example", "test", 1) == 0);
+	t = add_type(&m, "Person", ASN1TYPED_TYPE_SEQUENCE);
+	field(t, "name", "PersonName");
+	field(t, "otherName", "PersonName"); /* distinct-edge deduplication */
+	alias(&m, "PersonName", ASN1TYPED_PRIMITIVE_UTF8_STRING);
+	alias(&m, "Independent", ASN1TYPED_PRIMITIVE_BOOLEAN);
+	ordered_success(&m,
+		"#include <string>\n\nusing PersonName = std::string;\n\n"
+		"struct Person {\n    PersonName name;\n    PersonName other_name;\n};\n\n"
+		"using Independent = bool;\n", "namespace forward_mandatory {\n",
+		"mandatory forward, duplicate edges and newly ready priority");
+	asn1typed_module_clear(&m);
+
+	assert(asn1typed_module_init(&m, "Example", "test", 1) == 0);
+	t = add_type(&m, "Container", ASN1TYPED_TYPE_SEQUENCE);
+	assert(asn1typed_type_add_field(t, "age", "Example", "Age",
+		ASN1TYPED_PRESENCE_OPTIONAL, "test", 1) == 0);
+	alias(&m, "Age", ASN1TYPED_PRIMITIVE_INTEGER);
+	ordered_success(&m,
+		"#include <cstdint>\n#include <optional>\n\nusing Age = std::int64_t;\n\n"
+		"struct Container {\n    std::optional<Age> age;\n};\n",
+		"namespace forward_optional {\n", "Optional forward");
+	asn1typed_module_clear(&m);
+
+	assert(asn1typed_module_init(&m, "Example", "test", 1) == 0);
+	t = add_type(&m, "ItemList", ASN1TYPED_TYPE_SEQUENCE_OF);
+	assert(asn1typed_type_set_element_type(t, "Example", "Item") == 0);
+	add_type(&m, "Item", ASN1TYPED_TYPE_SEQUENCE);
+	ordered_success(&m,
+		"#include <vector>\n\nstruct Item {\n};\n\nusing ItemList = std::vector<Item>;\n",
+		"namespace forward_vector {\n", "SequenceOf forward");
+	asn1typed_module_clear(&m);
+
+	/* Exact T3 type graph and extraction order; supported presence for Mode
+	 * permits an emission proof without exposing a production planner API. */
+	assert(asn1typed_module_init(&m, "Example", "test", 1) == 0);
+	t = add_type(&m, "Registration", ASN1TYPED_TYPE_SEQUENCE);
+	field(t, "NodeID", "NodeNumber");
+	assert(asn1typed_type_add_field(t, "NodeName", "Example", "LabelText",
+		ASN1TYPED_PRESENCE_OPTIONAL, "test", 1) == 0);
+	field(t, "Mode", "OperatingMode");
+	field(t, "Items", "ItemCollection");
+	assert(asn1typed_field_set_ioc(&t->fields[0], "id-NodeID",
+		ASN1TYPED_CRITICALITY_REJECT, 1, 11) == 0);
+	alias(&m, "NodeNumber", ASN1TYPED_PRIMITIVE_INTEGER);
+	alias(&m, "LabelText", ASN1TYPED_PRIMITIVE_UTF8_STRING);
+	t = add_type(&m, "OperatingMode", ASN1TYPED_TYPE_ENUMERATED);
+	item(t, "active"); item(t, "standby");
+	t = add_type(&m, "ItemCollection", ASN1TYPED_TYPE_SEQUENCE_OF);
+	assert(asn1typed_type_set_element_type(t, "Example", "Item") == 0);
+	t = add_type(&m, "Item", ASN1TYPED_TYPE_SEQUENCE);
+	assert(asn1typed_type_add_primitive_field(t, "count", ASN1TYPED_PRIMITIVE_INTEGER,
+		ASN1TYPED_PRESENCE_MANDATORY, "test", 1) == 0);
+	assert(asn1typed_type_add_field(t, "label", "Example", "LabelText",
+		ASN1TYPED_PRESENCE_OPTIONAL, "test", 1) == 0);
+	ordered_success(&m,
+		"#include <cstdint>\n#include <optional>\n#include <string>\n#include <vector>\n\n"
+		"using NodeNumber = std::int64_t;\n\nusing LabelText = std::string;\n\n"
+		"enum class OperatingMode {\n    active,\n    standby,\n};\n\n"
+		"struct Item {\n    std::int64_t count;\n    std::optional<LabelText> label;\n};\n\n"
+		"using ItemCollection = std::vector<Item>;\n\n"
+		"struct Registration {\n    NodeNumber node_id;\n    std::optional<LabelText> node_name;\n"
+		"    OperatingMode mode;\n    ItemCollection items;\n};\n",
+		"namespace t3_order {\n", "T3 equivalent graph ordering");
+	m.types[0].fields[2].presence = ASN1TYPED_PRESENCE_CONDITIONAL;
+	snapshot_ir(&before, &m);
+	failure(&m, "T3 Conditional after planning", "unsupported field presence");
+	assert_snapshot(&before, &m);
+	asn1typed_module_clear(&m);
+
+	assert(asn1typed_module_init(&m, "Example", "test", 1) == 0);
+	t = add_type(&m, "Blocked", ASN1TYPED_TYPE_SEQUENCE); field(t, "a", "A");
+	t = add_type(&m, "A", ASN1TYPED_TYPE_SEQUENCE); field(t, "b", "B");
+	t = add_type(&m, "B", ASN1TYPED_TYPE_SEQUENCE); field(t, "c", "C");
+	t = add_type(&m, "C", ASN1TYPED_TYPE_SEQUENCE); field(t, "a", "A");
+	snapshot_ir(&before, &m);
+	failure(&m, "three-node cycle with blocked user", "cyclic or cyclically blocked");
+	assert_snapshot(&before, &m);
+	asn1typed_module_clear(&m);
+
+	/* Generated AB must not be used as an alternative raw identity for aB. */
+	assert(asn1typed_module_init(&m, "Example", "test", 1) == 0);
+	t = add_type(&m, "User", ASN1TYPED_TYPE_SEQUENCE); field(t, "value", "aB");
+	alias(&m, "aB", ASN1TYPED_PRIMITIVE_BOOLEAN);
+	ordered_success(&m, "using AB = bool;\n\nstruct User {\n    AB value;\n};\n",
+		"namespace forward_identity {\n", "forward raw identity spelling reused");
+	saved = m.types[0].fields[0].type.source_name;
+	m.types[0].fields[0].type.source_name = "AB";
+	failure(&m, "generated spelling is not source identity", "missing local");
+	m.types[0].fields[0].type.source_name = saved;
+	/* Full-table collision must precede reference resolution. */
+	alias(&m, "A-B", ASN1TYPED_PRIMITIVE_BOOLEAN);
+	m.types[0].fields[0].type.source_name = "Missing";
+	failure(&m, "complete table detects later collision first", "collision after safety");
+	m.types[0].fields[0].type.source_name = saved;
+	asn1typed_module_clear(&m);
 }
 
 int
@@ -303,7 +484,7 @@ main(void) {
 	failure(&m, "Conditional", "unsupported field presence");
 	t->fields[0].presence = ASN1TYPED_PRESENCE_MANDATORY;
 	m.types[7].kind = ASN1TYPED_TYPE_SEQUENCE_OF;
-	failure(&m, "SequenceOf missing element", "dependency-ready");
+	failure(&m, "SequenceOf absent element identity", "invalid named reference");
 	m.types[7].kind = ASN1TYPED_TYPE_SEQUENCE;
 	m.types[0].primitive_kind = ASN1TYPED_PRIMITIVE_INVALID;
 	failure(&m, "invalid primitive alias", "unsupported primitive");
@@ -321,15 +502,15 @@ main(void) {
 	t->fields[1].source_name = saved;
 	saved = t->fields[0].type.source_name;
 	t->fields[0].type.source_name = "Household";
-	failure(&m, "forward dependency", "dependency-ready");
+	failure(&m, "Person Household mutual cycle", "cyclic");
 	t->fields[0].type.source_name = "Person";
-	failure(&m, "recursive dependency", "dependency-ready");
+	failure(&m, "Sequence self cycle", "cyclic");
 	t->fields[0].type.source_name = "Missing";
-	failure(&m, "missing dependency", "dependency-ready");
+	failure(&m, "missing dependency", "missing local");
 	t->fields[0].type.source_name = saved;
 	saved = t->fields[0].type.module;
 	t->fields[0].type.module = "Other";
-	failure(&m, "external dependency", "dependency-ready");
+	failure(&m, "external dependency", "external module");
 	t->fields[0].type.module = saved;
 	m.types[7].kind = (asn1typed_type_kind_e)99;
 	failure(&m, "unknown type kind", "unsupported type kind");
@@ -368,5 +549,6 @@ main(void) {
 	/* Compile identifier-safety declarations with the new headers present. */
 	identifier_safety();
 	optional_alias_and_includes();
+	declaration_planning();
 	return 0;
 }

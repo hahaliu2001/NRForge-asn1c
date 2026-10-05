@@ -11,8 +11,10 @@ extern "C" {
  * On success *out is NUL-terminated, caller-owned (free it). On failure
  * *out is NULL; diagnostic receives a message when non-NULL and size > 0.
  * Pass an empty output slot: existing allocations are not freed.
- * IR is borrowed and never changed. Named references must resolve to earlier
- * declarations in this module (dependency-ready order); recursion is rejected.
+ * IR is borrowed and never changed. Supported local acyclic declarations may
+ * appear in any order. A temporary dependency-first plan chooses the smallest
+ * original IR index among currently ready declarations. Missing/external
+ * references and cycles are rejected; no forward declarations are emitted.
  * Supports primitive aliases, enums, mandatory/optional sequence fields and
  * named SequenceOf aliases. Conditional presence is rejected. INTEGER's
  * int64_t mapping is a baseline, not a claim about unmodeled constraints.
