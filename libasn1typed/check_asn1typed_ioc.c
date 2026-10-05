@@ -3,9 +3,15 @@
 
 #include <assert.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
+#ifndef T4_FIXTURE
+#error T4_FIXTURE must name the cross-module fixture
+#endif
+
 void check_asn1typed_ioc(void);
+void check_asn1typed_multimodule(void);
 
 static asn1p_t *
 fixed_fixture(void) {
@@ -675,4 +681,119 @@ check_asn1typed_ioc(void) {
 	assert(!strcmp(ir.types[0].fields[2].source_name, "NodeID"));
 	asn1typed_module_clear(&ir);
 	puts("T3 variable row count/order and reordered columns: PASS");
+}
+
+static asn1typed_type_t *
+type_identity(asn1typed_module_t *ir, const char *module, const char *name) {
+	size_t i;
+	for(i = 0; i < ir->type_count; ++i)
+		if(!strcmp(ir->types[i].identity.module, module) &&
+			!strcmp(ir->types[i].identity.source_name, name)) return &ir->types[i];
+	return NULL;
+}
+
+static void
+rename_module_b_type_for_identity_test(asn1p_t *tree) {
+	asn1p_module_t *module;
+	asn1p_expr_t *decl;
+	TQ_FOR(module, &tree->modules, mod_next)
+		if(!strcmp(module->ModuleName, "ModuleB")) break;
+	assert(module);
+	TQ_FOR(decl, &module->members, next)
+		if(decl->Identifier && !strcmp(decl->Identifier, "TypeY")) break;
+	assert(decl);
+	/* The fixer rejects duplicate declarations across modules in this compact
+	 * fixture; rename after fixing to exercise owned identity/materialization. */
+	decl->Identifier = strdup("TypeX");
+	assert(decl->Identifier);
+}
+
+void
+check_asn1typed_multimodule(void) {
+	asn1p_t *tree = asn1p_parse_file(T4_FIXTURE, A1P_NOFLAGS);
+	asn1typed_module_t ir;
+	asn1typed_type_t *root, *a_type_x, *b_type, *b_type_x;
+	char error[256];
+	assert(tree && asn1f_process(tree, A1F_NOFLAGS, NULL) >= 0);
+	rename_module_b_type_for_identity_test(tree);
+	assert(asn1typed_extract_message(tree, "ModuleA", "Registration", &ir,
+		error, sizeof(error)) == 0);
+	asn1p_delete(tree);
+	assert(!strcmp(ir.source_name, "ModuleA"));
+	root = type_identity(&ir, "ModuleA", "Registration");
+	a_type_x = type_identity(&ir, "ModuleA", "TypeX");
+	b_type = type_identity(&ir, "ModuleB", "TypeB");
+	b_type_x = type_identity(&ir, "ModuleB", "TypeX");
+	assert(root && a_type_x && b_type && b_type_x);
+	assert(a_type_x != b_type_x && !strcmp(a_type_x->identity.source_name,
+		b_type_x->identity.source_name));
+	assert(!strcmp(root->fields[0].type.module, "ModuleA") &&
+		!strcmp(root->fields[0].type.source_name, "TypeX"));
+	assert(!strcmp(root->fields[1].type.module, "ModuleB") &&
+		!strcmp(root->fields[1].type.source_name, "TypeB"));
+	assert(b_type->field_count == 1 &&
+		!strcmp(b_type->fields[0].type.module, "ModuleB") &&
+		!strcmp(b_type->fields[0].type.source_name, "TypeX"));
+	assert(a_type_x->kind == ASN1TYPED_TYPE_PRIMITIVE &&
+		a_type_x->primitive_kind == ASN1TYPED_PRIMITIVE_INTEGER);
+	assert(b_type_x->kind == ASN1TYPED_TYPE_PRIMITIVE &&
+		b_type_x->primitive_kind == ASN1TYPED_PRIMITIVE_BOOLEAN);
+	assert(ir.type_count == 8);
+	asn1typed_module_clear(&ir);
+	puts("T4 cross-module identity, context, transitive closure, and parser ownership: PASS");
+
+	/* A failed external lookup after the first dependency was materialized
+	 * must discard the whole partially built closure. */
+	tree = asn1p_parse_file(T4_FIXTURE, A1P_NOFLAGS);
+	assert(tree && asn1f_process(tree, A1F_NOFLAGS, NULL) >= 0);
+	rename_module_b_type_for_identity_test(tree);
+	{
+		asn1p_module_t *module;
+		asn1p_expr_t *decl;
+		TQ_FOR(module, &tree->modules, mod_next)
+			if(!strcmp(module->ModuleName, "ModuleB")) break;
+		assert(module);
+		TQ_FOR(decl, &module->members, next)
+			if(decl->Identifier && !strcmp(decl->Identifier, "TypeB")) break;
+		assert(decl);
+		assert(TQ_REMOVE(&module->members, next) == decl);
+		assert(asn1typed_extract_message(tree, "ModuleA", "Registration", &ir,
+			error, sizeof(error)) == -1);
+		TQ_ADD(&module->members, decl, next);
+	}
+	assert(error[0] && strstr(error, "ModuleB.TypeB"));
+	assert(!ir.source_name && !ir.types && !ir.type_count);
+	asn1typed_module_clear(&ir);
+	asn1typed_module_clear(&ir);
+	asn1p_delete(tree);
+	puts("T4 cross-module missing declaration failure cleanup: PASS");
+
+	tree = asn1p_parse_file(T4_FIXTURE, A1P_NOFLAGS);
+	assert(tree && asn1f_process(tree, A1F_NOFLAGS, NULL) >= 0);
+	rename_module_b_type_for_identity_test(tree);
+	{
+		asn1p_module_t *module;
+		asn1p_expr_t *decl;
+		asn1p_module_t *saved_module;
+		asn1p_module_t missing_module;
+		TQ_FOR(module, &tree->modules, mod_next)
+			if(!strcmp(module->ModuleName, "ModuleB")) break;
+		assert(module);
+		TQ_FOR(decl, &module->members, next)
+			if(decl->Identifier && !strcmp(decl->Identifier, "TypeB")) break;
+		assert(decl);
+		memset(&missing_module, 0, sizeof(missing_module));
+		missing_module.ModuleName = "MissingModule";
+		saved_module = decl->module;
+		decl->module = &missing_module;
+		assert(asn1typed_extract_message(tree, "ModuleA", "Registration", &ir,
+			error, sizeof(error)) == -1);
+		decl->module = saved_module;
+	}
+	assert(error[0] && strstr(error, "module 'MissingModule' not found"));
+	assert(!ir.source_name && !ir.types && !ir.type_count);
+	asn1typed_module_clear(&ir);
+	asn1typed_module_clear(&ir);
+	asn1p_delete(tree);
+	puts("T4 cross-module missing module failure cleanup: PASS");
 }

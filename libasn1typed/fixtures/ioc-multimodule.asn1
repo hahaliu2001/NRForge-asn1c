@@ -1,0 +1,67 @@
+ModuleA DEFINITIONS AUTOMATIC TAGS ::= BEGIN
+IMPORTS TypeB FROM ModuleB;
+TypeX ::= INTEGER
+id-TypeB INTEGER ::= 55
+Criticality ::= ENUMERATED { reject, ignore, notify }
+Presence ::= ENUMERATED { mandatory, optional, conditional }
+NodeNumber ::= INTEGER
+LabelText ::= UTF8String
+OperatingMode ::= ENUMERATED { active, standby }
+Item ::= SEQUENCE { count INTEGER, label LabelText OPTIONAL }
+ItemCollection ::= SEQUENCE OF Item
+ChoiceOnlyDependency ::= SEQUENCE { marker INTEGER }
+NodeChoice ::= CHOICE {
+  first ChoiceOnlyDependency,
+  second ChoiceOnlyDependency,
+  flag BOOLEAN
+}
+id-NodeID INTEGER ::= 11
+id-NodeName INTEGER ::= 22
+id-Mode INTEGER ::= 33
+id-Items INTEGER ::= 44
+SYNTHETIC-IES ::= CLASS {
+  &id INTEGER UNIQUE,
+  &criticality Criticality,
+  &Value,
+  &presence Presence
+} WITH SYNTAX { ID &id CRITICALITY &criticality TYPE &Value PRESENCE &presence }
+ProtocolIE-Field { SYNTHETIC-IES : IEs } ::= SEQUENCE {
+  id SYNTHETIC-IES.&id({IEs}),
+  criticality SYNTHETIC-IES.&criticality({IEs}),
+  value SYNTHETIC-IES.&Value({IEs}{@id})
+}
+ProtocolIE-Container { SYNTHETIC-IES : IEs } ::= SEQUENCE OF ProtocolIE-Field {{IEs}}
+CorrelatedProtocolIE-Field { SYNTHETIC-IES : IEs } ::= SEQUENCE {
+  id SYNTHETIC-IES.&id({IEs}),
+  criticality SYNTHETIC-IES.&criticality({IEs}{@id}),
+  value SYNTHETIC-IES.&Value({IEs}{@id})
+}
+CorrelatedProtocolIE-Container { SYNTHETIC-IES : IEs } ::= SEQUENCE OF CorrelatedProtocolIE-Field {{IEs}}
+RegistrationIEs SYNTHETIC-IES ::= {
+  { ID id-NodeID CRITICALITY reject TYPE TypeX PRESENCE mandatory } |
+  { ID id-TypeB CRITICALITY reject TYPE TypeB PRESENCE mandatory } |
+  { ID id-NodeName CRITICALITY ignore TYPE LabelText PRESENCE optional } |
+  { ID id-Mode CRITICALITY notify TYPE OperatingMode PRESENCE conditional } |
+  { ID id-Items CRITICALITY reject TYPE ItemCollection PRESENCE mandatory }
+}
+Registration ::= SEQUENCE {
+  protocolIEs ProtocolIE-Container { {RegistrationIEs} }
+}
+ExtensibleRegistration ::= SEQUENCE {
+  protocolIEs CorrelatedProtocolIE-Container { {RegistrationIEs} },
+  ...
+}
+-- Parser-valid counterexample: the supplied set is never used by the element.
+UnrelatedContainer { SYNTHETIC-IES : IEs } ::= SEQUENCE OF INTEGER
+UnrelatedMessage ::= SEQUENCE {
+  payload UnrelatedContainer { {RegistrationIEs} }
+}
+OtherIEs SYNTHETIC-IES ::= {
+  { ID id-NodeID CRITICALITY reject TYPE NodeNumber PRESENCE mandatory }
+}
+END
+
+ModuleB DEFINITIONS AUTOMATIC TAGS ::= BEGIN
+TypeB ::= SEQUENCE { local TypeY }
+TypeY ::= BOOLEAN
+END

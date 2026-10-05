@@ -6,6 +6,7 @@
 #include <string.h>
 
 void check_asn1typed_ioc(void);
+void check_asn1typed_multimodule(void);
 
 static asn1typed_type_t *
 find_type(asn1typed_module_t *module, const char *name) {
@@ -232,5 +233,6 @@ main(void) {
 	asn1p_delete(tree);
 	puts("T2 ordinary ASN.1 extraction: PASS (IR valid after parser tree destruction)");
 	check_asn1typed_ioc();
+	check_asn1typed_multimodule();
 	return 0;
 }

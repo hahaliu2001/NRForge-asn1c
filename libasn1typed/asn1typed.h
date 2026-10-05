@@ -131,6 +131,10 @@ void asn1typed_module_clear(asn1typed_module_t *module);
 int asn1typed_module_add_type(asn1typed_module_t *module,
 		const char *source_name, asn1typed_type_kind_e kind,
 		const char *file, unsigned line, asn1typed_type_t **type_out);
+int asn1typed_module_add_type_identity(asn1typed_module_t *module,
+		const char *module_name, const char *source_name,
+		asn1typed_type_kind_e kind, const char *file, unsigned line,
+		asn1typed_type_t **type_out);
 int asn1typed_type_add_field(asn1typed_type_t *type,
 		const char *source_name, const char *ref_module,
 		const char *ref_source_name, asn1typed_presence_e presence,

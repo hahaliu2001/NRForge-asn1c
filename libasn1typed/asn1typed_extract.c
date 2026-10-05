@@ -672,31 +672,45 @@ bad_id:
 /* Add each reachable ordinary declaration once. The outer worklist handles
  * recursion without retaining a types-array pointer across reallocations. */
 static int
-add_ioc_dependency(asn1typed_module_t *out, asn1p_module_t *source,
+add_ioc_dependency(asn1p_t *tree, asn1typed_module_t *out,
 		const asn1typed_type_ref_t *ref, char *error, size_t error_size) {
+	asn1p_module_t *source = NULL, *module;
 	asn1p_expr_t *decl;
 	asn1typed_type_t *type;
 	asn1typed_type_kind_e kind;
+	const char *file;
 	size_t i;
 	if(ref->kind == ASN1TYPED_REF_PRIMITIVE) return 0;
-	if(!ref->module || !ref->source_name || strcmp(ref->module, source->ModuleName)) {
-		set_error(error, error_size, "IOC dependency outside selected module is unsupported");
+	if(!ref->module || !ref->source_name) {
+		set_error(error, error_size, "IOC dependency has incomplete module-qualified identity");
 		return -1;
 	}
 	for(i = 0; i < out->type_count; ++i)
-		if(!strcmp(out->types[i].identity.source_name, ref->source_name)) return 0;
+		if(!strcmp(out->types[i].identity.module, ref->module) &&
+			!strcmp(out->types[i].identity.source_name, ref->source_name)) return 0;
+	TQ_FOR(module, &tree->modules, mod_next)
+		if(module->ModuleName && !strcmp(module->ModuleName, ref->module)) {
+			source = module;
+			break;
+		}
+	if(!source) {
+		set_error(error, error_size, "IOC dependency module '%s' not found", ref->module);
+		return -1;
+	}
 	decl = named_declaration(source, ref->source_name);
 	if(!decl || decl->meta_type != AMT_TYPE || decl->lhs_params || decl->rhs_pspecs ||
 		(kind = kind_of_type(terminal_type(decl))) == (asn1typed_type_kind_e)-1) {
-		set_error(error, error_size, "unresolved or unsupported IOC dependency '%s'", ref->source_name);
+		set_error(error, error_size, "unresolved or unsupported IOC dependency '%s.%s'",
+			ref->module, ref->source_name);
 		return -1;
 	}
-	if(asn1typed_module_add_type(out, decl->Identifier, kind, out->location.file,
+	file = source->source_file_name ? source->source_file_name : out->location.file;
+	if(asn1typed_module_add_type_identity(out, ref->module, decl->Identifier, kind, file,
 			decl->_lineno > 0 ? (unsigned)decl->_lineno : 0, &type)) {
 		set_error(error, error_size, "out of memory storing IOC dependency");
 		return -1;
 	}
-	return populate_type(type, decl, out->location.file, error, error_size);
+	return populate_type(type, decl, file, error, error_size);
 }
 
 int
@@ -741,21 +755,21 @@ asn1typed_extract_message(asn1p_t *tree, const char *module_name,
 			goto fail;
 	for(i = 0; i < out->type_count; ++i) {
 		for(j = 0; j < out->types[i].field_count; ++j)
-			if(add_ioc_dependency(out, source, &out->types[i].fields[j].type,
+			if(add_ioc_dependency(tree, out, &out->types[i].fields[j].type,
 					error, error_size)) goto fail;
 		if(out->types[i].kind == ASN1TYPED_TYPE_CHOICE) {
 			for(j = 0; j < out->types[i].alternative_count; ++j) {
 				/* Adding a dependency may realloc the type array. */
 				asn1typed_type_ref_t ref =
 					out->types[i].alternatives[j].type_ref;
-				if(add_ioc_dependency(out, source, &ref, error, error_size))
+				if(add_ioc_dependency(tree, out, &ref, error, error_size))
 					goto fail;
 			}
 		}
 		if(out->types[i].kind == ASN1TYPED_TYPE_SEQUENCE_OF) {
 			/* element_type lives inside the reallocatable array: copy it first. */
 			asn1typed_type_ref_t ref = out->types[i].element_type;
-			if(add_ioc_dependency(out, source, &ref, error, error_size)) goto fail;
+			if(add_ioc_dependency(tree, out, &ref, error, error_size)) goto fail;
 		}
 	}
 	return 0;

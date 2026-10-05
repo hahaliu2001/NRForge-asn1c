@@ -175,12 +175,22 @@ int
 asn1typed_module_add_type(asn1typed_module_t *module,
 		const char *source_name, asn1typed_type_kind_e kind,
 		const char *file, unsigned line, asn1typed_type_t **type_out) {
+	if(!module) return -1;
+	return asn1typed_module_add_type_identity(module, module->source_name,
+		source_name, kind, file, line, type_out);
+}
+
+int
+asn1typed_module_add_type_identity(asn1typed_module_t *module,
+		const char *module_name, const char *source_name,
+		asn1typed_type_kind_e kind, const char *file, unsigned line,
+		asn1typed_type_t **type_out) {
 	asn1typed_type_t type;
-	if(!module || !module->source_name || !source_name || !file ||
+	if(!module || !module->source_name || !module_name || !source_name || !file ||
 		kind < ASN1TYPED_TYPE_PRIMITIVE || kind > ASN1TYPED_TYPE_CHOICE)
 		return -1;
 	memset(&type, 0, sizeof(type));
-	type.identity.module = asn1typed_strdup(module->source_name);
+	type.identity.module = asn1typed_strdup(module_name);
 	type.identity.source_name = asn1typed_strdup(source_name);
 	if(!type.identity.module || !type.identity.source_name) {
 		asn1typed_type_clear(&type);
