@@ -12,7 +12,8 @@ typedef enum asn1typed_type_kind_e {
 	ASN1TYPED_TYPE_PRIMITIVE,
 	ASN1TYPED_TYPE_SEQUENCE,
 	ASN1TYPED_TYPE_SEQUENCE_OF,
-	ASN1TYPED_TYPE_ENUMERATED
+	ASN1TYPED_TYPE_ENUMERATED,
+	ASN1TYPED_TYPE_CHOICE
 } asn1typed_type_kind_e;
 
 typedef enum asn1typed_presence_e {
@@ -84,6 +85,12 @@ typedef struct asn1typed_enum_item_s {
 	asn1typed_source_location_t location;
 } asn1typed_enum_item_t;
 
+typedef struct asn1typed_choice_alternative_s {
+	char *source_name;
+	asn1typed_type_ref_t type_ref;
+	asn1typed_source_location_t location;
+} asn1typed_choice_alternative_t;
+
 typedef struct asn1typed_type_s {
 	asn1typed_type_identity_t identity;
 	asn1typed_type_kind_e kind;
@@ -96,6 +103,9 @@ typedef struct asn1typed_type_s {
 	asn1typed_enum_item_t *enum_items;
 	size_t enum_item_count;
 	size_t enum_item_capacity;
+	asn1typed_choice_alternative_t *alternatives;
+	size_t alternative_count;
+	size_t alternative_capacity;
 } asn1typed_type_t;
 
 typedef struct asn1typed_module_s {
@@ -136,6 +146,9 @@ int asn1typed_type_add_primitive_field(asn1typed_type_t *type,
 		asn1typed_presence_e presence, const char *file, unsigned line);
 int asn1typed_type_add_enum_item(asn1typed_type_t *type,
 		const char *source_name, const char *file, unsigned line);
+int asn1typed_type_add_choice_alternative(asn1typed_type_t *type,
+		const char *source_name, const asn1typed_type_ref_t *type_ref,
+		const char *file, unsigned line);
 void asn1typed_type_clear(asn1typed_type_t *type);
 int asn1typed_field_set_ioc(asn1typed_field_t *field,
 		const char *symbolic_id, asn1typed_criticality_e criticality,

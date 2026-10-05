@@ -115,6 +115,12 @@ asn1typed_type_clear(asn1typed_type_t *type) {
 		asn1typed_source_location_clear(&type->enum_items[i].location);
 	}
 	free(type->enum_items);
+	for(i = 0; i < type->alternative_count; ++i) {
+		free(type->alternatives[i].source_name);
+		asn1typed_type_ref_clear(&type->alternatives[i].type_ref);
+		asn1typed_source_location_clear(&type->alternatives[i].location);
+	}
+	free(type->alternatives);
 	memset(type, 0, sizeof(*type));
 }
 
@@ -171,7 +177,7 @@ asn1typed_module_add_type(asn1typed_module_t *module,
 		const char *file, unsigned line, asn1typed_type_t **type_out) {
 	asn1typed_type_t type;
 	if(!module || !module->source_name || !source_name || !file ||
-		kind < ASN1TYPED_TYPE_PRIMITIVE || kind > ASN1TYPED_TYPE_ENUMERATED)
+		kind < ASN1TYPED_TYPE_PRIMITIVE || kind > ASN1TYPED_TYPE_CHOICE)
 		return -1;
 	memset(&type, 0, sizeof(type));
 	type.identity.module = asn1typed_strdup(module->source_name);
@@ -296,4 +302,34 @@ asn1typed_type_add_enum_item(asn1typed_type_t *type,
 	}
 	type->enum_items[type->enum_item_count++] = item;
 	return 0;
+}
+
+int
+asn1typed_type_add_choice_alternative(asn1typed_type_t *type,
+		const char *source_name, const asn1typed_type_ref_t *type_ref,
+		const char *file, unsigned line) {
+	asn1typed_choice_alternative_t alternative;
+	if(!type || type->kind != ASN1TYPED_TYPE_CHOICE || !source_name ||
+		!type_ref || !file) return -1;
+	memset(&alternative, 0, sizeof(alternative));
+	alternative.source_name = asn1typed_strdup(source_name);
+	if(!alternative.source_name) return -1;
+	if(type_ref->kind == ASN1TYPED_REF_PRIMITIVE) {
+		if(asn1typed_type_ref_init_primitive(&alternative.type_ref,
+				type_ref->primitive_kind)) goto fail;
+	} else if(type_ref->kind == ASN1TYPED_REF_NAMED) {
+		if(asn1typed_type_ref_init(&alternative.type_ref, type_ref->module,
+				type_ref->source_name)) goto fail;
+	} else goto fail;
+	if(asn1typed_source_location_init(&alternative.location, file, line) ||
+		asn1typed_reserve((void **)&type->alternatives,
+			&type->alternative_capacity, type->alternative_count + 1,
+			sizeof(*type->alternatives))) goto fail;
+	type->alternatives[type->alternative_count++] = alternative;
+	return 0;
+fail:
+	free(alternative.source_name);
+	asn1typed_type_ref_clear(&alternative.type_ref);
+	asn1typed_source_location_clear(&alternative.location);
+	return -1;
 }

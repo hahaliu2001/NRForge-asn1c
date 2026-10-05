@@ -82,6 +82,9 @@ check_asn1typed_ioc(void) {
 	asn1typed_type_t *message, *type;
 	asn1p_expr_t *set, *container;
 	asn1p_ioc_row_t *row;
+	asn1p_ref_t *choice_ref = NULL;
+	asn1p_expr_t *saved_choice_target = NULL;
+	char saved_choice_name[11];
 	char error[256];
 	size_t i;
 	const char *names[] = { "NodeID", "NodeName", "Mode", "Items" };
@@ -185,6 +188,57 @@ check_asn1typed_ioc(void) {
 	assert(!strcmp(type->fields[1].type.source_name, "LabelText"));
 	asn1typed_module_clear(&ir);
 	puts("T3 owned IOC IR after parser-tree destruction: PASS");
+	/* The only route to ChoiceOnlyDependency is through NodeChoice's two
+	 * alternatives. Both alternatives deliberately name the same dependency. */
+	tree = fixed_fixture();
+	set = declaration(tree, "RegistrationIEs");
+	{
+		struct asn1p_ioc_cell_s *value =
+			asn1p_ioc_row_cell_fetch(set->ioc_table->row[0], "&Value");
+		asn1p_expr_t *choice = declaration(tree, "NodeChoice");
+		asn1p_expr_t *setting = value ? value->value : NULL;
+		asn1p_ref_t *ref = setting ? setting->reference : NULL;
+		assert(ref && ref->comp_count == 1 && ref->components[0].name);
+		assert(strlen(choice->Identifier) == 10);
+		memcpy(saved_choice_name, ref->components[0].name,
+			sizeof(saved_choice_name));
+		choice_ref = ref;
+		saved_choice_target = ref->ref_expr;
+		memcpy(ref->components[0].name, choice->Identifier,
+			sizeof(saved_choice_name));
+		ref->ref_expr = choice;
+	}
+	if(asn1typed_extract_message(tree, "SyntheticIOC", "Registration",
+			&ir, error, sizeof(error))) {
+		fprintf(stderr, "T3 CHOICE dependency extraction failed: %s\n", error);
+		assert(0);
+	}
+	memcpy(choice_ref->components[0].name, saved_choice_name,
+		sizeof(saved_choice_name));
+	choice_ref->ref_expr = saved_choice_target;
+	asn1p_delete(tree);
+	assert(ir.type_count == 7);
+	assert(!strcmp(ir.types[0].identity.source_name, "Registration"));
+	type = type_named(&ir, "NodeChoice");
+	assert(type->kind == ASN1TYPED_TYPE_CHOICE && type->alternative_count == 3);
+	assert(!strcmp(type->alternatives[0].type_ref.source_name,
+		"ChoiceOnlyDependency"));
+	assert(!strcmp(type->alternatives[1].type_ref.source_name,
+		"ChoiceOnlyDependency"));
+	assert(type->alternatives[2].type_ref.kind == ASN1TYPED_REF_PRIMITIVE);
+	assert(type->alternatives[2].type_ref.primitive_kind ==
+		ASN1TYPED_PRIMITIVE_BOOLEAN);
+	type = type_named(&ir, "ChoiceOnlyDependency");
+	assert(type->kind == ASN1TYPED_TYPE_SEQUENCE);
+	{
+		size_t count = 0;
+		for(i = 0; i < ir.type_count; ++i)
+			if(!strcmp(ir.types[i].identity.source_name,
+					"ChoiceOnlyDependency")) ++count;
+		assert(count == 1);
+	}
+	asn1typed_module_clear(&ir);
+	puts("T3 CHOICE-only dependency closure and deduplication: PASS");
 	{
 		struct asn1p_ioc_cell_s *presence_cell;
 		asn1p_expr_t *setting;

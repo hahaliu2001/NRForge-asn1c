@@ -58,6 +58,7 @@ kind_of_type(asn1p_expr_t *expr) {
 	switch(expr->expr_type) {
 	case ASN_CONSTR_SEQUENCE: return ASN1TYPED_TYPE_SEQUENCE;
 	case ASN_CONSTR_SEQUENCE_OF: return ASN1TYPED_TYPE_SEQUENCE_OF;
+	case ASN_CONSTR_CHOICE: return ASN1TYPED_TYPE_CHOICE;
 	case ASN_BASIC_ENUMERATED: return ASN1TYPED_TYPE_ENUMERATED;
 	default:
 		if(primitive_from_expr(expr) != ASN1TYPED_PRIMITIVE_INVALID)
@@ -227,6 +228,45 @@ populate_type(asn1typed_type_t *out, asn1p_expr_t *decl,
 					decl->Identifier);
 				return -1;
 			}
+		}
+		return 0;
+	case ASN1TYPED_TYPE_CHOICE:
+		TQ_FOR(member, &body->members, next) {
+			asn1typed_type_ref_t ref;
+			if(!member->Identifier) {
+				set_error(error, error_size,
+					"%s: unnamed CHOICE alternative at line %d",
+					decl->Identifier, member->_lineno);
+				return -1;
+			}
+			/* The current reference IR has no place for an actual parameter. */
+			if(member->rhs_pspecs) {
+				set_error(error, error_size,
+					"%s.%s: parameterized CHOICE alternative reference is unsupported",
+					decl->Identifier, member->Identifier);
+				return -1;
+			}
+			memset(&ref, 0, sizeof(ref));
+			if(put_ref(&ref, member)) {
+				set_error(error, error_size,
+					"%s.%s: unsupported or unresolved CHOICE alternative type at line %d",
+					decl->Identifier, member->Identifier, member->_lineno);
+				return -1;
+			}
+			if(asn1typed_type_add_choice_alternative(out, member->Identifier,
+					&ref, file, member->_lineno)) {
+				asn1typed_type_ref_clear(&ref);
+				set_error(error, error_size,
+					"%s.%s: could not store CHOICE alternative",
+					decl->Identifier, member->Identifier);
+				return -1;
+			}
+			asn1typed_type_ref_clear(&ref);
+		}
+		if(!out->alternative_count) {
+			set_error(error, error_size, "%s: empty CHOICE is unsupported",
+				decl->Identifier);
+			return -1;
 		}
 		return 0;
 	default:
@@ -703,6 +743,15 @@ asn1typed_extract_message(asn1p_t *tree, const char *module_name,
 		for(j = 0; j < out->types[i].field_count; ++j)
 			if(add_ioc_dependency(out, source, &out->types[i].fields[j].type,
 					error, error_size)) goto fail;
+		if(out->types[i].kind == ASN1TYPED_TYPE_CHOICE) {
+			for(j = 0; j < out->types[i].alternative_count; ++j) {
+				/* Adding a dependency may realloc the type array. */
+				asn1typed_type_ref_t ref =
+					out->types[i].alternatives[j].type_ref;
+				if(add_ioc_dependency(out, source, &ref, error, error_size))
+					goto fail;
+			}
+		}
 		if(out->types[i].kind == ASN1TYPED_TYPE_SEQUENCE_OF) {
 			/* element_type lives inside the reallocatable array: copy it first. */
 			asn1typed_type_ref_t ref = out->types[i].element_type;

@@ -48,7 +48,7 @@ main(void) {
 	asn1typed_type_t *type;
 	char error[256];
 	const char unsupported[] = "Unsupported DEFINITIONS ::= BEGIN\n"
-		"Bad ::= CHOICE { a INTEGER }\nEND\n";
+		"Bad ::= CHOICE { a OCTET STRING }\nEND\n";
 	const char bad_builtin[] = "BadFields DEFINITIONS ::= BEGIN\n"
 		"Bad ::= SEQUENCE { data OCTET STRING }\nEND\n";
 	const char extension[] = "ExtTest DEFINITIONS ::= BEGIN\n"
@@ -59,13 +59,15 @@ main(void) {
 		"Bad ::= SEQUENCE { color ENUMERATED { red, green } }\nEND\n";
 	const char unresolved[] = "Unresolved DEFINITIONS ::= BEGIN\n"
 		"Target ::= INTEGER\nBad ::= SEQUENCE { value Target }\nEND\n";
+	const char malformed_choice[] = "BadChoice DEFINITIONS ::= BEGIN\n"
+		"Label ::= UTF8String\nBad ::= CHOICE { first BOOLEAN, second Label }\nEND\n";
 	size_t i;
 	const char *items[] = { "v32", "v64", "v128", "v256" };
 	assert(tree != NULL);
 	assert(asn1f_process(tree, A1F_NOFLAGS, NULL) >= 0);
 	assert(asn1typed_extract_module(tree, "OrdinaryTypes", &ir,
 		error, sizeof(error)) == 0);
-	assert(ir.type_count == 8);
+	assert(ir.type_count == 10);
 	assert(strcmp(ir.source_name, "OrdinaryTypes") == 0);
 	assert(ir.location.file && ir.location.file[0]);
 	assert(ir.location.line > 0);
@@ -119,6 +121,18 @@ main(void) {
 	type = find_type(&ir, "BoundedPersonList");
 	assert(type && type->kind == ASN1TYPED_TYPE_SEQUENCE_OF);
 	assert(strcmp(type->element_type.source_name, "Person") == 0);
+	type = find_type(&ir, "SimpleChoice");
+	assert(type && type->kind == ASN1TYPED_TYPE_CHOICE);
+	assert(type->alternative_count == 2);
+	assert(strcmp(type->alternatives[0].source_name, "label") == 0);
+	assert(type->alternatives[0].type_ref.kind == ASN1TYPED_REF_NAMED);
+	assert(strcmp(type->alternatives[0].type_ref.module, "OrdinaryTypes") == 0);
+	assert(strcmp(type->alternatives[0].type_ref.source_name, "LabelText") == 0);
+	assert(strcmp(type->alternatives[1].source_name, "flag") == 0);
+	assert(type->alternatives[1].type_ref.kind == ASN1TYPED_REF_PRIMITIVE);
+	assert(type->alternatives[1].type_ref.primitive_kind == ASN1TYPED_PRIMITIVE_BOOLEAN);
+	assert(type->alternatives[0].location.file && type->alternatives[0].location.line > 0);
+	assert(type->alternatives[1].location.file && type->alternatives[1].location.line > 0);
 
 	type = find_type(&ir, "PagingDRX");
 	assert(type && type->kind == ASN1TYPED_TYPE_ENUMERATED);
@@ -143,6 +157,55 @@ main(void) {
 	expect_rejected(extension, "ExtTest");
 	expect_rejected(default_value, "DefaultTest");
 	expect_rejected(inline_enum, "InlineEnum");
+	/* A valid first alternative followed by a broken one exercises partial
+	 * CHOICE construction cleanup. */
+	tree = asn1p_parse_buffer(malformed_choice, -1, "bad-choice.asn", 1,
+		A1P_NOFLAGS);
+	assert(tree != NULL);
+	assert(asn1f_process(tree, A1F_NOFLAGS, NULL) >= 0);
+	{
+		asn1p_module_t *module = TQ_FIRST(&tree->modules);
+		asn1p_expr_t *decl;
+		asn1p_expr_t *alternative;
+		assert(module != NULL);
+		for(decl = TQ_FIRST(&module->members); decl;
+			decl = TQ_NEXT(decl, next))
+			if(decl->Identifier && !strcmp(decl->Identifier, "Bad")) break;
+		assert(decl != NULL);
+		alternative = TQ_FIRST(&decl->members);
+		assert(alternative != NULL);
+		alternative->Identifier = NULL;
+	}
+	assert(asn1typed_extract_module(tree, "BadChoice", &ir,
+		error, sizeof(error)) != 0);
+	assert(strstr(error, "unnamed CHOICE alternative") != NULL);
+	assert_ir_cleared(&ir);
+	asn1p_delete(tree);
+	/* Fail after one owned alternative when its named reference is unresolved. */
+	tree = asn1p_parse_buffer(malformed_choice, -1, "bad-choice.asn", 1,
+		A1P_NOFLAGS);
+	assert(tree != NULL);
+	assert(asn1f_process(tree, A1F_NOFLAGS, NULL) >= 0);
+	{
+		asn1p_module_t *module = TQ_FIRST(&tree->modules);
+		asn1p_expr_t *decl;
+		asn1p_expr_t *alternative;
+		assert(module != NULL);
+		for(decl = TQ_FIRST(&module->members); decl;
+			decl = TQ_NEXT(decl, next))
+			if(decl->Identifier && !strcmp(decl->Identifier, "Bad")) break;
+		assert(decl != NULL);
+		alternative = TQ_FIRST(&decl->members);
+		assert(alternative != NULL);
+		alternative = TQ_NEXT(alternative, next);
+		assert(alternative && alternative->reference);
+		alternative->reference->ref_expr = NULL;
+	}
+	assert(asn1typed_extract_module(tree, "BadChoice", &ir,
+		error, sizeof(error)) != 0);
+	assert(strstr(error, "unresolved CHOICE alternative") != NULL);
+	assert_ir_cleared(&ir);
+	asn1p_delete(tree);
 
 	/* Simulate a fixed-tree reference whose semantic target is unavailable. */
 	tree = asn1p_parse_buffer(unresolved, -1, "unresolved-t2.asn", 1,

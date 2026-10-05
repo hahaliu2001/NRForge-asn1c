@@ -6,6 +6,12 @@ LabelText ::= UTF8String
 OperatingMode ::= ENUMERATED { active, standby }
 Item ::= SEQUENCE { count INTEGER, label LabelText OPTIONAL }
 ItemCollection ::= SEQUENCE OF Item
+ChoiceOnlyDependency ::= SEQUENCE { marker INTEGER }
+NodeChoice ::= CHOICE {
+  first ChoiceOnlyDependency,
+  second ChoiceOnlyDependency,
+  flag BOOLEAN
+}
 id-NodeID INTEGER ::= 11
 id-NodeName INTEGER ::= 22
 id-Mode INTEGER ::= 33

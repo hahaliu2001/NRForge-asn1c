@@ -15,6 +15,12 @@ Person ::= SEQUENCE {
 PersonList ::= SEQUENCE OF Person
 BoundedPersonList ::= SEQUENCE (SIZE(1..256)) OF Person
 
+LabelText ::= UTF8String
+SimpleChoice ::= CHOICE {
+	label LabelText,
+	flag BOOLEAN
+}
+
 PagingDRX ::= ENUMERATED {
     v32,
     v64,
