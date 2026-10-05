@@ -365,9 +365,11 @@ asn1typed_render_cpp(const asn1typed_module_t *module, char **out,
 			} else {
 				const asn1typed_field_t *field = &type->fields[j];
 				const asn1typed_type_ref_t *ref = &field->type;
+				int optional_storage = field->presence == ASN1TYPED_PRESENCE_OPTIONAL
+					|| field->presence == ASN1TYPED_PRESENCE_CONDITIONAL;
 				if(field->presence != ASN1TYPED_PRESENCE_MANDATORY &&
-						field->presence != ASN1TYPED_PRESENCE_OPTIONAL) {
-					error = "unsupported field presence (Conditional or invalid)"; goto fail;
+						!optional_storage) {
+					error = "unsupported field presence (invalid)"; goto fail;
 				}
 				error = add_name(members, j,
 					field->ioc.symbolic_id ? field->ioc.symbolic_id : field->source_name,
@@ -377,12 +379,12 @@ asn1typed_render_cpp(const asn1typed_module_t *module, char **out,
 					&integer, &string, &spelling, NULL);
 				if(error) goto fail;
 				EMIT(body, "    ");
-				if(field->presence == ASN1TYPED_PRESENCE_OPTIONAL) {
+				if(optional_storage) {
 					optional = 1;
 					EMIT(body, "std::optional<");
 				}
 				EMIT(body, spelling);
-				if(field->presence == ASN1TYPED_PRESENCE_OPTIONAL) EMIT(body, ">");
+				if(optional_storage) EMIT(body, ">");
 				EMIT(body, " ");
 				EMIT(body, members[j].name); EMIT(body, ";\n");
 			}

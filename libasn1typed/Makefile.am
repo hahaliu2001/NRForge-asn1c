@@ -12,8 +12,8 @@ libasn1typed_extract_la_LIBADD = \
 	$(top_builddir)/libasn1parser/libasn1parser.la \
 	$(top_builddir)/libasn1common/libasn1common.la
 
-check_PROGRAMS = check_asn1typed check_asn1typed_extract check_asn1typed_name check_asn1typed_render_cpp
-TESTS = check_asn1typed check_asn1typed_extract check_asn1typed_name check_asn1typed_render_cpp.sh
+check_PROGRAMS = check_asn1typed_ioc_cpp check_asn1typed check_asn1typed_extract check_asn1typed_name check_asn1typed_render_cpp
+TESTS = check_asn1typed_ioc_cpp.sh check_asn1typed check_asn1typed_extract check_asn1typed_name check_asn1typed_render_cpp.sh
 AM_TESTS_ENVIRONMENT = CXX="$(CXX)"; export CXX;
 check_asn1typed_render_cpp_SOURCES = check_asn1typed_render_cpp.c
 check_asn1typed_render_cpp_LDADD = libasn1typed.la
@@ -30,3 +30,9 @@ check_asn1typed_extract_LDADD = \
 	$(top_builddir)/libasn1common/libasn1common.la
 
 EXTRA_DIST = check_asn1typed_render_cpp.sh fixtures/ordinary-t2.asn1 fixtures/ioc-t3.asn1
+
+# Only the integration test links extraction/parser/fixer with the renderer.
+check_asn1typed_ioc_cpp_SOURCES = check_asn1typed_ioc_cpp.c
+check_asn1typed_ioc_cpp_CPPFLAGS = $(check_asn1typed_extract_CPPFLAGS)
+check_asn1typed_ioc_cpp_LDADD = $(check_asn1typed_extract_LDADD)
+EXTRA_DIST += check_asn1typed_ioc_cpp.sh

@@ -319,6 +319,27 @@ ordered_success(asn1typed_module_t *m, const char *expected,
 }
 
 static void
+conditional_storage(void) {
+	asn1typed_module_t m = {0};
+	asn1typed_type_t *t;
+	assert(asn1typed_module_init(&m, "Example", "test", 1) == 0);
+	t = add_type(&m, "ConditionalStorage", ASN1TYPED_TYPE_SEQUENCE);
+	assert(asn1typed_type_add_field(t, "mode", "Example", "OperatingMode",
+		ASN1TYPED_PRESENCE_CONDITIONAL, "test", 1) == 0);
+	assert(asn1typed_type_add_primitive_field(t, "count", ASN1TYPED_PRIMITIVE_INTEGER,
+		ASN1TYPED_PRESENCE_CONDITIONAL, "test", 1) == 0);
+	t = add_type(&m, "OperatingMode", ASN1TYPED_TYPE_ENUMERATED);
+	item(t, "active"); item(t, "standby");
+	ordered_success(&m,
+		"#include <cstdint>\n#include <optional>\n\n"
+		"enum class OperatingMode {\n    active,\n    standby,\n};\n\n"
+		"struct ConditionalStorage {\n    std::optional<OperatingMode> mode;\n"
+		"    std::optional<std::int64_t> count;\n};\n",
+		"namespace conditional_storage {\n", "Conditional named enum and inline INTEGER");
+	asn1typed_module_clear(&m);
+}
+
+static void
 declaration_planning(void) {
 	asn1typed_module_t m = {0};
 	asn1typed_type_t *t;
@@ -388,9 +409,9 @@ declaration_planning(void) {
 		"struct Registration {\n    NodeNumber node_id;\n    std::optional<LabelText> node_name;\n"
 		"    OperatingMode mode;\n    ItemCollection items;\n};\n",
 		"namespace t3_order {\n", "T3 equivalent graph ordering");
-	m.types[0].fields[2].presence = ASN1TYPED_PRESENCE_CONDITIONAL;
+	m.types[0].fields[2].presence = (asn1typed_presence_e)99;
 	snapshot_ir(&before, &m);
-	failure(&m, "T3 Conditional after planning", "unsupported field presence");
+	failure(&m, "invalid presence after planning", "unsupported field presence");
 	assert_snapshot(&before, &m);
 	asn1typed_module_clear(&m);
 
@@ -480,8 +501,8 @@ main(void) {
 	fprintf(stderr, "PASS complete expected output and deterministic repeat\n");
 
 	t = &m.types[6];
-	t->fields[0].presence = ASN1TYPED_PRESENCE_CONDITIONAL;
-	failure(&m, "Conditional", "unsupported field presence");
+	t->fields[0].presence = (asn1typed_presence_e)99;
+	failure(&m, "invalid presence", "unsupported field presence");
 	t->fields[0].presence = ASN1TYPED_PRESENCE_MANDATORY;
 	m.types[7].kind = ASN1TYPED_TYPE_SEQUENCE_OF;
 	failure(&m, "SequenceOf absent element identity", "invalid named reference");
@@ -550,5 +571,6 @@ main(void) {
 	identifier_safety();
 	optional_alias_and_includes();
 	declaration_planning();
+	conditional_storage();
 	return 0;
 }

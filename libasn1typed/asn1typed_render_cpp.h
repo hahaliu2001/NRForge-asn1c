@@ -15,8 +15,16 @@ extern "C" {
  * appear in any order. A temporary dependency-first plan chooses the smallest
  * original IR index among currently ready declarations. Missing/external
  * references and cycles are rejected; no forward declarations are emitted.
- * Supports primitive aliases, enums, mandatory/optional sequence fields and
- * named SequenceOf aliases. Conditional presence is rejected. INTEGER's
+ * Supports primitive aliases, enums, mandatory/optional/conditional sequence
+ * fields and named SequenceOf aliases. Mandatory fields use T; Optional and
+ * Conditional both use std::optional<T> for generated storage presence only.
+ * Optional and Conditional remain distinct production IR semantics. This
+ * renderer does not evaluate Conditional predicates, validate condition-dependent
+ * presence, enforce protocol presence rules, or infer semantic presence from
+ * std::optional<T>. Future validated codec/protocol processing must use
+ * authoritative IR-derived presence metadata plus condition rules/context,
+ * and fail closed when a Conditional rule is unavailable or cannot be evaluated.
+ * No such validation is implemented here. INTEGER's
  * int64_t mapping is a baseline, not a claim about unmodeled constraints.
  * Names pass once through T4 normalization, keyword suffix escaping (_),
  * reserved-form rejection (leading _ or any __), and header-macro escaping
