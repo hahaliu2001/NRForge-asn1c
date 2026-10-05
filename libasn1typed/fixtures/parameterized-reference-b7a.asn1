@@ -1,0 +1,41 @@
+ParameterizedReferenceB7A DEFINITIONS ::= BEGIN
+
+B7A-CLASS ::= CLASS { &id INTEGER }
+SetA B7A-CLASS ::= { { &id 1 } }
+SetB B7A-CLASS ::= { { &id 2 } }
+
+Target { B7A-CLASS : Items } ::= CHOICE {
+	selected BOOLEAN
+}
+
+Named ::= INTEGER
+OrdinaryUse ::= CHOICE { selected Named }
+
+UseA ::= CHOICE { selected Target {{SetA}} }
+UseAAgain ::= CHOICE { selected Target {{SetA}} }
+UseB ::= CHOICE { selected Target {{SetB}} }
+
+BadSequence ::= SEQUENCE { field Target {{SetA}} }
+BadSequenceOf ::= SEQUENCE OF Target {{SetA}}
+
+B7A-Criticality ::= ENUMERATED { reject, ignore, notify }
+B7A-Presence ::= ENUMERATED { mandatory, optional, conditional }
+B7A-IES ::= CLASS {
+	&id INTEGER UNIQUE,
+	&criticality B7A-Criticality,
+	&Value,
+	&presence B7A-Presence
+} WITH SYNTAX { ID &id CRITICALITY &criticality TYPE &Value PRESENCE &presence }
+id-root INTEGER ::= 1
+B7A-Field { B7A-IES : IEs } ::= SEQUENCE {
+	id B7A-IES.&id({IEs}),
+	criticality B7A-IES.&criticality({IEs}{@id}),
+	value B7A-IES.&Value({IEs}{@id})
+}
+B7A-Container { B7A-IES : IEs } ::= SEQUENCE OF B7A-Field {{IEs}}
+RootIEs B7A-IES ::= {
+	{ ID id-root CRITICALITY reject TYPE UseA PRESENCE mandatory }
+}
+RootMessage ::= SEQUENCE { protocolIEs B7A-Container {{RootIEs}} }
+
+END

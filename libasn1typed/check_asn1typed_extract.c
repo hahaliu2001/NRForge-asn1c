@@ -3,7 +3,12 @@
 
 #include <assert.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
+
+#ifndef T5_FIXTURE
+#define T5_FIXTURE "fixtures/parameterized-reference-b7a.asn1"
+#endif
 
 void check_asn1typed_ioc(void);
 void check_asn1typed_multimodule(void);
@@ -42,6 +47,167 @@ expect_rejected(const char *source, const char *module_name) {
 	asn1p_delete(tree);
 }
 
+static asn1p_expr_t *fixture_declaration(asn1p_t *tree, const char *name);
+
+static void
+check_parameterized_reference_identity(void) {
+	asn1p_t *tree = asn1p_parse_file(T5_FIXTURE, A1P_NOFLAGS);
+	asn1p_expr_t *bad_sequence, *bad_sequence_of;
+	asn1p_expr_t *root_field, *root_container, *root_message;
+	asn1typed_module_t ir;
+	asn1typed_type_t *a, *again, *b;
+	char error[256];
+	assert(tree != NULL);
+	assert(asn1f_process(tree, A1F_NOFLAGS, NULL) >= 0);
+	bad_sequence = fixture_declaration(tree, "BadSequence");
+	bad_sequence_of = fixture_declaration(tree, "BadSequenceOf");
+	root_field = fixture_declaration(tree, "B7A-Field");
+	root_container = fixture_declaration(tree, "B7A-Container");
+	root_message = fixture_declaration(tree, "RootMessage");
+	assert(bad_sequence && bad_sequence_of && root_field && root_container && root_message);
+	bad_sequence->meta_type = AMT_VALUE;
+	bad_sequence_of->meta_type = AMT_VALUE;
+	root_field->meta_type = AMT_VALUE;
+	root_container->meta_type = AMT_VALUE;
+	root_message->meta_type = AMT_VALUE;
+	assert(asn1typed_extract_module(tree, "ParameterizedReferenceB7A", &ir,
+		error, sizeof(error)) == 0);
+	/* The owned binding must not depend on the parser/fixer tree. */
+	asn1p_delete(tree);
+	a = find_type(&ir, "UseA");
+	again = find_type(&ir, "UseAAgain");
+	b = find_type(&ir, "UseB");
+	assert(a && again && b);
+	assert(a->alternatives[0].type_ref.actual_count == 1);
+	assert(again->alternatives[0].type_ref.actual_count == 1);
+	assert(b->alternatives[0].type_ref.actual_count == 1);
+	assert(!strcmp(a->alternatives[0].type_ref.module, "ParameterizedReferenceB7A"));
+	assert(!strcmp(a->alternatives[0].type_ref.source_name, "Target"));
+	assert(!strcmp(a->alternatives[0].type_ref.actuals[0].module,
+		"ParameterizedReferenceB7A"));
+	assert(!strcmp(a->alternatives[0].type_ref.actuals[0].source_name, "SetA"));
+	assert(a->alternatives[0].type_ref.actuals[0].kind ==
+		ASN1TYPED_ACTUAL_OBJECT_SET_REFERENCE);
+	assert(asn1typed_type_ref_equal(&a->alternatives[0].type_ref,
+		&again->alternatives[0].type_ref));
+	assert(!asn1typed_type_ref_equal(&a->alternatives[0].type_ref,
+		&b->alternatives[0].type_ref));
+	assert(!strcmp(b->alternatives[0].type_ref.actuals[0].source_name, "SetB"));
+	assert(a->alternatives[0].type_ref.actual_count == 1);
+	assert(again->alternatives[0].type_ref.actual_count == 1);
+	assert(b->alternatives[0].type_ref.actual_count == 1);
+	assert(a->alternatives[0].type_ref.kind == ASN1TYPED_REF_NAMED);
+	assert(a->alternatives[0].type_ref.actual_count != 0);
+	assert(find_type(&ir, "OrdinaryUse")->alternatives[0].type_ref.actual_count == 0);
+	asn1typed_module_clear(&ir);
+}
+
+static asn1p_expr_t *
+fixture_declaration(asn1p_t *tree, const char *name) {
+	asn1p_module_t *module;
+	asn1p_expr_t *decl;
+	TQ_FOR(module, &tree->modules, mod_next)
+		TQ_FOR(decl, &module->members, next)
+			if(decl->Identifier && !strcmp(decl->Identifier, name)) return decl;
+	return NULL;
+}
+
+static asn1p_ref_t *
+fixture_actual_ref(asn1p_expr_t *decl) {
+	asn1p_expr_t *alternative = TQ_FIRST(&decl->members);
+	asn1p_expr_t *parameter = alternative && alternative->rhs_pspecs ?
+		TQ_FIRST(&alternative->rhs_pspecs->members) : NULL;
+	asn1p_value_t *value;
+	asn1p_constraint_t *constraint;
+	asn1p_expr_t *expr;
+	assert(parameter && parameter->constraints &&
+		parameter->constraints->type == ACT_EL_TYPE);
+	value = parameter->constraints->containedSubtype;
+	assert(value);
+	if(value->type == ATV_REFERENCED) return value->value.reference;
+	if(value->type == ATV_TYPE) {
+		expr = value->value.v_type;
+		assert(expr && expr->expr_type == A1TC_REFERENCE && expr->reference);
+		return expr->reference;
+	}
+	assert(value->type == ATV_VALUESET && (constraint = value->value.constraint) &&
+		constraint->containedSubtype);
+	value = constraint->containedSubtype;
+	assert(value->type == ATV_REFERENCED && value->value.reference);
+	return value->value.reference;
+}
+
+static void
+expect_bad_parameterized_actual(int failure_kind) {
+	asn1p_t *tree = asn1p_parse_file(T5_FIXTURE, A1P_NOFLAGS);
+	asn1p_expr_t *decl;
+	asn1p_expr_t *alternative, *parameter;
+	asn1p_ref_t *ref;
+	asn1typed_module_t ir;
+	char error[256];
+	assert(tree && asn1f_process(tree, A1F_NOFLAGS, NULL) >= 0);
+	decl = fixture_declaration(tree, "UseA");
+	assert(decl);
+	alternative = TQ_FIRST(&decl->members);
+	parameter = TQ_FIRST(&alternative->rhs_pspecs->members);
+	if(failure_kind == 2) {
+		/* A setting with the wrong representation must fail closed. */
+		parameter->constraints->type = ACT_CA_SET;
+	} else {
+		ref = fixture_actual_ref(decl);
+		free(ref->components[0].name);
+		ref->components[0].name = strdup(failure_kind == 0 ? "MissingSet" : "Named");
+		assert(ref->components[0].name);
+		ref->ref_expr = NULL;
+	}
+	assert(asn1typed_extract_module(tree, "ParameterizedReferenceB7A", &ir,
+		error, sizeof(error)) != 0);
+	assert(error[0]);
+	assert(ir.source_name == NULL && ir.types == NULL && ir.type_count == 0);
+	asn1typed_module_clear(&ir);
+	asn1typed_module_clear(&ir);
+	asn1p_delete(tree);
+}
+
+static void
+expect_rejected_parameterized_shape(const char *bad_name,
+		const char *other_name, const char *expected_error) {
+	asn1p_t *tree = asn1p_parse_file(T5_FIXTURE, A1P_NOFLAGS);
+	asn1p_expr_t *bad, *other;
+	asn1typed_module_t ir;
+	char error[256];
+	assert(tree && asn1f_process(tree, A1F_NOFLAGS, NULL) >= 0);
+	bad = fixture_declaration(tree, bad_name);
+	other = fixture_declaration(tree, other_name);
+	assert(bad && other);
+	other->meta_type = AMT_VALUE;
+	assert(asn1typed_extract_module(tree, "ParameterizedReferenceB7A", &ir,
+		error, sizeof(error)) != 0);
+	assert(error[0] && strstr(error, expected_error));
+	assert(ir.source_name == NULL && ir.types == NULL && ir.type_count == 0);
+	asn1typed_module_clear(&ir);
+	asn1typed_module_clear(&ir);
+	asn1p_delete(tree);
+}
+
+static void
+check_parameterized_closure_rejected(void) {
+	asn1p_t *tree = asn1p_parse_file(T5_FIXTURE, A1P_NOFLAGS);
+	asn1typed_module_t ir;
+	char error[256];
+	assert(tree && asn1f_process(tree, A1F_NOFLAGS, NULL) >= 0);
+	assert(asn1typed_extract_message(tree, "ParameterizedReferenceB7A",
+		"RootMessage", &ir, error, sizeof(error)) != 0);
+	assert(strstr(error, "parameterized dependency") != NULL);
+	assert(strstr(error, "ParameterizedReferenceB7A.Target") != NULL);
+	assert(strstr(error, "ParameterizedReferenceB7A.SetA") != NULL);
+	assert(strstr(error, "is not materialized") != NULL);
+	assert(ir.source_name == NULL && ir.types == NULL && ir.type_count == 0);
+	asn1typed_module_clear(&ir);
+	asn1typed_module_clear(&ir);
+	asn1p_delete(tree);
+}
+
 int
 main(void) {
 	asn1p_t *tree = asn1p_parse_file(T2_FIXTURE, A1P_NOFLAGS);
@@ -64,6 +230,15 @@ main(void) {
 		"Label ::= UTF8String\nBad ::= CHOICE { first BOOLEAN, second Label }\nEND\n";
 	size_t i;
 	const char *items[] = { "v32", "v64", "v128", "v256" };
+	check_parameterized_reference_identity();
+	expect_bad_parameterized_actual(0); /* unresolved object set */
+	expect_bad_parameterized_actual(1); /* resolves to a type, not a set */
+	expect_bad_parameterized_actual(2); /* unsupported setting representation */
+	expect_rejected_parameterized_shape("BadSequence", "BadSequenceOf",
+		"parameterized SEQUENCE field reference");
+	expect_rejected_parameterized_shape("BadSequenceOf", "BadSequence",
+		"parameterized SEQUENCE OF element reference");
+	check_parameterized_closure_rejected();
 	assert(tree != NULL);
 	assert(asn1f_process(tree, A1F_NOFLAGS, NULL) >= 0);
 	assert(asn1typed_extract_module(tree, "OrdinaryTypes", &ir,

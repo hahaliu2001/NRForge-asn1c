@@ -101,6 +101,10 @@ put_ref(asn1typed_type_ref_t *ref, asn1p_expr_t *expr) {
 	return -1;
 }
 
+static int put_parameterized_object_set_ref(asn1p_t *tree,
+		asn1typed_type_ref_t *ref, asn1p_expr_t *use,
+		char *error, size_t error_size);
+
 static int
 add_field(asn1typed_type_t *type, asn1p_expr_t *field,
 		const char *file, const char *module, char *error, size_t error_size) {
@@ -110,6 +114,12 @@ add_field(asn1typed_type_t *type, asn1p_expr_t *field,
 	if(!field->Identifier) {
 		set_error(error, error_size, "%s: unnamed SEQUENCE component at line %d",
 			module, field->_lineno);
+		return -1;
+	}
+	if(field->rhs_pspecs) {
+		set_error(error, error_size,
+			"%s.%s: parameterized SEQUENCE field reference is unsupported",
+			module, field->Identifier);
 		return -1;
 	}
 	marker_flags = field->marker.flags;
@@ -155,7 +165,7 @@ add_field(asn1typed_type_t *type, asn1p_expr_t *field,
 }
 
 static int
-populate_type(asn1typed_type_t *out, asn1p_expr_t *decl,
+populate_type(asn1p_t *tree, asn1typed_type_t *out, asn1p_expr_t *decl,
 		const char *file, char *error, size_t error_size) {
 	asn1p_expr_t *body = terminal_type(decl);
 	asn1p_expr_t *member;
@@ -191,6 +201,12 @@ populate_type(asn1typed_type_t *out, asn1p_expr_t *decl,
 		member = TQ_FIRST(&body->members);
 		if(!member || TQ_NEXT(member, next)) {
 			set_error(error, error_size, "%s: malformed SEQUENCE OF element",
+				decl->Identifier);
+			return -1;
+		}
+		if(member->rhs_pspecs) {
+			set_error(error, error_size,
+				"%s: parameterized SEQUENCE OF element reference is unsupported",
 				decl->Identifier);
 			return -1;
 		}
@@ -239,15 +255,11 @@ populate_type(asn1typed_type_t *out, asn1p_expr_t *decl,
 					decl->Identifier, member->_lineno);
 				return -1;
 			}
-			/* The current reference IR has no place for an actual parameter. */
-			if(member->rhs_pspecs) {
-				set_error(error, error_size,
-					"%s.%s: parameterized CHOICE alternative reference is unsupported",
-					decl->Identifier, member->Identifier);
-				return -1;
-			}
 			memset(&ref, 0, sizeof(ref));
-			if(put_ref(&ref, member)) {
+			if(member->rhs_pspecs ?
+				put_parameterized_object_set_ref(tree, &ref,
+					member, error, error_size) : put_ref(&ref, member)) {
+				if(member->rhs_pspecs) return -1;
 				set_error(error, error_size,
 					"%s.%s: unsupported or unresolved CHOICE alternative type at line %d",
 					decl->Identifier, member->Identifier, member->_lineno);
@@ -323,7 +335,7 @@ asn1typed_extract_module(asn1p_t *tree, const char *module_name,
 				decl->Identifier);
 			goto fail;
 		}
-		if(populate_type(type, decl, file, error, error_size)) goto fail;
+		if(populate_type(tree, type, decl, file, error, error_size)) goto fail;
 	}
 	return 0;
 fail:
@@ -392,6 +404,114 @@ ioc_actual_set(asn1p_t *tree, asn1p_expr_t *expr) {
 	if(!ct || ct->type != ACT_EL_TYPE) return NULL;
 	set = ioc_resolve(tree, parameter, ioc_set_reference(ct->containedSubtype));
 	return set && set->meta_type == AMT_VALUESET ? set : NULL;
+}
+
+static int
+simple_object_set_setting(asn1p_value_t *value) {
+	if(!value) return 0;
+	if(value->type == ATV_VALUESET) {
+		asn1p_constraint_t *ct = value->value.constraint;
+		if(!ct || ct->type != ACT_EL_TYPE || !ct->containedSubtype) return 0;
+		value = ct->containedSubtype;
+	}
+	if(value->type == ATV_REFERENCED) return value->value.reference != NULL;
+	if(value->type == ATV_TYPE) {
+		asn1p_expr_t *expr = value->value.v_type;
+		return expr && expr->expr_type == A1TC_REFERENCE && expr->reference &&
+			!expr->rhs_pspecs;
+	}
+	return 0;
+}
+
+/* Recover the original generic declaration through its specialization table.
+ * Clone metadata is deliberately not copied into the owned reference. */
+static asn1p_expr_t *
+generic_for_specialization(asn1p_t *tree, asn1p_expr_t *specialization) {
+	asn1p_module_t *module;
+	asn1p_expr_t *decl;
+	if(!tree || !specialization) return NULL;
+	TQ_FOR(module, &tree->modules, mod_next) {
+		TQ_FOR(decl, &module->members, next) {
+			int i;
+			if(!decl->lhs_params || !decl->Identifier || !decl->module) continue;
+			for(i = 0; i < decl->specializations.pspecs_count; ++i)
+				if(decl->specializations.pspec[i].my_clone == specialization)
+					return decl;
+		}
+	}
+	return NULL;
+}
+
+static int
+put_parameterized_object_set_ref(asn1p_t *tree, asn1typed_type_ref_t *ref,
+		asn1p_expr_t *use, char *error, size_t error_size) {
+	asn1p_expr_t *specialization, *generic, *formal_class, *actual_set;
+	asn1p_expr_t *parameter;
+	asn1p_ref_t *actual_ref;
+	asn1typed_type_actual_t actual;
+	if(!tree || !ref || !use || !use->rhs_pspecs || !use->reference ||
+		use->reference->comp_count != 1 || !use->reference->components ||
+		!use->reference->components[0].name || !*use->reference->components[0].name) {
+		set_error(error, error_size, "%s.%s: malformed parameterized type reference",
+			use && use->parent_expr && use->parent_expr->Identifier ?
+				use->parent_expr->Identifier : "CHOICE",
+			use && use->Identifier ? use->Identifier : "<unnamed>");
+		return -1;
+	}
+	specialization = ioc_resolve(tree, use, use->reference);
+	generic = generic_for_specialization(tree, specialization);
+	if(!generic || generic->lhs_params->params_count != 1 ||
+		!generic->lhs_params->params[0].governor ||
+		!generic->lhs_params->params[0].governor->comp_count) {
+		set_error(error, error_size, "%s.%s: unsupported parameterized target/formal",
+			generic && generic->Identifier ? generic->Identifier :
+				use->reference->components[0].name,
+			use->Identifier ? use->Identifier : "<unnamed>");
+		return -1;
+	}
+	formal_class = ioc_resolve(tree, generic,
+		generic->lhs_params->params[0].governor);
+	parameter = TQ_FIRST(&use->rhs_pspecs->members);
+	if(!parameter || TQ_NEXT(parameter, next) || !parameter->constraints ||
+		parameter->constraints->type != ACT_EL_TYPE ||
+		!simple_object_set_setting(parameter->constraints->containedSubtype)) {
+		set_error(error, error_size, "%s.%s: unsupported actual parameter representation",
+			generic->Identifier, use->Identifier ? use->Identifier : "<unnamed>");
+		return -1;
+	}
+	actual_ref = ioc_set_reference(parameter->constraints->containedSubtype);
+	if(!actual_ref || actual_ref->comp_count != 1 || !actual_ref->components ||
+		!actual_ref->components[0].name || !*actual_ref->components[0].name) {
+		set_error(error, error_size, "%s.%s: actual must be one object-set reference",
+			generic->Identifier, use->Identifier ? use->Identifier : "<unnamed>");
+		return -1;
+	}
+	actual_set = ioc_resolve(tree, parameter, actual_ref);
+	if(!actual_set || actual_set->meta_type != AMT_VALUESET ||
+		!actual_set->Identifier || !actual_set->module || !actual_set->module->ModuleName) {
+		set_error(error, error_size, "%s.%s: unresolved or non-object-set actual '%s'",
+			generic->Identifier, use->Identifier ? use->Identifier : "<unnamed>",
+			actual_ref->components[0].name);
+		return -1;
+	}
+	if(!formal_class || formal_class->expr_type != A1TC_CLASSDEF ||
+		!actual_set->reference || ioc_resolve(tree, actual_set,
+		actual_set->reference) != formal_class) {
+		set_error(error, error_size, "%s.%s: object-set actual is incompatible with formal",
+			generic->Identifier, use->Identifier ? use->Identifier : "<unnamed>");
+		return -1;
+	}
+	memset(&actual, 0, sizeof(actual));
+	actual.kind = ASN1TYPED_ACTUAL_OBJECT_SET_REFERENCE;
+	actual.module = actual_set->module->ModuleName;
+	actual.source_name = actual_set->Identifier;
+	if(asn1typed_type_ref_init_parameterized(ref, generic->module->ModuleName,
+			generic->Identifier, &actual, 1)) {
+		set_error(error, error_size, "%s.%s: out of memory storing parameterized reference",
+			generic->Identifier, use->Identifier ? use->Identifier : "<unnamed>");
+		return -1;
+	}
+	return 0;
 }
 
 /* Accept exactly the bounded table/component relation, not an arbitrary
@@ -680,6 +800,31 @@ add_ioc_dependency(asn1p_t *tree, asn1typed_module_t *out,
 	asn1typed_type_kind_e kind;
 	const char *file;
 	size_t i;
+	/* B7a owns this instance identity, but message closure cannot claim success
+	 * until the bound generic body has been materialized. */
+	if(ref->actual_count) {
+		char instance[256];
+		size_t used;
+		instance[0] = '\0';
+		used = (size_t)snprintf(instance, sizeof(instance), "%s.%s {{",
+			ref->module ? ref->module : "<unknown-module>",
+			ref->source_name ? ref->source_name : "<unknown-type>");
+		for(i = 0; i < ref->actual_count && used < sizeof(instance); ++i) {
+			int written = snprintf(instance + used, sizeof(instance) - used,
+				"%s%s.%s", i ? ", " : "",
+				ref->actuals[i].module ? ref->actuals[i].module : "<unknown-module>",
+				ref->actuals[i].source_name ? ref->actuals[i].source_name : "<unknown-set>");
+			if(written < 0) break;
+			used += (size_t)written;
+		}
+		if(used < sizeof(instance)) {
+			if(used + 2 < sizeof(instance)) strcat(instance, "}}");
+			else instance[sizeof(instance) - 1] = '\0';
+		}
+		set_error(error, error_size,
+			"parameterized dependency %s is not materialized", instance);
+		return -1;
+	}
 	if(ref->kind == ASN1TYPED_REF_PRIMITIVE) return 0;
 	if(!ref->module || !ref->source_name) {
 		set_error(error, error_size, "IOC dependency has incomplete module-qualified identity");
@@ -710,7 +855,7 @@ add_ioc_dependency(asn1p_t *tree, asn1typed_module_t *out,
 		set_error(error, error_size, "out of memory storing IOC dependency");
 		return -1;
 	}
-	return populate_type(type, decl, file, error, error_size);
+	return populate_type(tree, type, decl, file, error, error_size);
 }
 
 int

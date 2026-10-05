@@ -36,6 +36,16 @@ typedef enum asn1typed_ref_kind_e {
 	ASN1TYPED_REF_PRIMITIVE
 } asn1typed_ref_kind_e;
 
+typedef enum asn1typed_actual_kind_e {
+	ASN1TYPED_ACTUAL_OBJECT_SET_REFERENCE
+} asn1typed_actual_kind_e;
+
+typedef struct asn1typed_type_actual_s {
+	asn1typed_actual_kind_e kind;
+	char *module;
+	char *source_name;
+} asn1typed_type_actual_t;
+
 typedef struct asn1typed_source_location_s {
 	char *file;
 	unsigned line;
@@ -51,6 +61,8 @@ typedef struct asn1typed_type_ref_s {
 	char *module;
 	char *source_name;
 	asn1typed_primitive_kind_e primitive_kind;
+	asn1typed_type_actual_t *actuals;
+	size_t actual_count;
 } asn1typed_type_ref_t;
 
 typedef enum asn1typed_criticality_e {
@@ -124,6 +136,11 @@ int asn1typed_type_ref_init(asn1typed_type_ref_t *ref,
 		const char *module, const char *source_name);
 int asn1typed_type_ref_init_primitive(asn1typed_type_ref_t *ref,
 		asn1typed_primitive_kind_e primitive_kind);
+int asn1typed_type_ref_init_parameterized(asn1typed_type_ref_t *ref,
+		const char *module, const char *source_name,
+		const asn1typed_type_actual_t *actuals, size_t actual_count);
+int asn1typed_type_ref_equal(const asn1typed_type_ref_t *left,
+		const asn1typed_type_ref_t *right);
 void asn1typed_type_ref_clear(asn1typed_type_ref_t *ref);
 int asn1typed_module_init(asn1typed_module_t *module,
 		const char *source_name, const char *file, unsigned line);

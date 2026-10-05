@@ -60,6 +60,7 @@ asn1typed_type_ref_init(asn1typed_type_ref_t *ref,
 		const char *module, const char *source_name) {
 	char *module_copy, *name_copy;
 	if(!ref || !module || !source_name) return -1;
+	memset(ref, 0, sizeof(*ref));
 	module_copy = asn1typed_strdup(module);
 	name_copy = asn1typed_strdup(source_name);
 	if(!module_copy || !name_copy) {
@@ -75,6 +76,32 @@ asn1typed_type_ref_init(asn1typed_type_ref_t *ref,
 }
 
 int
+asn1typed_type_ref_init_parameterized(asn1typed_type_ref_t *ref,
+		const char *module, const char *source_name,
+		const asn1typed_type_actual_t *actuals, size_t actual_count) {
+	size_t i;
+	if(!ref || !module || !source_name || !actuals || !actual_count) return -1;
+	memset(ref, 0, sizeof(*ref));
+	if(asn1typed_type_ref_init(ref, module, source_name)) return -1;
+	ref->actuals = (asn1typed_type_actual_t *)calloc(actual_count,
+		sizeof(*ref->actuals));
+	if(!ref->actuals) goto fail;
+	for(i = 0; i < actual_count; ++i) {
+		if(actuals[i].kind != ASN1TYPED_ACTUAL_OBJECT_SET_REFERENCE ||
+			!actuals[i].module || !actuals[i].source_name) goto fail;
+		ref->actual_count = i + 1;
+		ref->actuals[i].module = asn1typed_strdup(actuals[i].module);
+		ref->actuals[i].source_name = asn1typed_strdup(actuals[i].source_name);
+		if(!ref->actuals[i].module || !ref->actuals[i].source_name) goto fail;
+		ref->actuals[i].kind = actuals[i].kind;
+	}
+	return 0;
+fail:
+	asn1typed_type_ref_clear(ref);
+	return -1;
+}
+
+int
 asn1typed_type_ref_init_primitive(asn1typed_type_ref_t *ref,
 		asn1typed_primitive_kind_e primitive_kind) {
 	if(!ref || primitive_kind <= ASN1TYPED_PRIMITIVE_INVALID ||
@@ -87,12 +114,43 @@ asn1typed_type_ref_init_primitive(asn1typed_type_ref_t *ref,
 
 void
 asn1typed_type_ref_clear(asn1typed_type_ref_t *ref) {
+	size_t i;
 	if(!ref) return;
+	for(i = 0; i < ref->actual_count; ++i) {
+		free(ref->actuals[i].module);
+		free(ref->actuals[i].source_name);
+	}
+	free(ref->actuals);
 	free(ref->module);
 	free(ref->source_name);
 	ref->module = ref->source_name = NULL;
+	ref->actuals = NULL;
+	ref->actual_count = 0;
 	ref->kind = ASN1TYPED_REF_NAMED;
 	ref->primitive_kind = ASN1TYPED_PRIMITIVE_INVALID;
+}
+
+int
+asn1typed_type_ref_equal(const asn1typed_type_ref_t *left,
+		const asn1typed_type_ref_t *right) {
+	size_t i;
+	if(!left || !right || left->kind != right->kind) return 0;
+	if(left->kind == ASN1TYPED_REF_PRIMITIVE)
+		return left->primitive_kind == right->primitive_kind &&
+			left->actual_count == 0 && right->actual_count == 0;
+	if(!left->module || !right->module || !left->source_name ||
+		!right->source_name || strcmp(left->module, right->module) ||
+		strcmp(left->source_name, right->source_name) ||
+		left->actual_count != right->actual_count ||
+		(left->actual_count && (!left->actuals || !right->actuals))) return 0;
+	for(i = 0; i < left->actual_count; ++i)
+		if(left->actuals[i].kind != right->actuals[i].kind ||
+			!left->actuals[i].module || !right->actuals[i].module ||
+			!left->actuals[i].source_name || !right->actuals[i].source_name ||
+			strcmp(left->actuals[i].module, right->actuals[i].module) ||
+			strcmp(left->actuals[i].source_name,
+				right->actuals[i].source_name)) return 0;
+	return 1;
 }
 
 void
@@ -324,12 +382,19 @@ asn1typed_type_add_choice_alternative(asn1typed_type_t *type,
 	memset(&alternative, 0, sizeof(alternative));
 	alternative.source_name = asn1typed_strdup(source_name);
 	if(!alternative.source_name) return -1;
-	if(type_ref->kind == ASN1TYPED_REF_PRIMITIVE) {
+	if(type_ref->kind == ASN1TYPED_REF_PRIMITIVE && !type_ref->actual_count) {
 		if(asn1typed_type_ref_init_primitive(&alternative.type_ref,
 				type_ref->primitive_kind)) goto fail;
-	} else if(type_ref->kind == ASN1TYPED_REF_NAMED) {
+	} else if(type_ref->kind == ASN1TYPED_REF_NAMED &&
+		type_ref->actual_count == 0) {
 		if(asn1typed_type_ref_init(&alternative.type_ref, type_ref->module,
 				type_ref->source_name)) goto fail;
+	} else if(type_ref->kind == ASN1TYPED_REF_NAMED &&
+		type_ref->actual_count && type_ref->actuals &&
+		!asn1typed_type_ref_init_parameterized(&alternative.type_ref,
+				type_ref->module, type_ref->source_name,
+				type_ref->actuals, type_ref->actual_count)) {
+		/* The reference constructor deep-copies the ordered actual list. */
 	} else goto fail;
 	if(asn1typed_source_location_init(&alternative.location, file, line) ||
 		asn1typed_reserve((void **)&type->alternatives,
