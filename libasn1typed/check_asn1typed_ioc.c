@@ -171,6 +171,66 @@ check_asn1typed_ioc(void) {
 	asn1typed_module_clear(&ir);
 	puts("T3 owned IOC IR after parser-tree destruction: PASS");
 	{
+		struct asn1p_ioc_cell_s *presence_cell;
+		asn1p_expr_t *setting;
+		asn1p_value_t direct, *saved_value;
+		char *saved_identifier;
+		char *identities[] = { "mandatory", "optional", "conditional" };
+		const asn1typed_presence_e expected[] = {
+			ASN1TYPED_PRESENCE_MANDATORY, ASN1TYPED_PRESENCE_OPTIONAL,
+			ASN1TYPED_PRESENCE_CONDITIONAL
+		};
+		tree = fixed_fixture();
+		set = declaration(tree, "RegistrationIEs");
+		presence_cell = asn1p_ioc_row_cell_fetch(set->ioc_table->row[0], "&presence");
+		assert(presence_cell && presence_cell->value->meta_type == AMT_VALUE);
+		setting = presence_cell->value;
+		direct = *setting->value;
+		direct.type = ATV_INTEGER;
+		saved_value = setting->value;
+		saved_identifier = setting->Identifier;
+		setting->value = &direct;
+		{
+			size_t j;
+			for(j = 0; j < 3; ++j) {
+				setting->Identifier = identities[j];
+				direct.value.v_integer = (asn1c_integer_t)(7001 + j * 97);
+				assert(asn1typed_extract_message(tree, "SyntheticIOC", "Registration",
+						&ir, error, sizeof(error)) == 0);
+				assert(ir.types[0].fields[0].presence == expected[j]);
+				asn1typed_module_clear(&ir);
+			}
+		}
+		setting->Identifier = "unknown-presence";
+		reject(tree, "direct integer unknown presence", "unrecognized IOC presence");
+		setting->Identifier = NULL;
+		reject(tree, "direct integer presence missing Identifier", "unrecognized IOC presence");
+		setting->Identifier = "mandatory";
+		direct.type = ATV_TRUE;
+		reject(tree, "unsupported direct presence value shape", "unrecognized IOC presence");
+		setting->value = saved_value;
+		setting->Identifier = saved_identifier;
+		asn1p_delete(tree);
+		puts("T3 resolved ATV_INTEGER presence identities and fail-closed shapes: PASS");
+	}
+	{
+		struct asn1p_ioc_cell_s *presence_cell;
+		asn1p_expr_t *setting;
+		asn1p_ref_t *ref;
+		char *saved_component;
+		tree = fixed_fixture();
+		set = declaration(tree, "RegistrationIEs");
+		presence_cell = asn1p_ioc_row_cell_fetch(set->ioc_table->row[0], "&presence");
+		setting = presence_cell->value;
+		ref = setting->value->value.reference;
+		assert(ref && ref->components && ref->comp_count);
+		saved_component = ref->components[ref->comp_count - 1].name;
+		ref->components[ref->comp_count - 1].name = "optional";
+		reject(tree, "presence Identifier/reference mismatch", "unrecognized IOC presence");
+		ref->components[ref->comp_count - 1].name = saved_component;
+		asn1p_delete(tree);
+	}
+	{
 		struct asn1p_ioc_cell_s *id_cell;
 		asn1p_expr_t *setting;
 		asn1p_value_t direct;

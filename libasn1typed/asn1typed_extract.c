@@ -465,6 +465,26 @@ ioc_value_symbol(asn1p_expr_t *expr) {
 	return ref->components[ref->comp_count - 1].name;
 }
 
+/* IOC &presence keeps its semantic identity in Identifier after fixing may
+ * replace the source reference with its resolved integer value. */
+static const char *
+ioc_presence_identity(asn1p_expr_t *setting) {
+	asn1p_ref_t *ref;
+	size_t i;
+	if(!setting || setting->meta_type != AMT_VALUE || !setting->Identifier ||
+		!*setting->Identifier || !setting->value) return NULL;
+	if(setting->value->type == ATV_INTEGER) return setting->Identifier;
+	if(setting->value->type != ATV_REFERENCED) return NULL;
+	ref = setting->value->value.reference;
+	if(!ref || !ref->components || !ref->comp_count || ref->comp_count > 2)
+		return NULL;
+	for(i = 0; i < ref->comp_count; ++i)
+		if(!ref->components[i].name || !*ref->components[i].name) return NULL;
+	if(strcmp(ref->components[ref->comp_count - 1].name, setting->Identifier))
+		return NULL;
+	return setting->Identifier;
+}
+
 /* An IOC &id setting carries its source name independently of its value:
  * fixing may replace ATV_REFERENCED with the resolved ATV_INTEGER in place. */
 static int
@@ -551,7 +571,7 @@ extract_ioc_row(asn1p_t *tree, asn1typed_type_t *message,
 			return -1;
 		}
 	}
-	p = ioc_value_symbol(cells[2]);
+	p = ioc_presence_identity(cells[2]);
 	if(p && !strcmp(p, "mandatory")) presence = ASN1TYPED_PRESENCE_MANDATORY;
 	else if(p && !strcmp(p, "optional")) presence = ASN1TYPED_PRESENCE_OPTIONAL;
 	else if(p && !strcmp(p, "conditional")) presence = ASN1TYPED_PRESENCE_CONDITIONAL;
