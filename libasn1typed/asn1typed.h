@@ -115,6 +115,7 @@ typedef struct asn1typed_type_s {
 	asn1typed_enum_item_t *enum_items;
 	size_t enum_item_count;
 	size_t enum_item_capacity;
+	int is_extensible;
 	asn1typed_choice_alternative_t *alternatives;
 	size_t alternative_count;
 	size_t alternative_capacity;

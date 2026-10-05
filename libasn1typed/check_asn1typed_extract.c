@@ -50,6 +50,77 @@ expect_rejected(const char *source, const char *module_name) {
 static asn1p_expr_t *fixture_declaration(asn1p_t *tree, const char *name);
 
 static void
+check_enumerated_extensibility(void) {
+	static const char source[] =
+		"EnumExtensibility DEFINITIONS ::= BEGIN\n"
+		"ClosedEnum ::= ENUMERATED { alpha, beta }\n"
+		"OpenEnum ::= ENUMERATED { alpha, beta, ... }\n"
+		"END\n";
+	asn1p_t *tree = asn1p_parse_buffer(source, -1, "enum-extensibility.asn",
+		1, A1P_NOFLAGS);
+	asn1typed_module_t ir;
+	asn1typed_type_t *closed, *open;
+	char error[256];
+	assert(tree != NULL);
+	assert(asn1f_process(tree, A1F_NOFLAGS, NULL) >= 0);
+	assert(asn1typed_extract_module(tree, "EnumExtensibility", &ir,
+		error, sizeof(error)) == 0);
+	asn1p_delete(tree);
+	closed = find_type(&ir, "ClosedEnum");
+	open = find_type(&ir, "OpenEnum");
+	assert(closed && closed->kind == ASN1TYPED_TYPE_ENUMERATED);
+	assert(!closed->is_extensible);
+	assert(open && open->kind == ASN1TYPED_TYPE_ENUMERATED);
+	assert(open->is_extensible);
+	assert(closed->enum_item_count == 2 && open->enum_item_count == 2);
+	assert(!strcmp(closed->enum_items[0].source_name, "alpha"));
+	assert(!strcmp(closed->enum_items[1].source_name, "beta"));
+	assert(!strcmp(open->enum_items[0].source_name, "alpha"));
+	assert(!strcmp(open->enum_items[1].source_name, "beta"));
+	asn1typed_module_clear(&ir);
+}
+
+static void
+expect_bad_enum_marker_shape(int second_marker) {
+	static const char source[] =
+		"EnumExtensibility DEFINITIONS ::= BEGIN\n"
+		"OpenEnum ::= ENUMERATED { alpha, beta, ... }\nEND\n";
+	asn1p_t *tree = asn1p_parse_buffer(source, -1, "bad-enum-extensibility.asn",
+		1, A1P_NOFLAGS);
+	asn1p_expr_t *decl, *alpha, *beta, *marker;
+	asn1typed_module_t ir;
+	char error[256];
+	assert(tree != NULL);
+	assert(asn1f_process(tree, A1F_NOFLAGS, NULL) >= 0);
+	decl = fixture_declaration(tree, "OpenEnum");
+	assert(decl != NULL);
+	alpha = TQ_FIRST(&decl->members);
+	assert(alpha != NULL);
+	beta = TQ_NEXT(alpha, next);
+	assert(beta != NULL);
+	marker = TQ_NEXT(beta, next);
+	assert(marker != NULL && marker->expr_type == A1TC_EXTENSIBLE);
+	if(second_marker) {
+		beta->expr_type = A1TC_EXTENSIBLE;
+	} else {
+		/* Put the existing marker between alpha and beta. */
+		TQ_NEXT(alpha, next) = marker;
+		TQ_NEXT(marker, next) = beta;
+		TQ_NEXT(beta, next) = NULL;
+		decl->members.tq_head = alpha;
+		decl->members.tq_tail = &TQ_NEXT(beta, next);
+	}
+	memset(&ir, 0, sizeof(ir));
+	assert(asn1typed_extract_module(tree, "EnumExtensibility", &ir,
+		error, sizeof(error)) == -1);
+	assert(error[0] != '\0');
+	assert(ir.source_name == NULL && ir.types == NULL);
+	asn1typed_module_clear(&ir);
+	asn1typed_module_clear(&ir);
+	asn1p_delete(tree);
+}
+
+static void
 check_parameterized_reference_identity(void) {
 	asn1p_t *tree = asn1p_parse_file(T5_FIXTURE, A1P_NOFLAGS);
 	asn1p_expr_t *bad_sequence, *bad_sequence_of;
@@ -230,6 +301,9 @@ main(void) {
 		"Label ::= UTF8String\nBad ::= CHOICE { first BOOLEAN, second Label }\nEND\n";
 	size_t i;
 	const char *items[] = { "v32", "v64", "v128", "v256" };
+	check_enumerated_extensibility();
+	expect_bad_enum_marker_shape(1);
+	expect_bad_enum_marker_shape(0);
 	check_parameterized_reference_identity();
 	expect_bad_parameterized_actual(0); /* unresolved object set */
 	expect_bad_parameterized_actual(1); /* resolves to a type, not a set */
@@ -312,6 +386,7 @@ main(void) {
 
 	type = find_type(&ir, "PagingDRX");
 	assert(type && type->kind == ASN1TYPED_TYPE_ENUMERATED);
+	assert(!type->is_extensible);
 	assert(type->enum_item_count == sizeof(items) / sizeof(items[0]));
 	for(i = 0; i < type->enum_item_count; ++i) {
 		assert(strcmp(type->enum_items[i].source_name, items[i]) == 0);
