@@ -453,16 +453,24 @@ message_object_set(asn1p_t *tree, asn1p_expr_t *message) {
 	return set;
 }
 
-/* A symbolic value reference is semantic evidence; Identifier is not. */
+/* The semantically identified IOC &criticality setting retains its source
+ * identity when fixing resolves an enum reference to an integer. */
 static const char *
-ioc_value_symbol(asn1p_expr_t *expr) {
+ioc_criticality_identity(asn1p_expr_t *setting) {
 	asn1p_ref_t *ref;
-	if(!expr || !expr->value || expr->value->type != ATV_REFERENCED)
-		return NULL;
-	ref = expr->value->value.reference;
+	size_t i;
+	if(!setting || setting->meta_type != AMT_VALUE || !setting->Identifier ||
+		!*setting->Identifier || !setting->value) return NULL;
+	if(setting->value->type == ATV_INTEGER) return setting->Identifier;
+	if(setting->value->type != ATV_REFERENCED) return NULL;
+	ref = setting->value->value.reference;
 	if(!ref || !ref->components || !ref->comp_count || ref->comp_count > 2)
 		return NULL;
-	return ref->components[ref->comp_count - 1].name;
+	for(i = 0; i < ref->comp_count; ++i)
+		if(!ref->components[i].name || !*ref->components[i].name) return NULL;
+	if(strcmp(ref->components[ref->comp_count - 1].name, setting->Identifier))
+		return NULL;
+	return setting->Identifier;
 }
 
 /* IOC &presence keeps its semantic identity in Identifier after fixing may
@@ -579,7 +587,7 @@ extract_ioc_row(asn1p_t *tree, asn1typed_type_t *message,
 		set_error(error, error_size, "unrecognized IOC presence");
 		return -1;
 	}
-	c = ioc_value_symbol(cells[3]);
+	c = ioc_criticality_identity(cells[3]);
 	if(c && !strcmp(c, "reject")) criticality = ASN1TYPED_CRITICALITY_REJECT;
 	else if(c && !strcmp(c, "ignore")) criticality = ASN1TYPED_CRITICALITY_IGNORE;
 	else if(c && !strcmp(c, "notify")) criticality = ASN1TYPED_CRITICALITY_NOTIFY;

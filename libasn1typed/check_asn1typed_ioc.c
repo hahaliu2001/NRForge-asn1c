@@ -46,6 +46,8 @@ reject_message(asn1p_t *tree, const char *name, const char *label, const char *e
 	assert(!ir.source_name && !ir.location.file && !ir.types);
 	assert(!ir.type_count && !ir.type_capacity);
 	asn1typed_module_clear(&ir);
+	/* Failed extraction is safe to clear repeatedly. */
+	asn1typed_module_clear(&ir);
 	printf("T3 negative %s: PASS (%s; IR cleared)\n", label, error);
 }
 
@@ -95,6 +97,19 @@ check_asn1typed_ioc(void) {
 	};
 	set = declaration(tree, "RegistrationIEs");
 	assert(set->ioc_table && set->ioc_table->rows == 4);
+	for(i = 0; i < set->ioc_table->rows; ++i) {
+		struct asn1p_ioc_cell_s *cell =
+			asn1p_ioc_row_cell_fetch(set->ioc_table->row[i], "&criticality");
+		asn1p_expr_t *setting = cell ? cell->value : NULL;
+		asn1p_ref_t *ref = setting && setting->value &&
+			setting->value->type == ATV_REFERENCED ?
+			setting->value->value.reference : NULL;
+		assert(setting && setting->Identifier && setting->meta_type == AMT_VALUE);
+		assert(ref && ref->components && ref->comp_count > 0 && ref->comp_count <= 2);
+		assert(ref->components[ref->comp_count - 1].name);
+		assert(!strcmp(ref->components[ref->comp_count - 1].name,
+			setting->Identifier));
+	}
 	{
 		asn1p_expr_t *extensible = declaration(tree, "ExtensibleRegistration");
 		asn1p_expr_t *payload = TQ_FIRST(&extensible->members);
@@ -212,6 +227,95 @@ check_asn1typed_ioc(void) {
 		setting->Identifier = saved_identifier;
 		asn1p_delete(tree);
 		puts("T3 resolved ATV_INTEGER presence identities and fail-closed shapes: PASS");
+	}
+	{
+		struct asn1p_ioc_cell_s *criticality_cell;
+		asn1p_expr_t *setting;
+		asn1p_value_t direct, *saved_value;
+		char *saved_identifier;
+		char *identities[] = { "reject", "ignore", "notify" };
+		const asn1typed_criticality_e expected[] = {
+			ASN1TYPED_CRITICALITY_REJECT, ASN1TYPED_CRITICALITY_IGNORE,
+			ASN1TYPED_CRITICALITY_NOTIFY
+		};
+		tree = fixed_fixture();
+		set = declaration(tree, "RegistrationIEs");
+		criticality_cell = asn1p_ioc_row_cell_fetch(set->ioc_table->row[0],
+			"&criticality");
+		assert(criticality_cell && criticality_cell->value->meta_type == AMT_VALUE);
+		setting = criticality_cell->value;
+		direct = *setting->value;
+		direct.type = ATV_INTEGER;
+		saved_value = setting->value;
+		saved_identifier = setting->Identifier;
+		setting->value = &direct;
+		for(i = 0; i < 3; ++i) {
+			setting->Identifier = identities[i];
+			/* Deliberately unrelated ordinals prove identity drives selection. */
+			direct.value.v_integer = (asn1c_integer_t)(7001 + i * 97);
+			assert(asn1typed_extract_message(tree, "SyntheticIOC", "Registration",
+					&ir, error, sizeof(error)) == 0);
+			assert(ir.types[0].fields[0].ioc.criticality == expected[i]);
+			asn1typed_module_clear(&ir);
+		}
+		setting->value = saved_value;
+		setting->Identifier = saved_identifier;
+		asn1p_delete(tree);
+		puts("T3 direct ATV_INTEGER criticality identities: PASS");
+	}
+	{
+		struct asn1p_ioc_cell_s *criticality_cell;
+		asn1p_expr_t *setting;
+		asn1p_value_t direct;
+		asn1p_value_t *saved_value;
+		char *saved_identifier;
+		tree = fixed_fixture();
+		set = declaration(tree, "RegistrationIEs");
+		criticality_cell = asn1p_ioc_row_cell_fetch(set->ioc_table->row[0],
+			"&criticality");
+		setting = criticality_cell->value;
+		direct = *setting->value;
+		direct.type = ATV_INTEGER;
+		direct.value.v_integer = 811;
+		saved_value = setting->value;
+		saved_identifier = setting->Identifier;
+		setting->value = &direct;
+		setting->Identifier = "";
+		reject(tree, "direct integer criticality empty Identifier",
+			"unrecognized IOC criticality");
+		setting->Identifier = NULL;
+		reject(tree, "direct integer criticality missing Identifier",
+			"unrecognized IOC criticality");
+		setting->Identifier = "unknown-criticality";
+		reject(tree, "direct integer unknown criticality",
+			"unrecognized IOC criticality");
+		setting->Identifier = "reject";
+		direct.type = ATV_TRUE;
+		reject(tree, "unsupported criticality value shape",
+			"unrecognized IOC criticality");
+		setting->value = saved_value;
+		setting->Identifier = saved_identifier;
+		asn1p_delete(tree);
+	}
+	{
+		struct asn1p_ioc_cell_s *criticality_cell;
+		asn1p_expr_t *setting;
+		asn1p_ref_t *ref;
+		char *saved_component;
+		tree = fixed_fixture();
+		set = declaration(tree, "RegistrationIEs");
+		criticality_cell = asn1p_ioc_row_cell_fetch(set->ioc_table->row[0],
+			"&criticality");
+		setting = criticality_cell->value;
+		ref = setting->value->value.reference;
+		assert(ref && ref->components && ref->comp_count);
+		saved_component = ref->components[ref->comp_count - 1].name;
+		ref->components[ref->comp_count - 1].name = "ignore";
+		reject(tree, "criticality Identifier/reference mismatch",
+			"unrecognized IOC criticality");
+		ref->components[ref->comp_count - 1].name = saved_component;
+		asn1p_delete(tree);
+		puts("T3 criticality reference mismatch rejected: PASS");
 	}
 	{
 		struct asn1p_ioc_cell_s *presence_cell;
