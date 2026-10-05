@@ -170,6 +170,109 @@ check_asn1typed_ioc(void) {
 	assert(!strcmp(type->fields[1].type.source_name, "LabelText"));
 	asn1typed_module_clear(&ir);
 	puts("T3 owned IOC IR after parser-tree destruction: PASS");
+	{
+		struct asn1p_ioc_cell_s *id_cell;
+		asn1p_expr_t *setting;
+		asn1p_value_t direct;
+		tree = fixed_fixture();
+		set = declaration(tree, "RegistrationIEs");
+		id_cell = asn1p_ioc_row_cell_fetch(set->ioc_table->row[0], "&id");
+		assert(id_cell && id_cell->value->meta_type == AMT_VALUE);
+		setting = id_cell->value;
+		direct = *setting->value;
+		direct.type = ATV_INTEGER;
+		direct.value.v_integer = 7001;
+		{
+			asn1p_value_t *saved = setting->value;
+			setting->value = &direct;
+			assert(asn1typed_extract_message(tree, "SyntheticIOC", "Registration",
+					&ir, error, sizeof(error)) == 0);
+			setting->value = saved;
+		}
+		asn1p_delete(tree);
+		assert(!strcmp(ir.types[0].fields[0].ioc.symbolic_id, "id-NodeID"));
+		assert(ir.types[0].fields[0].ioc.has_numeric_id);
+		assert(ir.types[0].fields[0].ioc.numeric_id == 7001);
+		asn1typed_module_clear(&ir);
+		tree = fixed_fixture();
+		set = declaration(tree, "RegistrationIEs");
+		id_cell = asn1p_ioc_row_cell_fetch(set->ioc_table->row[0], "&id");
+		setting = id_cell->value;
+		direct = *setting->value;
+		direct.type = ATV_INTEGER;
+		direct.value.v_integer = (asn1c_integer_t)INTMAX_MAX + 1;
+		{
+			asn1p_value_t *saved = setting->value;
+			setting->value = &direct;
+			assert(asn1typed_extract_message(tree, "SyntheticIOC", "Registration",
+					&ir, error, sizeof(error)) == 0);
+			setting->value = saved;
+		}
+		asn1p_delete(tree);
+		assert(!strcmp(ir.types[0].fields[0].ioc.symbolic_id, "id-NodeID"));
+		assert(!ir.types[0].fields[0].ioc.has_numeric_id);
+		asn1typed_module_clear(&ir);
+		puts("T3 direct ATV_INTEGER id identity, numeric value, and overflow policy: PASS");
+	}
+	{
+		struct asn1p_ioc_cell_s *id_cell;
+		asn1p_expr_t *setting;
+		asn1p_value_t direct;
+		tree = fixed_fixture();
+		set = declaration(tree, "RegistrationIEs");
+		id_cell = asn1p_ioc_row_cell_fetch(set->ioc_table->row[0], "&id");
+		setting = id_cell->value;
+		direct = *setting->value;
+		direct.type = ATV_INTEGER;
+		direct.value.v_integer = 27;
+		{
+			asn1p_value_t *saved_value = setting->value;
+			char *saved_identifier = setting->Identifier;
+			setting->value = &direct;
+			setting->Identifier = NULL;
+			reject(tree, "direct integer missing Identifier",
+				"missing or invalid symbolic IOC id");
+			setting->Identifier = "";
+			reject(tree, "direct integer empty Identifier",
+				"missing or invalid symbolic IOC id");
+			setting->Identifier = saved_identifier;
+			setting->value = saved_value;
+		}
+		asn1p_delete(tree);
+	}
+	{
+		struct asn1p_ioc_cell_s *id_cell;
+		asn1p_expr_t *setting;
+		asn1p_ref_t *ref;
+		char *saved_component, *saved_identifier;
+		tree = fixed_fixture();
+		set = declaration(tree, "RegistrationIEs");
+		id_cell = asn1p_ioc_row_cell_fetch(set->ioc_table->row[0], "&id");
+		setting = id_cell->value;
+		ref = setting->value->value.reference;
+		assert(ref && ref->comp_count == 1);
+		saved_component = ref->components[0].name;
+		saved_identifier = setting->Identifier;
+		ref->components[0].name = "id-B";
+		setting->Identifier = "id-A";
+		reject(tree, "id Identifier/reference mismatch",
+			"missing or invalid symbolic IOC id");
+		ref->components[0].name = saved_component;
+		setting->Identifier = saved_identifier;
+		ref->components[0].name = "id-Missing";
+		setting->Identifier = "id-Missing";
+		reject(tree, "unresolved id reference",
+			"missing or invalid symbolic IOC id");
+		ref->components[0].name = saved_component;
+		setting->Identifier = saved_identifier;
+		ref->components[0].name = "NodeNumber";
+		setting->Identifier = "NodeNumber";
+		reject(tree, "id reference resolves to non-value",
+			"missing or invalid symbolic IOC id");
+		ref->components[0].name = saved_component;
+		setting->Identifier = saved_identifier;
+		asn1p_delete(tree);
+	}
 
 	/* Mutate the real fixed fixture for focused malformed-semantic tests.
 	 * Restore borrowed slots before freeing the parser tree. */

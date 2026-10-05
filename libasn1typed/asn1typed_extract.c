@@ -465,6 +465,44 @@ ioc_value_symbol(asn1p_expr_t *expr) {
 	return ref->components[ref->comp_count - 1].name;
 }
 
+/* An IOC &id setting carries its source name independently of its value:
+ * fixing may replace ATV_REFERENCED with the resolved ATV_INTEGER in place. */
+static int
+ioc_id_identity(asn1p_t *tree, asn1p_expr_t *setting,
+		const char **symbol, int *has_numeric_id, intmax_t *numeric_id) {
+	asn1p_ref_t *ref;
+	asn1p_expr_t *resolved;
+	asn1c_integer_t integer;
+	size_t i;
+	if(!setting || setting->meta_type != AMT_VALUE || !setting->Identifier ||
+		!*setting->Identifier || !setting->value) return -1;
+	*symbol = setting->Identifier;
+	*has_numeric_id = 0;
+	*numeric_id = 0;
+	if(setting->value->type == ATV_INTEGER) {
+		integer = setting->value->value.v_integer;
+	} else if(setting->value->type == ATV_REFERENCED) {
+		ref = setting->value->value.reference;
+		if(!ref || !ref->components || !ref->comp_count || ref->comp_count > 2)
+			return -1;
+		for(i = 0; i < ref->comp_count; ++i)
+			if(!ref->components[i].name || !*ref->components[i].name) return -1;
+		if(strcmp(ref->components[ref->comp_count - 1].name,
+				setting->Identifier)) return -1;
+		resolved = ioc_resolve(tree, setting, ref);
+		if(!resolved || resolved->meta_type != AMT_VALUE || !resolved->value ||
+			resolved->value->type != ATV_INTEGER) return -1;
+		integer = resolved->value->value.v_integer;
+	} else {
+		return -1;
+	}
+	if(integer >= INTMAX_MIN && integer <= INTMAX_MAX) {
+		*has_numeric_id = 1;
+		*numeric_id = (intmax_t)integer;
+	}
+	return 0;
+}
+
 static int
 ioc_columns(asn1p_ioc_row_t *row, asn1p_expr_t **cells) {
 	static const char *const names[] = { "id", "Value", "presence", "criticality" };
@@ -489,7 +527,7 @@ static int
 extract_ioc_row(asn1p_t *tree, asn1typed_type_t *message,
 		asn1p_ioc_row_t *row, const char *file, char *error, size_t error_size) {
 	asn1p_expr_t *cells[4] = { NULL, NULL, NULL, NULL };
-	asn1p_expr_t value, *id;
+	asn1p_expr_t value;
 	asn1p_ref_t reference;
 	asn1typed_type_ref_t ref;
 	asn1typed_presence_e presence;
@@ -502,17 +540,11 @@ extract_ioc_row(asn1p_t *tree, asn1typed_type_t *message,
 		set_error(error, error_size, "malformed IOC row: required id/Value/presence/criticality cell missing or duplicated");
 		return -1;
 	}
-	symbol = ioc_value_symbol(cells[0]);
-	if(!symbol || !*symbol) goto bad_id;
+	if(ioc_id_identity(tree, cells[0], &symbol, &has_numeric_id, &numeric_id))
+		goto bad_id;
 	/* Retain T3 source_name compatibility; naming owns the IOC convention. */
 	name = asn1typed_name_ioc_identity(symbol);
 	if(!*name) goto bad_id;
-	id = ioc_resolve(tree, cells[0], cells[0]->value->value.reference);
-	if(!id || id->meta_type != AMT_VALUE || !id->value ||
-		id->value->type != ATV_INTEGER) goto bad_id;
-	has_numeric_id = id->value->value.v_integer >= INTMAX_MIN &&
-		id->value->value.v_integer <= INTMAX_MAX;
-	if(has_numeric_id) numeric_id = (intmax_t)id->value->value.v_integer;
 	for(i = 0; i < message->field_count; ++i) {
 		if(!strcmp(message->fields[i].source_name, name)) {
 			set_error(error, error_size, "duplicate IOC semantic field identity '%s'", name);
