@@ -100,6 +100,26 @@ extract_size_constraint(const asn1p_constraint_t *constraint,
 	return 0;
 }
 
+/* Accept only one closed INTEGER value range: (lower..upper). */
+static int
+extract_integer_value_range(const asn1p_constraint_t *constraint,
+		asn1typed_integer_value_range_t *out) {
+	const asn1p_constraint_t *range;
+	if(!constraint) return 0;
+	if(constraint->type != ACT_CA_SET || constraint->el_count != 1 ||
+		!constraint->elements || !(range = constraint->elements[0]) ||
+		constraint->value || constraint->containedSubtype ||
+		constraint->range_start || constraint->range_stop ||
+		range->type != ACT_EL_RANGE || range->el_count != 0 ||
+		range->value || range->containedSubtype ||
+		range->range_start == NULL || range->range_stop == NULL ||
+		constraint_bound(range->range_start, &out->lower_bound) ||
+		constraint_bound(range->range_stop, &out->upper_bound) ||
+		out->lower_bound > out->upper_bound) return -1;
+	out->has_value_range = 1;
+	return 0;
+}
+
 static const char *
 reference_name(const asn1p_expr_t *expr) {
 	if(!expr || !expr->reference || expr->reference->comp_count != 1) return NULL;
@@ -242,6 +262,7 @@ populate_type(asn1p_t *tree, asn1typed_type_t *out, asn1p_expr_t *decl,
 	case ASN1TYPED_TYPE_PRIMITIVE: {
 		asn1typed_primitive_kind_e primitive = primitive_from_expr(body);
 		asn1typed_size_constraint_t size_constraint = {0};
+		asn1typed_integer_value_range_t value_range = {0};
 		const asn1p_constraint_t *constraint = decl->combined_constraints ?
 			decl->combined_constraints : decl->constraints;
 		if(primitive == ASN1TYPED_PRIMITIVE_INVALID)
@@ -251,13 +272,16 @@ populate_type(asn1p_t *tree, asn1typed_type_t *out, asn1p_expr_t *decl,
 				decl->Identifier);
 			return -1;
 		}
-		if(extract_size_constraint(constraint, &size_constraint)) {
+		if((primitive == ASN1TYPED_PRIMITIVE_INTEGER ?
+			extract_integer_value_range(constraint, &value_range) :
+			extract_size_constraint(constraint, &size_constraint))) {
 			set_error(error, error_size,
 				"%s: unsupported or unrepresentable primitive constraint",
 				decl->Identifier);
 			return -1;
 		}
 		out->size_constraint = size_constraint;
+		out->value_range = value_range;
 		return 0;
 	}
 	case ASN1TYPED_TYPE_SEQUENCE: {

@@ -39,6 +39,13 @@ typedef struct asn1typed_size_constraint_s {
 	int is_extensible;
 } asn1typed_size_constraint_t;
 
+/* One owned, closed INTEGER value range. */
+typedef struct asn1typed_integer_value_range_s {
+	int has_value_range;
+	intmax_t lower_bound;
+	intmax_t upper_bound;
+} asn1typed_integer_value_range_t;
+
 typedef enum asn1typed_ref_kind_e {
 	ASN1TYPED_REF_NAMED,
 	ASN1TYPED_REF_PRIMITIVE
@@ -138,6 +145,7 @@ typedef struct asn1typed_type_s {
 	asn1typed_type_kind_e kind;
 	asn1typed_primitive_kind_e primitive_kind;
 	asn1typed_size_constraint_t size_constraint;
+	asn1typed_integer_value_range_t value_range;
 	asn1typed_source_location_t location;
 	asn1typed_field_t *fields;
 	size_t field_count;

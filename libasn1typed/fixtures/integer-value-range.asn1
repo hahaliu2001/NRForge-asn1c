@@ -1,0 +1,7 @@
+IntegerValueRange DEFINITIONS ::= BEGIN
+
+PlainInteger ::= INTEGER
+
+BoundedInteger ::= INTEGER (0..65535)
+
+END

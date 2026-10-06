@@ -2,6 +2,9 @@
 #ifndef T6_FIXTURE
 #define T6_FIXTURE "fixtures/visible-string-size-t6.asn1"
 #endif
+#ifndef T7_FIXTURE
+#define T7_FIXTURE "fixtures/integer-value-range.asn1"
+#endif
 #include <asn1fix.h>
 
 #include <assert.h>
@@ -58,6 +61,7 @@ check_visible_string_size(void) {
 	assert(type->size_constraint.lower_bound == 1);
 	assert(type->size_constraint.upper_bound == 150);
 	assert(!type->size_constraint.is_extensible);
+	assert(!type->value_range.has_value_range);
 	type = find_type(&ir, "OpenVisible");
 	assert(type && type->kind == ASN1TYPED_TYPE_PRIMITIVE);
 	assert(type->primitive_kind == ASN1TYPED_PRIMITIVE_VISIBLE_STRING);
@@ -65,12 +69,14 @@ check_visible_string_size(void) {
 	assert(type->size_constraint.lower_bound == 1);
 	assert(type->size_constraint.upper_bound == 150);
 	assert(type->size_constraint.is_extensible);
+	assert(!type->value_range.has_value_range);
 	type = find_type(&ir, "PlainVisible");
 	assert(type && type->kind == ASN1TYPED_TYPE_PRIMITIVE);
 	assert(type->primitive_kind == ASN1TYPED_PRIMITIVE_VISIBLE_STRING);
 	assert(!type->size_constraint.has_size_constraint);
 	assert(type->size_constraint.lower_bound == 0);
 	assert(type->size_constraint.upper_bound == 0);
+	assert(!type->value_range.has_value_range);
 	asn1typed_module_clear(&ir);
 
 	tree = asn1p_parse_buffer(unsupported, -1, "bad-visible-size.asn", 1,
@@ -85,6 +91,63 @@ check_visible_string_size(void) {
 	asn1typed_module_clear(&ir);
 	asn1p_delete(tree);
 	puts("T2 VisibleString bounded SIZE ownership: PASS");
+}
+
+static void
+check_integer_value_range(void) {
+	static const char extensible[] =
+		"IntegerRangeNegative DEFINITIONS ::= BEGIN\n"
+		"Bad ::= INTEGER (0..65535, ...)\nEND\n";
+	static const char inline_range[] =
+		"InlineIntegerRange DEFINITIONS ::= BEGIN\n"
+		"Bad ::= SEQUENCE { a INTEGER (0..10) }\nEND\n";
+	asn1typed_module_t ir = {0};
+	asn1typed_type_t *plain, *bounded;
+	asn1p_t *tree = asn1p_parse_file(T7_FIXTURE, A1P_NOFLAGS);
+	char error[256] = {0};
+	assert(tree != NULL);
+	assert(asn1f_process(tree, A1F_NOFLAGS, NULL) >= 0);
+	assert(asn1typed_extract_module(tree, "IntegerValueRange", &ir,
+		error, sizeof(error)) == 0);
+	asn1p_delete(tree);
+	plain = find_type(&ir, "PlainInteger");
+	assert(plain && plain->kind == ASN1TYPED_TYPE_PRIMITIVE);
+	assert(plain->primitive_kind == ASN1TYPED_PRIMITIVE_INTEGER);
+	assert(!plain->value_range.has_value_range);
+	assert(!plain->value_range.lower_bound && !plain->value_range.upper_bound);
+	assert(!plain->size_constraint.has_size_constraint);
+	assert(!plain->size_constraint.lower_bound && !plain->size_constraint.upper_bound);
+	bounded = find_type(&ir, "BoundedInteger");
+	assert(bounded && bounded->kind == ASN1TYPED_TYPE_PRIMITIVE);
+	assert(bounded->primitive_kind == ASN1TYPED_PRIMITIVE_INTEGER);
+	assert(bounded->value_range.has_value_range);
+	assert(bounded->value_range.lower_bound == 0);
+	assert(bounded->value_range.upper_bound == 65535);
+	assert(!bounded->size_constraint.has_size_constraint);
+	assert(!bounded->size_constraint.lower_bound && !bounded->size_constraint.upper_bound);
+	asn1typed_module_clear(&ir);
+
+	tree = asn1p_parse_buffer(extensible, -1, "integer-range-negative.asn",
+		1, A1P_NOFLAGS);
+	assert(tree && asn1f_process(tree, A1F_NOFLAGS, NULL) >= 0);
+	assert(asn1typed_extract_module(tree, "IntegerRangeNegative", &ir,
+		error, sizeof(error)) == -1);
+	assert(error[0] != '\0');
+	assert_ir_cleared(&ir);
+	asn1typed_module_clear(&ir);
+	asn1typed_module_clear(&ir);
+	asn1p_delete(tree);
+
+	tree = asn1p_parse_buffer(inline_range, -1, "inline-integer-range.asn",
+		1, A1P_NOFLAGS);
+	assert(tree && asn1f_process(tree, A1F_NOFLAGS, NULL) >= 0);
+	assert(asn1typed_extract_module(tree, "InlineIntegerRange", &ir,
+		error, sizeof(error)) == -1);
+	assert(strstr(error, "inline constrained type is unsupported") != NULL);
+	assert_ir_cleared(&ir);
+	asn1typed_module_clear(&ir);
+	asn1p_delete(tree);
+	puts("T2 bounded INTEGER value-range ownership: PASS");
 }
 
 static void
@@ -870,6 +933,7 @@ main(void) {
 	const char *items[] = { "v32", "v64", "v128", "v256" };
 	check_enumerated_extensibility();
 	check_visible_string_size();
+	check_integer_value_range();
 	check_inline_visible_constraints();
 	expect_bad_enum_marker_shape(1);
 	expect_bad_enum_marker_shape(0);
