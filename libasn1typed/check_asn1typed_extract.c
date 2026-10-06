@@ -151,6 +151,47 @@ check_integer_value_range(void) {
 }
 
 static void
+check_octet_string_size(void) {
+	static const char source[] = "OctetStringSize DEFINITIONS ::= BEGIN\n"
+		"PlainOctets ::= OCTET STRING\n"
+		"FixedOctets ::= OCTET STRING (SIZE(3))\nEND\n";
+	static const char unsupported[] = "UnsupportedOctetSize DEFINITIONS ::= BEGIN\n"
+		"Bad ::= OCTET STRING (SIZE(1 | 3))\nEND\n";
+	asn1typed_module_t ir = {0};
+	asn1p_t *tree = asn1p_parse_buffer(source, -1, "octet-string-size.asn",
+		1, A1P_NOFLAGS);
+	asn1typed_type_t *plain, *fixed;
+	char error[256] = {0};
+	assert(tree && asn1f_process(tree, A1F_NOFLAGS, NULL) >= 0);
+	assert(asn1typed_extract_module(tree, "OctetStringSize", &ir,
+		error, sizeof(error)) == 0);
+	asn1p_delete(tree);
+	plain = find_type(&ir, "PlainOctets");
+	assert(plain && plain->kind == ASN1TYPED_TYPE_PRIMITIVE);
+	assert(plain->primitive_kind == ASN1TYPED_PRIMITIVE_OCTET_STRING);
+	assert(!plain->size_constraint.has_size_constraint);
+	assert(!plain->value_range.has_value_range);
+	fixed = find_type(&ir, "FixedOctets");
+	assert(fixed && fixed->kind == ASN1TYPED_TYPE_PRIMITIVE);
+	assert(fixed->primitive_kind == ASN1TYPED_PRIMITIVE_OCTET_STRING);
+	assert(fixed->size_constraint.has_size_constraint);
+	assert(fixed->size_constraint.lower_bound == 3);
+	assert(fixed->size_constraint.upper_bound == 3);
+	assert(!fixed->size_constraint.is_extensible);
+	assert(!fixed->value_range.has_value_range);
+	asn1typed_module_clear(&ir);
+	tree = asn1p_parse_buffer(unsupported, -1, "unsupported-octet-size.asn",
+		1, A1P_NOFLAGS);
+	assert(tree && asn1f_process(tree, A1F_NOFLAGS, NULL) >= 0);
+	assert(asn1typed_extract_module(tree, "UnsupportedOctetSize", &ir,
+		error, sizeof(error)) == -1);
+	assert(strstr(error, "unsupported or unrepresentable primitive constraint"));
+	assert_ir_cleared(&ir);
+	asn1p_delete(tree);
+	puts("T8 OCTET STRING exact SIZE ownership: PASS (parser tree destroyed)");
+}
+
+static void
 expect_inline_constraint_rejected(const char *source, const char *module_name) {
 	asn1typed_module_t ir = {0};
 	char error[256] = {0};
@@ -171,6 +212,8 @@ static void
 check_inline_visible_constraints(void) {
 	const char *sequence_bad = "InlineSeqBad DEFINITIONS ::= BEGIN\n"
 		"Bad ::= SEQUENCE { a VisibleString (SIZE(1..10)) }\nEND\n";
+	const char *octet_sequence_bad = "InlineOctetSeqBad DEFINITIONS ::= BEGIN\n"
+		"Bad ::= SEQUENCE { a OCTET STRING (SIZE(3)) }\nEND\n";
 	const char *choice_bad = "InlineChoiceBad DEFINITIONS ::= BEGIN\n"
 		"Bad ::= CHOICE { a VisibleString (SIZE(1..10)) }\nEND\n";
 	const char *sequence_of_bad = "InlineListBad DEFINITIONS ::= BEGIN\n"
@@ -183,6 +226,7 @@ check_inline_visible_constraints(void) {
 	asn1p_t *tree;
 	char error[256] = {0};
 	expect_inline_constraint_rejected(sequence_bad, "InlineSeqBad");
+	expect_inline_constraint_rejected(octet_sequence_bad, "InlineOctetSeqBad");
 	expect_inline_constraint_rejected(choice_bad, "InlineChoiceBad");
 	expect_inline_constraint_rejected(sequence_of_bad, "InlineListBad");
 	tree = asn1p_parse_buffer(unconstrained, -1, "inline-visible.asn", 1,
@@ -1055,9 +1099,9 @@ main(void) {
 	asn1typed_type_t *type;
 	char error[256];
 	const char unsupported[] = "Unsupported DEFINITIONS ::= BEGIN\n"
-		"Bad ::= CHOICE { a OCTET STRING }\nEND\n";
+		"Bad ::= CHOICE { a REAL }\nEND\n";
 	const char bad_builtin[] = "BadFields DEFINITIONS ::= BEGIN\n"
-		"Bad ::= SEQUENCE { data OCTET STRING }\nEND\n";
+		"Bad ::= SEQUENCE { data REAL }\nEND\n";
 	const char default_value[] = "DefaultTest DEFINITIONS ::= BEGIN\n"
 		"WithDefault ::= SEQUENCE { value INTEGER DEFAULT 1 }\nEND\n";
 	const char inline_enum[] = "InlineEnum DEFINITIONS ::= BEGIN\n"
@@ -1071,6 +1115,7 @@ main(void) {
 	check_enumerated_extensibility();
 	check_visible_string_size();
 	check_integer_value_range();
+	check_octet_string_size();
 	check_inline_visible_constraints();
 	expect_bad_enum_marker_shape(1);
 	expect_bad_enum_marker_shape(0);

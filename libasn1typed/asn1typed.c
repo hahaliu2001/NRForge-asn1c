@@ -211,7 +211,7 @@ int
 asn1typed_type_ref_init_primitive(asn1typed_type_ref_t *ref,
 		asn1typed_primitive_kind_e primitive_kind) {
 	if(!ref || primitive_kind <= ASN1TYPED_PRIMITIVE_INVALID ||
-		primitive_kind > ASN1TYPED_PRIMITIVE_VISIBLE_STRING) return -1;
+		primitive_kind > ASN1TYPED_PRIMITIVE_OCTET_STRING) return -1;
 	memset(ref, 0, sizeof(*ref));
 	ref->kind = ASN1TYPED_REF_PRIMITIVE;
 	ref->primitive_kind = primitive_kind;
@@ -608,7 +608,7 @@ asn1typed_type_set_primitive(asn1typed_type_t *type,
 		asn1typed_primitive_kind_e primitive_kind) {
 	if(!type || type->kind != ASN1TYPED_TYPE_PRIMITIVE ||
 		primitive_kind <= ASN1TYPED_PRIMITIVE_INVALID ||
-		primitive_kind > ASN1TYPED_PRIMITIVE_VISIBLE_STRING) return -1;
+		primitive_kind > ASN1TYPED_PRIMITIVE_OCTET_STRING) return -1;
 	type->primitive_kind = primitive_kind;
 	return 0;
 }

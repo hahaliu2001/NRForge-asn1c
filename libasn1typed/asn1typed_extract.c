@@ -31,6 +31,7 @@ primitive_from_name(const char *name) {
 	if(!strcmp(name, "UTF8String")) return ASN1TYPED_PRIMITIVE_UTF8_STRING;
 	if(!strcmp(name, "PrintableString")) return ASN1TYPED_PRIMITIVE_PRINTABLE_STRING;
 	if(!strcmp(name, "VisibleString")) return ASN1TYPED_PRIMITIVE_VISIBLE_STRING;
+	if(!strcmp(name, "OCTET STRING")) return ASN1TYPED_PRIMITIVE_OCTET_STRING;
 	return ASN1TYPED_PRIMITIVE_INVALID;
 }
 
@@ -43,6 +44,7 @@ primitive_from_expr(const asn1p_expr_t *expr) {
 	case ASN_STRING_UTF8String: return ASN1TYPED_PRIMITIVE_UTF8_STRING;
 	case ASN_STRING_PrintableString: return ASN1TYPED_PRIMITIVE_PRINTABLE_STRING;
 	case ASN_STRING_VisibleString: return ASN1TYPED_PRIMITIVE_VISIBLE_STRING;
+	case ASN_BASIC_OCTET_STRING: return ASN1TYPED_PRIMITIVE_OCTET_STRING;
 	default: return ASN1TYPED_PRIMITIVE_INVALID;
 	}
 }
@@ -67,10 +69,11 @@ constraint_bound(const asn1p_value_t *value, intmax_t *out) {
 	return 0;
 }
 
-/* Accept exactly the fixed-tree form for SIZE(lower..upper[, ...]). */
+/* Accept fixed-tree bounded SIZE forms and the bounded exact OCTET STRING
+ * form needed by ordinary NGAP dependencies. */
 static int
 extract_size_constraint(const asn1p_constraint_t *constraint,
-		asn1typed_size_constraint_t *out) {
+		asn1typed_size_constraint_t *out, int accept_exact_size) {
 	const asn1p_constraint_t *size, *set, *list, *range;
 	int extensible = 0;
 	if(!constraint) return 0;
@@ -90,6 +93,15 @@ extract_size_constraint(const asn1p_constraint_t *constraint,
 			if(!extension || extension->type != ACT_EL_EXT) return -1;
 			extensible = 1;
 		}
+	} else if(list->type == ACT_EL_VALUE && accept_exact_size) {
+		intmax_t exact_size;
+		if(constraint_bound(list->value, &exact_size) || exact_size < 0)
+			return -1;
+		out->has_size_constraint = 1;
+		out->lower_bound = exact_size;
+		out->upper_bound = exact_size;
+		out->is_extensible = 0;
+		return 0;
 	} else {
 		return -1;
 	}
@@ -339,7 +351,8 @@ populate_type(asn1p_t *tree, asn1typed_type_t *out, asn1p_expr_t *decl,
 		}
 		if((primitive == ASN1TYPED_PRIMITIVE_INTEGER ?
 			extract_integer_value_range(constraint, &value_range) :
-			extract_size_constraint(constraint, &size_constraint))) {
+			extract_size_constraint(constraint, &size_constraint,
+				primitive == ASN1TYPED_PRIMITIVE_OCTET_STRING))) {
 			set_error(error, error_size,
 				"%s: unsupported or unrepresentable primitive constraint",
 				decl->Identifier);

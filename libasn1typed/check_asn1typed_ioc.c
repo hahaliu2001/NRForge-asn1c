@@ -608,7 +608,7 @@ check_asn1typed_ioc(void) {
 		 * ItemCollection are populated before the worklist reaches Item. */
 		asn1p_expr_t *count = TQ_FIRST(&declaration(tree, "Item")->members);
 		asn1p_expr_type_e saved = count->expr_type;
-		count->expr_type = ASN_BASIC_OCTET_STRING;
+		count->expr_type = ASN_BASIC_REAL;
 		reject(tree, "failure after dependency population", "unsupported field type");
 		count->expr_type = saved;
 	}
@@ -633,7 +633,7 @@ check_asn1typed_ioc(void) {
 	{
 		asn1p_expr_t *decl = declaration(tree, "OperatingMode");
 		asn1p_expr_type_e saved = decl->expr_type;
-		decl->expr_type = ASN_BASIC_OCTET_STRING;
+		decl->expr_type = ASN_BASIC_REAL;
 		reject(tree, "unsupported Value", "unsupported IOC Value");
 		decl->expr_type = saved;
 	}
