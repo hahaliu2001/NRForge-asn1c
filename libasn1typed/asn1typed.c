@@ -17,6 +17,112 @@ asn1typed_strdup(const char *value) {
 }
 
 static int
+asn1typed_class_field_relation_valid(
+		const asn1typed_class_field_relation_t *relation) {
+	if(!relation || !relation->class_module || !relation->class_module[0] ||
+		!relation->class_source_name || !relation->class_source_name[0] ||
+		!relation->class_field_source_name ||
+		!relation->class_field_source_name[0] ||
+		(relation->has_selector != 0 && relation->has_selector != 1)) return 0;
+	if(relation->has_selector)
+		return relation->selector_source_name &&
+			relation->selector_source_name[0];
+	return relation->selector_source_name == NULL;
+}
+
+static void
+asn1typed_class_field_relation_clear(
+		asn1typed_class_field_relation_t *relation) {
+	if(!relation) return;
+	free(relation->class_module);
+	free(relation->class_source_name);
+	free(relation->class_field_source_name);
+	free(relation->selector_source_name);
+	memset(relation, 0, sizeof(*relation));
+}
+
+static int
+asn1typed_class_field_relation_copy(
+		asn1typed_class_field_relation_t *target,
+		const asn1typed_class_field_relation_t *source) {
+	if(!target || !asn1typed_class_field_relation_valid(source)) return -1;
+	memset(target, 0, sizeof(*target));
+	target->class_module = asn1typed_strdup(source->class_module);
+	target->class_source_name = asn1typed_strdup(source->class_source_name);
+	target->class_field_source_name =
+		asn1typed_strdup(source->class_field_source_name);
+	target->actual_index = source->actual_index;
+	target->has_selector = source->has_selector;
+	if(source->has_selector)
+		target->selector_source_name =
+			asn1typed_strdup(source->selector_source_name);
+	if(!target->class_module || !target->class_source_name ||
+		!target->class_field_source_name ||
+		(source->has_selector && !target->selector_source_name)) {
+		asn1typed_class_field_relation_clear(target);
+		return -1;
+	}
+	return 0;
+}
+
+static void
+asn1typed_field_clear(asn1typed_field_t *field) {
+	if(!field) return;
+	free(field->source_name);
+	free(field->ioc.symbolic_id);
+	asn1typed_type_ref_clear(&field->type);
+	if(field->has_class_field_relation)
+		asn1typed_class_field_relation_clear(&field->class_field_relation);
+	asn1typed_source_location_clear(&field->location);
+	memset(field, 0, sizeof(*field));
+}
+
+static int
+asn1typed_field_copy(asn1typed_field_t *target,
+		const asn1typed_field_t *source) {
+	if(!target || !source || !source->source_name || !source->source_name[0] ||
+		(source->type_semantics != ASN1TYPED_FIELD_FIXED_TYPE &&
+		 source->type_semantics != ASN1TYPED_FIELD_CLASS_FIELD_SELECTED_TYPE) ||
+		(source->has_class_field_relation != 0 &&
+		 source->has_class_field_relation != 1) ||
+		(source->has_class_field_relation &&
+		 !asn1typed_class_field_relation_valid(&source->class_field_relation)) ||
+		(source->type_semantics == ASN1TYPED_FIELD_CLASS_FIELD_SELECTED_TYPE &&
+		 (!source->has_class_field_relation ||
+		  source->type.kind != ASN1TYPED_REF_NAMED || source->type.module ||
+		  source->type.source_name || source->type.actuals ||
+		  source->type.actual_count ||
+		  source->type.primitive_kind != ASN1TYPED_PRIMITIVE_INVALID))) return -1;
+	memset(target, 0, sizeof(*target));
+	target->source_name = asn1typed_strdup(source->source_name);
+	target->type_semantics = source->type_semantics;
+	target->presence = source->presence;
+	target->ioc.criticality = source->ioc.criticality;
+	target->ioc.has_numeric_id = source->ioc.has_numeric_id;
+	target->ioc.numeric_id = source->ioc.numeric_id;
+	if(!target->source_name) goto fail;
+	if(source->type_semantics == ASN1TYPED_FIELD_FIXED_TYPE &&
+		asn1typed_type_ref_copy(&target->type, &source->type)) goto fail;
+	if(source->has_class_field_relation) {
+		if(asn1typed_class_field_relation_copy(&target->class_field_relation,
+				&source->class_field_relation)) goto fail;
+		target->has_class_field_relation = 1;
+	}
+	if(source->ioc.symbolic_id) {
+		target->ioc.symbolic_id = asn1typed_strdup(source->ioc.symbolic_id);
+		if(!target->ioc.symbolic_id) goto fail;
+	}
+	if(source->location.file && asn1typed_source_location_init(
+			&target->location, source->location.file, source->location.line))
+		goto fail;
+	if(!source->location.file && source->location.line) goto fail;
+	return 0;
+fail:
+	asn1typed_field_clear(target);
+	return -1;
+}
+
+static int
 asn1typed_reserve(void **data, size_t *capacity, size_t count,
 		size_t item_size) {
 	size_t next;
@@ -176,10 +282,7 @@ asn1typed_type_clear(asn1typed_type_t *type) {
 	free(type->identity.source_name);
 	asn1typed_source_location_clear(&type->location);
 	for(i = 0; i < type->field_count; ++i) {
-		free(type->fields[i].source_name);
-		free(type->fields[i].ioc.symbolic_id);
-		asn1typed_type_ref_clear(&type->fields[i].type);
-		asn1typed_source_location_clear(&type->fields[i].location);
+		asn1typed_field_clear(&type->fields[i]);
 	}
 	free(type->fields);
 	asn1typed_type_ref_clear(&type->element_type);
@@ -369,6 +472,66 @@ asn1typed_type_add_field_ref(asn1typed_type_t *type,
 		free(field.source_name);
 		asn1typed_type_ref_clear(&field.type);
 		asn1typed_source_location_clear(&field.location);
+		return -1;
+	}
+	type->fields[type->field_count++] = field;
+	return 0;
+}
+
+int
+asn1typed_type_add_class_field(asn1typed_type_t *type,
+		const char *source_name,
+		asn1typed_field_type_semantics_e type_semantics,
+		const asn1typed_type_ref_t *type_ref,
+		const asn1typed_class_field_relation_t *relation,
+		asn1typed_presence_e presence, const char *file, unsigned line) {
+	asn1typed_field_t field;
+	if(!type || type->kind != ASN1TYPED_TYPE_SEQUENCE || !source_name ||
+		!source_name[0] || !relation ||
+		!asn1typed_class_field_relation_valid(relation) || !file ||
+		presence < ASN1TYPED_PRESENCE_MANDATORY ||
+		presence > ASN1TYPED_PRESENCE_CONDITIONAL ||
+		(type_semantics != ASN1TYPED_FIELD_FIXED_TYPE &&
+		 type_semantics != ASN1TYPED_FIELD_CLASS_FIELD_SELECTED_TYPE) ||
+		(type_semantics == ASN1TYPED_FIELD_FIXED_TYPE && !type_ref) ||
+		(type_semantics == ASN1TYPED_FIELD_CLASS_FIELD_SELECTED_TYPE && type_ref))
+		return -1;
+	memset(&field, 0, sizeof(field));
+	field.source_name = asn1typed_strdup(source_name);
+	field.type_semantics = type_semantics;
+	field.presence = presence;
+	if(!field.source_name ||
+		(type_ref && asn1typed_type_ref_copy(&field.type, type_ref))) {
+		asn1typed_field_clear(&field);
+		return -1;
+	}
+	if(asn1typed_class_field_relation_copy(&field.class_field_relation,
+			relation)) {
+		asn1typed_field_clear(&field);
+		return -1;
+	}
+	field.has_class_field_relation = 1;
+	if(asn1typed_source_location_init(&field.location, file, line) ||
+		asn1typed_reserve((void **)&type->fields, &type->field_capacity,
+			type->field_count + 1, sizeof(*type->fields))) {
+		asn1typed_field_clear(&field);
+		return -1;
+	}
+	type->fields[type->field_count++] = field;
+	return 0;
+}
+
+int
+asn1typed_type_add_field_copy(asn1typed_type_t *type,
+		const asn1typed_field_t *source) {
+	asn1typed_field_t field;
+	if(!type || type->kind != ASN1TYPED_TYPE_SEQUENCE || !source ||
+		source->presence < ASN1TYPED_PRESENCE_MANDATORY ||
+		source->presence > ASN1TYPED_PRESENCE_CONDITIONAL ||
+		asn1typed_field_copy(&field, source)) return -1;
+	if(asn1typed_reserve((void **)&type->fields, &type->field_capacity,
+			type->field_count + 1, sizeof(*type->fields))) {
+		asn1typed_field_clear(&field);
 		return -1;
 	}
 	type->fields[type->field_count++] = field;

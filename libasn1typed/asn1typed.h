@@ -65,6 +65,25 @@ typedef struct asn1typed_type_ref_s {
 	size_t actual_count;
 } asn1typed_type_ref_t;
 
+typedef enum asn1typed_field_type_semantics_e {
+	ASN1TYPED_FIELD_FIXED_TYPE,
+	ASN1TYPED_FIELD_CLASS_FIELD_SELECTED_TYPE
+} asn1typed_field_type_semantics_e;
+
+/* Owned, target-neutral relation between a field and an information-object
+ * class field. actual_index addresses the enclosing bound instance's key; this
+ * B7b.2a API does not range-check it. Before B7b.2b attaches/materializes a
+ * body on an enclosing bound instance, it must validate
+ * actual_index < enclosing_instance.identity.actual_count. */
+typedef struct asn1typed_class_field_relation_s {
+	char *class_module;
+	char *class_source_name;
+	char *class_field_source_name;
+	size_t actual_index;
+	int has_selector;
+	char *selector_source_name;
+} asn1typed_class_field_relation_t;
+
 typedef enum asn1typed_criticality_e {
 	ASN1TYPED_CRITICALITY_REJECT,
 	ASN1TYPED_CRITICALITY_IGNORE,
@@ -86,7 +105,10 @@ typedef struct asn1typed_field_s {
 	 * New naming consumers should use ioc.symbolic_id for IOC fields.
 	 */
 	char *source_name;
+	asn1typed_field_type_semantics_e type_semantics;
 	asn1typed_type_ref_t type;
+	int has_class_field_relation;
+	asn1typed_class_field_relation_t class_field_relation;
 	asn1typed_presence_e presence;
 	asn1typed_source_location_t location;
 	asn1typed_ioc_metadata_t ioc;
@@ -174,6 +196,17 @@ int asn1typed_type_add_field(asn1typed_type_t *type,
 int asn1typed_type_add_field_ref(asn1typed_type_t *type,
 		const char *source_name, const asn1typed_type_ref_t *type_ref,
 		asn1typed_presence_e presence, const char *file, unsigned line);
+/* type_ref is required for FIXED_TYPE and must be NULL for
+ * CLASS_FIELD_SELECTED_TYPE. Relation strings are copied. */
+int asn1typed_type_add_class_field(asn1typed_type_t *type,
+		const char *source_name,
+		asn1typed_field_type_semantics_e type_semantics,
+		const asn1typed_type_ref_t *type_ref,
+		const asn1typed_class_field_relation_t *relation,
+		asn1typed_presence_e presence, const char *file, unsigned line);
+/* Deep-copy an existing field into a sequence, including all owned metadata. */
+int asn1typed_type_add_field_copy(asn1typed_type_t *type,
+		const asn1typed_field_t *source);
 int asn1typed_type_set_element_type(asn1typed_type_t *type,
 		const char *ref_module, const char *ref_source_name);
 int asn1typed_type_set_primitive(asn1typed_type_t *type,
