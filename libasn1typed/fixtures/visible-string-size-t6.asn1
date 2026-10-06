@@ -1,0 +1,5 @@
+VisibleStringSize DEFINITIONS ::= BEGIN
+	ClosedVisible ::= VisibleString (SIZE(1..150))
+	OpenVisible ::= VisibleString (SIZE(1..150, ...))
+	PlainVisible ::= VisibleString
+END

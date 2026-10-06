@@ -2,6 +2,9 @@
 #include "asn1typed_name.h"
 #include <asn1fix_export.h>
 #include <asn1_namespace.h>
+#include <asn1p_constr.h>
+#include <asn1p_integer.h>
+#include <asn1p_value.h>
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -24,6 +27,7 @@ primitive_from_name(const char *name) {
 	if(!strcmp(name, "INTEGER")) return ASN1TYPED_PRIMITIVE_INTEGER;
 	if(!strcmp(name, "UTF8String")) return ASN1TYPED_PRIMITIVE_UTF8_STRING;
 	if(!strcmp(name, "PrintableString")) return ASN1TYPED_PRIMITIVE_PRINTABLE_STRING;
+	if(!strcmp(name, "VisibleString")) return ASN1TYPED_PRIMITIVE_VISIBLE_STRING;
 	return ASN1TYPED_PRIMITIVE_INVALID;
 }
 
@@ -35,8 +39,65 @@ primitive_from_expr(const asn1p_expr_t *expr) {
 	case ASN_BASIC_INTEGER: return ASN1TYPED_PRIMITIVE_INTEGER;
 	case ASN_STRING_UTF8String: return ASN1TYPED_PRIMITIVE_UTF8_STRING;
 	case ASN_STRING_PrintableString: return ASN1TYPED_PRIMITIVE_PRINTABLE_STRING;
+	case ASN_STRING_VisibleString: return ASN1TYPED_PRIMITIVE_VISIBLE_STRING;
 	default: return ASN1TYPED_PRIMITIVE_INVALID;
 	}
+}
+
+static int
+reject_unowned_inline_constraint(const asn1p_expr_t *expr,
+		const char *owner, const char *use, char *error, size_t error_size) {
+	if(!expr || !expr->constraints) return 0;
+	set_error(error, error_size, "%s.%s: inline constrained type is unsupported",
+		owner, use);
+	return -1;
+}
+
+static int
+constraint_bound(const asn1p_value_t *value, intmax_t *out) {
+	if(!value || value->type != ATV_INTEGER) return -1;
+#if defined(__SIZEOF_INT128__)
+	if(value->value.v_integer < (asn1c_integer_t)INTMAX_MIN ||
+		value->value.v_integer > (asn1c_integer_t)INTMAX_MAX) return -1;
+#endif
+	*out = (intmax_t)value->value.v_integer;
+	return 0;
+}
+
+/* Accept exactly the fixed-tree form for SIZE(lower..upper[, ...]). */
+static int
+extract_size_constraint(const asn1p_constraint_t *constraint,
+		asn1typed_size_constraint_t *out) {
+	const asn1p_constraint_t *size, *set, *list, *range;
+	int extensible = 0;
+	if(!constraint) return 0;
+	if(constraint->type != ACT_CA_SET || constraint->el_count != 1 ||
+		!constraint->elements || !(size = constraint->elements[0]) ||
+		size->type != ACT_CT_SIZE || size->el_count != 1 || !size->elements ||
+		!(set = size->elements[0]) || set->type != ACT_CA_SET ||
+		set->el_count != 1 || !set->elements || !(list = set->elements[0]))
+		return -1;
+	if(list->type == ACT_EL_RANGE) {
+		range = list;
+	} else if(list->type == ACT_CA_CSV && list->elements &&
+		(list->el_count == 1 || list->el_count == 2)) {
+		range = list->elements[0];
+		if(list->el_count == 2) {
+			const asn1p_constraint_t *extension = list->elements[1];
+			if(!extension || extension->type != ACT_EL_EXT) return -1;
+			extensible = 1;
+		}
+	} else {
+		return -1;
+	}
+	if(!range || range->range_start == NULL ||
+		range->range_stop == NULL ||
+		constraint_bound(range->range_start, &out->lower_bound) ||
+		constraint_bound(range->range_stop, &out->upper_bound) ||
+		out->lower_bound > out->upper_bound) return -1;
+	out->has_size_constraint = 1;
+	out->is_extensible = extensible;
+	return 0;
 }
 
 static const char *
@@ -134,6 +195,8 @@ add_field(asn1p_t *tree, asn1typed_type_t *type, asn1p_expr_t *field,
 			module, field->Identifier);
 		return -1;
 	}
+	if(reject_unowned_inline_constraint(field, module, field->Identifier,
+			error, error_size)) return -1;
 	{
 		asn1typed_type_ref_t ref;
 		memset(&ref, 0, sizeof(ref));
@@ -178,6 +241,9 @@ populate_type(asn1p_t *tree, asn1typed_type_t *out, asn1p_expr_t *decl,
 	switch(out->kind) {
 	case ASN1TYPED_TYPE_PRIMITIVE: {
 		asn1typed_primitive_kind_e primitive = primitive_from_expr(body);
+		asn1typed_size_constraint_t size_constraint = {0};
+		const asn1p_constraint_t *constraint = decl->combined_constraints ?
+			decl->combined_constraints : decl->constraints;
 		if(primitive == ASN1TYPED_PRIMITIVE_INVALID)
 			primitive = primitive_from_name(reference_name(body));
 		if(asn1typed_type_set_primitive(out, primitive)) {
@@ -185,6 +251,13 @@ populate_type(asn1p_t *tree, asn1typed_type_t *out, asn1p_expr_t *decl,
 				decl->Identifier);
 			return -1;
 		}
+		if(extract_size_constraint(constraint, &size_constraint)) {
+			set_error(error, error_size,
+				"%s: unsupported or unrepresentable primitive constraint",
+				decl->Identifier);
+			return -1;
+		}
+		out->size_constraint = size_constraint;
 		return 0;
 	}
 	case ASN1TYPED_TYPE_SEQUENCE: {
@@ -225,6 +298,8 @@ populate_type(asn1p_t *tree, asn1typed_type_t *out, asn1p_expr_t *decl,
 				decl->Identifier);
 			return -1;
 		}
+		if(reject_unowned_inline_constraint(member, decl->module->ModuleName,
+				decl->Identifier, error, error_size)) return -1;
 		{
 			asn1typed_type_ref_t ref;
 			int rc;
@@ -288,6 +363,8 @@ populate_type(asn1p_t *tree, asn1typed_type_t *out, asn1p_expr_t *decl,
 					decl->Identifier, member->_lineno);
 				return -1;
 			}
+			if(reject_unowned_inline_constraint(member, decl->Identifier,
+					member->Identifier, error, error_size)) return -1;
 			memset(&ref, 0, sizeof(ref));
 			if(member->rhs_pspecs ?
 				put_parameterized_object_set_ref(tree, &ref,

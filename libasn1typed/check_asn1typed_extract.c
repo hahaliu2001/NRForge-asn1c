@@ -1,4 +1,7 @@
 #include "asn1typed_extract.h"
+#ifndef T6_FIXTURE
+#define T6_FIXTURE "fixtures/visible-string-size-t6.asn1"
+#endif
 #include <asn1fix.h>
 
 #include <assert.h>
@@ -30,6 +33,114 @@ assert_ir_cleared(asn1typed_module_t *ir) {
 	assert(ir->type_count == 0 && ir->type_capacity == 0);
 	/* Also prove that failure output remains safe to clear by its caller. */
 	asn1typed_module_clear(ir);
+}
+
+static void
+check_visible_string_size(void) {
+	const char unsupported[] = "BadVisibleSize DEFINITIONS ::= BEGIN\n"
+		"Bad ::= VisibleString (SIZE(1))\nEND\n";
+	asn1typed_module_t ir = {0};
+	asn1p_t *tree = asn1p_parse_file(T6_FIXTURE, A1P_NOFLAGS);
+	char error[256] = {0};
+	asn1typed_type_t *type;
+	assert(tree != NULL);
+	assert(asn1f_process(tree, A1F_NOFLAGS, NULL) >= 0);
+	if(asn1typed_extract_module(tree, "VisibleStringSize", &ir,
+		error, sizeof(error)) != 0) {
+		fprintf(stderr, "VisibleStringSize extraction: %s\n", error);
+		assert(0);
+	}
+	asn1p_delete(tree);
+	type = find_type(&ir, "ClosedVisible");
+	assert(type && type->kind == ASN1TYPED_TYPE_PRIMITIVE);
+	assert(type->primitive_kind == ASN1TYPED_PRIMITIVE_VISIBLE_STRING);
+	assert(type->size_constraint.has_size_constraint);
+	assert(type->size_constraint.lower_bound == 1);
+	assert(type->size_constraint.upper_bound == 150);
+	assert(!type->size_constraint.is_extensible);
+	type = find_type(&ir, "OpenVisible");
+	assert(type && type->kind == ASN1TYPED_TYPE_PRIMITIVE);
+	assert(type->primitive_kind == ASN1TYPED_PRIMITIVE_VISIBLE_STRING);
+	assert(type->size_constraint.has_size_constraint);
+	assert(type->size_constraint.lower_bound == 1);
+	assert(type->size_constraint.upper_bound == 150);
+	assert(type->size_constraint.is_extensible);
+	type = find_type(&ir, "PlainVisible");
+	assert(type && type->kind == ASN1TYPED_TYPE_PRIMITIVE);
+	assert(type->primitive_kind == ASN1TYPED_PRIMITIVE_VISIBLE_STRING);
+	assert(!type->size_constraint.has_size_constraint);
+	assert(type->size_constraint.lower_bound == 0);
+	assert(type->size_constraint.upper_bound == 0);
+	asn1typed_module_clear(&ir);
+
+	tree = asn1p_parse_buffer(unsupported, -1, "bad-visible-size.asn", 1,
+		A1P_NOFLAGS);
+	assert(tree != NULL);
+	assert(asn1f_process(tree, A1F_NOFLAGS, NULL) >= 0);
+	assert(asn1typed_extract_module(tree, "BadVisibleSize", &ir,
+		error, sizeof(error)) != 0);
+	assert(error[0] != '\0');
+	assert_ir_cleared(&ir);
+	asn1typed_module_clear(&ir);
+	asn1typed_module_clear(&ir);
+	asn1p_delete(tree);
+	puts("T2 VisibleString bounded SIZE ownership: PASS");
+}
+
+static void
+expect_inline_constraint_rejected(const char *source, const char *module_name) {
+	asn1typed_module_t ir = {0};
+	char error[256] = {0};
+	asn1p_t *tree = asn1p_parse_buffer(source, -1, "inline-size.asn", 1,
+		A1P_NOFLAGS);
+	assert(tree != NULL);
+	assert(asn1f_process(tree, A1F_NOFLAGS, NULL) >= 0);
+	assert(asn1typed_extract_module(tree, module_name, &ir,
+		error, sizeof(error)) != 0);
+	assert(strstr(error, "inline constrained type is unsupported") != NULL);
+	assert_ir_cleared(&ir);
+	asn1typed_module_clear(&ir);
+	asn1typed_module_clear(&ir);
+	asn1p_delete(tree);
+}
+
+static void
+check_inline_visible_constraints(void) {
+	const char *sequence_bad = "InlineSeqBad DEFINITIONS ::= BEGIN\n"
+		"Bad ::= SEQUENCE { a VisibleString (SIZE(1..10)) }\nEND\n";
+	const char *choice_bad = "InlineChoiceBad DEFINITIONS ::= BEGIN\n"
+		"Bad ::= CHOICE { a VisibleString (SIZE(1..10)) }\nEND\n";
+	const char *sequence_of_bad = "InlineListBad DEFINITIONS ::= BEGIN\n"
+		"Bad ::= SEQUENCE OF VisibleString (SIZE(1..10))\nEND\n";
+	const char *unconstrained = "InlineVisibleGood DEFINITIONS ::= BEGIN\n"
+		"S ::= SEQUENCE { a VisibleString }\n"
+		"C ::= CHOICE { a VisibleString }\nEND\n";
+	asn1typed_module_t ir = {0};
+	asn1typed_type_t *type;
+	asn1p_t *tree;
+	char error[256] = {0};
+	expect_inline_constraint_rejected(sequence_bad, "InlineSeqBad");
+	expect_inline_constraint_rejected(choice_bad, "InlineChoiceBad");
+	expect_inline_constraint_rejected(sequence_of_bad, "InlineListBad");
+	tree = asn1p_parse_buffer(unconstrained, -1, "inline-visible.asn", 1,
+		A1P_NOFLAGS);
+	assert(tree != NULL);
+	assert(asn1f_process(tree, A1F_NOFLAGS, NULL) >= 0);
+	assert(asn1typed_extract_module(tree, "InlineVisibleGood", &ir,
+		error, sizeof(error)) == 0);
+	asn1p_delete(tree);
+	type = find_type(&ir, "S");
+	assert(type && type->field_count == 1);
+	assert(type->fields[0].type.kind == ASN1TYPED_REF_PRIMITIVE);
+	assert(type->fields[0].type.primitive_kind ==
+		ASN1TYPED_PRIMITIVE_VISIBLE_STRING);
+	type = find_type(&ir, "C");
+	assert(type && type->alternative_count == 1);
+	assert(type->alternatives[0].type_ref.kind == ASN1TYPED_REF_PRIMITIVE);
+	assert(type->alternatives[0].type_ref.primitive_kind ==
+		ASN1TYPED_PRIMITIVE_VISIBLE_STRING);
+	asn1typed_module_clear(&ir);
+	puts("T2 inline VisibleString constraint fail-closed: PASS");
 }
 
 static void
@@ -758,6 +869,8 @@ main(void) {
 	size_t i;
 	const char *items[] = { "v32", "v64", "v128", "v256" };
 	check_enumerated_extensibility();
+	check_visible_string_size();
+	check_inline_visible_constraints();
 	expect_bad_enum_marker_shape(1);
 	expect_bad_enum_marker_shape(0);
 	check_parameterized_reference_identity();

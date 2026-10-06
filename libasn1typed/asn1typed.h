@@ -28,8 +28,16 @@ typedef enum asn1typed_primitive_kind_e {
 	ASN1TYPED_PRIMITIVE_BOOLEAN,
 	ASN1TYPED_PRIMITIVE_INTEGER,
 	ASN1TYPED_PRIMITIVE_UTF8_STRING,
-	ASN1TYPED_PRIMITIVE_PRINTABLE_STRING
+	ASN1TYPED_PRIMITIVE_PRINTABLE_STRING,
+	ASN1TYPED_PRIMITIVE_VISIBLE_STRING
 } asn1typed_primitive_kind_e;
+
+typedef struct asn1typed_size_constraint_s {
+	int has_size_constraint;
+	intmax_t lower_bound;
+	intmax_t upper_bound;
+	int is_extensible;
+} asn1typed_size_constraint_t;
 
 typedef enum asn1typed_ref_kind_e {
 	ASN1TYPED_REF_NAMED,
@@ -129,6 +137,7 @@ typedef struct asn1typed_type_s {
 	asn1typed_type_identity_t identity;
 	asn1typed_type_kind_e kind;
 	asn1typed_primitive_kind_e primitive_kind;
+	asn1typed_size_constraint_t size_constraint;
 	asn1typed_source_location_t location;
 	asn1typed_field_t *fields;
 	size_t field_count;
