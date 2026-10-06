@@ -112,6 +112,21 @@ asn1typed_type_ref_init_primitive(asn1typed_type_ref_t *ref,
 	return 0;
 }
 
+int
+asn1typed_type_ref_copy(asn1typed_type_ref_t *ref,
+		const asn1typed_type_ref_t *source) {
+	if(!ref || !source) return -1;
+	if(source->kind == ASN1TYPED_REF_PRIMITIVE && !source->actual_count)
+		return asn1typed_type_ref_init_primitive(ref, source->primitive_kind);
+	if(source->kind == ASN1TYPED_REF_NAMED && source->actual_count == 0)
+		return asn1typed_type_ref_init(ref, source->module, source->source_name);
+	if(source->kind == ASN1TYPED_REF_NAMED && source->actuals &&
+			source->actual_count)
+		return asn1typed_type_ref_init_parameterized(ref, source->module,
+			source->source_name, source->actuals, source->actual_count);
+	return -1;
+}
+
 void
 asn1typed_type_ref_clear(asn1typed_type_ref_t *ref) {
 	size_t i;
@@ -282,6 +297,30 @@ asn1typed_type_add_field(asn1typed_type_t *type,
 	field.presence = presence;
 	if(!field.source_name || asn1typed_type_ref_init(&field.type,
 			ref_module, ref_source_name) ||
+		asn1typed_source_location_init(&field.location, file, line) ||
+		asn1typed_reserve((void **)&type->fields, &type->field_capacity,
+			type->field_count + 1, sizeof(*type->fields))) {
+		free(field.source_name);
+		asn1typed_type_ref_clear(&field.type);
+		asn1typed_source_location_clear(&field.location);
+		return -1;
+	}
+	type->fields[type->field_count++] = field;
+	return 0;
+}
+
+int
+asn1typed_type_add_field_ref(asn1typed_type_t *type,
+		const char *source_name, const asn1typed_type_ref_t *type_ref,
+		asn1typed_presence_e presence, const char *file, unsigned line) {
+	asn1typed_field_t field;
+	if(!type || type->kind != ASN1TYPED_TYPE_SEQUENCE || !source_name ||
+		!type_ref || !file || presence < ASN1TYPED_PRESENCE_MANDATORY ||
+		presence > ASN1TYPED_PRESENCE_CONDITIONAL) return -1;
+	memset(&field, 0, sizeof(field));
+	field.source_name = asn1typed_strdup(source_name);
+	field.presence = presence;
+	if(!field.source_name || asn1typed_type_ref_copy(&field.type, type_ref) ||
 		asn1typed_source_location_init(&field.location, file, line) ||
 		asn1typed_reserve((void **)&type->fields, &type->field_capacity,
 			type->field_count + 1, sizeof(*type->fields))) {

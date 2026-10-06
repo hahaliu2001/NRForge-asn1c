@@ -123,20 +123,20 @@ expect_bad_enum_marker_shape(int second_marker) {
 static void
 check_parameterized_reference_identity(void) {
 	asn1p_t *tree = asn1p_parse_file(T5_FIXTURE, A1P_NOFLAGS);
-	asn1p_expr_t *bad_sequence, *bad_sequence_of;
+	asn1p_expr_t *sequence, *bad_sequence_of;
 	asn1p_expr_t *root_field, *root_container, *root_message;
 	asn1typed_module_t ir;
 	asn1typed_type_t *a, *again, *b;
 	char error[256];
 	assert(tree != NULL);
 	assert(asn1f_process(tree, A1F_NOFLAGS, NULL) >= 0);
-	bad_sequence = fixture_declaration(tree, "BadSequence");
+	sequence = fixture_declaration(tree, "SequenceUse");
 	bad_sequence_of = fixture_declaration(tree, "BadSequenceOf");
 	root_field = fixture_declaration(tree, "B7A-Field");
 	root_container = fixture_declaration(tree, "B7A-Container");
 	root_message = fixture_declaration(tree, "RootMessage");
-	assert(bad_sequence && bad_sequence_of && root_field && root_container && root_message);
-	bad_sequence->meta_type = AMT_VALUE;
+	assert(sequence && bad_sequence_of && root_field && root_container && root_message);
+	sequence->meta_type = AMT_VALUE;
 	bad_sequence_of->meta_type = AMT_VALUE;
 	root_field->meta_type = AMT_VALUE;
 	root_container->meta_type = AMT_VALUE;
@@ -262,6 +262,40 @@ expect_rejected_parameterized_shape(const char *bad_name,
 }
 
 static void
+check_parameterized_sequence_field(void) {
+	asn1p_t *tree = asn1p_parse_file(T5_FIXTURE, A1P_NOFLAGS);
+	asn1typed_module_t ir;
+	asn1typed_type_t *type, *other;
+	char error[256];
+	assert(tree && asn1f_process(tree, A1F_NOFLAGS, NULL) >= 0);
+	fixture_declaration(tree, "BadSequenceOf")->meta_type = AMT_VALUE;
+	fixture_declaration(tree, "B7A-Field")->meta_type = AMT_VALUE;
+	fixture_declaration(tree, "B7A-Container")->meta_type = AMT_VALUE;
+	fixture_declaration(tree, "RootMessage")->meta_type = AMT_VALUE;
+	assert(asn1typed_extract_module(tree, "ParameterizedReferenceB7A", &ir,
+		error, sizeof(error)) == 0);
+	asn1p_delete(tree);
+	type = find_type(&ir, "SequenceUse");
+	other = find_type(&ir, "SequenceUseB");
+	assert(type && type->kind == ASN1TYPED_TYPE_SEQUENCE && type->field_count == 1);
+	assert(!strcmp(type->fields[0].source_name, "field"));
+	assert(type->fields[0].presence == ASN1TYPED_PRESENCE_OPTIONAL);
+	assert(type->fields[0].type.kind == ASN1TYPED_REF_NAMED);
+	assert(!strcmp(type->fields[0].type.module, "ParameterizedReferenceB7A"));
+	assert(!strcmp(type->fields[0].type.source_name, "Target"));
+	assert(type->fields[0].type.actual_count == 1);
+	assert(type->fields[0].type.actuals[0].kind ==
+		ASN1TYPED_ACTUAL_OBJECT_SET_REFERENCE);
+	assert(!strcmp(type->fields[0].type.actuals[0].module,
+		"ParameterizedReferenceB7A"));
+	assert(!strcmp(type->fields[0].type.actuals[0].source_name, "SetA"));
+	assert(other && !asn1typed_type_ref_equal(&type->fields[0].type,
+		&other->fields[0].type));
+	assert(find_type(&ir, "OrdinaryUse")->alternatives[0].type_ref.actual_count == 0);
+	asn1typed_module_clear(&ir);
+}
+
+static void
 check_parameterized_closure_rejected(void) {
 	asn1p_t *tree = asn1p_parse_file(T5_FIXTURE, A1P_NOFLAGS);
 	asn1typed_module_t ir;
@@ -305,12 +339,11 @@ main(void) {
 	expect_bad_enum_marker_shape(1);
 	expect_bad_enum_marker_shape(0);
 	check_parameterized_reference_identity();
+	check_parameterized_sequence_field();
 	expect_bad_parameterized_actual(0); /* unresolved object set */
 	expect_bad_parameterized_actual(1); /* resolves to a type, not a set */
 	expect_bad_parameterized_actual(2); /* unsupported setting representation */
-	expect_rejected_parameterized_shape("BadSequence", "BadSequenceOf",
-		"parameterized SEQUENCE field reference");
-	expect_rejected_parameterized_shape("BadSequenceOf", "BadSequence",
+	expect_rejected_parameterized_shape("BadSequenceOf", "SequenceUse",
 		"parameterized SEQUENCE OF element reference");
 	check_parameterized_closure_rejected();
 	assert(tree != NULL);

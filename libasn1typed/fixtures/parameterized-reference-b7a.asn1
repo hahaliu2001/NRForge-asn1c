@@ -15,7 +15,8 @@ UseA ::= CHOICE { selected Target {{SetA}} }
 UseAAgain ::= CHOICE { selected Target {{SetA}} }
 UseB ::= CHOICE { selected Target {{SetB}} }
 
-BadSequence ::= SEQUENCE { field Target {{SetA}} }
+SequenceUse ::= SEQUENCE { field Target {{SetA}} OPTIONAL }
+SequenceUseB ::= SEQUENCE { field Target {{SetB}} OPTIONAL }
 BadSequenceOf ::= SEQUENCE OF Target {{SetA}}
 
 B7A-Criticality ::= ENUMERATED { reject, ignore, notify }
@@ -34,7 +35,7 @@ B7A-Field { B7A-IES : IEs } ::= SEQUENCE {
 }
 B7A-Container { B7A-IES : IEs } ::= SEQUENCE OF B7A-Field {{IEs}}
 RootIEs B7A-IES ::= {
-	{ ID id-root CRITICALITY reject TYPE UseA PRESENCE mandatory }
+	{ ID id-root CRITICALITY reject TYPE SequenceUse PRESENCE mandatory }
 }
 RootMessage ::= SEQUENCE { protocolIEs B7A-Container {{RootIEs}} }
 

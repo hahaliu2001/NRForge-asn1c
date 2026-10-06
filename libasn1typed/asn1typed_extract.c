@@ -106,7 +106,7 @@ static int put_parameterized_object_set_ref(asn1p_t *tree,
 		char *error, size_t error_size);
 
 static int
-add_field(asn1typed_type_t *type, asn1p_expr_t *field,
+add_field(asn1p_t *tree, asn1typed_type_t *type, asn1p_expr_t *field,
 		const char *file, const char *module, char *error, size_t error_size) {
 	asn1typed_presence_e presence;
 	int marker_flags;
@@ -114,12 +114,6 @@ add_field(asn1typed_type_t *type, asn1p_expr_t *field,
 	if(!field->Identifier) {
 		set_error(error, error_size, "%s: unnamed SEQUENCE component at line %d",
 			module, field->_lineno);
-		return -1;
-	}
-	if(field->rhs_pspecs) {
-		set_error(error, error_size,
-			"%s.%s: parameterized SEQUENCE field reference is unsupported",
-			module, field->Identifier);
 		return -1;
 	}
 	marker_flags = field->marker.flags;
@@ -142,12 +136,18 @@ add_field(asn1typed_type_t *type, asn1p_expr_t *field,
 	{
 		asn1typed_type_ref_t ref;
 		memset(&ref, 0, sizeof(ref));
-		if(put_ref(&ref, field)) {
+		if(field->rhs_pspecs ?
+			put_parameterized_object_set_ref(tree, &ref, field,
+				error, error_size) : put_ref(&ref, field)) {
+			if(field->rhs_pspecs) return -1;
 			set_error(error, error_size, "%s.%s: unsupported field type at line %d",
 				module, field->Identifier, field->_lineno);
 			return -1;
 		}
-		if(ref.kind == ASN1TYPED_REF_PRIMITIVE) {
+		if(field->rhs_pspecs) {
+			result = asn1typed_type_add_field_ref(type, field->Identifier,
+				&ref, presence, file, field->_lineno);
+		} else if(ref.kind == ASN1TYPED_REF_PRIMITIVE) {
 			result = asn1typed_type_add_primitive_field(type, field->Identifier,
 				ref.primitive_kind, presence, file, field->_lineno);
 		} else {
@@ -155,11 +155,11 @@ add_field(asn1typed_type_t *type, asn1p_expr_t *field,
 				ref.module, ref.source_name, presence, file, field->_lineno);
 		}
 		asn1typed_type_ref_clear(&ref);
-	}
-	if(result) {
-		set_error(error, error_size, "%s.%s: out of memory extracting field",
-			module, field->Identifier);
-		return -1;
+		if(result) {
+			set_error(error, error_size, "%s.%s: out of memory extracting field",
+				module, field->Identifier);
+			return -1;
+		}
 	}
 	return 0;
 }
@@ -193,7 +193,7 @@ populate_type(asn1p_t *tree, asn1typed_type_t *out, asn1p_expr_t *decl,
 					"%s: SEQUENCE extension marker is unsupported", decl->Identifier);
 				return -1;
 			}
-			if(add_field(out, member, file, decl->module->ModuleName,
+			if(add_field(tree, out, member, file, decl->module->ModuleName,
 					error, error_size)) return -1;
 		}
 		return 0;

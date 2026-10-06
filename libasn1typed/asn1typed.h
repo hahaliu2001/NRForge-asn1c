@@ -140,6 +140,8 @@ int asn1typed_type_ref_init_primitive(asn1typed_type_ref_t *ref,
 int asn1typed_type_ref_init_parameterized(asn1typed_type_ref_t *ref,
 		const char *module, const char *source_name,
 		const asn1typed_type_actual_t *actuals, size_t actual_count);
+int asn1typed_type_ref_copy(asn1typed_type_ref_t *ref,
+		const asn1typed_type_ref_t *source);
 int asn1typed_type_ref_equal(const asn1typed_type_ref_t *left,
 		const asn1typed_type_ref_t *right);
 void asn1typed_type_ref_clear(asn1typed_type_ref_t *ref);
@@ -157,6 +159,9 @@ int asn1typed_type_add_field(asn1typed_type_t *type,
 		const char *source_name, const char *ref_module,
 		const char *ref_source_name, asn1typed_presence_e presence,
 		const char *file, unsigned line);
+int asn1typed_type_add_field_ref(asn1typed_type_t *type,
+		const char *source_name, const asn1typed_type_ref_t *type_ref,
+		asn1typed_presence_e presence, const char *file, unsigned line);
 int asn1typed_type_set_element_type(asn1typed_type_t *type,
 		const char *ref_module, const char *ref_source_name);
 int asn1typed_type_set_primitive(asn1typed_type_t *type,
