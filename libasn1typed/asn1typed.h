@@ -121,12 +121,21 @@ typedef struct asn1typed_type_s {
 	size_t alternative_capacity;
 } asn1typed_type_t;
 
+/* B7b.1 owns the identity before it owns the instance's semantic body. */
+typedef struct asn1typed_bound_instance_s {
+	asn1typed_type_ref_t identity;
+	int body_materialized;
+} asn1typed_bound_instance_t;
+
 typedef struct asn1typed_module_s {
 	char *source_name;
 	asn1typed_source_location_t location;
 	asn1typed_type_t *types;
 	size_t type_count;
 	size_t type_capacity;
+	asn1typed_bound_instance_t *bound_instances;
+	size_t bound_instance_count;
+	size_t bound_instance_capacity;
 } asn1typed_module_t;
 
 /* All string arguments are copied. The caller retains ownership of them. */
@@ -148,6 +157,9 @@ void asn1typed_type_ref_clear(asn1typed_type_ref_t *ref);
 int asn1typed_module_init(asn1typed_module_t *module,
 		const char *source_name, const char *file, unsigned line);
 void asn1typed_module_clear(asn1typed_module_t *module);
+int asn1typed_module_add_bound_instance(asn1typed_module_t *module,
+		const asn1typed_type_ref_t *identity,
+		asn1typed_bound_instance_t **instance_out);
 int asn1typed_module_add_type(asn1typed_module_t *module,
 		const char *source_name, asn1typed_type_kind_e kind,
 		const char *file, unsigned line, asn1typed_type_t **type_out);

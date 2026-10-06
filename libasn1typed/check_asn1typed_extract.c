@@ -143,6 +143,7 @@ check_parameterized_reference_identity(void) {
 	root_message->meta_type = AMT_VALUE;
 	assert(asn1typed_extract_module(tree, "ParameterizedReferenceB7A", &ir,
 		error, sizeof(error)) == 0);
+	assert(ir.bound_instance_count == 0);
 	/* The owned binding must not depend on the parser/fixer tree. */
 	asn1p_delete(tree);
 	a = find_type(&ir, "UseA");
@@ -164,12 +165,63 @@ check_parameterized_reference_identity(void) {
 	assert(!asn1typed_type_ref_equal(&a->alternatives[0].type_ref,
 		&b->alternatives[0].type_ref));
 	assert(!strcmp(b->alternatives[0].type_ref.actuals[0].source_name, "SetB"));
+	{
+		asn1typed_bound_instance_t *instance_a, *instance_again, *instance_b;
+		assert(asn1typed_module_add_bound_instance(&ir,
+			&a->alternatives[0].type_ref, NULL) == 0);
+		assert(asn1typed_module_add_bound_instance(&ir,
+			&again->alternatives[0].type_ref, NULL) == 0);
+		assert(asn1typed_module_add_bound_instance(&ir,
+			&b->alternatives[0].type_ref, NULL) == 0);
+		assert(ir.bound_instance_count == 2);
+		assert(asn1typed_module_add_bound_instance(&ir,
+			&again->alternatives[0].type_ref, &instance_again) == 0);
+		assert(asn1typed_module_add_bound_instance(&ir,
+			&a->alternatives[0].type_ref, &instance_a) == 0);
+		assert(asn1typed_module_add_bound_instance(&ir,
+			&b->alternatives[0].type_ref, &instance_b) == 0);
+		assert(instance_a == instance_again);
+		assert(instance_a != instance_b);
+		assert(!instance_a->body_materialized && !instance_b->body_materialized);
+		assert(asn1typed_type_ref_equal(&instance_a->identity,
+			&a->alternatives[0].type_ref));
+		assert(asn1typed_type_ref_equal(&instance_b->identity,
+			&b->alternatives[0].type_ref));
+		assert(instance_a->identity.actuals[0].source_name !=
+			a->alternatives[0].type_ref.actuals[0].source_name);
+		assert(!strcmp(instance_a->identity.actuals[0].source_name, "SetA"));
+		assert(!strcmp(instance_b->identity.actuals[0].source_name, "SetB"));
+	}
 	assert(a->alternatives[0].type_ref.actual_count == 1);
 	assert(again->alternatives[0].type_ref.actual_count == 1);
 	assert(b->alternatives[0].type_ref.actual_count == 1);
 	assert(a->alternatives[0].type_ref.kind == ASN1TYPED_REF_NAMED);
 	assert(a->alternatives[0].type_ref.actual_count != 0);
 	assert(find_type(&ir, "OrdinaryUse")->alternatives[0].type_ref.actual_count == 0);
+	asn1typed_module_clear(&ir);
+}
+
+static void
+check_bound_instance_rejects_invalid_keys(void) {
+	asn1typed_module_t ir;
+	asn1typed_type_ref_t ordinary = {0}, malformed = {0};
+	asn1typed_type_actual_t actual = {
+		ASN1TYPED_ACTUAL_OBJECT_SET_REFERENCE, "Fixture", "SetA"
+	};
+	asn1typed_bound_instance_t *instance = NULL;
+	assert(asn1typed_module_init(&ir, "Fixture", "<fixture>", 1) == 0);
+	assert(asn1typed_type_ref_init(&ordinary, "Fixture", "Ordinary") == 0);
+	assert(asn1typed_module_add_bound_instance(&ir, &ordinary, &instance) != 0);
+	assert(instance == NULL && ir.bound_instance_count == 0);
+	assert(asn1typed_type_ref_init_parameterized(&malformed, "Fixture", "Target",
+		&actual, 1) == 0);
+	free(malformed.actuals[0].source_name);
+	malformed.actuals[0].source_name = NULL;
+	assert(asn1typed_module_add_bound_instance(&ir, &malformed, &instance) != 0);
+	assert(instance == NULL && ir.bound_instance_count == 0);
+	asn1typed_type_ref_clear(&malformed);
+	asn1typed_type_ref_clear(&ordinary);
+	asn1typed_module_clear(&ir);
 	asn1typed_module_clear(&ir);
 }
 
@@ -303,11 +355,12 @@ check_parameterized_closure_rejected(void) {
 	assert(tree && asn1f_process(tree, A1F_NOFLAGS, NULL) >= 0);
 	assert(asn1typed_extract_message(tree, "ParameterizedReferenceB7A",
 		"RootMessage", &ir, error, sizeof(error)) != 0);
-	assert(strstr(error, "parameterized dependency") != NULL);
+	assert(strstr(error, "bound instance") != NULL);
 	assert(strstr(error, "ParameterizedReferenceB7A.Target") != NULL);
 	assert(strstr(error, "ParameterizedReferenceB7A.SetA") != NULL);
-	assert(strstr(error, "is not materialized") != NULL);
+	assert(strstr(error, "is owned but its semantic body is not materialized") != NULL);
 	assert(ir.source_name == NULL && ir.types == NULL && ir.type_count == 0);
+	assert(ir.bound_instances == NULL && ir.bound_instance_count == 0);
 	asn1typed_module_clear(&ir);
 	asn1typed_module_clear(&ir);
 	asn1p_delete(tree);
@@ -429,6 +482,7 @@ main(void) {
 	expect_bad_enum_marker_shape(1);
 	expect_bad_enum_marker_shape(0);
 	check_parameterized_reference_identity();
+	check_bound_instance_rejects_invalid_keys();
 	check_parameterized_sequence_field();
 	expect_bad_parameterized_actual(0); /* unresolved object set */
 	expect_bad_parameterized_actual(1); /* resolves to a type, not a set */

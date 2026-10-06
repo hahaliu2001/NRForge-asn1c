@@ -239,9 +239,51 @@ asn1typed_module_clear(asn1typed_module_t *module) {
 	for(i = 0; i < module->type_count; ++i)
 		asn1typed_type_clear(&module->types[i]);
 	free(module->types);
+	for(i = 0; i < module->bound_instance_count; ++i)
+		asn1typed_type_ref_clear(&module->bound_instances[i].identity);
+	free(module->bound_instances);
 	free(module->source_name);
 	asn1typed_source_location_clear(&module->location);
 	memset(module, 0, sizeof(*module));
+}
+
+int
+asn1typed_module_add_bound_instance(asn1typed_module_t *module,
+		const asn1typed_type_ref_t *identity,
+		asn1typed_bound_instance_t **instance_out) {
+	asn1typed_bound_instance_t pending;
+	size_t i;
+	if(instance_out) *instance_out = NULL;
+	if(!module || !identity || identity->kind != ASN1TYPED_REF_NAMED ||
+		!identity->module || !identity->module[0] ||
+		!identity->source_name || !identity->source_name[0] ||
+		!identity->actual_count || !identity->actuals) return -1;
+	for(i = 0; i < identity->actual_count; ++i)
+		if(identity->actuals[i].kind != ASN1TYPED_ACTUAL_OBJECT_SET_REFERENCE ||
+			!identity->actuals[i].module || !identity->actuals[i].module[0] ||
+			!identity->actuals[i].source_name ||
+			!identity->actuals[i].source_name[0]) return -1;
+	for(i = 0; i < module->bound_instance_count; ++i)
+		if(asn1typed_type_ref_equal(&module->bound_instances[i].identity,
+				identity)) {
+			if(instance_out) *instance_out = &module->bound_instances[i];
+			return 0;
+		}
+	memset(&pending, 0, sizeof(pending));
+	if(asn1typed_type_ref_copy(&pending.identity, identity)) return -1;
+	pending.body_materialized = 0;
+	if(asn1typed_reserve((void **)&module->bound_instances,
+			&module->bound_instance_capacity,
+			module->bound_instance_count + 1,
+			sizeof(*module->bound_instances))) {
+		asn1typed_type_ref_clear(&pending.identity);
+		return -1;
+	}
+	module->bound_instances[module->bound_instance_count] = pending;
+	if(instance_out)
+		*instance_out = &module->bound_instances[module->bound_instance_count];
+	module->bound_instance_count++;
+	return 0;
 }
 
 int

@@ -832,11 +832,18 @@ add_ioc_dependency(asn1p_t *tree, asn1typed_module_t *out,
 	asn1typed_type_kind_e kind;
 	const char *file;
 	size_t i;
-	/* B7a owns this instance identity, but message closure cannot claim success
-	 * until the bound generic body has been materialized. */
+	/* B7b.1 owns this identity, but closure cannot claim success until B7b.2
+	 * materializes the bound instance's semantic body. */
 	if(ref->actual_count) {
+		asn1typed_bound_instance_t *bound_instance;
 		char instance[256];
 		size_t used;
+		if(asn1typed_module_add_bound_instance(out, ref, &bound_instance)) {
+			set_error(error, error_size,
+				"parameterized dependency identity could not be owned");
+			return -1;
+		}
+		(void)bound_instance;
 		instance[0] = '\0';
 		used = (size_t)snprintf(instance, sizeof(instance), "%s.%s {{",
 			ref->module ? ref->module : "<unknown-module>",
@@ -854,7 +861,8 @@ add_ioc_dependency(asn1p_t *tree, asn1typed_module_t *out,
 			else instance[sizeof(instance) - 1] = '\0';
 		}
 		set_error(error, error_size,
-			"parameterized dependency %s is not materialized", instance);
+			"bound instance %s is owned but its semantic body is not materialized",
+			instance);
 		return -1;
 	}
 	if(ref->kind == ASN1TYPED_REF_PRIMITIVE) return 0;
