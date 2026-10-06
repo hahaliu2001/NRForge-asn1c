@@ -313,6 +313,98 @@ check_parameterized_closure_rejected(void) {
 	asn1p_delete(tree);
 }
 
+static void
+check_sequence_extensibility(void) {
+	static const char source[] =
+		"SequenceExtensibility DEFINITIONS ::= BEGIN\n"
+		"ClosedSequence ::= SEQUENCE {\n"
+		"  alpha INTEGER,\n"
+		"  beta BOOLEAN\n"
+		"}\n"
+		"OpenSequence ::= SEQUENCE {\n"
+		"  alpha INTEGER,\n"
+		"  beta BOOLEAN,\n"
+		"  ...\n"
+		"}\n"
+		"END\n";
+	asn1p_t *tree = asn1p_parse_buffer(source, -1,
+		"sequence-extensibility.asn", 1, A1P_NOFLAGS);
+	asn1typed_module_t ir;
+	asn1typed_type_t *closed, *open;
+	char error[256];
+	unsigned i;
+	assert(tree != NULL);
+	assert(asn1f_process(tree, A1F_NOFLAGS, NULL) >= 0);
+	assert(asn1typed_extract_module(tree, "SequenceExtensibility", &ir,
+		error, sizeof(error)) == 0);
+	asn1p_delete(tree);
+	closed = find_type(&ir, "ClosedSequence");
+	open = find_type(&ir, "OpenSequence");
+	assert(closed && closed->kind == ASN1TYPED_TYPE_SEQUENCE);
+	assert(open && open->kind == ASN1TYPED_TYPE_SEQUENCE);
+	assert(!closed->is_extensible && open->is_extensible);
+	assert(closed->field_count == 2 && open->field_count == 2);
+	for(i = 0; i < 2; ++i) {
+		asn1typed_type_t *types[] = { closed, open };
+		size_t j;
+		for(j = 0; j < sizeof(types) / sizeof(types[0]); ++j) {
+			asn1typed_field_t *field = &types[j]->fields[i];
+			unsigned expected_line = (j == 0 ? 3 : 7) + i;
+			assert(!strcmp(field->source_name, i == 0 ? "alpha" : "beta"));
+			assert(field->type.kind == ASN1TYPED_REF_PRIMITIVE);
+			assert(field->type.primitive_kind == (i == 0 ?
+				ASN1TYPED_PRIMITIVE_INTEGER : ASN1TYPED_PRIMITIVE_BOOLEAN));
+			assert(field->presence == ASN1TYPED_PRESENCE_MANDATORY);
+			assert(field->location.file && field->location.file[0]);
+			assert(field->location.line == expected_line);
+		}
+	}
+	asn1typed_module_clear(&ir);
+}
+
+static void
+expect_bad_sequence_marker_shape(int second_marker) {
+	static const char source[] =
+		"SequenceExtensibility DEFINITIONS ::= BEGIN\n"
+		"OpenSequence ::= SEQUENCE { alpha INTEGER, beta BOOLEAN, ... }\n"
+		"END\n";
+	asn1p_t *tree = asn1p_parse_buffer(source, -1,
+		"bad-sequence-extensibility.asn", 1, A1P_NOFLAGS);
+	asn1p_expr_t *decl, *alpha, *beta, *marker;
+	asn1typed_module_t ir;
+	char error[256];
+	assert(tree != NULL);
+	assert(asn1f_process(tree, A1F_NOFLAGS, NULL) >= 0);
+	decl = fixture_declaration(tree, "OpenSequence");
+	assert(decl != NULL);
+	alpha = TQ_FIRST(&decl->members);
+	assert(alpha != NULL);
+	beta = TQ_NEXT(alpha, next);
+	assert(beta != NULL);
+	marker = TQ_NEXT(beta, next);
+	assert(marker != NULL && marker->expr_type == A1TC_EXTENSIBLE);
+	if(second_marker) {
+		beta->expr_type = A1TC_EXTENSIBLE;
+	} else {
+		/* Move the existing marker between alpha and beta. */
+		TQ_NEXT(alpha, next) = marker;
+		TQ_NEXT(marker, next) = beta;
+		TQ_NEXT(beta, next) = NULL;
+		decl->members.tq_head = alpha;
+		decl->members.tq_tail = &TQ_NEXT(beta, next);
+	}
+	memset(&ir, 0, sizeof(ir));
+	assert(asn1typed_extract_module(tree, "SequenceExtensibility", &ir,
+		error, sizeof(error)) == -1);
+	assert(error[0] != '\0');
+	assert(strstr(error, second_marker ? "multiple SEQUENCE extension markers" :
+		"SEQUENCE component after extension marker") != NULL);
+	assert(ir.source_name == NULL && ir.types == NULL && ir.type_count == 0);
+	asn1typed_module_clear(&ir);
+	asn1typed_module_clear(&ir);
+	asn1p_delete(tree);
+}
+
 int
 main(void) {
 	asn1p_t *tree = asn1p_parse_file(T2_FIXTURE, A1P_NOFLAGS);
@@ -323,8 +415,6 @@ main(void) {
 		"Bad ::= CHOICE { a OCTET STRING }\nEND\n";
 	const char bad_builtin[] = "BadFields DEFINITIONS ::= BEGIN\n"
 		"Bad ::= SEQUENCE { data OCTET STRING }\nEND\n";
-	const char extension[] = "ExtTest DEFINITIONS ::= BEGIN\n"
-		"Extensible ::= SEQUENCE { value INTEGER, ... }\nEND\n";
 	const char default_value[] = "DefaultTest DEFINITIONS ::= BEGIN\n"
 		"WithDefault ::= SEQUENCE { value INTEGER DEFAULT 1 }\nEND\n";
 	const char inline_enum[] = "InlineEnum DEFINITIONS ::= BEGIN\n"
@@ -346,6 +436,9 @@ main(void) {
 	expect_rejected_parameterized_shape("BadSequenceOf", "SequenceUse",
 		"parameterized SEQUENCE OF element reference");
 	check_parameterized_closure_rejected();
+	check_sequence_extensibility();
+	expect_bad_sequence_marker_shape(1);
+	expect_bad_sequence_marker_shape(0);
 	assert(tree != NULL);
 	assert(asn1f_process(tree, A1F_NOFLAGS, NULL) >= 0);
 	assert(asn1typed_extract_module(tree, "OrdinaryTypes", &ir,
@@ -438,7 +531,6 @@ main(void) {
 	asn1p_delete(tree);
 
 	expect_rejected(bad_builtin, "BadFields");
-	expect_rejected(extension, "ExtTest");
 	expect_rejected(default_value, "DefaultTest");
 	expect_rejected(inline_enum, "InlineEnum");
 	/* A valid first alternative followed by a broken one exercises partial

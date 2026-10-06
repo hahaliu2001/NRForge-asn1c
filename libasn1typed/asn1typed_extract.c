@@ -186,17 +186,31 @@ populate_type(asn1p_t *tree, asn1typed_type_t *out, asn1p_expr_t *decl,
 		}
 		return 0;
 	}
-	case ASN1TYPED_TYPE_SEQUENCE:
+	case ASN1TYPED_TYPE_SEQUENCE: {
+		int saw_extension_marker = 0;
 		TQ_FOR(member, &body->members, next) {
 			if(member->expr_type == A1TC_EXTENSIBLE) {
+				if(saw_extension_marker) {
+					set_error(error, error_size,
+						"%s: multiple SEQUENCE extension markers are unsupported",
+						decl->Identifier);
+					return -1;
+				}
+				saw_extension_marker = 1;
+				out->is_extensible = 1;
+				continue;
+			}
+			if(saw_extension_marker) {
 				set_error(error, error_size,
-					"%s: SEQUENCE extension marker is unsupported", decl->Identifier);
+					"%s: SEQUENCE component after extension marker is unsupported",
+					decl->Identifier);
 				return -1;
 			}
 			if(add_field(tree, out, member, file, decl->module->ModuleName,
 					error, error_size)) return -1;
 		}
 		return 0;
+	}
 	case ASN1TYPED_TYPE_SEQUENCE_OF:
 		member = TQ_FIRST(&body->members);
 		if(!member || TQ_NEXT(member, next)) {
