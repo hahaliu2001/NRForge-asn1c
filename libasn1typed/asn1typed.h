@@ -146,6 +146,9 @@ typedef struct asn1typed_type_s {
 /* B7b.1 owns the identity before it owns the instance's semantic body. */
 typedef struct asn1typed_bound_instance_s {
 	asn1typed_type_ref_t identity;
+	/* The body's enclosing identity is the bound instance above. Its type
+	 * identity fields stay empty; all body contents are independently owned. */
+	asn1typed_type_t body;
 	int body_materialized;
 } asn1typed_bound_instance_t;
 
@@ -182,6 +185,10 @@ void asn1typed_module_clear(asn1typed_module_t *module);
 int asn1typed_module_add_bound_instance(asn1typed_module_t *module,
 		const asn1typed_type_ref_t *identity,
 		asn1typed_bound_instance_t **instance_out);
+/* Atomically attach a complete, owned SEQUENCE body to an existing instance.
+ * Relations are checked against the enclosing actuals and body selectors. */
+int asn1typed_bound_instance_set_body(asn1typed_module_t *module,
+		size_t instance_index, asn1typed_type_t *body);
 int asn1typed_module_add_type(asn1typed_module_t *module,
 		const char *source_name, asn1typed_type_kind_e kind,
 		const char *file, unsigned line, asn1typed_type_t **type_out);

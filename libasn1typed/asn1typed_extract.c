@@ -5,6 +5,7 @@
 
 #include <stdarg.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 static void
@@ -455,6 +456,46 @@ simple_object_set_setting(asn1p_value_t *value) {
 	return 0;
 }
 
+/* Normalize the single B7a object-set actual carried by one parameter. The
+ * returned strings and expression are borrowed from the fixed tree. */
+static int
+object_set_actual(asn1p_t *tree, asn1p_expr_t *parameter,
+		asn1typed_type_actual_t *actual, asn1p_expr_t **set_out) {
+	asn1p_ref_t *ref;
+	asn1p_expr_t *set;
+	if(set_out) *set_out = NULL;
+	if(!tree || !parameter || !actual || !parameter->constraints ||
+		parameter->constraints->type != ACT_EL_TYPE ||
+		!simple_object_set_setting(parameter->constraints->containedSubtype))
+		return -1;
+	ref = ioc_set_reference(parameter->constraints->containedSubtype);
+	if(!ref || ref->comp_count != 1 || !ref->components ||
+		!ref->components[0].name || !*ref->components[0].name) return -1;
+	set = ioc_resolve(tree, parameter, ref);
+	if(!set || set->meta_type != AMT_VALUESET || !set->Identifier ||
+		!set->Identifier[0] || !set->module || !set->module->ModuleName ||
+		!set->module->ModuleName[0]) return -1;
+	actual->kind = ASN1TYPED_ACTUAL_OBJECT_SET_REFERENCE;
+	actual->module = set->module->ModuleName;
+	actual->source_name = set->Identifier;
+	if(set_out) *set_out = set;
+	return 0;
+}
+
+static int
+class_field_governor_matches(asn1p_t *tree, asn1p_expr_t *generic,
+		size_t parameter_index, asn1p_expr_t *set) {
+	asn1p_expr_t *class_expr;
+	if(!generic || !generic->lhs_params ||
+		parameter_index >= (size_t)generic->lhs_params->params_count ||
+		!generic->lhs_params->params[parameter_index].governor || !set ||
+		!set->reference) return 0;
+	class_expr = ioc_resolve(tree, generic,
+		generic->lhs_params->params[parameter_index].governor);
+	return class_expr && class_expr->expr_type == A1TC_CLASSDEF &&
+		ioc_resolve(tree, set, set->reference) == class_expr;
+}
+
 /* Recover the original generic declaration through its specialization table.
  * Clone metadata is deliberately not copied into the owned reference. */
 static asn1p_expr_t *
@@ -479,7 +520,6 @@ put_parameterized_object_set_ref(asn1p_t *tree, asn1typed_type_ref_t *ref,
 		asn1p_expr_t *use, char *error, size_t error_size) {
 	asn1p_expr_t *specialization, *generic, *formal_class, *actual_set;
 	asn1p_expr_t *parameter;
-	asn1p_ref_t *actual_ref;
 	asn1typed_type_actual_t actual;
 	if(!tree || !ref || !use || !use->rhs_pspecs || !use->reference ||
 		use->reference->comp_count != 1 || !use->reference->components ||
@@ -511,32 +551,18 @@ put_parameterized_object_set_ref(asn1p_t *tree, asn1typed_type_ref_t *ref,
 			generic->Identifier, use->Identifier ? use->Identifier : "<unnamed>");
 		return -1;
 	}
-	actual_ref = ioc_set_reference(parameter->constraints->containedSubtype);
-	if(!actual_ref || actual_ref->comp_count != 1 || !actual_ref->components ||
-		!actual_ref->components[0].name || !*actual_ref->components[0].name) {
-		set_error(error, error_size, "%s.%s: actual must be one object-set reference",
-			generic->Identifier, use->Identifier ? use->Identifier : "<unnamed>");
-		return -1;
-	}
-	actual_set = ioc_resolve(tree, parameter, actual_ref);
-	if(!actual_set || actual_set->meta_type != AMT_VALUESET ||
-		!actual_set->Identifier || !actual_set->module || !actual_set->module->ModuleName) {
+	if(object_set_actual(tree, parameter, &actual, &actual_set)) {
 		set_error(error, error_size, "%s.%s: unresolved or non-object-set actual '%s'",
 			generic->Identifier, use->Identifier ? use->Identifier : "<unnamed>",
-			actual_ref->components[0].name);
+			parameter->Identifier ? parameter->Identifier : "<unnamed>");
 		return -1;
 	}
 	if(!formal_class || formal_class->expr_type != A1TC_CLASSDEF ||
-		!actual_set->reference || ioc_resolve(tree, actual_set,
-		actual_set->reference) != formal_class) {
+		!class_field_governor_matches(tree, generic, 0, actual_set)) {
 		set_error(error, error_size, "%s.%s: object-set actual is incompatible with formal",
 			generic->Identifier, use->Identifier ? use->Identifier : "<unnamed>");
 		return -1;
 	}
-	memset(&actual, 0, sizeof(actual));
-	actual.kind = ASN1TYPED_ACTUAL_OBJECT_SET_REFERENCE;
-	actual.module = actual_set->module->ModuleName;
-	actual.source_name = actual_set->Identifier;
 	if(asn1typed_type_ref_init_parameterized(ref, generic->module->ModuleName,
 			generic->Identifier, &actual, 1)) {
 		set_error(error, error_size, "%s.%s: out of memory storing parameterized reference",
@@ -821,6 +847,366 @@ bad_id:
 	return -1;
 }
 
+static int
+actual_equal(const asn1typed_type_actual_t *left,
+		const asn1typed_type_actual_t *right) {
+	return left->kind == right->kind && left->module && right->module &&
+		left->source_name && right->source_name &&
+		!strcmp(left->module, right->module) &&
+		!strcmp(left->source_name, right->source_name);
+}
+
+/* Resolve a durable instance key to exactly one specialization in that
+ * generic's own table. Candidate identities are normalized through the same
+ * namespace-based object-set resolver used by B7a references. */
+static int
+find_instance_specialization(asn1p_t *tree,
+		const asn1typed_type_ref_t *identity, asn1p_expr_t **generic_out,
+		asn1p_expr_t **specialization_out, char *error, size_t error_size) {
+	asn1p_module_t *module = NULL;
+	asn1p_expr_t *generic, *candidate;
+	size_t i, matches = 0;
+	if(generic_out) *generic_out = NULL;
+	if(specialization_out) *specialization_out = NULL;
+	if(!tree || !identity || identity->kind != ASN1TYPED_REF_NAMED ||
+		!identity->module || !identity->source_name ||
+		!identity->actual_count || !identity->actuals) {
+		set_error(error, error_size, "invalid bound-instance semantic identity");
+		return -1;
+	}
+	TQ_FOR(module, &tree->modules, mod_next)
+		if(module->ModuleName && !strcmp(module->ModuleName, identity->module)) break;
+	if(!module || !module->ModuleName) {
+		set_error(error, error_size, "bound-instance generic module '%s' not found",
+			identity->module);
+		return -1;
+	}
+	generic = named_declaration(module, identity->source_name);
+	if(!generic) {
+		set_error(error, error_size,
+			"bound-instance generic declaration '%s.%s' not found",
+			identity->module, identity->source_name);
+		return -1;
+	}
+	if(!generic->lhs_params || !generic->lhs_params->params) {
+		set_error(error, error_size,
+			"bound-instance generic '%s.%s' has unsupported parameter form",
+			identity->module, identity->source_name);
+		return -1;
+	}
+	if((size_t)generic->lhs_params->params_count != identity->actual_count) {
+		set_error(error, error_size,
+			"bound-instance generic '%s.%s' formal/actual count mismatch (%d/%lu)",
+			identity->module, identity->source_name,
+			generic->lhs_params->params_count,
+			(unsigned long)identity->actual_count);
+		return -1;
+	}
+	if(generic->specializations.pspecs_count < 0 ||
+		(generic->specializations.pspecs_count &&
+		 !generic->specializations.pspec)) {
+		set_error(error, error_size,
+			"%s.%s: malformed specialization table",
+			identity->module, identity->source_name);
+		return -1;
+	}
+	for(i = 0; i < (size_t)generic->specializations.pspecs_count; ++i) {
+		asn1p_expr_t *rhs, *parameter, *clone;
+		asn1typed_type_actual_t *actuals;
+		size_t n = 0, j;
+		int equal = 1;
+		if(!(rhs = generic->specializations.pspec[i].rhs_pspecs) ||
+			!(clone = generic->specializations.pspec[i].my_clone)) {
+			set_error(error, error_size,
+				"%s.%s: malformed specialization candidate",
+				identity->module, identity->source_name);
+			return -1;
+		}
+		actuals = (asn1typed_type_actual_t *)calloc(identity->actual_count,
+			sizeof(*actuals));
+		if(!actuals) {
+			set_error(error, error_size, "out of memory matching bound specialization");
+			return -1;
+		}
+		TQ_FOR(parameter, &rhs->members, next) {
+			asn1p_expr_t *set = NULL;
+			if(n >= identity->actual_count ||
+				object_set_actual(tree, parameter, &actuals[n], &set) ||
+				!class_field_governor_matches(tree, generic, n, set)) {
+				free(actuals);
+				set_error(error, error_size,
+					"%s.%s: malformed or unsupported specialization actual",
+					identity->module, identity->source_name);
+				return -1;
+			}
+			++n;
+		}
+		if(n != identity->actual_count) {
+			free(actuals);
+			set_error(error, error_size,
+				"%s.%s: specialization actual count mismatch",
+				identity->module, identity->source_name);
+			return -1;
+		}
+		for(j = 0; j < n; ++j)
+			if(!actual_equal(&actuals[j], &identity->actuals[j])) equal = 0;
+		free(actuals);
+		if(equal) {
+			++matches;
+			candidate = clone;
+		}
+	}
+	if(matches != 1) {
+		set_error(error, error_size,
+			"%s.%s: expected one semantic specialization match, found %lu",
+			identity->module, identity->source_name, (unsigned long)matches);
+		return -1;
+	}
+	if(generic_out) *generic_out = generic;
+	if(specialization_out) *specialization_out = candidate;
+	return 0;
+}
+
+static int
+resolve_relation_actual(asn1p_t *tree, asn1p_expr_t *generic,
+		asn1p_expr_t *field, const asn1typed_type_ref_t *identity,
+		const asn1p_constraint_t *relation, size_t *index_out) {
+	const asn1p_constraint_t *binding;
+	asn1p_ref_t *ref;
+	asn1p_expr_t *set = NULL;
+	asn1typed_type_actual_t actual;
+	size_t i, match_count = 0, match = 0;
+	if(!tree || !generic || !field || !identity || !relation ||
+		!relation->elements || relation->el_count < 1 || !index_out) return -1;
+	binding = relation->elements[0];
+	if(!binding || binding->type != ACT_EL_VALUE || binding->el_count ||
+		!binding->value) return -1;
+	ref = ioc_set_reference(binding->value);
+	if(!ref || ref->comp_count != 1 || !ref->components ||
+		!ref->components[0].name || !*ref->components[0].name) return -1;
+	set = ioc_resolve(tree, field, ref);
+	if(set && set->meta_type == AMT_VALUESET && set->Identifier && set->module &&
+		set->module->ModuleName) {
+		actual.kind = ASN1TYPED_ACTUAL_OBJECT_SET_REFERENCE;
+		actual.module = set->module->ModuleName;
+		actual.source_name = set->Identifier;
+	} else {
+		/* A specialized constraint may retain the formal parameter name.
+		 * Resolve that name through the matching generic's ordered formals and
+		 * the already-validated instance actuals. */
+		for(i = 0; i < (size_t)generic->lhs_params->params_count; ++i) {
+			const char *formal = generic->lhs_params->params[i].argument;
+			if(formal && !strcmp(formal, ref->components[0].name)) break;
+		}
+		if(i >= identity->actual_count) return -1;
+		actual = identity->actuals[i];
+	}
+	if(actual.kind != ASN1TYPED_ACTUAL_OBJECT_SET_REFERENCE) return -1;
+	for(i = 0; i < identity->actual_count; ++i)
+		if(actual_equal(&actual, &identity->actuals[i])) {
+			match = i;
+			++match_count;
+		}
+	if(match_count != 1 || match >= identity->actual_count) return -1;
+	*index_out = match;
+	return 0;
+}
+
+static char *
+component_selector(const asn1p_constraint_t *relation) {
+	const asn1p_constraint_t *component;
+	asn1p_ref_t *ref;
+	char *name;
+	if(!relation || relation->el_count != 2 || !relation->elements ||
+		!(component = relation->elements[1]) || component->type != ACT_EL_VALUE ||
+		component->el_count || !component->value ||
+		component->value->type != ATV_REFERENCED) return NULL;
+	ref = component->value->value.reference;
+	if(!ref || ref->comp_count != 1 || !ref->components ||
+		!(name = ref->components[0].name) || name[0] != '@' || !name[1])
+		return NULL;
+	return name + 1;
+}
+
+static int
+materialize_class_field(asn1p_t *tree, asn1p_expr_t *generic,
+		const asn1typed_type_ref_t *identity, asn1typed_type_t *body,
+		asn1p_expr_t *member, const char *file, unsigned line,
+		char *error, size_t error_size) {
+	asn1p_ref_t prefix;
+	asn1p_expr_t *class_expr, *class_field, *class_member;
+	const asn1p_constraint_t *relation;
+	char *field_component, *field_identity, *selector = NULL;
+	asn1typed_class_field_relation_t owned_relation;
+	asn1typed_type_ref_t fixed_ref;
+	asn1typed_presence_e presence;
+	size_t actual_index;
+	int found = 0, rc = -1;
+	memset(&owned_relation, 0, sizeof(owned_relation));
+	memset(&fixed_ref, 0, sizeof(fixed_ref));
+	if(!member->Identifier || !member->reference ||
+		member->reference->comp_count != 2 || !member->reference->components ||
+		!member->reference->components[0].name ||
+		!member->reference->components[1].name ||
+		member->reference->components[1].name[0] != '&') goto malformed;
+	field_component = member->reference->components[1].name;
+	field_identity = field_component + 1;
+	if(!*field_identity) goto malformed;
+	prefix = *member->reference;
+	prefix.comp_count = 1;
+	prefix.ref_expr = NULL;
+	class_expr = ioc_resolve(tree, member, &prefix);
+	if(!class_expr || class_expr->expr_type != A1TC_CLASSDEF ||
+		!class_expr->Identifier || !class_expr->module ||
+		!class_expr->module->ModuleName) goto malformed;
+	TQ_FOR(class_member, &class_expr->members, next)
+		if(class_member->Identifier &&
+			!strcmp(class_member->Identifier, field_component)) {
+			class_field = class_member;
+			found = 1;
+			break;
+		}
+	if(!found || class_field->meta_type != AMT_OBJECTFIELD) goto malformed;
+	relation = ioc_relation(member);
+	if(!relation || relation->el_count < 1 || relation->el_count > 2 ||
+		resolve_relation_actual(tree, generic, member, identity, relation,
+			&actual_index) || actual_index >= identity->actual_count) goto malformed;
+	if(relation->el_count == 2) {
+		selector = component_selector(relation);
+		if(!selector) goto malformed;
+	}
+	if((member->marker.flags & EM_DEFAULT) == EM_DEFAULT) goto malformed;
+	presence = (member->marker.flags & EM_OPTIONAL) == EM_OPTIONAL ?
+		ASN1TYPED_PRESENCE_OPTIONAL : ASN1TYPED_PRESENCE_MANDATORY;
+	if(class_field->expr_type == A1TC_CLASSFIELD_FTVFS) {
+		asn1p_expr_t *fixed_type = TQ_FIRST(&class_field->members);
+		if(!fixed_type || TQ_NEXT(fixed_type, next) || put_ref(&fixed_ref, fixed_type))
+			goto malformed;
+		if(selector) {
+			owned_relation.class_module = class_expr->module->ModuleName;
+			owned_relation.class_source_name = class_expr->Identifier;
+			owned_relation.class_field_source_name = field_identity;
+			owned_relation.actual_index = actual_index;
+			owned_relation.has_selector = 1;
+			owned_relation.selector_source_name = selector;
+			rc = asn1typed_type_add_class_field(body, member->Identifier,
+				ASN1TYPED_FIELD_FIXED_TYPE, &fixed_ref, &owned_relation,
+			presence, file, line);
+		} else {
+			/* The studied fixed-type/no-selector shape is the UNIQUE class
+			 * field. Keep its ordinary type without relation metadata. */
+			if(!class_field->unique) goto malformed;
+			rc = fixed_ref.kind == ASN1TYPED_REF_PRIMITIVE ?
+				asn1typed_type_add_primitive_field(body, member->Identifier,
+					fixed_ref.primitive_kind, presence, file, line) :
+				asn1typed_type_add_field_ref(body, member->Identifier,
+					&fixed_ref, presence, file, line);
+		}
+	} else if(class_field->expr_type == A1TC_CLASSFIELD_TFS && selector) {
+		owned_relation.class_module = class_expr->module->ModuleName;
+		owned_relation.class_source_name = class_expr->Identifier;
+		owned_relation.class_field_source_name = field_identity;
+		owned_relation.actual_index = actual_index;
+		owned_relation.has_selector = 1;
+		owned_relation.selector_source_name = selector;
+		rc = asn1typed_type_add_class_field(body, member->Identifier,
+			ASN1TYPED_FIELD_CLASS_FIELD_SELECTED_TYPE, NULL, &owned_relation,
+		presence, file, line);
+	} else {
+		goto malformed;
+	}
+	asn1typed_type_ref_clear(&fixed_ref);
+	if(rc) {
+		set_error(error, error_size, "%s.%s: could not own specialized class field",
+			generic->Identifier, member->Identifier);
+		return -1;
+	}
+	return 0;
+malformed:
+	asn1typed_type_ref_clear(&fixed_ref);
+	set_error(error, error_size,
+		"%s.%s: malformed or unsupported specialized class-field reference",
+		generic && generic->Identifier ? generic->Identifier : "<generic>",
+		member && member->Identifier ? member->Identifier : "<unnamed>");
+	return -1;
+}
+
+static int
+materialize_bound_instance(asn1p_t *tree, asn1typed_module_t *out,
+		size_t instance_index, char *error, size_t error_size) {
+	const asn1typed_type_ref_t *identity;
+	asn1typed_type_t body;
+	asn1p_expr_t *generic, *specialization, *resolved, *member;
+	int saw_extension = 0;
+	if(!tree || !out || instance_index >= out->bound_instance_count) return -1;
+	identity = &out->bound_instances[instance_index].identity;
+	if(out->bound_instances[instance_index].body_materialized) return 0;
+	if(find_instance_specialization(tree, identity, &generic, &specialization,
+			error, error_size)) return -1;
+	resolved = terminal_type(specialization);
+	if(!resolved || resolved->expr_type != ASN_CONSTR_SEQUENCE) {
+		set_error(error, error_size,
+			"%s.%s: specialization body is not a supported SEQUENCE",
+			identity->module, identity->source_name);
+		return -1;
+	}
+	memset(&body, 0, sizeof(body));
+	body.kind = ASN1TYPED_TYPE_SEQUENCE;
+	TQ_FOR(member, &resolved->members, next) {
+		const char *member_file = member->_lineno > 0 &&
+			generic->module->source_file_name ?
+			generic->module->source_file_name : "<unknown>";
+		unsigned member_line = member->_lineno > 0 ?
+			(unsigned)member->_lineno : 0;
+		if(member->expr_type == A1TC_EXTENSIBLE) {
+			if(saw_extension) goto malformed_body;
+			saw_extension = 1;
+			body.is_extensible = 1;
+			continue;
+		}
+		if(saw_extension || !member->Identifier || !member->Identifier[0])
+			goto malformed_body;
+		if(member->reference && member->reference->components &&
+			member->reference->comp_count == 2 &&
+			member->reference->components[1].name &&
+			member->reference->components[1].name[0] == '&') {
+			if(materialize_class_field(tree, generic, identity, &body, member,
+					member_file, member_line, error, error_size)) goto fail;
+		} else {
+			asn1typed_type_ref_t ref;
+			asn1typed_presence_e presence;
+			int rc;
+			memset(&ref, 0, sizeof(ref));
+			if(member->rhs_pspecs || put_ref(&ref, member)) {
+				asn1typed_type_ref_clear(&ref);
+				goto malformed_body;
+			}
+			if((member->marker.flags & EM_DEFAULT) == EM_DEFAULT) {
+				asn1typed_type_ref_clear(&ref);
+				goto malformed_body;
+			}
+			presence = (member->marker.flags & EM_OPTIONAL) == EM_OPTIONAL ?
+				ASN1TYPED_PRESENCE_OPTIONAL : ASN1TYPED_PRESENCE_MANDATORY;
+			rc = ref.kind == ASN1TYPED_REF_PRIMITIVE ?
+				asn1typed_type_add_primitive_field(&body, member->Identifier,
+					ref.primitive_kind, presence, member_file, member_line) :
+				asn1typed_type_add_field_ref(&body, member->Identifier,
+					&ref, presence, member_file, member_line);
+			asn1typed_type_ref_clear(&ref);
+			if(rc) goto malformed_body;
+		}
+	}
+	if(!body.field_count || asn1typed_bound_instance_set_body(out,
+			instance_index, &body)) goto malformed_body;
+	return 0;
+malformed_body:
+	set_error(error, error_size, "%s.%s: malformed or unsupported specialized SEQUENCE body",
+		identity->module, identity->source_name);
+fail:
+	asn1typed_type_clear(&body);
+	return -1;
+}
+
 /* Add each reachable ordinary declaration once. The outer worklist handles
  * recursion without retaining a types-array pointer across reallocations. */
 static int
@@ -833,37 +1219,80 @@ add_ioc_dependency(asn1p_t *tree, asn1typed_module_t *out,
 	const char *file;
 	size_t i;
 	/* B7b.1 owns this identity, but closure cannot claim success until B7b.2
-	 * materializes the bound instance's semantic body. */
+	 * materializes and traverses the bound instance's semantic body. */
 	if(ref->actual_count) {
 		asn1typed_bound_instance_t *bound_instance;
-		char instance[256];
-		size_t used;
+		asn1typed_type_ref_t *dependencies = NULL;
+		size_t instance_index, dependency_count = 0, dependency_index;
 		if(asn1typed_module_add_bound_instance(out, ref, &bound_instance)) {
 			set_error(error, error_size,
 				"parameterized dependency identity could not be owned");
 			return -1;
 		}
-		(void)bound_instance;
-		instance[0] = '\0';
-		used = (size_t)snprintf(instance, sizeof(instance), "%s.%s {{",
-			ref->module ? ref->module : "<unknown-module>",
-			ref->source_name ? ref->source_name : "<unknown-type>");
-		for(i = 0; i < ref->actual_count && used < sizeof(instance); ++i) {
-			int written = snprintf(instance + used, sizeof(instance) - used,
-				"%s%s.%s", i ? ", " : "",
-				ref->actuals[i].module ? ref->actuals[i].module : "<unknown-module>",
-				ref->actuals[i].source_name ? ref->actuals[i].source_name : "<unknown-set>");
-			if(written < 0) break;
-			used += (size_t)written;
+		instance_index = (size_t)(bound_instance - out->bound_instances);
+		if(bound_instance->body_materialized) return 0;
+		if(materialize_bound_instance(tree, out, instance_index, error, error_size))
+			return -1;
+		/* Copy all fixed dependencies before recursive closure can append and
+		 * reallocate bound_instances[]. */
+		bound_instance = &out->bound_instances[instance_index];
+		for(i = 0; i < bound_instance->body.field_count; ++i) {
+			asn1typed_field_t *field = &bound_instance->body.fields[i];
+			if(field->type_semantics == ASN1TYPED_FIELD_FIXED_TYPE) {
+				++dependency_count;
+			} else if(field->type_semantics ==
+					ASN1TYPED_FIELD_CLASS_FIELD_SELECTED_TYPE) {
+				if(!field->has_class_field_relation) {
+					set_error(error, error_size,
+						"%s.%s: selected bound field has no class-field relation",
+						ref->source_name, field->source_name);
+					return -1;
+				}
+			} else {
+				set_error(error, error_size,
+					"%s.%s: unknown bound field type semantics",
+					ref->source_name, field->source_name);
+				return -1;
+			}
 		}
-		if(used < sizeof(instance)) {
-			if(used + 2 < sizeof(instance)) strcat(instance, "}}");
-			else instance[sizeof(instance) - 1] = '\0';
+		if(dependency_count) {
+			size_t next = 0;
+			dependencies = (asn1typed_type_ref_t *)calloc(dependency_count,
+				sizeof(*dependencies));
+			if(!dependencies) {
+				set_error(error, error_size,
+					"out of memory copying bound-instance dependencies");
+				return -1;
+			}
+			for(i = 0; i < bound_instance->body.field_count; ++i) {
+				asn1typed_field_t *field = &bound_instance->body.fields[i];
+				if(field->type_semantics != ASN1TYPED_FIELD_FIXED_TYPE) continue;
+				if(asn1typed_type_ref_copy(&dependencies[next], &field->type)) {
+					for(dependency_index = 0; dependency_index < next;
+						++dependency_index)
+						asn1typed_type_ref_clear(&dependencies[dependency_index]);
+					free(dependencies);
+					set_error(error, error_size,
+						"out of memory copying bound-instance field reference");
+					return -1;
+				}
+				++next;
+			}
 		}
-		set_error(error, error_size,
-			"bound instance %s is owned but its semantic body is not materialized",
-			instance);
-		return -1;
+		for(dependency_index = 0; dependency_index < dependency_count;
+			++dependency_index) {
+			if(add_ioc_dependency(tree, out, &dependencies[dependency_index],
+					error, error_size)) {
+				for(i = 0; i < dependency_count; ++i)
+					asn1typed_type_ref_clear(&dependencies[i]);
+				free(dependencies);
+				return -1;
+			}
+		}
+		for(i = 0; i < dependency_count; ++i)
+			asn1typed_type_ref_clear(&dependencies[i]);
+		free(dependencies);
+		return 0;
 	}
 	if(ref->kind == ASN1TYPED_REF_PRIMITIVE) return 0;
 	if(!ref->module || !ref->source_name) {
@@ -939,9 +1368,28 @@ asn1typed_extract_message(asn1p_t *tree, const char *module_name,
 		if(extract_ioc_row(tree, type, set->ioc_table->row[i], file, error, error_size))
 			goto fail;
 	for(i = 0; i < out->type_count; ++i) {
-		for(j = 0; j < out->types[i].field_count; ++j)
-			if(add_ioc_dependency(tree, out, &out->types[i].fields[j].type,
-					error, error_size)) goto fail;
+		for(j = 0; j < out->types[i].field_count; ++j) {
+			asn1typed_field_t *field = &out->types[i].fields[j];
+			switch(field->type_semantics) {
+			case ASN1TYPED_FIELD_FIXED_TYPE:
+				if(add_ioc_dependency(tree, out, &field->type,
+						error, error_size)) goto fail;
+				break;
+			case ASN1TYPED_FIELD_CLASS_FIELD_SELECTED_TYPE:
+				if(!field->has_class_field_relation) {
+					set_error(error, error_size,
+						"%s.%s: selected class-field type has no relation",
+						out->types[i].identity.source_name, field->source_name);
+					goto fail;
+				}
+				break;
+			default:
+				set_error(error, error_size,
+					"%s.%s: unknown field type semantics",
+					out->types[i].identity.source_name, field->source_name);
+				goto fail;
+			}
+		}
 		if(out->types[i].kind == ASN1TYPED_TYPE_CHOICE) {
 			for(j = 0; j < out->types[i].alternative_count; ++j) {
 				/* Adding a dependency may realloc the type array. */

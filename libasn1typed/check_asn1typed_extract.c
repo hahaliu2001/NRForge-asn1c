@@ -50,6 +50,19 @@ expect_rejected(const char *source, const char *module_name) {
 static asn1p_expr_t *fixture_declaration(asn1p_t *tree, const char *name);
 
 static void
+hide_bound_body_templates(asn1p_t *tree) {
+	static const char *const names[] = {
+		"ShapeInner", "ShapeOuter", "BoundBodyUse"
+	};
+	size_t i;
+	for(i = 0; i < sizeof(names) / sizeof(names[0]); ++i) {
+		asn1p_expr_t *decl = fixture_declaration(tree, names[i]);
+		assert(decl);
+		decl->meta_type = AMT_VALUE;
+	}
+}
+
+static void
 check_enumerated_extensibility(void) {
 	static const char source[] =
 		"EnumExtensibility DEFINITIONS ::= BEGIN\n"
@@ -125,6 +138,7 @@ check_parameterized_reference_identity(void) {
 	asn1p_t *tree = asn1p_parse_file(T5_FIXTURE, A1P_NOFLAGS);
 	asn1p_expr_t *sequence, *bad_sequence_of;
 	asn1p_expr_t *root_field, *root_container, *root_message;
+	asn1p_expr_t *shape_inner, *shape_outer, *body_use;
 	asn1typed_module_t ir;
 	asn1typed_type_t *a, *again, *b;
 	char error[256];
@@ -135,12 +149,19 @@ check_parameterized_reference_identity(void) {
 	root_field = fixture_declaration(tree, "B7A-Field");
 	root_container = fixture_declaration(tree, "B7A-Container");
 	root_message = fixture_declaration(tree, "RootMessage");
-	assert(sequence && bad_sequence_of && root_field && root_container && root_message);
+	shape_inner = fixture_declaration(tree, "ShapeInner");
+	shape_outer = fixture_declaration(tree, "ShapeOuter");
+	body_use = fixture_declaration(tree, "BoundBodyUse");
+	assert(sequence && bad_sequence_of && root_field && root_container && root_message &&
+		shape_inner && shape_outer && body_use);
 	sequence->meta_type = AMT_VALUE;
 	bad_sequence_of->meta_type = AMT_VALUE;
 	root_field->meta_type = AMT_VALUE;
 	root_container->meta_type = AMT_VALUE;
 	root_message->meta_type = AMT_VALUE;
+	shape_inner->meta_type = AMT_VALUE;
+	shape_outer->meta_type = AMT_VALUE;
+	body_use->meta_type = AMT_VALUE;
 	assert(asn1typed_extract_module(tree, "ParameterizedReferenceB7A", &ir,
 		error, sizeof(error)) == 0);
 	assert(ir.bound_instance_count == 0);
@@ -225,6 +246,71 @@ check_bound_instance_rejects_invalid_keys(void) {
 	asn1typed_module_clear(&ir);
 }
 
+static void
+check_bound_instance_body_attachment(void) {
+	asn1typed_module_t ir;
+	asn1typed_type_ref_t identity = {0};
+	asn1typed_type_actual_t actual = {
+		ASN1TYPED_ACTUAL_OBJECT_SET_REFERENCE, "Fixture", "SetA"
+	};
+	asn1typed_type_t body = {0};
+	asn1typed_class_field_relation_t relation = {
+		"Fixture", "TestClass", "Value", 0, 1, "id"
+	};
+	size_t index;
+	assert(asn1typed_module_init(&ir, "Fixture", "<fixture>", 1) == 0);
+	assert(asn1typed_type_ref_init_parameterized(&identity, "Fixture", "Outer",
+		&actual, 1) == 0);
+	assert(asn1typed_module_add_bound_instance(&ir, &identity, NULL) == 0);
+	index = 0;
+	/* Build a detached temporary body with the existing target-neutral API. */
+	memset(&body, 0, sizeof(body));
+	body.kind = ASN1TYPED_TYPE_SEQUENCE;
+	assert(asn1typed_type_add_primitive_field(&body, "id",
+		ASN1TYPED_PRIMITIVE_INTEGER, ASN1TYPED_PRESENCE_MANDATORY,
+		"<fixture>", 0) == 0);
+	assert(asn1typed_type_add_class_field(&body, "value",
+		ASN1TYPED_FIELD_CLASS_FIELD_SELECTED_TYPE, NULL, &relation,
+		ASN1TYPED_PRESENCE_MANDATORY, "<fixture>", 0) == 0);
+	relation.actual_index = 1;
+	/* Rebuild with an out-of-range relation to prove no body is published. */
+	asn1typed_type_clear(&body);
+	memset(&body, 0, sizeof(body));
+	body.kind = ASN1TYPED_TYPE_SEQUENCE;
+	assert(asn1typed_type_add_class_field(&body, "value",
+		ASN1TYPED_FIELD_CLASS_FIELD_SELECTED_TYPE, NULL, &relation,
+		ASN1TYPED_PRESENCE_MANDATORY, "<fixture>", 0) == 0);
+	assert(asn1typed_bound_instance_set_body(&ir, index, &body) != 0);
+	assert(!ir.bound_instances[0].body_materialized &&
+		ir.bound_instances[0].body.fields == NULL);
+	asn1typed_type_clear(&body);
+	memset(&body, 0, sizeof(body));
+	body.kind = ASN1TYPED_TYPE_SEQUENCE;
+	relation.actual_index = 0;
+	assert(asn1typed_type_add_class_field(&body, "invalid",
+		ASN1TYPED_FIELD_CLASS_FIELD_SELECTED_TYPE, NULL, &relation,
+		ASN1TYPED_PRESENCE_MANDATORY, "<fixture>", 0) == 0);
+	body.fields[0].type_semantics = (asn1typed_field_type_semantics_e)99;
+	assert(asn1typed_bound_instance_set_body(&ir, index, &body) != 0);
+	assert(!ir.bound_instances[0].body_materialized &&
+		ir.bound_instances[0].body.fields == NULL);
+	asn1typed_type_clear(&body);
+	memset(&body, 0, sizeof(body));
+	body.kind = ASN1TYPED_TYPE_SEQUENCE;
+	assert(asn1typed_type_add_primitive_field(&body, "id",
+		ASN1TYPED_PRIMITIVE_INTEGER, ASN1TYPED_PRESENCE_MANDATORY,
+		"<fixture>", 0) == 0);
+	assert(asn1typed_type_add_class_field(&body, "value",
+		ASN1TYPED_FIELD_CLASS_FIELD_SELECTED_TYPE, NULL, &relation,
+		ASN1TYPED_PRESENCE_MANDATORY, "<fixture>", 0) == 0);
+	assert(asn1typed_bound_instance_set_body(&ir, index, &body) == 0);
+	assert(ir.bound_instances[0].body_materialized);
+	assert(ir.bound_instances[0].body.field_count == 2 && body.fields == NULL);
+	asn1typed_type_clear(&body);
+	asn1typed_module_clear(&ir);
+	asn1typed_module_clear(&ir);
+}
+
 static asn1p_expr_t *
 fixture_declaration(asn1p_t *tree, const char *name) {
 	asn1p_module_t *module;
@@ -303,6 +389,7 @@ expect_rejected_parameterized_shape(const char *bad_name,
 	bad = fixture_declaration(tree, bad_name);
 	other = fixture_declaration(tree, other_name);
 	assert(bad && other);
+	hide_bound_body_templates(tree);
 	other->meta_type = AMT_VALUE;
 	assert(asn1typed_extract_module(tree, "ParameterizedReferenceB7A", &ir,
 		error, sizeof(error)) != 0);
@@ -320,6 +407,7 @@ check_parameterized_sequence_field(void) {
 	asn1typed_type_t *type, *other;
 	char error[256];
 	assert(tree && asn1f_process(tree, A1F_NOFLAGS, NULL) >= 0);
+	hide_bound_body_templates(tree);
 	fixture_declaration(tree, "BadSequenceOf")->meta_type = AMT_VALUE;
 	fixture_declaration(tree, "B7A-Field")->meta_type = AMT_VALUE;
 	fixture_declaration(tree, "B7A-Container")->meta_type = AMT_VALUE;
@@ -355,12 +443,203 @@ check_parameterized_closure_rejected(void) {
 	assert(tree && asn1f_process(tree, A1F_NOFLAGS, NULL) >= 0);
 	assert(asn1typed_extract_message(tree, "ParameterizedReferenceB7A",
 		"RootMessage", &ir, error, sizeof(error)) != 0);
-	assert(strstr(error, "bound instance") != NULL);
 	assert(strstr(error, "ParameterizedReferenceB7A.Target") != NULL);
-	assert(strstr(error, "ParameterizedReferenceB7A.SetA") != NULL);
-	assert(strstr(error, "is owned but its semantic body is not materialized") != NULL);
+	assert(strstr(error, "specialization body is not a supported SEQUENCE") != NULL);
 	assert(ir.source_name == NULL && ir.types == NULL && ir.type_count == 0);
 	assert(ir.bound_instances == NULL && ir.bound_instance_count == 0);
+	asn1typed_module_clear(&ir);
+	asn1typed_module_clear(&ir);
+	asn1p_delete(tree);
+}
+
+static asn1typed_bound_instance_t *
+find_bound_instance(asn1typed_module_t *ir, const char *generic,
+		const char *actual) {
+	size_t i;
+	for(i = 0; i < ir->bound_instance_count; ++i) {
+		asn1typed_bound_instance_t *instance = &ir->bound_instances[i];
+		if(!strcmp(instance->identity.source_name, generic) &&
+			instance->identity.actual_count == 1 &&
+			!strcmp(instance->identity.actuals[0].source_name, actual)) return instance;
+	}
+	return NULL;
+}
+
+static void
+check_bound_specialization_materialization(void) {
+	asn1p_t *tree = asn1p_parse_file(T5_FIXTURE, A1P_NOFLAGS);
+	asn1typed_module_t ir;
+	asn1typed_bound_instance_t *set_a, *set_b;
+	asn1typed_field_t *id, *criticality, *value;
+	char error[512];
+	assert(tree && asn1f_process(tree, A1F_NOFLAGS, NULL) >= 0);
+	if(asn1typed_extract_message(tree, "ParameterizedReferenceB7A",
+		"BodyUseMessage", &ir, error, sizeof(error))) {
+		fprintf(stderr, "B7b.2b synthetic extraction failed: %s\n", error);
+		assert(0);
+	}
+	assert(ir.bound_instance_count == 2);
+	set_a = find_bound_instance(&ir, "ShapeOuter", "BodySetA");
+	set_b = find_bound_instance(&ir, "ShapeOuter", "BodySetB");
+	assert(set_a && set_b && set_a != set_b);
+	assert(set_a->body_materialized && set_b->body_materialized);
+	assert(set_a->body.kind == ASN1TYPED_TYPE_SEQUENCE &&
+		set_a->body.field_count == 3);
+	assert(set_b->body.kind == ASN1TYPED_TYPE_SEQUENCE &&
+		set_b->body.field_count == 3);
+	/* Drop the parser/fixer tree before inspecting every owned field value. */
+	asn1p_delete(tree);
+	set_a = find_bound_instance(&ir, "ShapeOuter", "BodySetA");
+	set_b = find_bound_instance(&ir, "ShapeOuter", "BodySetB");
+	assert(set_a && set_b && set_a != set_b);
+	id = &set_a->body.fields[0];
+	criticality = &set_a->body.fields[1];
+	value = &set_a->body.fields[2];
+	assert(!strcmp(id->source_name, "id") &&
+		id->type_semantics == ASN1TYPED_FIELD_FIXED_TYPE &&
+		id->type.kind == ASN1TYPED_REF_PRIMITIVE &&
+		id->type.primitive_kind == ASN1TYPED_PRIMITIVE_INTEGER &&
+		!id->has_class_field_relation);
+	assert(!strcmp(criticality->source_name, "criticality") &&
+		criticality->type_semantics == ASN1TYPED_FIELD_FIXED_TYPE &&
+		criticality->type.kind == ASN1TYPED_REF_NAMED &&
+		!strcmp(criticality->type.source_name, "B7A-Criticality") &&
+		criticality->has_class_field_relation);
+	assert(!strcmp(criticality->class_field_relation.class_module,
+		"ParameterizedReferenceB7A"));
+	assert(!strcmp(criticality->class_field_relation.class_source_name,
+		"B7A-IES"));
+	assert(!strcmp(criticality->class_field_relation.class_field_source_name,
+		"criticality"));
+	assert(criticality->class_field_relation.actual_index == 0 &&
+		criticality->class_field_relation.actual_index < set_a->identity.actual_count);
+	assert(criticality->class_field_relation.has_selector &&
+		!strcmp(criticality->class_field_relation.selector_source_name, "id"));
+	assert(!strcmp(value->source_name, "value") &&
+		value->type_semantics == ASN1TYPED_FIELD_CLASS_FIELD_SELECTED_TYPE &&
+		!value->type.module && !value->type.source_name &&
+		value->has_class_field_relation);
+	assert(!strcmp(value->class_field_relation.class_module,
+		"ParameterizedReferenceB7A"));
+	assert(!strcmp(value->class_field_relation.class_source_name, "B7A-IES"));
+	assert(!strcmp(value->class_field_relation.class_field_source_name, "Value"));
+	assert(value->class_field_relation.actual_index == 0 &&
+		value->class_field_relation.actual_index < set_a->identity.actual_count);
+	assert(value->class_field_relation.has_selector &&
+		!strcmp(value->class_field_relation.selector_source_name, "id"));
+	assert(set_b->body.fields[1].class_field_relation.actual_index <
+		set_b->identity.actual_count);
+	assert(set_b->body.fields[2].type_semantics ==
+		ASN1TYPED_FIELD_CLASS_FIELD_SELECTED_TYPE);
+	assert(set_b->body.fields[2].has_class_field_relation &&
+		set_b->body.fields[2].class_field_relation.actual_index <
+		set_b->identity.actual_count);
+	assert(find_type(&ir, "B7A-Criticality") != NULL);
+	/* Repeated SetA references deduplicate to one materialized instance; the
+	 * selected Value field did not enter ordinary dependency lookup. */
+	assert(ir.bound_instance_count == 2);
+	asn1typed_module_clear(&ir);
+	asn1typed_module_clear(&ir);
+}
+
+static asn1p_ref_t *
+fixture_specialization_actual(asn1p_expr_t *generic, const char *actual_name) {
+	int i;
+	if(!generic || !actual_name) return NULL;
+	for(i = 0; i < generic->specializations.pspecs_count; ++i) {
+		asn1p_expr_t *rhs = generic->specializations.pspec[i].rhs_pspecs;
+		asn1p_expr_t *parameter = rhs ? TQ_FIRST(&rhs->members) : NULL;
+		asn1p_value_t *value = parameter && parameter->constraints ?
+			parameter->constraints->containedSubtype : NULL;
+		asn1p_ref_t *ref = NULL;
+		if(value && value->type == ATV_REFERENCED) ref = value->value.reference;
+		else if(value && value->type == ATV_TYPE && value->value.v_type)
+			ref = value->value.v_type->reference;
+		if(ref && ref->comp_count == 1 && ref->components &&
+			ref->components[0].name &&
+			!strcmp(ref->components[0].name, actual_name)) return ref;
+	}
+	return NULL;
+}
+
+static void
+replace_fixture_field_actual(asn1p_t *tree, const char *owner_name,
+		const char *field_name, const char *actual_name) {
+	asn1p_expr_t *owner = fixture_declaration(tree, owner_name), *field, *parameter;
+	asn1p_value_t *setting;
+	asn1p_ref_t *ref;
+	if(!owner) abort();
+	TQ_FOR(field, &owner->members, next)
+		if(field->Identifier && !strcmp(field->Identifier, field_name)) break;
+	if(!field || !field->rhs_pspecs ||
+		!(parameter = TQ_FIRST(&field->rhs_pspecs->members)) ||
+		!parameter->constraints || !parameter->constraints->containedSubtype) abort();
+	setting = parameter->constraints->containedSubtype;
+	if(setting->type == ATV_REFERENCED) ref = setting->value.reference;
+	else if(setting->type == ATV_TYPE && setting->value.v_type)
+		ref = setting->value.v_type->reference;
+	else abort();
+	if(!ref || ref->comp_count != 1 || !ref->components) abort();
+	free(ref->components[0].name);
+	ref->components[0].name = strdup(actual_name);
+	if(!ref->components[0].name) abort();
+	ref->ref_expr = fixture_declaration(tree, actual_name);
+	if(!ref->ref_expr) abort();
+}
+
+static void
+check_bound_specialization_failure_atomicity(int failure_kind) {
+	asn1p_t *tree = asn1p_parse_file(T5_FIXTURE, A1P_NOFLAGS);
+	asn1p_expr_t *generic, *specialization, *body, *member;
+	asn1p_ref_t *actual_ref;
+	asn1typed_module_t ir;
+	char error[512];
+	assert(tree && asn1f_process(tree, A1F_NOFLAGS, NULL) >= 0);
+	generic = fixture_declaration(tree, "ShapeOuter");
+	assert(generic);
+	if(failure_kind == 0) {
+		replace_fixture_field_actual(tree, "BoundBodyUse", "first", "RootIEs");
+	} else if(failure_kind == 1) {
+		actual_ref = fixture_specialization_actual(generic, "BodySetB");
+		assert(actual_ref);
+		actual_ref->ref_expr = fixture_declaration(tree, "BodySetA");
+		assert(actual_ref->ref_expr);
+	} else {
+		actual_ref = fixture_specialization_actual(generic, "BodySetA");
+		assert(actual_ref);
+		for(int i = 0; i < generic->specializations.pspecs_count; ++i) {
+			asn1p_expr_t *rhs = generic->specializations.pspec[i].rhs_pspecs;
+			asn1p_expr_t *parameter = rhs ? TQ_FIRST(&rhs->members) : NULL;
+			asn1p_value_t *setting = parameter && parameter->constraints ?
+				parameter->constraints->containedSubtype : NULL;
+			asn1p_ref_t *r = setting && setting->type == ATV_TYPE &&
+				setting->value.v_type ? setting->value.v_type->reference : NULL;
+			if(!r && setting && setting->type == ATV_REFERENCED)
+				r = setting->value.reference;
+			if(!r || r->comp_count != 1 || !r->components ||
+				strcmp(r->components[0].name, "BodySetA")) continue;
+			specialization = generic->specializations.pspec[i].my_clone;
+			body = specialization->reference ?
+				specialization->reference->ref_expr : NULL;
+			assert(body && body->expr_type == ASN_CONSTR_SEQUENCE);
+			TQ_FOR(member, &body->members, next)
+				if(member->Identifier && !strcmp(member->Identifier, "value")) break;
+			assert(member && member->reference && member->reference->comp_count == 2);
+			member->reference->components[1].name[1] = 'X';
+			break;
+		}
+	}
+	assert(asn1typed_extract_message(tree, "ParameterizedReferenceB7A",
+		"BodyUseMessage", &ir, error, sizeof(error)) != 0);
+	assert(error[0] != '\0');
+	if(failure_kind == 0)
+		assert(strstr(error, "expected one semantic specialization match, found 0"));
+	else if(failure_kind == 1)
+		assert(strstr(error, "expected one semantic specialization match, found 2"));
+	else
+		assert(strstr(error, "malformed or unsupported specialized class-field reference"));
+	assert(ir.source_name == NULL && ir.bound_instances == NULL &&
+		ir.bound_instance_count == 0);
 	asn1typed_module_clear(&ir);
 	asn1typed_module_clear(&ir);
 	asn1p_delete(tree);
@@ -663,5 +942,10 @@ main(void) {
 	puts("T2 ordinary ASN.1 extraction: PASS (IR valid after parser tree destruction)");
 	check_asn1typed_ioc();
 	check_asn1typed_multimodule();
+	check_bound_instance_body_attachment();
+	check_bound_specialization_materialization();
+	check_bound_specialization_failure_atomicity(0); /* zero semantic matches */
+	check_bound_specialization_failure_atomicity(1); /* ambiguous semantic match */
+	check_bound_specialization_failure_atomicity(2); /* partial body conversion */
 	return 0;
 }

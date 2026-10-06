@@ -342,8 +342,10 @@ asn1typed_module_clear(asn1typed_module_t *module) {
 	for(i = 0; i < module->type_count; ++i)
 		asn1typed_type_clear(&module->types[i]);
 	free(module->types);
-	for(i = 0; i < module->bound_instance_count; ++i)
+	for(i = 0; i < module->bound_instance_count; ++i) {
 		asn1typed_type_ref_clear(&module->bound_instances[i].identity);
+		asn1typed_type_clear(&module->bound_instances[i].body);
+	}
 	free(module->bound_instances);
 	free(module->source_name);
 	asn1typed_source_location_clear(&module->location);
@@ -386,6 +388,42 @@ asn1typed_module_add_bound_instance(asn1typed_module_t *module,
 	if(instance_out)
 		*instance_out = &module->bound_instances[module->bound_instance_count];
 	module->bound_instance_count++;
+	return 0;
+}
+
+int
+asn1typed_bound_instance_set_body(asn1typed_module_t *module,
+		size_t instance_index, asn1typed_type_t *body) {
+	asn1typed_bound_instance_t *instance;
+	size_t i, j;
+	if(!module || instance_index >= module->bound_instance_count || !body ||
+		body->kind != ASN1TYPED_TYPE_SEQUENCE || body->identity.module ||
+		body->identity.source_name || body->field_count == 0) return -1;
+	instance = &module->bound_instances[instance_index];
+	if(instance->body_materialized || instance->body.kind != 0) return -1;
+	for(i = 0; i < body->field_count; ++i) {
+		const asn1typed_field_t *field = &body->fields[i];
+		if(field->type_semantics != ASN1TYPED_FIELD_FIXED_TYPE &&
+			field->type_semantics != ASN1TYPED_FIELD_CLASS_FIELD_SELECTED_TYPE)
+			return -1;
+		if(field->type_semantics == ASN1TYPED_FIELD_CLASS_FIELD_SELECTED_TYPE &&
+			(!field->has_class_field_relation || field->type.module ||
+			 field->type.source_name || field->type.actuals || field->type.actual_count))
+			return -1;
+		if(!field->has_class_field_relation) continue;
+		if(field->class_field_relation.actual_index >= instance->identity.actual_count)
+			return -1;
+		if(field->class_field_relation.has_selector) {
+			int found = 0;
+			for(j = 0; j < body->field_count; ++j)
+				if(!strcmp(body->fields[j].source_name,
+					field->class_field_relation.selector_source_name)) found = 1;
+			if(!found) return -1;
+		}
+	}
+	instance->body = *body;
+	memset(body, 0, sizeof(*body));
+	instance->body_materialized = 1;
 	return 0;
 }
 

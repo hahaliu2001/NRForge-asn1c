@@ -39,4 +39,29 @@ RootIEs B7A-IES ::= {
 }
 RootMessage ::= SEQUENCE { protocolIEs B7A-Container {{RootIEs}} }
 
+BodySetA B7A-IES ::= {
+	{ ID id-root CRITICALITY reject TYPE INTEGER PRESENCE mandatory }
+}
+BodySetB B7A-IES ::= {
+	{ ID id-root CRITICALITY ignore TYPE BOOLEAN PRESENCE optional }
+}
+ShapeInner { B7A-IES : P } ::= SEQUENCE {
+	id B7A-IES.&id({P}),
+	criticality B7A-IES.&criticality({P}{@id}),
+	value B7A-IES.&Value({P}{@id})
+}
+ShapeOuter { B7A-IES : P } ::= ShapeInner {{P}}
+BoundBodyUse ::= SEQUENCE {
+	first ShapeOuter {{BodySetA}},
+	repeated ShapeOuter {{BodySetA}},
+	other ShapeOuter {{BodySetB}}
+}
+id-body INTEGER ::= 101
+BodyUseIEs B7A-IES ::= {
+	{ ID id-body CRITICALITY reject TYPE BoundBodyUse PRESENCE mandatory }
+}
+BodyUseMessage ::= SEQUENCE {
+	protocolIEs B7A-Container {{BodyUseIEs}}
+}
+
 END
