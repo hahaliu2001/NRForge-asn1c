@@ -397,10 +397,26 @@ asn1typed_bound_instance_set_body(asn1typed_module_t *module,
 	asn1typed_bound_instance_t *instance;
 	size_t i, j;
 	if(!module || instance_index >= module->bound_instance_count || !body ||
-		body->kind != ASN1TYPED_TYPE_SEQUENCE || body->identity.module ||
-		body->identity.source_name || body->field_count == 0) return -1;
+		body->identity.module || body->identity.source_name) return -1;
 	instance = &module->bound_instances[instance_index];
 	if(instance->body_materialized || instance->body.kind != 0) return -1;
+	if(body->kind == ASN1TYPED_TYPE_SEQUENCE) {
+		if(body->field_count == 0) return -1;
+	} else if(body->kind == ASN1TYPED_TYPE_SEQUENCE_OF) {
+		const asn1typed_type_ref_t *element = &body->element_type;
+		if(body->field_count || !body->size_constraint.has_size_constraint ||
+			body->size_constraint.lower_bound > body->size_constraint.upper_bound ||
+			element->kind != ASN1TYPED_REF_NAMED ||
+			!element->module || !element->module[0] || !element->source_name ||
+			!element->source_name[0] || element->actual_count != 1 ||
+			!element->actuals ||
+			element->actuals[0].kind != ASN1TYPED_ACTUAL_OBJECT_SET_REFERENCE ||
+			!element->actuals[0].module || !element->actuals[0].module[0] ||
+			!element->actuals[0].source_name ||
+			!element->actuals[0].source_name[0]) return -1;
+	} else {
+		return -1;
+	}
 	for(i = 0; i < body->field_count; ++i) {
 		const asn1typed_field_t *field = &body->fields[i];
 		if(field->type_semantics != ASN1TYPED_FIELD_FIXED_TYPE &&

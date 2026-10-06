@@ -202,8 +202,9 @@ void asn1typed_module_clear(asn1typed_module_t *module);
 int asn1typed_module_add_bound_instance(asn1typed_module_t *module,
 		const asn1typed_type_ref_t *identity,
 		asn1typed_bound_instance_t **instance_out);
-/* Atomically attach a complete, owned SEQUENCE body to an existing instance.
- * Relations are checked against the enclosing actuals and body selectors. */
+/* Atomically attach a complete, owned SEQUENCE or supported SEQUENCE OF body
+ * to an existing instance. Relations are checked against enclosing actuals
+ * and body selectors for SEQUENCE fields. */
 int asn1typed_bound_instance_set_body(asn1typed_module_t *module,
 		size_t instance_index, asn1typed_type_t *body);
 int asn1typed_module_add_type(asn1typed_module_t *module,

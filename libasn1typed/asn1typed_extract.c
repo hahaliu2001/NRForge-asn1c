@@ -11,6 +11,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+static asn1p_expr_t *ioc_resolve(asn1p_t *tree, asn1p_expr_t *context,
+		asn1p_ref_t *ref);
+
 static void
 set_error(char *error, size_t size, const char *format, ...) {
 	va_list ap;
@@ -95,6 +98,68 @@ extract_size_constraint(const asn1p_constraint_t *constraint,
 		constraint_bound(range->range_start, &out->lower_bound) ||
 		constraint_bound(range->range_stop, &out->upper_bound) ||
 		out->lower_bound > out->upper_bound) return -1;
+	out->has_size_constraint = 1;
+	out->is_extensible = extensible;
+	return 0;
+}
+
+/* Bound bodies may retain direct named INTEGER constraints. Normalize only a
+ * direct named integer constant here; Typed IR stores the exact closed range
+ * numerically and does not retain parser nodes. */
+static int
+bound_body_constraint_value(asn1p_t *tree, asn1p_expr_t *context,
+		const asn1p_value_t *value, intmax_t *out) {
+	asn1p_expr_t *resolved;
+	asn1p_ref_t *ref;
+	asn1p_value_t integer;
+	if(!value) return -1;
+	if(value->type == ATV_INTEGER) return constraint_bound(value, out);
+	if(value->type != ATV_REFERENCED || !(ref = value->value.reference) ||
+		ref->comp_count != 1 || !ref->components ||
+		!ref->components[0].name || !ref->components[0].name[0]) return -1;
+	resolved = ioc_resolve(tree, context, ref);
+	if(!resolved || resolved->meta_type != AMT_VALUE || !resolved->value ||
+		resolved->value->type != ATV_INTEGER) return -1;
+	memset(&integer, 0, sizeof(integer));
+	integer.type = ATV_INTEGER;
+	integer.value.v_integer = resolved->value->value.v_integer;
+	return constraint_bound(&integer, out);
+}
+
+/* Exact bounded SIZE form for the newly owned bound SEQUENCE OF body. */
+static int
+extract_bound_body_size_constraint(asn1p_t *tree, asn1p_expr_t *context,
+		const asn1p_constraint_t *constraint,
+		asn1typed_size_constraint_t *out) {
+	const asn1p_constraint_t *size, *set, *list, *range;
+	int extensible = 0;
+	if(!constraint || constraint->type != ACT_CA_SET ||
+		constraint->el_count != 1 || !constraint->elements ||
+		!(size = constraint->elements[0]) || size->type != ACT_CT_SIZE ||
+		size->el_count != 1 || !size->elements ||
+		!(set = size->elements[0]) || set->type != ACT_CA_SET ||
+		set->el_count != 1 || !set->elements || !(list = set->elements[0]))
+		return -1;
+	if(list->type == ACT_EL_RANGE) {
+		range = list;
+	} else if(list->type == ACT_CA_CSV && list->elements &&
+		(list->el_count == 1 || list->el_count == 2)) {
+		range = list->elements[0];
+		if(list->el_count == 2) {
+			const asn1p_constraint_t *extension = list->elements[1];
+			if(!extension || extension->type != ACT_EL_EXT) return -1;
+			extensible = 1;
+		}
+	} else {
+		return -1;
+	}
+	if(!range || range->type != ACT_EL_RANGE ||
+		!range->range_start || !range->range_stop ||
+		bound_body_constraint_value(tree, context, range->range_start,
+			&out->lower_bound) ||
+		bound_body_constraint_value(tree, context, range->range_stop,
+			&out->upper_bound) || out->lower_bound > out->upper_bound)
+		return -1;
 	out->has_size_constraint = 1;
 	out->is_extensible = extensible;
 	return 0;
@@ -1233,6 +1298,44 @@ malformed:
 }
 
 static int
+materialize_bound_sequence_of(asn1p_t *tree, asn1p_expr_t *generic,
+		const asn1typed_type_ref_t *identity, asn1p_expr_t *resolved,
+		asn1typed_type_t *body, char *error, size_t error_size) {
+	asn1p_expr_t *element = TQ_FIRST(&resolved->members);
+	if(!element || TQ_NEXT(element, next) ||
+		element->expr_type != A1TC_REFERENCE || !element->rhs_pspecs ||
+		!element->reference || element->reference->comp_count != 1 ||
+		!element->reference->components ||
+		!element->reference->components[0].name ||
+		!element->reference->components[0].name[0]) {
+		set_error(error, error_size,
+			"%s.%s: unsupported specialized SEQUENCE OF element",
+			identity->module, identity->source_name);
+		return -1;
+	}
+	body->kind = ASN1TYPED_TYPE_SEQUENCE_OF;
+	if(extract_bound_body_size_constraint(tree, generic, resolved->constraints,
+			&body->size_constraint)) {
+		set_error(error, error_size,
+			"%s.%s: unsupported specialized SEQUENCE OF SIZE constraint",
+			identity->module, identity->source_name);
+		return -1;
+	}
+	if(put_parameterized_object_set_ref(tree, &body->element_type, element,
+			error, error_size)) return -1;
+	if(body->element_type.kind != ASN1TYPED_REF_NAMED ||
+		body->element_type.actual_count != 1 || !body->element_type.actuals ||
+		body->element_type.actuals[0].kind !=
+			ASN1TYPED_ACTUAL_OBJECT_SET_REFERENCE) {
+		set_error(error, error_size,
+			"%s.%s: specialized SEQUENCE OF element lost its parameterized actual",
+			identity->module, identity->source_name);
+		return -1;
+	}
+	return 0;
+}
+
+static int
 materialize_bound_instance(asn1p_t *tree, asn1typed_module_t *out,
 		size_t instance_index, char *error, size_t error_size) {
 	const asn1typed_type_ref_t *identity;
@@ -1245,13 +1348,30 @@ materialize_bound_instance(asn1p_t *tree, asn1typed_module_t *out,
 	if(find_instance_specialization(tree, identity, &generic, &specialization,
 			error, error_size)) return -1;
 	resolved = terminal_type(specialization);
-	if(!resolved || resolved->expr_type != ASN_CONSTR_SEQUENCE) {
+	if(!resolved) {
 		set_error(error, error_size,
 			"%s.%s: specialization body is not a supported SEQUENCE",
 			identity->module, identity->source_name);
 		return -1;
 	}
 	memset(&body, 0, sizeof(body));
+	if(resolved->expr_type == ASN_CONSTR_SEQUENCE_OF) {
+		if(materialize_bound_sequence_of(tree, generic, identity, resolved,
+				&body, error, error_size)) goto fail;
+		if(asn1typed_bound_instance_set_body(out, instance_index, &body)) {
+			set_error(error, error_size,
+				"%s.%s: could not atomically own specialized SEQUENCE OF body",
+				identity->module, identity->source_name);
+			goto fail;
+		}
+		return 0;
+	}
+	if(resolved->expr_type != ASN_CONSTR_SEQUENCE) {
+		set_error(error, error_size,
+			"%s.%s: specialization body is not a supported SEQUENCE",
+			identity->module, identity->source_name);
+		return -1;
+	}
 	body.kind = ASN1TYPED_TYPE_SEQUENCE;
 	TQ_FOR(member, &resolved->members, next) {
 		const char *member_file = member->_lineno > 0 &&
@@ -1337,6 +1457,19 @@ add_ioc_dependency(asn1p_t *tree, asn1typed_module_t *out,
 		/* Copy all fixed dependencies before recursive closure can append and
 		 * reallocate bound_instances[]. */
 		bound_instance = &out->bound_instances[instance_index];
+		if(bound_instance->body.kind == ASN1TYPED_TYPE_SEQUENCE_OF) {
+			asn1typed_type_ref_t element = {0};
+			int rc;
+			if(asn1typed_type_ref_copy(&element,
+					&bound_instance->body.element_type)) {
+				set_error(error, error_size,
+					"out of memory copying bound SEQUENCE OF element reference");
+				return -1;
+			}
+			rc = add_ioc_dependency(tree, out, &element, error, error_size);
+			asn1typed_type_ref_clear(&element);
+			return rc;
+		}
 		for(i = 0; i < bound_instance->body.field_count; ++i) {
 			asn1typed_field_t *field = &bound_instance->body.fields[i];
 			if(field->type_semantics == ASN1TYPED_FIELD_FIXED_TYPE) {

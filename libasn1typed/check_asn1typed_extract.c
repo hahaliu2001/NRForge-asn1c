@@ -222,11 +222,14 @@ expect_rejected(const char *source, const char *module_name) {
 }
 
 static asn1p_expr_t *fixture_declaration(asn1p_t *tree, const char *name);
+static asn1typed_bound_instance_t *find_bound_instance(
+		asn1typed_module_t *ir, const char *generic, const char *actual);
 
 static void
 hide_bound_body_templates(asn1p_t *tree) {
 	static const char *const names[] = {
-		"ShapeInner", "ShapeOuter", "BoundBodyUse"
+		"ShapeInner", "ShapeOuter", "BoundBodyUse", "ShapeList",
+		"SequenceOfBodyUse", "SequenceOfBodyMessage"
 	};
 	size_t i;
 	for(i = 0; i < sizeof(names) / sizeof(names[0]); ++i) {
@@ -336,6 +339,9 @@ check_parameterized_reference_identity(void) {
 	shape_inner->meta_type = AMT_VALUE;
 	shape_outer->meta_type = AMT_VALUE;
 	body_use->meta_type = AMT_VALUE;
+	fixture_declaration(tree, "ShapeList")->meta_type = AMT_VALUE;
+	fixture_declaration(tree, "SequenceOfBodyUse")->meta_type = AMT_VALUE;
+	fixture_declaration(tree, "SequenceOfBodyMessage")->meta_type = AMT_VALUE;
 	assert(asn1typed_extract_module(tree, "ParameterizedReferenceB7A", &ir,
 		error, sizeof(error)) == 0);
 	assert(ir.bound_instance_count == 0);
@@ -424,6 +430,7 @@ static void
 check_bound_instance_body_attachment(void) {
 	asn1typed_module_t ir;
 	asn1typed_type_ref_t identity = {0};
+	asn1typed_type_ref_t sequence_of_identity = {0};
 	asn1typed_type_actual_t actual = {
 		ASN1TYPED_ACTUAL_OBJECT_SET_REFERENCE, "Fixture", "SetA"
 	};
@@ -432,6 +439,7 @@ check_bound_instance_body_attachment(void) {
 		"Fixture", "TestClass", "Value", 0, 1, "id"
 	};
 	size_t index;
+	size_t sequence_of_index;
 	assert(asn1typed_module_init(&ir, "Fixture", "<fixture>", 1) == 0);
 	assert(asn1typed_type_ref_init_parameterized(&identity, "Fixture", "Outer",
 		&actual, 1) == 0);
@@ -481,6 +489,30 @@ check_bound_instance_body_attachment(void) {
 	assert(ir.bound_instances[0].body_materialized);
 	assert(ir.bound_instances[0].body.field_count == 2 && body.fields == NULL);
 	asn1typed_type_clear(&body);
+	assert(asn1typed_type_ref_init_parameterized(&sequence_of_identity,
+		"Fixture", "OuterOf", &actual, 1) == 0);
+	assert(asn1typed_module_add_bound_instance(&ir, &sequence_of_identity,
+		NULL) == 0);
+	sequence_of_index = ir.bound_instance_count - 1;
+	memset(&body, 0, sizeof(body));
+	body.kind = ASN1TYPED_TYPE_SEQUENCE_OF;
+	body.size_constraint.has_size_constraint = 1;
+	body.size_constraint.lower_bound = 1;
+	body.size_constraint.upper_bound = 4;
+	assert(asn1typed_type_ref_init_parameterized(&body.element_type,
+		"Fixture", "Item", &actual, 1) == 0);
+	free(body.element_type.actuals[0].source_name);
+	body.element_type.actuals[0].source_name = NULL;
+	assert(asn1typed_bound_instance_set_body(&ir, sequence_of_index, &body) != 0);
+	assert(!ir.bound_instances[sequence_of_index].body_materialized &&
+		ir.bound_instances[sequence_of_index].body.kind == 0 &&
+		!ir.bound_instances[sequence_of_index].body.element_type.module &&
+		ir.bound_instances[sequence_of_index].identity.actual_count == 1 &&
+		!strcmp(ir.bound_instances[sequence_of_index].identity.actuals[0].source_name,
+			"SetA"));
+	asn1typed_type_clear(&body);
+	asn1typed_type_ref_clear(&identity);
+	asn1typed_type_ref_clear(&sequence_of_identity);
 	asn1typed_module_clear(&ir);
 	asn1typed_module_clear(&ir);
 }
@@ -493,6 +525,111 @@ fixture_declaration(asn1p_t *tree, const char *name) {
 		TQ_FOR(decl, &module->members, next)
 			if(decl->Identifier && !strcmp(decl->Identifier, name)) return decl;
 	return NULL;
+}
+
+static void
+check_sequence_of_bound_specialization(void) {
+	asn1p_t *tree = asn1p_parse_file(T5_FIXTURE, A1P_NOFLAGS);
+	asn1typed_module_t ir;
+	asn1typed_bound_instance_t *list_a, *list_b, *item_a, *item_b;
+	char error[512];
+	assert(tree && asn1f_process(tree, A1F_NOFLAGS, NULL) >= 0);
+	if(asn1typed_extract_message(tree, "ParameterizedReferenceB7A",
+			"SequenceOfBodyMessage", &ir, error, sizeof(error))) {
+		fprintf(stderr, "B7b SEQUENCE OF extraction failed: %s\n", error);
+		assert(0);
+	}
+	assert(ir.bound_instance_count == 4);
+	list_a = find_bound_instance(&ir, "ShapeList", "BodySetA");
+	list_b = find_bound_instance(&ir, "ShapeList", "BodySetB");
+	item_a = find_bound_instance(&ir, "ShapeInner", "BodySetA");
+	item_b = find_bound_instance(&ir, "ShapeInner", "BodySetB");
+	assert(list_a && list_b && item_a && item_b && list_a != list_b);
+	assert(list_a->body_materialized && list_b->body_materialized);
+	assert(list_a->body.kind == ASN1TYPED_TYPE_SEQUENCE_OF &&
+		list_a->body.size_constraint.has_size_constraint &&
+		list_a->body.size_constraint.lower_bound == 1 &&
+		list_a->body.size_constraint.upper_bound == 4);
+	assert(list_b->body.kind == ASN1TYPED_TYPE_SEQUENCE_OF);
+	assert(list_a->body.element_type.kind == ASN1TYPED_REF_NAMED &&
+		!strcmp(list_a->body.element_type.module, "ParameterizedReferenceB7A") &&
+		!strcmp(list_a->body.element_type.source_name, "ShapeInner") &&
+		list_a->body.element_type.actual_count == 1 &&
+		!strcmp(list_a->body.element_type.actuals[0].module,
+			"ParameterizedReferenceB7A") &&
+		!strcmp(list_a->body.element_type.actuals[0].source_name, "BodySetA"));
+	assert(list_b->body.element_type.actual_count == 1 &&
+		!strcmp(list_b->body.element_type.actuals[0].module,
+			"ParameterizedReferenceB7A") &&
+		!strcmp(list_b->body.element_type.actuals[0].source_name, "BodySetB"));
+	assert(item_a->body_materialized && item_a->body.kind == ASN1TYPED_TYPE_SEQUENCE);
+	assert(item_b->body_materialized && item_b->body.kind == ASN1TYPED_TYPE_SEQUENCE);
+	/* The repeated SetA field shares one outer instance and its element link. */
+	assert(ir.bound_instance_count == 4);
+	asn1p_delete(tree);
+	list_a = find_bound_instance(&ir, "ShapeList", "BodySetA");
+	list_b = find_bound_instance(&ir, "ShapeList", "BodySetB");
+	assert(list_a && list_b && list_a->body_materialized &&
+		list_a->body.kind == ASN1TYPED_TYPE_SEQUENCE_OF);
+	assert(!strcmp(list_a->identity.source_name, "ShapeList") &&
+		!strcmp(list_a->identity.module, "ParameterizedReferenceB7A") &&
+		!strcmp(list_a->identity.actuals[0].module, "ParameterizedReferenceB7A") &&
+		!strcmp(list_a->identity.actuals[0].source_name, "BodySetA"));
+	assert(!strcmp(list_a->body.element_type.source_name, "ShapeInner") &&
+		!strcmp(list_a->body.element_type.module, "ParameterizedReferenceB7A") &&
+		!strcmp(list_a->body.element_type.actuals[0].module,
+			"ParameterizedReferenceB7A") &&
+		!strcmp(list_a->body.element_type.actuals[0].source_name, "BodySetA"));
+	assert(!strcmp(list_b->body.element_type.actuals[0].module,
+		"ParameterizedReferenceB7A") &&
+		!strcmp(list_b->body.element_type.actuals[0].source_name, "BodySetB"));
+	asn1typed_module_clear(&ir);
+	asn1typed_module_clear(&ir);
+}
+
+static void
+check_sequence_of_bound_element_failure(void) {
+	asn1p_t *tree = asn1p_parse_file(T5_FIXTURE, A1P_NOFLAGS);
+	asn1p_expr_t *generic, *clone = NULL, *rhs, *parameter, *element;
+	int i;
+	asn1typed_module_t ir;
+	char error[512];
+	assert(tree && asn1f_process(tree, A1F_NOFLAGS, NULL) >= 0);
+	generic = fixture_declaration(tree, "ShapeList");
+	assert(generic);
+	for(i = 0; i < generic->specializations.pspecs_count; ++i) {
+		rhs = generic->specializations.pspec[i].rhs_pspecs;
+		parameter = rhs ? TQ_FIRST(&rhs->members) : NULL;
+		if(parameter && parameter->constraints &&
+			parameter->constraints->containedSubtype) {
+			asn1p_value_t *value = parameter->constraints->containedSubtype;
+			asn1p_ref_t *actual_ref = value->type == ATV_REFERENCED ?
+				value->value.reference : value->type == ATV_TYPE &&
+				value->value.v_type ? value->value.v_type->reference : NULL;
+			if(actual_ref && actual_ref->comp_count == 1 &&
+				actual_ref->components && actual_ref->components[0].name &&
+				!strcmp(actual_ref->components[0].name, "BodySetA")) {
+				clone = generic->specializations.pspec[i].my_clone;
+				break;
+			}
+		}
+	}
+	assert(clone);
+	element = TQ_FIRST(&clone->members);
+	assert(element && element->rhs_pspecs && element->reference &&
+		element->reference->components[0].name);
+	free(element->reference->components[0].name);
+	element->reference->components[0].name = strdup("MissingItem");
+	assert(element->reference->components[0].name);
+	element->reference->ref_expr = NULL;
+	assert(asn1typed_extract_message(tree, "ParameterizedReferenceB7A",
+		"SequenceOfBodyMessage", &ir, error, sizeof(error)) != 0);
+	assert(strstr(error, "unsupported parameterized target/formal") != NULL);
+	assert(ir.source_name == NULL && ir.bound_instances == NULL &&
+		ir.bound_instance_count == 0);
+	asn1typed_module_clear(&ir);
+	asn1typed_module_clear(&ir);
+	asn1p_delete(tree);
 }
 
 static asn1p_ref_t *
@@ -1121,6 +1258,8 @@ main(void) {
 	check_asn1typed_multimodule();
 	check_bound_instance_body_attachment();
 	check_bound_specialization_materialization();
+	check_sequence_of_bound_specialization();
+	check_sequence_of_bound_element_failure();
 	check_bound_specialization_failure_atomicity(0); /* zero semantic matches */
 	check_bound_specialization_failure_atomicity(1); /* ambiguous semantic match */
 	check_bound_specialization_failure_atomicity(2); /* partial body conversion */

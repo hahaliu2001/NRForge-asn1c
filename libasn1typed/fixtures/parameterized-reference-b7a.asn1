@@ -56,12 +56,25 @@ BoundBodyUse ::= SEQUENCE {
 	repeated ShapeOuter {{BodySetA}},
 	other ShapeOuter {{BodySetB}}
 }
+ShapeList { B7A-IES : P } ::= SEQUENCE (SIZE (1..4)) OF ShapeInner {{P}}
+SequenceOfBodyUse ::= SEQUENCE {
+	itemsA ShapeList {{BodySetA}},
+	itemsAAgain ShapeList {{BodySetA}},
+	itemsB ShapeList {{BodySetB}}
+}
 id-body INTEGER ::= 101
 BodyUseIEs B7A-IES ::= {
 	{ ID id-body CRITICALITY reject TYPE BoundBodyUse PRESENCE mandatory }
 }
 BodyUseMessage ::= SEQUENCE {
 	protocolIEs B7A-Container {{BodyUseIEs}}
+}
+id-list-body INTEGER ::= 102
+SequenceOfBodyIEs B7A-IES ::= {
+	{ ID id-list-body CRITICALITY reject TYPE SequenceOfBodyUse PRESENCE mandatory }
+}
+SequenceOfBodyMessage ::= SEQUENCE {
+	protocolIEs B7A-Container {{SequenceOfBodyIEs}}
 }
 
 END
