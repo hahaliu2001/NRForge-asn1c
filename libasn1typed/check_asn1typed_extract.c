@@ -209,6 +209,126 @@ check_integer_value_range(void) {
 	puts("T2 declaration INTEGER ranges and T3 inline SEQUENCE-field closed range ownership: PASS");
 }
 
+static asn1p_expr_t *
+find_decl(asn1p_t *tree, const char *name) {
+	asn1p_module_t *module = TQ_FIRST(&tree->modules);
+	asn1p_expr_t *decl;
+	assert(module);
+	for(decl = TQ_FIRST(&module->members); decl;
+		decl = TQ_NEXT(decl, next))
+		if(decl->Identifier && !strcmp(decl->Identifier, name)) return decl;
+	return NULL;
+}
+
+static void
+check_inline_enumerated_fields(void) {
+	static const char fixture[] =
+		"InlineEnumField DEFINITIONS ::= BEGIN\n"
+		"Required ::= SEQUENCE { flag ENUMERATED { true, ... } }\n"
+		"Optional ::= SEQUENCE { mode ENUMERATED { periodically, ondemand, ... } OPTIONAL }\n"
+		"Addition ::= SEQUENCE { mode ENUMERATED { alpha, beta, ..., gamma } }\n"
+		"END\n";
+	static const char malformed_fixture[] =
+		"InlineEnumMalformed DEFINITIONS ::= BEGIN\n"
+		"Bad ::= SEQUENCE { mode ENUMERATED { alpha, beta, ..., gamma } }\n"
+		"END\n";
+	const char *negative_names[] = { "second-marker", "marker-before-root", "bad-addition" };
+	asn1typed_module_t ir = {0};
+	asn1p_t *tree = asn1p_parse_buffer(fixture, -1, "inline-enum-field.asn",
+		1, A1P_NOFLAGS);
+	char error[256] = {0};
+	asn1typed_type_t *required, *optional, *addition;
+	assert(tree && asn1f_process(tree, A1F_NOFLAGS, NULL) >= 0);
+	assert(asn1typed_extract_module(tree, "InlineEnumField", &ir,
+		error, sizeof(error)) == 0);
+	asn1p_delete(tree);
+	required = find_type(&ir, "Required");
+	optional = find_type(&ir, "Optional");
+	addition = find_type(&ir, "Addition");
+	assert(required && required->field_count == 1);
+	assert(required->fields[0].presence == ASN1TYPED_PRESENCE_MANDATORY);
+	assert(required->fields[0].inline_enumerated);
+	assert(required->fields[0].inline_enumerated->kind == ASN1TYPED_TYPE_ENUMERATED);
+	assert(required->fields[0].inline_enumerated->is_extensible);
+	assert(required->fields[0].inline_enumerated->enum_item_count == 1);
+	assert(!strcmp(required->fields[0].inline_enumerated->enum_items[0].source_name, "true"));
+	assert(!required->fields[0].inline_enumerated->enum_items[0].is_extension_addition);
+	assert(!required->fields[0].size_constraint.has_size_constraint);
+	assert(!required->fields[0].value_range.has_value_range);
+	assert(optional && optional->field_count == 1);
+	assert(optional->fields[0].presence == ASN1TYPED_PRESENCE_OPTIONAL);
+	assert(optional->fields[0].inline_enumerated &&
+		optional->fields[0].inline_enumerated->enum_item_count == 2);
+	assert(!strcmp(optional->fields[0].inline_enumerated->enum_items[0].source_name, "periodically"));
+	assert(!strcmp(optional->fields[0].inline_enumerated->enum_items[1].source_name, "ondemand"));
+	assert(optional->fields[0].inline_enumerated->is_extensible);
+	assert(!optional->fields[0].size_constraint.has_size_constraint);
+	assert(!optional->fields[0].value_range.has_value_range);
+	assert(addition && addition->fields[0].inline_enumerated);
+	assert(addition->fields[0].type_semantics ==
+		ASN1TYPED_FIELD_INLINE_ENUMERATED);
+	assert(addition->fields[0].type.kind == ASN1TYPED_REF_NAMED &&
+		!addition->fields[0].type.module &&
+		!addition->fields[0].type.source_name);
+	assert(addition->fields[0].inline_enumerated->enum_item_count == 3);
+	assert(!strcmp(addition->fields[0].inline_enumerated->enum_items[0].source_name, "alpha"));
+	assert(!strcmp(addition->fields[0].inline_enumerated->enum_items[1].source_name, "beta"));
+	assert(!strcmp(addition->fields[0].inline_enumerated->enum_items[2].source_name, "gamma"));
+	assert(!addition->fields[0].inline_enumerated->enum_items[0].is_extension_addition);
+	assert(!addition->fields[0].inline_enumerated->enum_items[1].is_extension_addition);
+	assert(addition->fields[0].inline_enumerated->enum_items[2].is_extension_addition);
+	assert(addition->fields[0].inline_enumerated->is_extensible);
+	{
+		asn1typed_type_t copy = {0};
+		size_t i;
+		copy.kind = ASN1TYPED_TYPE_SEQUENCE;
+		for(i = 0; i < 6; ++i)
+			assert(asn1typed_type_add_field_copy(&copy, &addition->fields[0]) == 0);
+		assert(copy.field_count == 6);
+		assert(copy.fields[0].inline_enumerated != addition->fields[0].inline_enumerated);
+		assert(copy.fields[0].inline_enumerated->enum_items !=
+			addition->fields[0].inline_enumerated->enum_items);
+		assert(!strcmp(copy.fields[0].inline_enumerated->enum_items[2].source_name, "gamma"));
+		asn1typed_type_clear(&copy);
+		asn1typed_type_clear(&copy);
+	}
+	asn1typed_module_clear(&ir);
+	asn1typed_module_clear(&ir);
+	{
+		size_t i;
+		for(i = 0; i < sizeof(negative_names) / sizeof(negative_names[0]); ++i) {
+			tree = asn1p_parse_buffer(malformed_fixture, -1,
+				"inline-enum-malformed.asn", 1, A1P_NOFLAGS);
+			assert(tree && asn1f_process(tree, A1F_NOFLAGS, NULL) >= 0);
+			{
+				asn1p_expr_t *decl = find_decl(tree, "Bad");
+				asn1p_expr_t *field, *first, *second, *third, *fourth;
+				assert(decl);
+				field = TQ_FIRST(&decl->members);
+				assert(field && field->expr_type == ASN_BASIC_ENUMERATED);
+				first = TQ_FIRST(&field->members);
+				second = first ? TQ_NEXT(first, next) : NULL;
+				third = second ? TQ_NEXT(second, next) : NULL;
+				fourth = third ? TQ_NEXT(third, next) : NULL;
+				assert(first && second && third && fourth);
+				if(i == 0) fourth->expr_type = A1TC_EXTENSIBLE;
+				else if(i == 1) first->expr_type = A1TC_EXTENSIBLE;
+				else fourth->meta_type = AMT_TYPE;
+			}
+			assert(asn1typed_extract_module(tree, "InlineEnumMalformed", &ir,
+				error, sizeof(error)) != 0);
+			assert(error[0] && ir.types == NULL);
+			if(i < 2)
+				assert(strstr(error, "extension marker placement") != NULL);
+			else
+				assert(strstr(error, "invalid ENUMERATED item") != NULL);
+			assert_ir_cleared(&ir);
+			asn1p_delete(tree);
+		}
+	}
+	puts("T5 SEQUENCE-field inline ENUMERATED ownership and Family-A additions: PASS");
+}
+
 static void
 check_opaque_contents_compatibility(void) {
 	static const char supported[] = "OpaqueContents DEFINITIONS ::= BEGIN\n"
@@ -757,10 +877,12 @@ check_bound_instance_body_attachment(void) {
 	asn1typed_module_t ir;
 	asn1typed_type_ref_t identity = {0};
 	asn1typed_type_ref_t sequence_of_identity = {0};
+	asn1typed_type_ref_t inline_identity = {0};
 	asn1typed_type_actual_t actual = {
 		ASN1TYPED_ACTUAL_OBJECT_SET_REFERENCE, "Fixture", "SetA"
 	};
 	asn1typed_type_t body = {0};
+	asn1typed_type_t enum_body = {0};
 	asn1typed_class_field_relation_t relation = {
 		"Fixture", "TestClass", "Value", 0, 1, "id"
 	};
@@ -815,6 +937,23 @@ check_bound_instance_body_attachment(void) {
 	assert(ir.bound_instances[0].body_materialized);
 	assert(ir.bound_instances[0].body.field_count == 2 && body.fields == NULL);
 	asn1typed_type_clear(&body);
+	assert(asn1typed_type_ref_init_parameterized(&inline_identity,
+		"Fixture", "OuterInline", &actual, 1) == 0);
+	assert(asn1typed_module_add_bound_instance(&ir, &inline_identity, NULL) == 0);
+	enum_body.kind = ASN1TYPED_TYPE_ENUMERATED;
+	enum_body.is_extensible = 1;
+	assert(asn1typed_type_add_enum_item_ex(&enum_body, "alpha", 0,
+		"<fixture>", 1) == 0);
+	assert(asn1typed_type_add_enum_item_ex(&enum_body, "beta", 1,
+		"<fixture>", 2) == 0);
+	body.kind = ASN1TYPED_TYPE_SEQUENCE;
+	assert(asn1typed_type_add_inline_enumerated_field(&body, "mode",
+		&enum_body, ASN1TYPED_PRESENCE_OPTIONAL, "<fixture>", 3) == 0);
+	assert(asn1typed_bound_instance_set_body(&ir, 1, &body) == 0);
+	assert(ir.bound_instances[1].body_materialized &&
+		ir.bound_instances[1].body.fields[0].type_semantics ==
+		ASN1TYPED_FIELD_INLINE_ENUMERATED);
+	asn1typed_type_clear(&enum_body);
 	assert(asn1typed_type_ref_init_parameterized(&sequence_of_identity,
 		"Fixture", "OuterOf", &actual, 1) == 0);
 	assert(asn1typed_module_add_bound_instance(&ir, &sequence_of_identity,
@@ -838,6 +977,7 @@ check_bound_instance_body_attachment(void) {
 			"SetA"));
 	asn1typed_type_clear(&body);
 	asn1typed_type_ref_clear(&identity);
+	asn1typed_type_ref_clear(&inline_identity);
 	asn1typed_type_ref_clear(&sequence_of_identity);
 	asn1typed_module_clear(&ir);
 	asn1typed_module_clear(&ir);
@@ -1386,8 +1526,6 @@ main(void) {
 		"Bad ::= SEQUENCE { data REAL }\nEND\n";
 	const char default_value[] = "DefaultTest DEFINITIONS ::= BEGIN\n"
 		"WithDefault ::= SEQUENCE { value INTEGER DEFAULT 1 }\nEND\n";
-	const char inline_enum[] = "InlineEnum DEFINITIONS ::= BEGIN\n"
-		"Bad ::= SEQUENCE { color ENUMERATED { red, green } }\nEND\n";
 	const char unresolved[] = "Unresolved DEFINITIONS ::= BEGIN\n"
 		"Target ::= INTEGER\nBad ::= SEQUENCE { value Target }\nEND\n";
 	const char malformed_choice[] = "BadChoice DEFINITIONS ::= BEGIN\n"
@@ -1511,7 +1649,6 @@ main(void) {
 
 	expect_rejected(bad_builtin, "BadFields");
 	expect_rejected(default_value, "DefaultTest");
-	expect_rejected(inline_enum, "InlineEnum");
 	/* A valid first alternative followed by a broken one exercises partial
 	 * CHOICE construction cleanup. */
 	tree = asn1p_parse_buffer(malformed_choice, -1, "bad-choice.asn", 1,
@@ -1588,6 +1725,7 @@ main(void) {
 	puts("T2 ordinary ASN.1 extraction: PASS (IR valid after parser tree destruction)");
 	check_asn1typed_ioc();
 	check_asn1typed_multimodule();
+	check_inline_enumerated_fields();
 	check_bound_instance_body_attachment();
 	check_bound_specialization_materialization();
 	check_sequence_of_bound_specialization();

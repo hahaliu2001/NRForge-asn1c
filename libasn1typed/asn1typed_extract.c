@@ -312,6 +312,51 @@ static int put_parameterized_object_set_ref(asn1p_t *tree,
 		char *error, size_t error_size);
 
 static int
+populate_enumerated_items(asn1typed_type_t *out, asn1p_expr_t *body,
+		const char *file, char *error, size_t error_size,
+		const char *owner_name) {
+	asn1p_expr_t *member;
+	int saw_extension_marker = 0;
+	int saw_root_item = 0;
+	if(!out || out->kind != ASN1TYPED_TYPE_ENUMERATED || !body ||
+		body->expr_type != ASN_BASIC_ENUMERATED || body->rhs_pspecs ||
+		body->constraints || body->combined_constraints) {
+		set_error(error, error_size,
+			"%s: unsupported inline ENUMERATED body", owner_name);
+		return -1;
+	}
+	TQ_FOR(member, &body->members, next) {
+		if(member->expr_type == A1TC_EXTENSIBLE) {
+			if(saw_extension_marker || !saw_root_item) {
+				set_error(error, error_size,
+					"%s: unsupported ENUMERATED extension marker placement",
+					owner_name);
+				return -1;
+			}
+			saw_extension_marker = 1;
+			out->is_extensible = 1;
+			continue;
+		}
+		if(member->meta_type != AMT_VALUE ||
+			member->expr_type != A1TC_UNIVERVAL || !member->Identifier ||
+			!member->Identifier[0] ||
+			asn1typed_type_add_enum_item_ex(out, member->Identifier,
+				saw_extension_marker, file, member->_lineno)) {
+			set_error(error, error_size, "%s: invalid ENUMERATED item",
+				owner_name);
+			return -1;
+		}
+		if(!saw_extension_marker) saw_root_item = 1;
+	}
+	if(!saw_root_item) {
+		set_error(error, error_size, "%s: ENUMERATED requires a root item",
+			owner_name);
+		return -1;
+	}
+	return 0;
+}
+
+static int
 add_field(asn1p_t *tree, asn1typed_type_t *type, asn1p_expr_t *field,
 		const char *file, const char *module, char *error, size_t error_size) {
 	asn1typed_presence_e presence;
@@ -377,6 +422,27 @@ add_field(asn1p_t *tree, asn1typed_type_t *type, asn1p_expr_t *field,
 			}
 			owns_inline_size = 1;
 		}
+	}
+	if(field->meta_type == AMT_TYPE &&
+		field->expr_type == ASN_BASIC_ENUMERATED) {
+		asn1typed_type_t body;
+		memset(&body, 0, sizeof(body));
+		body.kind = ASN1TYPED_TYPE_ENUMERATED;
+		if(field->rhs_pspecs || populate_enumerated_items(&body, field, file,
+				error, error_size, field->Identifier)) {
+			asn1typed_type_clear(&body);
+			return -1;
+		}
+		result = asn1typed_type_add_inline_enumerated_field(type,
+			field->Identifier, &body, presence, file, field->_lineno);
+		asn1typed_type_clear(&body);
+		if(result) {
+			set_error(error, error_size,
+				"%s.%s: out of memory extracting inline ENUMERATED field",
+				module, field->Identifier);
+			return -1;
+		}
+		return 0;
 	}
 	{
 		asn1typed_type_ref_t ref;
@@ -512,35 +578,8 @@ populate_type(asn1p_t *tree, asn1typed_type_t *out, asn1p_expr_t *decl,
 		}
 		return 0;
 	case ASN1TYPED_TYPE_ENUMERATED:
-		{
-			int saw_extension_marker = 0;
-			int saw_root_item = 0;
-		TQ_FOR(member, &body->members, next) {
-			if(member->expr_type == A1TC_EXTENSIBLE) {
-				if(saw_extension_marker || !saw_root_item) {
-					set_error(error, error_size,
-						"%s: multiple ENUMERATED extension markers are unsupported",
-						decl->Identifier);
-					return -1;
-				}
-				saw_extension_marker = 1;
-				out->is_extensible = 1;
-				continue;
-			}
-			if(member->meta_type != AMT_VALUE ||
-				member->expr_type != A1TC_UNIVERVAL ||
-				!member->Identifier || !member->Identifier[0] ||
-				asn1typed_type_add_enum_item_ex(out,
-					member->Identifier, saw_extension_marker,
-					file, member->_lineno)) {
-				set_error(error, error_size, "%s: invalid ENUMERATED item",
-					decl->Identifier);
-				return -1;
-			}
-			if(!saw_extension_marker) saw_root_item = 1;
-		}
-		return 0;
-		}
+		return populate_enumerated_items(out, body, file, error, error_size,
+			decl->Identifier);
 	case ASN1TYPED_TYPE_CHOICE:
 		TQ_FOR(member, &body->members, next) {
 			asn1typed_type_ref_t ref;
@@ -1503,6 +1542,10 @@ materialize_bound_instance(asn1p_t *tree, asn1typed_module_t *out,
 			member->reference->components[1].name[0] == '&') {
 			if(materialize_class_field(tree, generic, identity, &body, member,
 					member_file, member_line, error, error_size)) goto fail;
+		} else if(member->meta_type == AMT_TYPE &&
+				member->expr_type == ASN_BASIC_ENUMERATED) {
+			if(add_field(tree, &body, member, member_file,
+					generic->module->ModuleName, error, error_size)) goto fail;
 		} else {
 			asn1typed_type_ref_t ref;
 			asn1typed_presence_e presence;
@@ -1541,6 +1584,20 @@ fail:
 /* Add each reachable ordinary declaration once. The outer worklist handles
  * recursion without retaining a types-array pointer across reallocations. */
 static int
+inline_enum_field_identity_free(const asn1typed_field_t *field) {
+	return field && field->type_semantics ==
+		ASN1TYPED_FIELD_INLINE_ENUMERATED && field->inline_enumerated &&
+		field->inline_enumerated->kind == ASN1TYPED_TYPE_ENUMERATED &&
+		field->inline_enumerated->enum_item_count &&
+		field->inline_enumerated->enum_items &&
+		field->type.kind == ASN1TYPED_REF_NAMED && !field->type.module &&
+		!field->type.source_name && !field->type.actuals &&
+		!field->type.actual_count &&
+		field->type.primitive_kind == ASN1TYPED_PRIMITIVE_INVALID &&
+		!field->has_class_field_relation;
+}
+
+static int
 add_ioc_dependency(asn1p_t *tree, asn1typed_module_t *out,
 		const asn1typed_type_ref_t *ref, char *error, size_t error_size) {
 	asn1p_module_t *source = NULL, *module;
@@ -1562,8 +1619,9 @@ add_ioc_dependency(asn1p_t *tree, asn1typed_module_t *out,
 		}
 		instance_index = (size_t)(bound_instance - out->bound_instances);
 		if(bound_instance->body_materialized) return 0;
-		if(materialize_bound_instance(tree, out, instance_index, error, error_size))
+		if(materialize_bound_instance(tree, out, instance_index, error, error_size)) {
 			return -1;
+		}
 		/* Copy all fixed dependencies before recursive closure can append and
 		 * reallocate bound_instances[]. */
 		bound_instance = &out->bound_instances[instance_index];
@@ -1583,7 +1641,21 @@ add_ioc_dependency(asn1p_t *tree, asn1typed_module_t *out,
 		for(i = 0; i < bound_instance->body.field_count; ++i) {
 			asn1typed_field_t *field = &bound_instance->body.fields[i];
 			if(field->type_semantics == ASN1TYPED_FIELD_FIXED_TYPE) {
+				if(field->inline_enumerated) {
+					set_error(error, error_size,
+						"%s.%s: fixed field has unexpected inline ENUMERATED body",
+						ref->source_name, field->source_name);
+					return -1;
+				}
 				++dependency_count;
+			} else if(field->type_semantics ==
+					ASN1TYPED_FIELD_INLINE_ENUMERATED) {
+				if(!inline_enum_field_identity_free(field)) {
+					set_error(error, error_size,
+						"%s.%s: malformed inline ENUMERATED field ownership",
+						ref->source_name, field->source_name);
+					return -1;
+				}
 			} else if(field->type_semantics ==
 					ASN1TYPED_FIELD_CLASS_FIELD_SELECTED_TYPE) {
 				if(!field->has_class_field_relation) {
@@ -1716,8 +1788,22 @@ asn1typed_extract_message(asn1p_t *tree, const char *module_name,
 			asn1typed_field_t *field = &out->types[i].fields[j];
 			switch(field->type_semantics) {
 			case ASN1TYPED_FIELD_FIXED_TYPE:
+				if(field->inline_enumerated) {
+					set_error(error, error_size,
+						"%s.%s: fixed field has unexpected inline ENUMERATED body",
+						out->types[i].identity.source_name, field->source_name);
+					goto fail;
+				}
 				if(add_ioc_dependency(tree, out, &field->type,
 						error, error_size)) goto fail;
+				break;
+			case ASN1TYPED_FIELD_INLINE_ENUMERATED:
+				if(!inline_enum_field_identity_free(field)) {
+					set_error(error, error_size,
+						"%s.%s: malformed inline ENUMERATED field ownership",
+						out->types[i].identity.source_name, field->source_name);
+					goto fail;
+				}
 				break;
 			case ASN1TYPED_FIELD_CLASS_FIELD_SELECTED_TYPE:
 				if(!field->has_class_field_relation) {

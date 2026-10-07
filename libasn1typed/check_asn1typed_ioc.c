@@ -81,6 +81,69 @@ reject_missing_correlated_relation(asn1p_t *tree, const char *field_name,
 	ct->elements[1] = saved;
 }
 
+static const char family_e_dependency_source[] =
+	"FamilyEDependency DEFINITIONS AUTOMATIC TAGS ::= BEGIN\n"
+	"Criticality ::= ENUMERATED { reject, ignore, notify }\n"
+	"Presence ::= ENUMERATED { mandatory, optional, conditional }\n"
+	"NamedNumber ::= INTEGER\n"
+	"InlineBody ::= SEQUENCE { mode ENUMERATED { alpha, beta, ..., gamma }, number NamedNumber }\n"
+	"id-Inline INTEGER ::= 1\n"
+	"FAMILY-E-IES ::= CLASS { &id INTEGER UNIQUE, &criticality Criticality, &Value, &presence Presence } "
+	"WITH SYNTAX { ID &id CRITICALITY &criticality TYPE &Value PRESENCE &presence }\n"
+	"InlineIEs FAMILY-E-IES ::= { { ID id-Inline CRITICALITY reject TYPE InlineBody PRESENCE mandatory } }\n"
+	"ProtocolIE-Field { FAMILY-E-IES : IEs } ::= SEQUENCE { id FAMILY-E-IES.&id({IEs}), "
+	"criticality FAMILY-E-IES.&criticality({IEs}), value FAMILY-E-IES.&Value({IEs}{@id}) }\n"
+	"ProtocolIE-Container { FAMILY-E-IES : IEs } ::= SEQUENCE OF ProtocolIE-Field {{IEs}}\n"
+	"Message ::= SEQUENCE { protocolIEs ProtocolIE-Container {{InlineIEs}} }\n"
+	"END\n";
+
+static void
+check_family_e_message_dependency(void) {
+	asn1p_t *tree = asn1p_parse_buffer(family_e_dependency_source, -1,
+		"family-e-dependency.asn", 1, A1P_NOFLAGS);
+	asn1typed_module_t ir;
+	asn1typed_type_t *body;
+	asn1p_expr_t *inline_body, *named_field, *saved_target;
+	char error[256] = {0};
+	assert(tree && asn1f_process(tree, A1F_NOFLAGS, NULL) >= 0);
+	if(asn1typed_extract_message(tree, "FamilyEDependency", "Message", &ir,
+			error, sizeof(error))) {
+		fprintf(stderr, "Family E message dependency extraction: %s\n", error);
+		assert(0);
+	}
+	body = type_named(&ir, "InlineBody");
+	assert(body && body->field_count == 2);
+	assert(body->fields[0].type_semantics == ASN1TYPED_FIELD_INLINE_ENUMERATED);
+	assert(body->fields[0].inline_enumerated &&
+		body->fields[0].inline_enumerated->enum_item_count == 3);
+	assert(body->fields[1].type_semantics == ASN1TYPED_FIELD_FIXED_TYPE);
+	assert(type_named(&ir, "NamedNumber") != NULL);
+	assert(ir.type_count == 3);
+	asn1p_delete(tree);
+	assert(!strcmp(body->fields[0].inline_enumerated->enum_items[2].source_name,
+		"gamma"));
+	asn1typed_module_clear(&ir);
+
+	/* A genuine named field with a broken fixed-tree target still fails closed. */
+	tree = asn1p_parse_buffer(family_e_dependency_source, -1,
+		"family-e-malformed-reference.asn", 1, A1P_NOFLAGS);
+	assert(tree && asn1f_process(tree, A1F_NOFLAGS, NULL) >= 0);
+	inline_body = declaration(tree, "InlineBody");
+	named_field = TQ_NEXT(TQ_FIRST(&inline_body->members), next);
+	assert(named_field && named_field->reference &&
+		named_field->reference->ref_expr);
+	saved_target = named_field->reference->ref_expr;
+	named_field->reference->ref_expr = NULL;
+	assert(asn1typed_extract_message(tree, "FamilyEDependency", "Message", &ir,
+		error, sizeof(error)) != 0);
+	assert(strstr(error, "unsupported field type") != NULL);
+	assert(!ir.source_name && !ir.types);
+	named_field->reference->ref_expr = saved_target;
+	asn1typed_module_clear(&ir);
+	asn1p_delete(tree);
+	puts("T5 module message dependency skips inline ENUMERATED; named dependencies remain fail-closed: PASS");
+}
+
 void
 check_asn1typed_ioc(void) {
 	asn1p_t *tree = fixed_fixture();
@@ -681,6 +744,7 @@ check_asn1typed_ioc(void) {
 	assert(!strcmp(ir.types[0].fields[2].source_name, "NodeID"));
 	asn1typed_module_clear(&ir);
 	puts("T3 variable row count/order and reordered columns: PASS");
+	check_family_e_message_dependency();
 }
 
 static asn1typed_type_t *

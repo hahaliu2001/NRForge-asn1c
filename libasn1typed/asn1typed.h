@@ -85,7 +85,9 @@ typedef struct asn1typed_type_ref_s {
 
 typedef enum asn1typed_field_type_semantics_e {
 	ASN1TYPED_FIELD_FIXED_TYPE,
-	ASN1TYPED_FIELD_CLASS_FIELD_SELECTED_TYPE
+	ASN1TYPED_FIELD_CLASS_FIELD_SELECTED_TYPE,
+	/* The field owns an inline ENUMERATED body and has no named reference. */
+	ASN1TYPED_FIELD_INLINE_ENUMERATED
 } asn1typed_field_type_semantics_e;
 
 /* Owned, target-neutral relation between a field and an information-object
@@ -118,6 +120,8 @@ typedef struct asn1typed_ioc_metadata_s {
 	intmax_t numeric_id;
 } asn1typed_ioc_metadata_t;
 
+typedef struct asn1typed_type_s asn1typed_type_t;
+
 typedef struct asn1typed_field_s {
 	/* IOC compatibility: T3's identity with one conventional id- removed.
 	 * New naming consumers should use ioc.symbolic_id for IOC fields.
@@ -129,6 +133,8 @@ typedef struct asn1typed_field_s {
 	asn1typed_size_constraint_t size_constraint;
 	/* Inline primitive INTEGER range owned by this SEQUENCE use-site. */
 	asn1typed_integer_value_range_t value_range;
+	/* Owned inline ENUMERATED body for this SEQUENCE field, when present. */
+	asn1typed_type_t *inline_enumerated;
 	int has_class_field_relation;
 	asn1typed_class_field_relation_t class_field_relation;
 	asn1typed_presence_e presence;
@@ -149,7 +155,7 @@ typedef struct asn1typed_choice_alternative_s {
 	asn1typed_source_location_t location;
 } asn1typed_choice_alternative_t;
 
-typedef struct asn1typed_type_s {
+struct asn1typed_type_s {
 	asn1typed_type_identity_t identity;
 	asn1typed_type_kind_e kind;
 	asn1typed_primitive_kind_e primitive_kind;
@@ -167,7 +173,7 @@ typedef struct asn1typed_type_s {
 	asn1typed_choice_alternative_t *alternatives;
 	size_t alternative_count;
 	size_t alternative_capacity;
-} asn1typed_type_t;
+};
 
 /* B7b.1 owns the identity before it owns the instance's semantic body. */
 typedef struct asn1typed_bound_instance_s {
@@ -241,6 +247,9 @@ int asn1typed_type_add_class_field(asn1typed_type_t *type,
 /* Deep-copy an existing field into a sequence, including all owned metadata. */
 int asn1typed_type_add_field_copy(asn1typed_type_t *type,
 		const asn1typed_field_t *source);
+int asn1typed_type_add_inline_enumerated_field(asn1typed_type_t *type,
+		const char *source_name, const asn1typed_type_t *body,
+		asn1typed_presence_e presence, const char *file, unsigned line);
 int asn1typed_type_set_element_type(asn1typed_type_t *type,
 		const char *ref_module, const char *ref_source_name);
 int asn1typed_type_set_primitive(asn1typed_type_t *type,

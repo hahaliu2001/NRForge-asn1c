@@ -317,6 +317,15 @@ extensibility and SIZE extensibility are separate.
 -   **Semantic family:** Inline closed INTEGER value-range ownership on SEQUENCE fields.
 -   **Evidence:** Synthetic REQUIRED and OPTIONAL inline field extraction, including parser-tree-independent owned range state. NGAP Rel-18 `ExpectedUEMovingTrajectoryItem.timeStayedInCell` (`NGAP-IEs.asn:2144`) has an OPTIONAL inline primitive INTEGER with declared and combined `0..4095` closed value range; fixed-tree evidence does not by itself establish message-path traversal.
 
+### SEQUENCE Field Inline ENUMERATED
+
+-   **Status:** Supported, bounded
+-   **Existing semantic:** ENUMERATED ordered named items, type/body extensibility, and per-item root-versus-known-extension-addition status are already represented by the named ENUMERATED IR and Family-A item model. No new ENUMERATED semantic is introduced.
+-   **Owned IR:** A SEQUENCE field may own an identity-free nested `asn1typed_type_t` whose kind is ENUMERATED and whose ordered items reuse `asn1typed_enum_item_t`. Field presence remains on the field and is independent of the body.
+-   **Supported boundary:** Direct ordered named-value items; at least one root item; at most one marker after a root item; direct known named additions after the marker; existing mandatory/OPTIONAL presence.
+-   **Fail-closed boundary:** Malformed or unnamed items, multiple markers, marker before any root item, extension groups or non-direct additions, unsupported constraints or parameterization, DEFAULT presence, and arbitrary inline constructed types. This does not qualify inline ENUMERATED in CHOICE alternatives or SEQUENCE OF elements.
+-   **Evidence:** Synthetic mandatory and OPTIONAL extensible inline fields plus a known extension addition; item order/status, deep copy, cleanup, repeated clear, and inspection after parser-tree destruction. A synthetic IOC message dependency test reaches a named SEQUENCE with an inline ENUMERATED field, completes dependency closure without inventing a named identity for that field, and still collects a genuine named dependency. Fixed-tree inspection confirms `NGAP-IEs.AUN3DeviceAccessInfo.aUN3DeviceAccess` (mandatory; `true`, marker) and `NGAP-IEs.UE-DifferentiationInfo.periodicCommunicationIndicator` (OPTIONAL; `periodically`, `ondemand`, marker). `InitialUEMessage` passes extraction with 50 owned types and 26 bound instances, establishing its field dependency path. DownlinkNASTransport and InitialContextSetupRequest stop at `NGAP-IEs.periodicTime: unsupported inline INTEGER constraint` before dependency traversal of the completed `UE-DifferentiationInfo` body; no message-level traversal claim is made for `periodicCommunicationIndicator`.
+
 ### CHOICE Alternative Inline SIZE
 
 -   **Status:** Supported, bounded
@@ -600,6 +609,10 @@ harnesses.
 ### `NGAP-IEs.ExpectedUEMovingTrajectoryItem.timeStayedInCell`
 
 -   **Evidence for:** OPTIONAL SEQUENCE-field inline primitive INTEGER ownership of the closed `0..4095` range. Permanent fixed-tree inspection confirms the declared and combined shape; synthetic owned extraction validates the new field metadata. Real message-path traversal is not established by these results.
+
+### `NGAP-IEs.AUN3DeviceAccessInfo.aUN3DeviceAccess` and `NGAP-IEs.UE-DifferentiationInfo.periodicCommunicationIndicator`
+
+-   **Evidence for:** SEQUENCE-field inline ENUMERATED fixed-tree shapes and synthetic owned-body extraction. `InitialUEMessage` passes full message extraction, establishing traversal of the mandatory `aUN3DeviceAccess` field. DownlinkNASTransport and InitialContextSetupRequest stop at `periodicTime` before dependency traversal of `periodicCommunicationIndicator`; those paths are supported by direct fixed-tree and synthetic field/dependency evidence only.
 
 ### `NGAP-IEs.GNB-ID.gNB-ID`
 

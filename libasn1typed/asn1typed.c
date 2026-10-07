@@ -30,6 +30,50 @@ asn1typed_class_field_relation_valid(
 	return relation->selector_source_name == NULL;
 }
 
+static int
+asn1typed_inline_enum_body_valid(const asn1typed_type_t *body) {
+	size_t i;
+	int saw_extension_addition = 0;
+	int saw_root = 0;
+	if(!body || body->kind != ASN1TYPED_TYPE_ENUMERATED ||
+		body->identity.module || body->identity.source_name ||
+		body->primitive_kind != ASN1TYPED_PRIMITIVE_INVALID ||
+		body->size_constraint.has_size_constraint ||
+		body->value_range.has_value_range || body->location.file ||
+		body->fields || body->field_count || body->field_capacity ||
+		body->alternatives || body->alternative_count ||
+		body->alternative_capacity || body->element_type.module ||
+		body->element_type.source_name || body->element_type.actuals ||
+		body->element_type.actual_count || !body->enum_items ||
+		!body->enum_item_count ||
+		(body->is_extensible != 0 && body->is_extensible != 1)) return 0;
+	for(i = 0; i < body->enum_item_count; ++i) {
+		const asn1typed_enum_item_t *item = &body->enum_items[i];
+		if(!item->source_name || !item->source_name[0] || !item->location.file ||
+			(item->is_extension_addition != 0 &&
+			 item->is_extension_addition != 1)) return 0;
+		if(item->is_extension_addition) {
+			if(!saw_root || !body->is_extensible) return 0;
+			saw_extension_addition = 1;
+		} else {
+			if(saw_extension_addition) return 0;
+			saw_root = 1;
+		}
+	}
+	return saw_root;
+}
+
+static int
+asn1typed_inline_enum_field_valid(const asn1typed_field_t *field) {
+	return field && field->type_semantics ==
+		ASN1TYPED_FIELD_INLINE_ENUMERATED && field->inline_enumerated &&
+		!field->has_class_field_relation && !field->type.module &&
+		!field->type.source_name && !field->type.actuals &&
+		!field->type.actual_count && field->type.kind == ASN1TYPED_REF_NAMED &&
+		field->type.primitive_kind == ASN1TYPED_PRIMITIVE_INVALID &&
+		asn1typed_inline_enum_body_valid(field->inline_enumerated);
+}
+
 static void
 asn1typed_class_field_relation_clear(
 		asn1typed_class_field_relation_t *relation) {
@@ -71,6 +115,10 @@ asn1typed_field_clear(asn1typed_field_t *field) {
 	free(field->source_name);
 	free(field->ioc.symbolic_id);
 	asn1typed_type_ref_clear(&field->type);
+	if(field->inline_enumerated) {
+		asn1typed_type_clear(field->inline_enumerated);
+		free(field->inline_enumerated);
+	}
 	if(field->has_class_field_relation)
 		asn1typed_class_field_relation_clear(&field->class_field_relation);
 	asn1typed_source_location_clear(&field->location);
@@ -82,7 +130,8 @@ asn1typed_field_copy(asn1typed_field_t *target,
 		const asn1typed_field_t *source) {
 	if(!target || !source || !source->source_name || !source->source_name[0] ||
 		(source->type_semantics != ASN1TYPED_FIELD_FIXED_TYPE &&
-		 source->type_semantics != ASN1TYPED_FIELD_CLASS_FIELD_SELECTED_TYPE) ||
+		 source->type_semantics != ASN1TYPED_FIELD_CLASS_FIELD_SELECTED_TYPE &&
+		 source->type_semantics != ASN1TYPED_FIELD_INLINE_ENUMERATED) ||
 		(source->has_class_field_relation != 0 &&
 		 source->has_class_field_relation != 1) ||
 		(source->has_class_field_relation &&
@@ -92,7 +141,11 @@ asn1typed_field_copy(asn1typed_field_t *target,
 		  source->type.kind != ASN1TYPED_REF_NAMED || source->type.module ||
 		  source->type.source_name || source->type.actuals ||
 		  source->type.actual_count ||
-		  source->type.primitive_kind != ASN1TYPED_PRIMITIVE_INVALID))) return -1;
+		  source->type.primitive_kind != ASN1TYPED_PRIMITIVE_INVALID)) ||
+		(source->type_semantics == ASN1TYPED_FIELD_INLINE_ENUMERATED &&
+		 !asn1typed_inline_enum_field_valid(source)) ||
+		(source->type_semantics != ASN1TYPED_FIELD_INLINE_ENUMERATED &&
+		 source->inline_enumerated)) return -1;
 	memset(target, 0, sizeof(*target));
 	target->source_name = asn1typed_strdup(source->source_name);
 	target->type_semantics = source->type_semantics;
@@ -104,7 +157,26 @@ asn1typed_field_copy(asn1typed_field_t *target,
 	target->ioc.numeric_id = source->ioc.numeric_id;
 	if(!target->source_name) goto fail;
 	if(source->type_semantics == ASN1TYPED_FIELD_FIXED_TYPE &&
+		!source->inline_enumerated &&
 		asn1typed_type_ref_copy(&target->type, &source->type)) goto fail;
+	if(source->inline_enumerated) {
+		const asn1typed_type_t *body = source->inline_enumerated;
+		size_t i;
+		target->inline_enumerated = (asn1typed_type_t *)calloc(1,
+			sizeof(*target->inline_enumerated));
+		if(!target->inline_enumerated) goto fail;
+		target->inline_enumerated->kind = ASN1TYPED_TYPE_ENUMERATED;
+		target->inline_enumerated->is_extensible = body->is_extensible;
+		for(i = 0; i < body->enum_item_count; ++i) {
+			const asn1typed_enum_item_t *item = &body->enum_items[i];
+			if(!item->source_name || !item->source_name[0] ||
+				(item->is_extension_addition != 0 &&
+				 item->is_extension_addition != 1) || !item->location.file ||
+				asn1typed_type_add_enum_item_ex(target->inline_enumerated,
+					item->source_name, item->is_extension_addition,
+					item->location.file, item->location.line)) goto fail;
+		}
+	}
 	if(source->has_class_field_relation) {
 		if(asn1typed_class_field_relation_copy(&target->class_field_relation,
 				&source->class_field_relation)) goto fail;
@@ -422,8 +494,13 @@ asn1typed_bound_instance_set_body(asn1typed_module_t *module,
 	for(i = 0; i < body->field_count; ++i) {
 		const asn1typed_field_t *field = &body->fields[i];
 		if(field->type_semantics != ASN1TYPED_FIELD_FIXED_TYPE &&
-			field->type_semantics != ASN1TYPED_FIELD_CLASS_FIELD_SELECTED_TYPE)
+			field->type_semantics != ASN1TYPED_FIELD_CLASS_FIELD_SELECTED_TYPE &&
+			field->type_semantics != ASN1TYPED_FIELD_INLINE_ENUMERATED)
 			return -1;
+		if(field->type_semantics == ASN1TYPED_FIELD_INLINE_ENUMERATED &&
+			!asn1typed_inline_enum_field_valid(field)) return -1;
+		if(field->type_semantics != ASN1TYPED_FIELD_INLINE_ENUMERATED &&
+			field->inline_enumerated) return -1;
 		if(field->type_semantics == ASN1TYPED_FIELD_CLASS_FIELD_SELECTED_TYPE &&
 			(!field->has_class_field_relation || field->type.module ||
 			 field->type.source_name || field->type.actuals || field->type.actual_count))
@@ -585,6 +662,54 @@ asn1typed_type_add_field_copy(asn1typed_type_t *type,
 		source->presence < ASN1TYPED_PRESENCE_MANDATORY ||
 		source->presence > ASN1TYPED_PRESENCE_CONDITIONAL ||
 		asn1typed_field_copy(&field, source)) return -1;
+	if(asn1typed_reserve((void **)&type->fields, &type->field_capacity,
+			type->field_count + 1, sizeof(*type->fields))) {
+		asn1typed_field_clear(&field);
+		return -1;
+	}
+	type->fields[type->field_count++] = field;
+	return 0;
+}
+
+int
+asn1typed_type_add_inline_enumerated_field(asn1typed_type_t *type,
+		const char *source_name, const asn1typed_type_t *body,
+		asn1typed_presence_e presence, const char *file, unsigned line) {
+	asn1typed_field_t field;
+	if(!type || type->kind != ASN1TYPED_TYPE_SEQUENCE || !body ||
+		!asn1typed_inline_enum_body_valid(body) ||
+		!source_name || !source_name[0] || !file ||
+		presence < ASN1TYPED_PRESENCE_MANDATORY ||
+		presence > ASN1TYPED_PRESENCE_OPTIONAL) return -1;
+	memset(&field, 0, sizeof(field));
+	field.source_name = asn1typed_strdup(source_name);
+	field.presence = presence;
+	field.inline_enumerated = (asn1typed_type_t *)calloc(1,
+		sizeof(*field.inline_enumerated));
+	if(!field.source_name || !field.inline_enumerated ||
+		asn1typed_source_location_init(&field.location, file, line)) {
+		asn1typed_field_clear(&field);
+		return -1;
+	}
+	field.type_semantics = ASN1TYPED_FIELD_INLINE_ENUMERATED;
+	field.inline_enumerated->kind = ASN1TYPED_TYPE_ENUMERATED;
+	field.inline_enumerated->is_extensible = body->is_extensible;
+	{
+		size_t i;
+		for(i = 0; i < body->enum_item_count; ++i) {
+			const asn1typed_enum_item_t *item = &body->enum_items[i];
+			if(!item->source_name || !item->source_name[0] ||
+				!item->location.file ||
+				(item->is_extension_addition != 0 &&
+				 item->is_extension_addition != 1) ||
+				asn1typed_type_add_enum_item_ex(field.inline_enumerated,
+					item->source_name, item->is_extension_addition,
+					item->location.file, item->location.line)) {
+				asn1typed_field_clear(&field);
+				return -1;
+			}
+		}
+	}
 	if(asn1typed_reserve((void **)&type->fields, &type->field_capacity,
 			type->field_count + 1, sizeof(*type->fields))) {
 		asn1typed_field_clear(&field);
