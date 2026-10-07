@@ -30,7 +30,8 @@ typedef enum asn1typed_primitive_kind_e {
 	ASN1TYPED_PRIMITIVE_UTF8_STRING,
 	ASN1TYPED_PRIMITIVE_PRINTABLE_STRING,
 	ASN1TYPED_PRIMITIVE_VISIBLE_STRING,
-	ASN1TYPED_PRIMITIVE_OCTET_STRING
+	ASN1TYPED_PRIMITIVE_OCTET_STRING,
+	ASN1TYPED_PRIMITIVE_BIT_STRING
 } asn1typed_primitive_kind_e;
 
 typedef struct asn1typed_size_constraint_s {
@@ -123,6 +124,8 @@ typedef struct asn1typed_field_s {
 	char *source_name;
 	asn1typed_field_type_semantics_e type_semantics;
 	asn1typed_type_ref_t type;
+	/* Inline SIZE semantics owned by this SEQUENCE use-site, when present. */
+	asn1typed_size_constraint_t size_constraint;
 	int has_class_field_relation;
 	asn1typed_class_field_relation_t class_field_relation;
 	asn1typed_presence_e presence;
@@ -138,6 +141,7 @@ typedef struct asn1typed_enum_item_s {
 typedef struct asn1typed_choice_alternative_s {
 	char *source_name;
 	asn1typed_type_ref_t type_ref;
+	asn1typed_size_constraint_t size_constraint;
 	asn1typed_source_location_t location;
 } asn1typed_choice_alternative_t;
 
@@ -246,6 +250,7 @@ int asn1typed_type_add_enum_item(asn1typed_type_t *type,
 		const char *source_name, const char *file, unsigned line);
 int asn1typed_type_add_choice_alternative(asn1typed_type_t *type,
 		const char *source_name, const asn1typed_type_ref_t *type_ref,
+		const asn1typed_size_constraint_t *size_constraint,
 		const char *file, unsigned line);
 void asn1typed_type_clear(asn1typed_type_t *type);
 int asn1typed_field_set_ioc(asn1typed_field_t *field,

@@ -96,6 +96,7 @@ asn1typed_field_copy(asn1typed_field_t *target,
 	memset(target, 0, sizeof(*target));
 	target->source_name = asn1typed_strdup(source->source_name);
 	target->type_semantics = source->type_semantics;
+	target->size_constraint = source->size_constraint;
 	target->presence = source->presence;
 	target->ioc.criticality = source->ioc.criticality;
 	target->ioc.has_numeric_id = source->ioc.has_numeric_id;
@@ -211,7 +212,7 @@ int
 asn1typed_type_ref_init_primitive(asn1typed_type_ref_t *ref,
 		asn1typed_primitive_kind_e primitive_kind) {
 	if(!ref || primitive_kind <= ASN1TYPED_PRIMITIVE_INVALID ||
-		primitive_kind > ASN1TYPED_PRIMITIVE_OCTET_STRING) return -1;
+		primitive_kind > ASN1TYPED_PRIMITIVE_BIT_STRING) return -1;
 	memset(ref, 0, sizeof(*ref));
 	ref->kind = ASN1TYPED_REF_PRIMITIVE;
 	ref->primitive_kind = primitive_kind;
@@ -608,7 +609,7 @@ asn1typed_type_set_primitive(asn1typed_type_t *type,
 		asn1typed_primitive_kind_e primitive_kind) {
 	if(!type || type->kind != ASN1TYPED_TYPE_PRIMITIVE ||
 		primitive_kind <= ASN1TYPED_PRIMITIVE_INVALID ||
-		primitive_kind > ASN1TYPED_PRIMITIVE_OCTET_STRING) return -1;
+		primitive_kind > ASN1TYPED_PRIMITIVE_BIT_STRING) return -1;
 	type->primitive_kind = primitive_kind;
 	return 0;
 }
@@ -673,12 +674,16 @@ asn1typed_type_add_enum_item(asn1typed_type_t *type,
 int
 asn1typed_type_add_choice_alternative(asn1typed_type_t *type,
 		const char *source_name, const asn1typed_type_ref_t *type_ref,
+		const asn1typed_size_constraint_t *size_constraint,
 		const char *file, unsigned line) {
 	asn1typed_choice_alternative_t alternative;
 	if(!type || type->kind != ASN1TYPED_TYPE_CHOICE || !source_name ||
 		!type_ref || !file) return -1;
+	if(size_constraint && (!size_constraint->has_size_constraint ||
+		size_constraint->lower_bound > size_constraint->upper_bound)) return -1;
 	memset(&alternative, 0, sizeof(alternative));
 	alternative.source_name = asn1typed_strdup(source_name);
+	if(size_constraint) alternative.size_constraint = *size_constraint;
 	if(!alternative.source_name) return -1;
 	if(type_ref->kind == ASN1TYPED_REF_PRIMITIVE && !type_ref->actual_count) {
 		if(asn1typed_type_ref_init_primitive(&alternative.type_ref,

@@ -68,6 +68,9 @@ check_class_field_semantics(void) {
 	assert(fixed->location.line == 3);
 	assert(asn1typed_field_set_ioc(fixed, "id-criticality",
 		ASN1TYPED_CRITICALITY_REJECT, 1, 7) == 0);
+	fixed->size_constraint.has_size_constraint = 1;
+	fixed->size_constraint.lower_bound = 22;
+	fixed->size_constraint.upper_bound = 32;
 
 	/* Field copy owns an independent relation, location, type ref and IOC data. */
 	assert(asn1typed_type_add_field_copy(sequence, fixed) == 0);
@@ -87,6 +90,10 @@ check_class_field_semantics(void) {
 		fixed->class_field_relation.selector_source_name);
 	assert(!strcmp(copy->ioc.symbolic_id, fixed->ioc.symbolic_id));
 	assert(copy->ioc.symbolic_id != fixed->ioc.symbolic_id);
+	assert(copy->size_constraint.has_size_constraint);
+	assert(copy->size_constraint.lower_bound == 22);
+	assert(copy->size_constraint.upper_bound == 32);
+	assert(!copy->size_constraint.is_extensible);
 	saved = fixed->class_field_relation.class_field_source_name;
 	fixed->class_field_relation.class_field_source_name[0] = 'X';
 	assert(!strcmp(copy->class_field_relation.class_field_source_name,
@@ -109,6 +116,7 @@ check_class_field_semantics(void) {
 	assert(sequence->fields[4].type_semantics == ASN1TYPED_FIELD_FIXED_TYPE);
 	assert(!sequence->fields[4].has_class_field_relation);
 	assert(sequence->fields[4].type.kind == ASN1TYPED_REF_PRIMITIVE);
+	assert(!sequence->fields[4].size_constraint.has_size_constraint);
 	/* Ordinary field APIs retain fixed-type semantics and no relation. */
 	assert(asn1typed_type_add_primitive_field(sequence, "ordinary",
 		ASN1TYPED_PRIMITIVE_INTEGER, ASN1TYPED_PRESENCE_MANDATORY,
@@ -173,6 +181,34 @@ check_class_field_semantics(void) {
 	asn1typed_module_clear(&module);
 }
 
+static void
+check_choice_alternative_size_api(void) {
+	asn1typed_module_t module;
+	asn1typed_type_t *choice;
+	asn1typed_type_ref_t bit_string = {0};
+	asn1typed_size_constraint_t size = {1, 22, 32, 0};
+	asn1typed_size_constraint_t invalid = {0, 22, 32, 0};
+	assert(asn1typed_module_init(&module, "ChoiceFixture", "choice.asn", 1) == 0);
+	assert(asn1typed_module_add_type(&module, "C", ASN1TYPED_TYPE_CHOICE,
+		"choice.asn", 2, &choice) == 0);
+	assert(asn1typed_type_ref_init_primitive(&bit_string,
+		ASN1TYPED_PRIMITIVE_BIT_STRING) == 0);
+	assert(asn1typed_type_add_choice_alternative(choice, "bad", &bit_string,
+		&invalid, "choice.asn", 3) == -1);
+	assert(choice->alternative_count == 0);
+	assert(asn1typed_type_add_choice_alternative(choice, "sized", &bit_string,
+		&size, "choice.asn", 4) == 0);
+	size.lower_bound = 1;
+	assert(choice->alternative_count == 1);
+	assert(choice->alternatives[0].size_constraint.lower_bound == 22);
+	assert(choice->alternatives[0].size_constraint.upper_bound == 32);
+	assert(!choice->alternatives[0].size_constraint.is_extensible);
+	assert(choice->alternatives[0].location.line == 4);
+	asn1typed_type_ref_clear(&bit_string);
+	asn1typed_module_clear(&module);
+	asn1typed_module_clear(&module);
+}
+
 int
 main(void) {
 	char module_name[] = "Example-Module";
@@ -185,6 +221,7 @@ main(void) {
 
 	assert(asn1typed_module_init(&module, module_name, "sample.asn", 1) == 0);
 	check_class_field_semantics();
+	check_choice_alternative_size_api();
 	memset(module_name, 'x', sizeof(module_name) - 1);
 	assert(strcmp(module.source_name, "Example-Module") == 0);
 	assert(strcmp(module.location.file, "sample.asn") == 0);

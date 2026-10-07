@@ -210,12 +210,8 @@ expect_inline_constraint_rejected(const char *source, const char *module_name) {
 
 static void
 check_inline_visible_constraints(void) {
-	const char *sequence_bad = "InlineSeqBad DEFINITIONS ::= BEGIN\n"
-		"Bad ::= SEQUENCE { a VisibleString (SIZE(1..10)) }\nEND\n";
-	const char *octet_sequence_bad = "InlineOctetSeqBad DEFINITIONS ::= BEGIN\n"
-		"Bad ::= SEQUENCE { a OCTET STRING (SIZE(3)) }\nEND\n";
 	const char *choice_bad = "InlineChoiceBad DEFINITIONS ::= BEGIN\n"
-		"Bad ::= CHOICE { a VisibleString (SIZE(1..10)) }\nEND\n";
+		"Bad ::= CHOICE { a BIT STRING (SIZE(1 | 3)) }\nEND\n";
 	const char *sequence_of_bad = "InlineListBad DEFINITIONS ::= BEGIN\n"
 		"Bad ::= SEQUENCE OF VisibleString (SIZE(1..10))\nEND\n";
 	const char *unconstrained = "InlineVisibleGood DEFINITIONS ::= BEGIN\n"
@@ -225,8 +221,6 @@ check_inline_visible_constraints(void) {
 	asn1typed_type_t *type;
 	asn1p_t *tree;
 	char error[256] = {0};
-	expect_inline_constraint_rejected(sequence_bad, "InlineSeqBad");
-	expect_inline_constraint_rejected(octet_sequence_bad, "InlineOctetSeqBad");
 	expect_inline_constraint_rejected(choice_bad, "InlineChoiceBad");
 	expect_inline_constraint_rejected(sequence_of_bad, "InlineListBad");
 	tree = asn1p_parse_buffer(unconstrained, -1, "inline-visible.asn", 1,
@@ -247,7 +241,113 @@ check_inline_visible_constraints(void) {
 	assert(type->alternatives[0].type_ref.primitive_kind ==
 		ASN1TYPED_PRIMITIVE_VISIBLE_STRING);
 	asn1typed_module_clear(&ir);
-	puts("T2 inline VisibleString constraint fail-closed: PASS");
+	puts("T2 unsupported CHOICE and SEQUENCE OF inline constraints fail-closed: PASS");
+}
+
+static void
+check_inline_bit_string_choice_size(void) {
+	static const char source[] = "BitStringChoiceSize DEFINITIONS AUTOMATIC TAGS ::= BEGIN\n"
+		"C ::= CHOICE { plain BIT STRING, sized BIT STRING (SIZE(22..32)) }\n"
+		"END\n";
+	static const char unsupported[] = "UnsupportedBitStringChoiceSize DEFINITIONS AUTOMATIC TAGS ::= BEGIN\n"
+		"C ::= CHOICE { x BIT STRING (SIZE(1 | 3)) }\nEND\n";
+	asn1typed_module_t ir = {0};
+	asn1typed_type_t *choice;
+	asn1p_t *tree = asn1p_parse_buffer(source, -1, "bit-string-choice-size.asn",
+		1, A1P_NOFLAGS);
+	char error[256] = {0};
+	assert(tree && asn1f_process(tree, A1F_NOFLAGS, NULL) >= 0);
+	assert(asn1typed_extract_module(tree, "BitStringChoiceSize", &ir,
+		error, sizeof(error)) == 0);
+	asn1p_delete(tree);
+	choice = find_type(&ir, "C");
+	assert(choice && choice->alternative_count == 2);
+	assert(!strcmp(choice->alternatives[0].source_name, "plain"));
+	assert(choice->alternatives[0].type_ref.kind == ASN1TYPED_REF_PRIMITIVE);
+	assert(choice->alternatives[0].type_ref.primitive_kind ==
+		ASN1TYPED_PRIMITIVE_BIT_STRING);
+	assert(!choice->alternatives[0].size_constraint.has_size_constraint);
+	assert(!strcmp(choice->alternatives[1].source_name, "sized"));
+	assert(choice->alternatives[1].type_ref.kind == ASN1TYPED_REF_PRIMITIVE);
+	assert(choice->alternatives[1].type_ref.primitive_kind ==
+		ASN1TYPED_PRIMITIVE_BIT_STRING);
+	assert(choice->alternatives[1].size_constraint.has_size_constraint);
+	assert(choice->alternatives[1].size_constraint.lower_bound == 22);
+	assert(choice->alternatives[1].size_constraint.upper_bound == 32);
+	assert(!choice->alternatives[1].size_constraint.is_extensible);
+	assert(choice->alternatives[0].location.file &&
+		choice->alternatives[1].location.file);
+	asn1typed_module_clear(&ir);
+	asn1typed_module_clear(&ir);
+	tree = asn1p_parse_buffer(unsupported, -1,
+		"unsupported-bit-string-choice-size.asn", 1, A1P_NOFLAGS);
+	assert(tree && asn1f_process(tree, A1F_NOFLAGS, NULL) >= 0);
+	assert(asn1typed_extract_module(tree, "UnsupportedBitStringChoiceSize",
+		&ir, error, sizeof(error)) == -1);
+	assert(error[0] != '\0');
+	assert_ir_cleared(&ir);
+	asn1typed_module_clear(&ir);
+	asn1p_delete(tree);
+	puts("BIT STRING CHOICE alternative SIZE ownership: PASS (parser tree destroyed)");
+}
+
+static void
+check_inline_bit_string_field_size(void) {
+	static const char source[] = "BitStringFieldSize DEFINITIONS ::= BEGIN\n"
+		"S ::= SEQUENCE { plain BIT STRING, sized BIT STRING (SIZE(22..32)) }\n"
+		"END\n";
+	static const char unsupported[] = "UnsupportedBitStringFieldSize DEFINITIONS ::= BEGIN\n"
+		"S ::= SEQUENCE { x BIT STRING (SIZE(1 | 3)) }\nEND\n";
+	asn1typed_module_t ir = {0};
+	asn1typed_type_t *sequence;
+	asn1p_t *tree = asn1p_parse_buffer(source, -1, "bit-string-field-size.asn",
+		1, A1P_NOFLAGS);
+	char error[256] = {0};
+	assert(tree && asn1f_process(tree, A1F_NOFLAGS, NULL) >= 0);
+	assert(asn1typed_extract_module(tree, "BitStringFieldSize", &ir,
+		error, sizeof(error)) == 0);
+	asn1p_delete(tree);
+	sequence = find_type(&ir, "S");
+	assert(sequence && sequence->field_count == 2);
+	assert(!strcmp(sequence->fields[0].source_name, "plain"));
+	assert(sequence->fields[0].type.kind == ASN1TYPED_REF_PRIMITIVE);
+	assert(sequence->fields[0].type.primitive_kind == ASN1TYPED_PRIMITIVE_BIT_STRING);
+	assert(!sequence->fields[0].size_constraint.has_size_constraint);
+	assert(!strcmp(sequence->fields[1].source_name, "sized"));
+	assert(sequence->fields[1].type.kind == ASN1TYPED_REF_PRIMITIVE);
+	assert(sequence->fields[1].type.primitive_kind == ASN1TYPED_PRIMITIVE_BIT_STRING);
+	assert(sequence->fields[1].size_constraint.has_size_constraint);
+	assert(sequence->fields[1].size_constraint.lower_bound == 22);
+	assert(sequence->fields[1].size_constraint.upper_bound == 32);
+	assert(!sequence->fields[1].size_constraint.is_extensible);
+	asn1typed_module_clear(&ir);
+	tree = asn1p_parse_buffer(unsupported, -1, "unsupported-bit-string-size.asn",
+		1, A1P_NOFLAGS);
+	assert(tree && asn1f_process(tree, A1F_NOFLAGS, NULL) >= 0);
+	assert(asn1typed_extract_module(tree, "UnsupportedBitStringFieldSize", &ir,
+		error, sizeof(error)) == -1);
+	assert(strstr(error, "inline constrained type is unsupported") != NULL);
+	assert_ir_cleared(&ir);
+	asn1p_delete(tree);
+	puts("BIT STRING field SIZE ownership: PASS (parser tree destroyed)");
+}
+
+static void
+check_named_bit_string_rejected(void) {
+	static const char source[] = "NamedBitString DEFINITIONS ::= BEGIN\n"
+		"NamedBits ::= BIT STRING { x(0), y(1) }\nEND\n";
+	asn1typed_module_t ir = {0};
+	char error[256] = {0};
+	asn1p_t *tree = asn1p_parse_buffer(source, -1, "named-bit-string.asn",
+		1, A1P_NOFLAGS);
+	assert(tree && asn1f_process(tree, A1F_NOFLAGS, NULL) >= 0);
+	assert(asn1typed_extract_module(tree, "NamedBitString", &ir,
+		error, sizeof(error)) == -1);
+	assert(error[0] != '\0');
+	assert_ir_cleared(&ir);
+	asn1typed_module_clear(&ir);
+	asn1p_delete(tree);
+	puts("Named BIT STRING fail-closed: PASS");
 }
 
 static void
@@ -1117,6 +1217,9 @@ main(void) {
 	check_integer_value_range();
 	check_octet_string_size();
 	check_inline_visible_constraints();
+	check_inline_bit_string_field_size();
+	check_inline_bit_string_choice_size();
+	check_named_bit_string_rejected();
 	expect_bad_enum_marker_shape(1);
 	expect_bad_enum_marker_shape(0);
 	check_parameterized_reference_identity();

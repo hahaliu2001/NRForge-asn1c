@@ -45,6 +45,10 @@ primitive_from_expr(const asn1p_expr_t *expr) {
 	case ASN_STRING_PrintableString: return ASN1TYPED_PRIMITIVE_PRINTABLE_STRING;
 	case ASN_STRING_VisibleString: return ASN1TYPED_PRIMITIVE_VISIBLE_STRING;
 	case ASN_BASIC_OCTET_STRING: return ASN1TYPED_PRIMITIVE_OCTET_STRING;
+	case ASN_BASIC_BIT_STRING:
+		/* Typed has no BIT STRING named-bit model; never silently drop it. */
+		return expr->members.tq_head ? ASN1TYPED_PRIMITIVE_INVALID :
+			ASN1TYPED_PRIMITIVE_BIT_STRING;
 	default: return ASN1TYPED_PRIMITIVE_INVALID;
 	}
 }
@@ -268,7 +272,9 @@ static int
 add_field(asn1p_t *tree, asn1typed_type_t *type, asn1p_expr_t *field,
 		const char *file, const char *module, char *error, size_t error_size) {
 	asn1typed_presence_e presence;
+	asn1typed_size_constraint_t field_size = {0};
 	int marker_flags;
+	int owns_inline_size = 0;
 	int result;
 	if(!field->Identifier) {
 		set_error(error, error_size, "%s: unnamed SEQUENCE component at line %d",
@@ -292,8 +298,18 @@ add_field(asn1p_t *tree, asn1typed_type_t *type, asn1p_expr_t *field,
 			module, field->Identifier);
 		return -1;
 	}
-	if(reject_unowned_inline_constraint(field, module, field->Identifier,
-			error, error_size)) return -1;
+	if(field->constraints) {
+		asn1typed_primitive_kind_e primitive = primitive_from_expr(field);
+		if(field->meta_type != AMT_TYPE || field->rhs_pspecs ||
+			primitive == ASN1TYPED_PRIMITIVE_INVALID ||
+			extract_size_constraint(field->constraints, &field_size,
+				primitive == ASN1TYPED_PRIMITIVE_OCTET_STRING)) {
+			if(reject_unowned_inline_constraint(field, module, field->Identifier,
+					error, error_size)) return -1;
+			return -1;
+		}
+		owns_inline_size = 1;
+	}
 	{
 		asn1typed_type_ref_t ref;
 		memset(&ref, 0, sizeof(ref));
@@ -316,6 +332,8 @@ add_field(asn1p_t *tree, asn1typed_type_t *type, asn1p_expr_t *field,
 				ref.module, ref.source_name, presence, file, field->_lineno);
 		}
 		asn1typed_type_ref_clear(&ref);
+		if(!result && owns_inline_size)
+			type->fields[type->field_count - 1].size_constraint = field_size;
 		if(result) {
 			set_error(error, error_size, "%s.%s: out of memory extracting field",
 				module, field->Identifier);
@@ -459,14 +477,26 @@ populate_type(asn1p_t *tree, asn1typed_type_t *out, asn1p_expr_t *decl,
 	case ASN1TYPED_TYPE_CHOICE:
 		TQ_FOR(member, &body->members, next) {
 			asn1typed_type_ref_t ref;
+			asn1typed_size_constraint_t alternative_size = {0};
+			const asn1typed_size_constraint_t *size_ptr = NULL;
 			if(!member->Identifier) {
 				set_error(error, error_size,
 					"%s: unnamed CHOICE alternative at line %d",
 					decl->Identifier, member->_lineno);
 				return -1;
 			}
-			if(reject_unowned_inline_constraint(member, decl->Identifier,
-					member->Identifier, error, error_size)) return -1;
+			if(member->constraints) {
+				asn1typed_primitive_kind_e primitive = primitive_from_expr(member);
+				if(member->meta_type != AMT_TYPE || member->rhs_pspecs ||
+					primitive == ASN1TYPED_PRIMITIVE_INVALID ||
+					extract_size_constraint(member->constraints, &alternative_size,
+						primitive == ASN1TYPED_PRIMITIVE_OCTET_STRING)) {
+					if(reject_unowned_inline_constraint(member, decl->Identifier,
+							member->Identifier, error, error_size)) return -1;
+					return -1;
+				}
+				size_ptr = &alternative_size;
+			}
 			memset(&ref, 0, sizeof(ref));
 			if(member->rhs_pspecs ?
 				put_parameterized_object_set_ref(tree, &ref,
@@ -478,7 +508,7 @@ populate_type(asn1p_t *tree, asn1typed_type_t *out, asn1p_expr_t *decl,
 				return -1;
 			}
 			if(asn1typed_type_add_choice_alternative(out, member->Identifier,
-					&ref, file, member->_lineno)) {
+					&ref, size_ptr, file, member->_lineno)) {
 				asn1typed_type_ref_clear(&ref);
 				set_error(error, error_size,
 					"%s.%s: could not store CHOICE alternative",
