@@ -653,10 +653,18 @@ asn1typed_type_add_primitive_field(asn1typed_type_t *type,
 int
 asn1typed_type_add_enum_item(asn1typed_type_t *type,
 		const char *source_name, const char *file, unsigned line) {
+	return asn1typed_type_add_enum_item_ex(type, source_name, 0, file, line);
+}
+
+int
+asn1typed_type_add_enum_item_ex(asn1typed_type_t *type,
+		const char *source_name, int is_extension_addition,
+		const char *file, unsigned line) {
 	asn1typed_enum_item_t item;
 	if(!type || type->kind != ASN1TYPED_TYPE_ENUMERATED ||
 		!source_name || !file) return -1;
 	memset(&item, 0, sizeof(item));
+	item.is_extension_addition = !!is_extension_addition;
 	item.source_name = asn1typed_strdup(source_name);
 	if(!item.source_name || asn1typed_source_location_init(&item.location,
 			file, line) ||

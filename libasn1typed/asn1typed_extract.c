@@ -450,9 +450,10 @@ populate_type(asn1p_t *tree, asn1typed_type_t *out, asn1p_expr_t *decl,
 	case ASN1TYPED_TYPE_ENUMERATED:
 		{
 			int saw_extension_marker = 0;
+			int saw_root_item = 0;
 		TQ_FOR(member, &body->members, next) {
 			if(member->expr_type == A1TC_EXTENSIBLE) {
-				if(saw_extension_marker) {
+				if(saw_extension_marker || !saw_root_item) {
 					set_error(error, error_size,
 						"%s: multiple ENUMERATED extension markers are unsupported",
 						decl->Identifier);
@@ -462,21 +463,17 @@ populate_type(asn1p_t *tree, asn1typed_type_t *out, asn1p_expr_t *decl,
 				out->is_extensible = 1;
 				continue;
 			}
-			if(saw_extension_marker) {
-				set_error(error, error_size,
-					"%s: ENUMERATED item after extension marker is unsupported",
-					decl->Identifier);
-				return -1;
-			}
 			if(member->meta_type != AMT_VALUE ||
 				member->expr_type != A1TC_UNIVERVAL ||
 				!member->Identifier || !member->Identifier[0] ||
-				asn1typed_type_add_enum_item(out,
-					member->Identifier, file, member->_lineno)) {
+				asn1typed_type_add_enum_item_ex(out,
+					member->Identifier, saw_extension_marker,
+					file, member->_lineno)) {
 				set_error(error, error_size, "%s: invalid ENUMERATED item",
 					decl->Identifier);
 				return -1;
 			}
+			if(!saw_extension_marker) saw_root_item = 1;
 		}
 		return 0;
 		}

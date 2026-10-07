@@ -322,12 +322,17 @@ metadata. Otherwise extraction MUST fail closed.
 ### ENUMERATED Extensibility
 
 -   **Status:** Supported, bounded
--   **Owned IR:** Type-level `is_extensible`.
--   **Supported boundary:** One marker after known root items; no
-    qualified known post-marker additions.
--   **Fail-closed boundary:** Multiple markers, unsupported placement,
-    known items after marker.
--   **Evidence:** `PagingDRX`.
+-   **Owned IR:** Type-level `is_extensible` plus ordered owned enum items
+    carrying root-versus-extension-addition status.
+-   **Supported boundary:** One marker after at least one known root item;
+    direct named-value items before the marker are roots, and direct
+    named-value items after it are known extension additions.
+-   **Fail-closed boundary:** Multiple markers, marker before all known
+    root items, malformed children, and extension-addition groups or
+    structures outside the direct named-value shape.
+-   **Evidence:** `PagingDRX`; synthetic parser-tree-independent coverage;
+    NGAP `QosMonitoringRequest` fixed-tree shape (`ul`, `dl`, `both`,
+    marker, `stop`).
 
 ### SEQUENCE Extensibility
 
@@ -493,8 +498,9 @@ Known boundaries include:
     metadata;
 -   constrained SEQUENCE OF element use-sites outside the frozen
     contract;
--   unsupported SEQUENCE/ENUMERATED extension placement or known
-    post-marker additions;
+-   unsupported SEQUENCE extension placement or post-marker fields;
+-   unsupported ENUMERATED marker placement, malformed items, or
+    post-marker structures beyond direct named-value additions;
 -   malformed/unsupported parameter actuals;
 -   unresolved dependencies;
 -   unsupported bound specialization body kinds or semantics;

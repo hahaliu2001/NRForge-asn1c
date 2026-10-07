@@ -398,11 +398,12 @@ check_enumerated_extensibility(void) {
 		"EnumExtensibility DEFINITIONS ::= BEGIN\n"
 		"ClosedEnum ::= ENUMERATED { alpha, beta }\n"
 		"OpenEnum ::= ENUMERATED { alpha, beta, ... }\n"
+		"ExtendedEnum ::= ENUMERATED { alpha, ..., beta, gamma }\n"
 		"END\n";
 	asn1p_t *tree = asn1p_parse_buffer(source, -1, "enum-extensibility.asn",
 		1, A1P_NOFLAGS);
 	asn1typed_module_t ir;
-	asn1typed_type_t *closed, *open;
+	asn1typed_type_t *closed, *open, *extended;
 	char error[256];
 	assert(tree != NULL);
 	assert(asn1f_process(tree, A1F_NOFLAGS, NULL) >= 0);
@@ -411,6 +412,7 @@ check_enumerated_extensibility(void) {
 	asn1p_delete(tree);
 	closed = find_type(&ir, "ClosedEnum");
 	open = find_type(&ir, "OpenEnum");
+	extended = find_type(&ir, "ExtendedEnum");
 	assert(closed && closed->kind == ASN1TYPED_TYPE_ENUMERATED);
 	assert(!closed->is_extensible);
 	assert(open && open->kind == ASN1TYPED_TYPE_ENUMERATED);
@@ -420,6 +422,16 @@ check_enumerated_extensibility(void) {
 	assert(!strcmp(closed->enum_items[1].source_name, "beta"));
 	assert(!strcmp(open->enum_items[0].source_name, "alpha"));
 	assert(!strcmp(open->enum_items[1].source_name, "beta"));
+	assert(extended && extended->kind == ASN1TYPED_TYPE_ENUMERATED);
+	assert(extended->is_extensible && extended->enum_item_count == 3);
+	assert(!strcmp(extended->enum_items[0].source_name, "alpha"));
+	assert(!extended->enum_items[0].is_extension_addition);
+	assert(!strcmp(extended->enum_items[1].source_name, "beta"));
+	assert(extended->enum_items[1].is_extension_addition);
+	assert(!strcmp(extended->enum_items[2].source_name, "gamma"));
+	assert(extended->enum_items[2].is_extension_addition);
+	assert(!closed->enum_items[0].is_extension_addition &&
+		!open->enum_items[1].is_extension_addition);
 	asn1typed_module_clear(&ir);
 }
 
@@ -446,13 +458,44 @@ expect_bad_enum_marker_shape(int second_marker) {
 	if(second_marker) {
 		beta->expr_type = A1TC_EXTENSIBLE;
 	} else {
-		/* Put the existing marker between alpha and beta. */
-		TQ_NEXT(alpha, next) = marker;
-		TQ_NEXT(marker, next) = beta;
+		/* Put the existing marker before all root items. */
+		TQ_NEXT(marker, next) = alpha;
 		TQ_NEXT(beta, next) = NULL;
-		decl->members.tq_head = alpha;
+		decl->members.tq_head = marker;
 		decl->members.tq_tail = &TQ_NEXT(beta, next);
 	}
+	memset(&ir, 0, sizeof(ir));
+	assert(asn1typed_extract_module(tree, "EnumExtensibility", &ir,
+		error, sizeof(error)) == -1);
+	assert(error[0] != '\0');
+	assert(ir.source_name == NULL && ir.types == NULL);
+	asn1typed_module_clear(&ir);
+	asn1typed_module_clear(&ir);
+	asn1p_delete(tree);
+}
+
+static void
+expect_bad_enum_post_marker_child(void) {
+	static const char source[] =
+		"EnumExtensibility DEFINITIONS ::= BEGIN\n"
+		"OpenEnum ::= ENUMERATED { alpha, ..., beta }\nEND\n";
+	asn1p_t *tree = asn1p_parse_buffer(source, -1,
+		"bad-enum-post-marker.asn", 1, A1P_NOFLAGS);
+	asn1p_expr_t *decl, *marker, *beta;
+	asn1typed_module_t ir;
+	char error[256];
+	assert(tree != NULL);
+	assert(asn1f_process(tree, A1F_NOFLAGS, NULL) >= 0);
+	decl = fixture_declaration(tree, "OpenEnum");
+	assert(decl != NULL);
+	marker = TQ_FIRST(&decl->members);
+	assert(marker != NULL && marker->expr_type == A1TC_UNIVERVAL);
+	marker = TQ_NEXT(marker, next);
+	assert(marker != NULL && marker->expr_type == A1TC_EXTENSIBLE);
+	beta = TQ_NEXT(marker, next);
+	assert(beta != NULL && beta->expr_type == A1TC_UNIVERVAL);
+	/* Keep a post-marker child, but make it fail the named-value item contract. */
+	beta->meta_type = AMT_TYPE;
 	memset(&ir, 0, sizeof(ir));
 	assert(asn1typed_extract_module(tree, "EnumExtensibility", &ir,
 		error, sizeof(error)) == -1);
@@ -1231,6 +1274,7 @@ main(void) {
 	check_named_bit_string_rejected();
 	expect_bad_enum_marker_shape(1);
 	expect_bad_enum_marker_shape(0);
+	expect_bad_enum_post_marker_child();
 	check_parameterized_reference_identity();
 	check_bound_instance_rejects_invalid_keys();
 	check_parameterized_sequence_field();

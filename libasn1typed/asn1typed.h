@@ -136,6 +136,7 @@ typedef struct asn1typed_field_s {
 typedef struct asn1typed_enum_item_s {
 	char *source_name;
 	asn1typed_source_location_t location;
+	int is_extension_addition;
 } asn1typed_enum_item_t;
 
 typedef struct asn1typed_choice_alternative_s {
@@ -248,6 +249,9 @@ int asn1typed_type_add_primitive_field(asn1typed_type_t *type,
 		asn1typed_presence_e presence, const char *file, unsigned line);
 int asn1typed_type_add_enum_item(asn1typed_type_t *type,
 		const char *source_name, const char *file, unsigned line);
+int asn1typed_type_add_enum_item_ex(asn1typed_type_t *type,
+		const char *source_name, int is_extension_addition,
+		const char *file, unsigned line);
 int asn1typed_type_add_choice_alternative(asn1typed_type_t *type,
 		const char *source_name, const asn1typed_type_ref_t *type_ref,
 		const asn1typed_size_constraint_t *size_constraint,
