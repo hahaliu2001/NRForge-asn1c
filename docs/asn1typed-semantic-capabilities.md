@@ -347,6 +347,15 @@ extensibility and SIZE extensibility are separate.
 only when its complete semantics can be represented by existing owned
 metadata. Otherwise extraction MUST fail closed.
 
+### Capability Composition Boundary
+
+-   **Full-domain reuse:** When a use-site ownership capability directly reuses an existing owned semantic representation, that ownership SHOULD retain the representation's complete frozen supported domain unless evidence requires a narrower boundary.
+-   **Level-1 composition:** If frozen capabilities combine without a new semantic fact, IR representation, ownership location, identity/lifetime rule, or interaction semantic, their bounded combination is Level 1 compatibility/composition rather than a new semantic family.
+-   **Not automatic closure:** Independent support does not prove every combination. The complete combined semantic MUST remain representable without loss and unsupported compound or malformed shapes MUST remain fail closed.
+-   **Negative-test discipline:** Negative coverage protects genuinely unsupported or unrepresentable semantics. It MUST NOT freeze an otherwise losslessly representable combination merely to preserve an earlier task boundary.
+-   **Qualified example:** `asn1typed_integer_value_range_t` owns bounds and range extensibility. SEQUENCE-field inline INTEGER ownership reuses that representation, so supported closed and bounded-extensible ranges are both within the qualified field ownership boundary. `UE-DifferentiationInfo.periodicTime INTEGER (1..3600, ...) OPTIONAL` provides real evidence for this Level-1 composition.
+-   **Fail-closed boundary:** This rule does not authorize arbitrary composition of independently supported semantics. Additional constraints, interaction semantics, ownership requirements, or AST shapes outside a frozen combined boundary remain unsupported unless completely represented.
+
 ## 8. Extensibility
 
 ### ENUMERATED Extensibility
@@ -647,12 +656,11 @@ For every new real message:
 6.  Compare the fixed-tree shape with this matrix.
 7.  Classify:
     -   inside frozen boundary but incorrectly routed: **Level 1**;
-    -   one bounded missing semantic within existing architecture:
-        **Level 2**;
-    -   new ownership/identity/dependency/materialization architecture:
-        **Level 3 / FOUNDATION ESCALATION**.
-8.  Do not re-study a frozen semantic merely because it appears in
-    another message.
+    -   safe composition of frozen semantics/ownership with no new semantic fact or ownership requirement: **Level 1 composition**;
+    -   one bounded missing semantic within existing architecture: **Level 2**;
+    -   new ownership/identity/dependency/materialization architecture: **Level 3 / FOUNDATION ESCALATION**.
+8.  Before freezing a Level-2 ownership boundary, compare the reused owned representation with its complete frozen supported domain and check directly adjacent capability compositions.
+9.  Do not re-study a frozen semantic merely because it appears in another message.
 
 ## 16. Matrix Change Control
 
@@ -684,6 +692,7 @@ The accepted foundation includes:
 -   qualified primitive strings, OCTET STRING, and BIT STRING;
 -   bounded and exact SIZE;
 -   bounded closed and extensible INTEGER value ranges;
+-   bounded capability composition where an ownership location can retain an existing semantic representation's complete frozen supported domain;
 -   field and CHOICE SIZE ownership;
 -   parameterized object-set identity;
 -   bound specialization ownership/materialization for qualified

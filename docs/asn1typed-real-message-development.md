@@ -198,7 +198,8 @@ Level 3 is exceptional. A normal message task MUST NOT silently evolve into an u
 5. If extraction **FAIL**, inspect the exact failing construct with the permanent fixed-tree inspector.
 6. Compare the observed semantic with the capability matrix.
 7. Classify the task as Level 1, 2, or 3.
-8. Execute only the workflow required by that level.
+8. Before freezing a Level-2 ownership or semantic extension, run the capability-composition check in Section 12.2 against directly adjacent frozen capabilities.
+9. Execute only the workflow required by that level.
 
 **NEW MESSAGE DOES NOT IMPLY NEW STUDY.**
 
@@ -289,6 +290,20 @@ A real-message implementation MUST:
 - stop at the next deterministic failure.
 
 Do not combine unrelated future blockers into one task.
+
+### 12.1 Full-Domain Reuse
+
+When a new ownership location directly reuses an existing owned semantic representation, it SHOULD inherit that representation's complete frozen supported semantic domain. An implementation MUST NOT narrow that reused semantic merely to match the first blocker or keep a task artificially small. Any intentional narrowing MUST be justified by fixed-tree, ownership, wire-semantic, or architecture evidence and recorded in the capability matrix.
+
+### 12.2 Capability Composition Check
+
+Before freezing a Level-2 implementation boundary, check directly adjacent frozen capabilities. Determine whether the task adds a semantic or only an ownership location, which owned representation is reused, its complete frozen supported domain, whether the new ownership retains that domain without loss, and whether the combination adds any interaction semantic, identity, lifetime, wire-semantic, or ownership requirement.
+
+If already-supported capabilities compose without a new semantic, IR representation, ownership location, or interaction semantic, the combination SHOULD be Level 1 compatibility/composition rather than an intentional future blocker. Independent support does not automatically prove every combination; the complete combined semantic still MUST be representable without loss.
+
+### 12.3 Negative-Test Discipline
+
+Negative tests MUST protect semantics that are genuinely unsupported, unrepresentable, malformed, or outside the frozen contract. A task MUST NOT preserve a negative test solely to keep an already-representable composition outside the current task boundary. When an ownership location reuses an existing semantic representation, focused tests SHOULD cover its important already-supported variants. A rejected variant requires evidence that the combination cannot yet be represented safely.
 
 ## 13. Review Rules
 
@@ -451,4 +466,7 @@ The default expectation is that subsequent messages reuse the qualified foundati
 7. **Match review depth to task risk.**
 8. **Stop at the next deterministic failure.**
 9. **Target 2/3/4 rounds; more than four requires FOUNDATION ESCALATION.**
-10. **Use repository history and authoritative documents as durable project memory.**
+10. **Reuse an owned semantic's full frozen supported domain unless evidence requires narrowing.**
+11. **Check adjacent capability compositions before freezing a new Level-2 boundary.**
+12. **Use negative tests to protect genuinely unsupported semantics, not artificial task boundaries.**
+13. **Use repository history and authoritative documents as durable project memory.**
