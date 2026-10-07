@@ -170,6 +170,37 @@ No accepted real qualification currently establishes support.
 -   **Fail-closed boundary:** Unsupported constraints.
 -   **Evidence:** `PLMNIdentity`.
 
+### Opaque OCTET STRING with ContentsConstraint
+
+-   **Status:** Supported, bounded / Level 1 compatibility
+-   **Owned IR:** Existing `ASN1TYPED_PRIMITIVE_OCTET_STRING`; the outer
+    value remains an opaque sequence of octets.
+-   **Supported boundary:** A primitive `OCTET STRING` use site whose
+    declared and combined constraint shape is the recognized
+    `ContentsConstraint`-only form MAY use the existing OCTET STRING Typed
+    IR when the complete outer value is representable as opaque bytes and
+    the Typed IR boundary does not claim to validate, decode, or interpret
+    the contained value. No additional unsupported constraint may change
+    the outer OCTET STRING value or wire semantics.
+-   **Contents ownership:** The contained-value semantic is optional
+    non-blocking metadata. It does not require a new Typed IR primitive,
+    value kind, or contained-payload IR merely to represent the outer
+    OCTET STRING.
+-   **Fail-closed boundary:** Arbitrary unsupported inline constraints,
+    unrecognized `ContentsConstraint` forms, any additional constraint that
+    changes outer value or wire semantics, and any context whose contract
+    requires contained-value validation, decoding, or interpretation MUST
+    remain rejected. This rule MUST NOT be generalized to silently ignore
+    unknown constraints.
+-   **Semantic family:** Opaque OCTET STRING contained payloads. The rule is
+    not NAS-specific; it may cover NAS messages, NGAP transfer/container
+    payloads, nested ASN.1 payloads, and other opaque protocol payloads
+    within the same bounded outer-value contract.
+-   **Evidence:** NGAP Rel-18
+    `PDUSessionResourceSetupItemSURes.pDUSessionResourceSetupResponseTransfer`
+    (`NGAP-IEs.asn:5517`), fixed-tree base primitive OCTET STRING with
+    declared and combined `SET / ContentsConstraint`.
+
 ### BIT STRING
 
 -   **Status:** Supported, bounded
@@ -521,6 +552,12 @@ harnesses.
 ### `NGAP-IEs.PLMNIdentity`
 
 -   **Evidence for:** OCTET STRING plus exact SIZE.
+
+### `NGAP-IEs.PDUSessionResourceSetupItemSURes.pDUSessionResourceSetupResponseTransfer`
+
+-   **Evidence for:** Level-1 opaque OCTET STRING contained-payload
+    compatibility for the recognized `ContentsConstraint`-only use-site
+    shape.
 
 ### `NGAP-IEs.GNB-ID.gNB-ID`
 

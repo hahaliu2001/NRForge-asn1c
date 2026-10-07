@@ -208,6 +208,21 @@ A semantic already frozen in the Semantic Capability Matrix MUST NOT be re-studi
 
 A new bounded study is permitted only when fixed-tree evidence shows the observed shape lies outside the frozen support boundary. An already-covered semantic is normally Level 1.
 
+### 9.1 Opaque OCTET STRING Contents Compatibility
+
+When fixed-tree inspection finds a primitive `OCTET STRING` use site with
+a `ContentsConstraint`, classification MUST use the bounded opaque-payload
+compatibility rule in `docs/asn1typed-semantic-capabilities.md`.
+
+A diagnostic such as `inline constrained type is unsupported` does not by
+itself establish a new semantic. If the matrix's complete bounded rule is
+satisfied, the case is Level 1 compatibility and reuses the existing OCTET
+STRING Typed IR. Unsupported inline constraints outside that frozen rule
+MUST continue to fail closed.
+
+The development framework does not redefine the semantic boundary here; the
+capability matrix remains authoritative.
+
 ## 10. Interaction Budget
 
 ### 10.1 Message Passes Existing Foundation — Target 2 Rounds
