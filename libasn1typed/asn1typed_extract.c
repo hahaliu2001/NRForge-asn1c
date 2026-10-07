@@ -405,8 +405,7 @@ add_field(asn1p_t *tree, asn1typed_type_t *type, asn1p_expr_t *field,
 			/* Existing OCTET STRING field ownership is sufficient. */
 		} else if(primitive == ASN1TYPED_PRIMITIVE_INTEGER) {
 			if(extract_integer_value_range(inline_constraint,
-					&field_value_range) || !field_value_range.has_value_range ||
-				field_value_range.is_extensible) {
+					&field_value_range) || !field_value_range.has_value_range) {
 				set_error(error, error_size,
 					"%s.%s: unsupported inline INTEGER constraint", module,
 					field->Identifier);

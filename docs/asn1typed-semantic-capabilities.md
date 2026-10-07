@@ -307,15 +307,15 @@ extensibility and SIZE extensibility are separate.
     existing SIZE metadata.
 -   **Fail-closed boundary:** Other unsupported inline constraints.
 
-### SEQUENCE Field Inline Closed INTEGER Value Range
+### SEQUENCE Field Inline INTEGER Value Range
 
 -   **Status:** Supported, bounded
--   **Existing semantic:** Primitive INTEGER, OPTIONAL presence, and one closed inclusive INTEGER value range representable in `intmax_t` are already supported. No new INTEGER value-range semantic is required.
+-   **Existing semantics:** Primitive INTEGER, OPTIONAL presence, and one bounded inclusive INTEGER value range representable in `intmax_t` are already supported. Family B owns the extensible range flag, and this field ownership reuses that same range representation. No new INTEGER value-range semantic is required.
 -   **Owned IR:** Field-level `asn1typed_integer_value_range_t`, independent of field presence and primitive INTEGER identity.
--   **Supported boundary:** An inline primitive INTEGER SEQUENCE field whose complete constraint is one supported closed inclusive value range may reuse the existing INTEGER value-range semantic. REQUIRED and OPTIONAL presence remain orthogonal.
--   **Fail-closed boundary:** Extensible, compound, MIN/MAX, unrepresentable, or otherwise unsupported INTEGER constraint shapes, and arbitrary unsupported inline constraints, MUST remain rejected.
--   **Semantic family:** Inline closed INTEGER value-range ownership on SEQUENCE fields.
--   **Evidence:** Synthetic REQUIRED and OPTIONAL inline field extraction, including parser-tree-independent owned range state. NGAP Rel-18 `ExpectedUEMovingTrajectoryItem.timeStayedInCell` (`NGAP-IEs.asn:2144`) has an OPTIONAL inline primitive INTEGER with declared and combined `0..4095` closed value range; fixed-tree evidence does not by itself establish message-path traversal.
+-   **Supported boundary:** An inline primitive INTEGER SEQUENCE field whose complete constraint is one supported bounded inclusive value range, closed or followed immediately by the supported extension marker, may reuse the existing INTEGER value-range semantic. REQUIRED and OPTIONAL presence remain orthogonal.
+-   **Fail-closed boundary:** Compound, MIN/MAX, unrepresentable, or otherwise unsupported INTEGER constraint shapes, and arbitrary unsupported inline constraints, MUST remain rejected.
+-   **Semantic family:** Inline INTEGER value-range ownership on SEQUENCE fields; extensible inline ranges are a Level-1 composition of existing Family B range semantics and Family D field ownership.
+-   **Evidence:** Synthetic REQUIRED and OPTIONAL closed inline field extraction and parser-tree-independent ownership; synthetic OPTIONAL extensible inline `INTEGER (1..3600, ...)` extraction and parser-tree-independent ownership. NGAP Rel-18 `ExpectedUEMovingTrajectoryItem.timeStayedInCell` (`NGAP-IEs.asn:2144`) has an OPTIONAL inline primitive INTEGER with declared and combined `0..4095` closed value range. Fixed-tree inspection confirms `UE-DifferentiationInfo.periodicTime` is OPTIONAL inline primitive INTEGER with declared and combined `1..3600, ...`; real message probes establish traversal only where extraction passes the field.
 
 ### SEQUENCE Field Inline ENUMERATED
 
@@ -324,7 +324,7 @@ extensibility and SIZE extensibility are separate.
 -   **Owned IR:** A SEQUENCE field may own an identity-free nested `asn1typed_type_t` whose kind is ENUMERATED and whose ordered items reuse `asn1typed_enum_item_t`. Field presence remains on the field and is independent of the body.
 -   **Supported boundary:** Direct ordered named-value items; at least one root item; at most one marker after a root item; direct known named additions after the marker; existing mandatory/OPTIONAL presence.
 -   **Fail-closed boundary:** Malformed or unnamed items, multiple markers, marker before any root item, extension groups or non-direct additions, unsupported constraints or parameterization, DEFAULT presence, and arbitrary inline constructed types. This does not qualify inline ENUMERATED in CHOICE alternatives or SEQUENCE OF elements.
--   **Evidence:** Synthetic mandatory and OPTIONAL extensible inline fields plus a known extension addition; item order/status, deep copy, cleanup, repeated clear, and inspection after parser-tree destruction. A synthetic IOC message dependency test reaches a named SEQUENCE with an inline ENUMERATED field, completes dependency closure without inventing a named identity for that field, and still collects a genuine named dependency. Fixed-tree inspection confirms `NGAP-IEs.AUN3DeviceAccessInfo.aUN3DeviceAccess` (mandatory; `true`, marker) and `NGAP-IEs.UE-DifferentiationInfo.periodicCommunicationIndicator` (OPTIONAL; `periodically`, `ondemand`, marker). `InitialUEMessage` passes extraction with 50 owned types and 26 bound instances, establishing its field dependency path. DownlinkNASTransport and InitialContextSetupRequest stop at `NGAP-IEs.periodicTime: unsupported inline INTEGER constraint` before dependency traversal of the completed `UE-DifferentiationInfo` body; no message-level traversal claim is made for `periodicCommunicationIndicator`.
+-   **Evidence:** Synthetic mandatory and OPTIONAL extensible inline fields plus a known extension addition; item order/status, deep copy, cleanup, repeated clear, and inspection after parser-tree destruction. A synthetic IOC message dependency test reaches a named SEQUENCE with an inline ENUMERATED field, completes dependency closure without inventing a named identity for that field, and still collects a genuine named dependency. Fixed-tree inspection confirms `NGAP-IEs.AUN3DeviceAccessInfo.aUN3DeviceAccess` (mandatory; `true`, marker) and `NGAP-IEs.UE-DifferentiationInfo.periodicCommunicationIndicator` (OPTIONAL; `periodically`, `ondemand`, marker). `InitialUEMessage` passes extraction with 50 owned types and 26 bound instances, establishing its field dependency path. After inline extensible INTEGER compatibility, `DownlinkNASTransport` and `InitialContextSetupRequest` both extract beyond `UE-DifferentiationInfo.periodicTime`; they stop later at `RATRestrictionInformation: unsupported or unrepresentable primitive constraint` and `NRencryptionAlgorithms: unsupported or unrepresentable primitive constraint`, respectively. This establishes traversal through the preceding `periodicCommunicationIndicator` field in those paths.
 
 ### CHOICE Alternative Inline SIZE
 
@@ -612,7 +612,7 @@ harnesses.
 
 ### `NGAP-IEs.AUN3DeviceAccessInfo.aUN3DeviceAccess` and `NGAP-IEs.UE-DifferentiationInfo.periodicCommunicationIndicator`
 
--   **Evidence for:** SEQUENCE-field inline ENUMERATED fixed-tree shapes and synthetic owned-body extraction. `InitialUEMessage` passes full message extraction, establishing traversal of the mandatory `aUN3DeviceAccess` field. DownlinkNASTransport and InitialContextSetupRequest stop at `periodicTime` before dependency traversal of `periodicCommunicationIndicator`; those paths are supported by direct fixed-tree and synthetic field/dependency evidence only.
+-   **Evidence for:** SEQUENCE-field inline ENUMERATED fixed-tree shapes and synthetic owned-body extraction. `InitialUEMessage` passes full message extraction, establishing traversal of the mandatory `aUN3DeviceAccess` field. After inline extensible INTEGER compatibility, `DownlinkNASTransport` and `InitialContextSetupRequest` both extract beyond the earlier `periodicTime` field and reach later blockers, establishing traversal of the preceding `periodicCommunicationIndicator` field in those paths.
 
 ### `NGAP-IEs.GNB-ID.gNB-ID`
 

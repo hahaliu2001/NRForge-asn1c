@@ -107,7 +107,7 @@ check_integer_value_range(void) {
 		"Optional ::= SEQUENCE { value INTEGER (0..4095) OPTIONAL }\nEND\n";
 	static const char inline_extensible[] =
 		"InlineIntegerExtensible DEFINITIONS ::= BEGIN\n"
-		"Bad ::= SEQUENCE { value INTEGER (0..10, ...) }\nEND\n";
+		"PeriodicTime ::= SEQUENCE { periodicTime INTEGER (1..3600, ...) OPTIONAL }\nEND\n";
 	static const char inline_compound[] =
 		"InlineIntegerCompound DEFINITIONS ::= BEGIN\n"
 		"Bad ::= SEQUENCE { value INTEGER (0..10 | 20..30) }\nEND\n";
@@ -191,22 +191,43 @@ check_integer_value_range(void) {
 	asn1typed_module_clear(&ir);
 	asn1typed_module_clear(&ir);
 	{
-		const char *unsupported[] = { inline_extensible, inline_compound };
-		const char *names[] = { "InlineIntegerExtensible", "InlineIntegerCompound" };
-		size_t i;
-		for(i = 0; i < sizeof(unsupported) / sizeof(unsupported[0]); i++) {
-			tree = asn1p_parse_buffer(unsupported[i], -1, "inline-integer-bad.asn",
-				1, A1P_NOFLAGS);
-			assert(tree && asn1f_process(tree, A1F_NOFLAGS, NULL) >= 0);
-			assert(asn1typed_extract_module(tree, names[i], &ir,
-					error, sizeof(error)) == -1);
-			assert(strstr(error, "unsupported inline INTEGER constraint") != NULL);
-			assert_ir_cleared(&ir);
-			asn1typed_module_clear(&ir);
-			asn1p_delete(tree);
+		tree = asn1p_parse_buffer(inline_extensible, -1,
+			"inline-integer-extensible.asn", 1, A1P_NOFLAGS);
+		assert(tree && asn1f_process(tree, A1F_NOFLAGS, NULL) >= 0);
+		assert(asn1typed_extract_module(tree, "InlineIntegerExtensible", &ir,
+			error, sizeof(error)) == 0);
+		asn1p_delete(tree);
+		{
+			asn1typed_type_t *periodic = find_type(&ir, "PeriodicTime");
+			assert(periodic && periodic->field_count == 1);
+			assert(periodic->fields[0].type.kind == ASN1TYPED_REF_PRIMITIVE);
+			assert(periodic->fields[0].type.primitive_kind == ASN1TYPED_PRIMITIVE_INTEGER);
+			assert(periodic->fields[0].presence == ASN1TYPED_PRESENCE_OPTIONAL);
+			assert(periodic->fields[0].value_range.has_value_range);
+			assert(periodic->fields[0].value_range.lower_bound == 1);
+			assert(periodic->fields[0].value_range.upper_bound == 3600);
+			assert(periodic->fields[0].value_range.is_extensible);
+			assert(!periodic->fields[0].size_constraint.has_size_constraint);
+		}
+		asn1typed_module_clear(&ir);
+		{
+			const char *unsupported[] = { inline_compound };
+			const char *names[] = { "InlineIntegerCompound" };
+			size_t i;
+			for(i = 0; i < sizeof(unsupported) / sizeof(unsupported[0]); i++) {
+				tree = asn1p_parse_buffer(unsupported[i], -1, "inline-integer-bad.asn",
+					1, A1P_NOFLAGS);
+				assert(tree && asn1f_process(tree, A1F_NOFLAGS, NULL) >= 0);
+				assert(asn1typed_extract_module(tree, names[i], &ir,
+						error, sizeof(error)) == -1);
+				assert(strstr(error, "unsupported inline INTEGER constraint") != NULL);
+				assert_ir_cleared(&ir);
+				asn1typed_module_clear(&ir);
+				asn1p_delete(tree);
+			}
 		}
 	}
-	puts("T2 declaration INTEGER ranges and T3 inline SEQUENCE-field closed range ownership: PASS");
+	puts("T2 declaration INTEGER ranges and T3 inline SEQUENCE-field INTEGER range ownership: PASS");
 }
 
 static asn1p_expr_t *
