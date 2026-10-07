@@ -68,6 +68,27 @@ reject_unowned_inline_constraint(const asn1p_expr_t *expr,
 	return -1;
 }
 
+/* Family-C compatibility: recognize only the fixed-tree representation of
+ * one complete ContentsConstraint. The contained type is deliberately not
+ * transferred into Typed IR; the owner of this field retains opaque bytes. */
+static int
+is_opaque_contents_constraint(const asn1p_constraint_t *constraint) {
+	const asn1p_constraint_t *contents;
+	const asn1p_value_t *contained;
+	if(!constraint || constraint->type != ACT_CA_SET ||
+		constraint->el_count != 1 || !constraint->elements ||
+		constraint->value || constraint->containedSubtype ||
+		constraint->range_start || constraint->range_stop ||
+		!(contents = constraint->elements[0]) ||
+		contents->type != ACT_CT_CTNG || contents->el_count != 0 ||
+		contents->elements || contents->containedSubtype ||
+		contents->range_start || contents->range_stop ||
+		!(contained = contents->value) || contained->type != ATV_TYPE ||
+		!contained->value.v_type || contained->value.v_type->expr_type == A1TC_INVALID)
+		return 0;
+	return 1;
+}
+
 static int
 constraint_bound(const asn1p_value_t *value, intmax_t *out) {
 	if(!value || value->type != ATV_INTEGER) return -1;
@@ -332,7 +353,12 @@ add_field(asn1p_t *tree, asn1typed_type_t *type, asn1p_expr_t *field,
 					error, error_size)) return -1;
 			return -1;
 		}
-		if(primitive == ASN1TYPED_PRIMITIVE_INTEGER) {
+		if(primitive == ASN1TYPED_PRIMITIVE_OCTET_STRING &&
+			is_opaque_contents_constraint(field->constraints) &&
+			(!field->combined_constraints ||
+			 is_opaque_contents_constraint(field->combined_constraints))) {
+			/* Existing OCTET STRING field ownership is sufficient. */
+		} else if(primitive == ASN1TYPED_PRIMITIVE_INTEGER) {
 			if(extract_integer_value_range(inline_constraint,
 					&field_value_range) || !field_value_range.has_value_range ||
 				field_value_range.is_extensible) {

@@ -200,6 +200,11 @@ No accepted real qualification currently establishes support.
     `PDUSessionResourceSetupItemSURes.pDUSessionResourceSetupResponseTransfer`
     (`NGAP-IEs.asn:5517`), fixed-tree base primitive OCTET STRING with
     declared and combined `SET / ContentsConstraint`.
+    Focused REQUIRED and OPTIONAL SEQUENCE-field extraction also confirms
+    existing OCTET STRING ownership, no contained-payload IR or constraint
+    metadata, and parser-tree-independent outer representation. The
+    `NGAP-PDU-Contents.PDUSessionResourceSetupResponse` real probe passes
+    through this field after the compatibility route was added.
 
 ### BIT STRING
 

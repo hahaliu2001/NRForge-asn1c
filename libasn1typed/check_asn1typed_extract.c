@@ -210,6 +210,77 @@ check_integer_value_range(void) {
 }
 
 static void
+check_opaque_contents_compatibility(void) {
+	static const char supported[] = "OpaqueContents DEFINITIONS ::= BEGIN\n"
+		"Required ::= SEQUENCE { payload OCTET STRING (CONTAINING INTEGER) }\n"
+		"Optional ::= SEQUENCE { payload OCTET STRING (CONTAINING INTEGER) OPTIONAL }\n"
+		"END\n";
+	static const char unsupported[] = "UnsupportedOctetSizeUnion DEFINITIONS ::= BEGIN\n"
+		"Bad ::= SEQUENCE { payload OCTET STRING (SIZE(1 | 3)) }\nEND\n";
+	static const char compound[] = "CompoundContents DEFINITIONS ::= BEGIN\n"
+		"Bad ::= SEQUENCE { payload OCTET STRING (CONTAINING INTEGER) }\nEND\n";
+	asn1typed_module_t ir = {0};
+	asn1typed_type_t *required, *optional;
+	asn1p_t *tree = asn1p_parse_buffer(supported, -1, "opaque-contents.asn",
+		1, A1P_NOFLAGS);
+	char error[256] = {0};
+	assert(tree && asn1f_process(tree, A1F_NOFLAGS, NULL) >= 0);
+	assert(asn1typed_extract_module(tree, "OpaqueContents", &ir,
+		error, sizeof(error)) == 0);
+	asn1p_delete(tree);
+	required = find_type(&ir, "Required");
+	optional = find_type(&ir, "Optional");
+	assert(required && required->field_count == 1);
+	assert(required->fields[0].type.kind == ASN1TYPED_REF_PRIMITIVE);
+	assert(required->fields[0].type.primitive_kind == ASN1TYPED_PRIMITIVE_OCTET_STRING);
+	assert(required->fields[0].presence == ASN1TYPED_PRESENCE_MANDATORY);
+	assert(!required->fields[0].size_constraint.has_size_constraint);
+	assert(!required->fields[0].value_range.has_value_range);
+	assert(optional && optional->field_count == 1);
+	assert(optional->fields[0].type.primitive_kind == ASN1TYPED_PRIMITIVE_OCTET_STRING);
+	assert(optional->fields[0].presence == ASN1TYPED_PRESENCE_OPTIONAL);
+	assert(!optional->fields[0].size_constraint.has_size_constraint);
+	assert(!optional->fields[0].value_range.has_value_range);
+	assert(optional->fields[0].source_name &&
+		!strcmp(optional->fields[0].source_name, "payload"));
+	asn1typed_module_clear(&ir);
+	tree = asn1p_parse_buffer(unsupported, -1, "unsupported-octet-size-union.asn",
+		1, A1P_NOFLAGS);
+	assert(tree && asn1f_process(tree, A1F_NOFLAGS, NULL) >= 0);
+	assert(asn1typed_extract_module(tree, "UnsupportedOctetSizeUnion", &ir,
+		error, sizeof(error)) != 0);
+	assert(strstr(error, "inline constrained type is unsupported") != NULL);
+	assert(ir.types == NULL);
+	asn1p_delete(tree);
+	tree = asn1p_parse_buffer(compound, -1, "compound-contents.asn",
+		1, A1P_NOFLAGS);
+	assert(tree && asn1f_process(tree, A1F_NOFLAGS, NULL) >= 0);
+	{
+		asn1p_module_t *module = TQ_FIRST(&tree->modules);
+		asn1p_expr_t *decl, *field;
+		assert(module);
+		for(decl = TQ_FIRST(&module->members); decl;
+			decl = TQ_NEXT(decl, next))
+			if(decl->Identifier && !strcmp(decl->Identifier, "Bad")) break;
+		assert(decl);
+		field = TQ_FIRST(&decl->members);
+		assert(field && field->constraints && field->constraints->el_count == 1);
+		/* Model an extra unsupported sibling in the fixed tree; extractor must
+		 * reject the whole shape rather than finding ContentsConstraint inside. */
+		field->constraints->el_count = 2;
+		assert(asn1typed_extract_module(tree, "CompoundContents", &ir,
+			error, sizeof(error)) != 0);
+		field->constraints->el_count = 1;
+	}
+	assert(strstr(error, "inline constrained type is unsupported") != NULL);
+	assert(ir.types == NULL);
+	asn1p_delete(tree);
+	asn1typed_module_clear(&ir);
+	asn1typed_module_clear(&ir);
+	puts("T4 opaque OCTET STRING ContentsConstraint compatibility and fail-closed boundary: PASS");
+}
+
+static void
 check_octet_string_size(void) {
 	static const char source[] = "OctetStringSize DEFINITIONS ::= BEGIN\n"
 		"PlainOctets ::= OCTET STRING\n"
@@ -1326,6 +1397,7 @@ main(void) {
 	check_enumerated_extensibility();
 	check_visible_string_size();
 	check_integer_value_range();
+	check_opaque_contents_compatibility();
 	check_octet_string_size();
 	check_inline_visible_constraints();
 	check_inline_bit_string_field_size();
