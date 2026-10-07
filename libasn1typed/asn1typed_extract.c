@@ -295,8 +295,12 @@ add_field(asn1p_t *tree, asn1typed_type_t *type, asn1p_expr_t *field,
 		const char *file, const char *module, char *error, size_t error_size) {
 	asn1typed_presence_e presence;
 	asn1typed_size_constraint_t field_size = {0};
+	asn1typed_integer_value_range_t field_value_range = {0};
 	int marker_flags;
 	int owns_inline_size = 0;
+	int owns_inline_integer_range = 0;
+	const asn1p_constraint_t *inline_constraint = field->combined_constraints ?
+		field->combined_constraints : field->constraints;
 	int result;
 	if(!field->Identifier) {
 		set_error(error, error_size, "%s: unnamed SEQUENCE component at line %d",
@@ -323,14 +327,30 @@ add_field(asn1p_t *tree, asn1typed_type_t *type, asn1p_expr_t *field,
 	if(field->constraints) {
 		asn1typed_primitive_kind_e primitive = primitive_from_expr(field);
 		if(field->meta_type != AMT_TYPE || field->rhs_pspecs ||
-			primitive == ASN1TYPED_PRIMITIVE_INVALID ||
-			extract_size_constraint(field->constraints, &field_size,
-				primitive_accepts_exact_size(primitive))) {
+			primitive == ASN1TYPED_PRIMITIVE_INVALID) {
 			if(reject_unowned_inline_constraint(field, module, field->Identifier,
 					error, error_size)) return -1;
 			return -1;
 		}
-		owns_inline_size = 1;
+		if(primitive == ASN1TYPED_PRIMITIVE_INTEGER) {
+			if(extract_integer_value_range(inline_constraint,
+					&field_value_range) || !field_value_range.has_value_range ||
+				field_value_range.is_extensible) {
+				set_error(error, error_size,
+					"%s.%s: unsupported inline INTEGER constraint", module,
+					field->Identifier);
+				return -1;
+			}
+			owns_inline_integer_range = 1;
+		} else {
+			if(extract_size_constraint(field->constraints, &field_size,
+					primitive_accepts_exact_size(primitive))) {
+				if(reject_unowned_inline_constraint(field, module, field->Identifier,
+						error, error_size)) return -1;
+				return -1;
+			}
+			owns_inline_size = 1;
+		}
 	}
 	{
 		asn1typed_type_ref_t ref;
@@ -356,6 +376,8 @@ add_field(asn1p_t *tree, asn1typed_type_t *type, asn1p_expr_t *field,
 		asn1typed_type_ref_clear(&ref);
 		if(!result && owns_inline_size)
 			type->fields[type->field_count - 1].size_constraint = field_size;
+		if(!result && owns_inline_integer_range)
+			type->fields[type->field_count - 1].value_range = field_value_range;
 		if(result) {
 			set_error(error, error_size, "%s.%s: out of memory extracting field",
 				module, field->Identifier);

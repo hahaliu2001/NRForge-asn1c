@@ -304,13 +304,13 @@ extensibility and SIZE extensibility are separate.
 
 ### SEQUENCE Field Inline Closed INTEGER Value Range
 
--   **Status:** Not supported / bounded Level 2 ownership gap
+-   **Status:** Supported, bounded
 -   **Existing semantic:** Primitive INTEGER, OPTIONAL presence, and one closed inclusive INTEGER value range representable in `intmax_t` are already supported. No new INTEGER value-range semantic is required.
--   **Current ownership gap:** A SEQUENCE field can own field-level SIZE metadata, but it cannot currently own the existing `asn1typed_integer_value_range_t` metadata for an inline primitive INTEGER constraint.
--   **Target boundary:** An inline primitive INTEGER SEQUENCE field whose complete declared and combined constraint is one supported closed inclusive value range may reuse the existing INTEGER value-range semantic once field-level ownership is implemented. OPTIONAL presence is orthogonal and is not part of this gap.
+-   **Owned IR:** Field-level `asn1typed_integer_value_range_t`, independent of field presence and primitive INTEGER identity.
+-   **Supported boundary:** An inline primitive INTEGER SEQUENCE field whose complete constraint is one supported closed inclusive value range may reuse the existing INTEGER value-range semantic. REQUIRED and OPTIONAL presence remain orthogonal.
 -   **Fail-closed boundary:** Extensible, compound, MIN/MAX, unrepresentable, or otherwise unsupported INTEGER constraint shapes, and arbitrary unsupported inline constraints, MUST remain rejected.
 -   **Semantic family:** Inline closed INTEGER value-range ownership on SEQUENCE fields.
--   **Evidence:** NGAP Rel-18 `ExpectedUEMovingTrajectoryItem.timeStayedInCell` (`NGAP-IEs.asn:2144`), an OPTIONAL inline primitive INTEGER with declared and combined `0..4095` closed value range. Fixed-tree and production-source inspection establish the ownership gap; exact reproduction of the original inline-constraint diagnostic with the permanent real-message probe was not established because direct member selection encounters an IOC association error.
+-   **Evidence:** Synthetic REQUIRED and OPTIONAL inline field extraction, including parser-tree-independent owned range state. NGAP Rel-18 `ExpectedUEMovingTrajectoryItem.timeStayedInCell` (`NGAP-IEs.asn:2144`) has an OPTIONAL inline primitive INTEGER with declared and combined `0..4095` closed value range; fixed-tree evidence does not by itself establish message-path traversal.
 
 ### CHOICE Alternative Inline SIZE
 
@@ -594,7 +594,7 @@ harnesses.
 
 ### `NGAP-IEs.ExpectedUEMovingTrajectoryItem.timeStayedInCell`
 
--   **Evidence for:** Bounded Level-2 SEQUENCE-field inline closed INTEGER value-range ownership gap; INTEGER, OPTIONAL presence, and closed `0..4095` range semantics themselves are already represented.
+-   **Evidence for:** OPTIONAL SEQUENCE-field inline primitive INTEGER ownership of the closed `0..4095` range. Permanent fixed-tree inspection confirms the declared and combined shape; synthetic owned extraction validates the new field metadata. Real message-path traversal is not established by these results.
 
 ### `NGAP-IEs.GNB-ID.gNB-ID`
 

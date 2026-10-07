@@ -127,6 +127,8 @@ typedef struct asn1typed_field_s {
 	asn1typed_type_ref_t type;
 	/* Inline SIZE semantics owned by this SEQUENCE use-site, when present. */
 	asn1typed_size_constraint_t size_constraint;
+	/* Inline primitive INTEGER range owned by this SEQUENCE use-site. */
+	asn1typed_integer_value_range_t value_range;
 	int has_class_field_relation;
 	asn1typed_class_field_relation_t class_field_relation;
 	asn1typed_presence_e presence;

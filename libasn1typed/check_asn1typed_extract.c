@@ -103,7 +103,14 @@ check_integer_value_range(void) {
 		"Bad ::= INTEGER (0..10 | 20..30, ...)\nEND\n";
 	static const char inline_range[] =
 		"InlineIntegerRange DEFINITIONS ::= BEGIN\n"
-		"Bad ::= SEQUENCE { a INTEGER (0..10) }\nEND\n";
+		"Required ::= SEQUENCE { value INTEGER (0..10) }\n"
+		"Optional ::= SEQUENCE { value INTEGER (0..4095) OPTIONAL }\nEND\n";
+	static const char inline_extensible[] =
+		"InlineIntegerExtensible DEFINITIONS ::= BEGIN\n"
+		"Bad ::= SEQUENCE { value INTEGER (0..10, ...) }\nEND\n";
+	static const char inline_compound[] =
+		"InlineIntegerCompound DEFINITIONS ::= BEGIN\n"
+		"Bad ::= SEQUENCE { value INTEGER (0..10 | 20..30) }\nEND\n";
 	asn1typed_module_t ir = {0};
 	asn1typed_type_t *plain, *bounded, *extensible_bounded;
 	asn1p_t *tree = asn1p_parse_file(T7_FIXTURE, A1P_NOFLAGS);
@@ -158,12 +165,48 @@ check_integer_value_range(void) {
 		1, A1P_NOFLAGS);
 	assert(tree && asn1f_process(tree, A1F_NOFLAGS, NULL) >= 0);
 	assert(asn1typed_extract_module(tree, "InlineIntegerRange", &ir,
-		error, sizeof(error)) == -1);
-	assert(strstr(error, "inline constrained type is unsupported") != NULL);
-	assert_ir_cleared(&ir);
-	asn1typed_module_clear(&ir);
+		error, sizeof(error)) == 0);
 	asn1p_delete(tree);
-	puts("T2 bounded INTEGER value-range ownership: PASS");
+	{
+		asn1typed_type_t *required = find_type(&ir, "Required");
+		asn1typed_type_t *optional = find_type(&ir, "Optional");
+		assert(required && required->field_count == 1);
+		assert(required->fields[0].type.kind == ASN1TYPED_REF_PRIMITIVE);
+		assert(required->fields[0].type.primitive_kind == ASN1TYPED_PRIMITIVE_INTEGER);
+		assert(required->fields[0].presence == ASN1TYPED_PRESENCE_MANDATORY);
+		assert(required->fields[0].value_range.has_value_range);
+		assert(required->fields[0].value_range.lower_bound == 0);
+		assert(required->fields[0].value_range.upper_bound == 10);
+		assert(!required->fields[0].value_range.is_extensible);
+		assert(!required->fields[0].size_constraint.has_size_constraint);
+		assert(optional && optional->field_count == 1);
+		assert(optional->fields[0].type.primitive_kind == ASN1TYPED_PRIMITIVE_INTEGER);
+		assert(optional->fields[0].presence == ASN1TYPED_PRESENCE_OPTIONAL);
+		assert(optional->fields[0].value_range.has_value_range);
+		assert(optional->fields[0].value_range.lower_bound == 0);
+		assert(optional->fields[0].value_range.upper_bound == 4095);
+		assert(!optional->fields[0].value_range.is_extensible);
+		assert(!optional->fields[0].size_constraint.has_size_constraint);
+	}
+	asn1typed_module_clear(&ir);
+	asn1typed_module_clear(&ir);
+	{
+		const char *unsupported[] = { inline_extensible, inline_compound };
+		const char *names[] = { "InlineIntegerExtensible", "InlineIntegerCompound" };
+		size_t i;
+		for(i = 0; i < sizeof(unsupported) / sizeof(unsupported[0]); i++) {
+			tree = asn1p_parse_buffer(unsupported[i], -1, "inline-integer-bad.asn",
+				1, A1P_NOFLAGS);
+			assert(tree && asn1f_process(tree, A1F_NOFLAGS, NULL) >= 0);
+			assert(asn1typed_extract_module(tree, names[i], &ir,
+					error, sizeof(error)) == -1);
+			assert(strstr(error, "unsupported inline INTEGER constraint") != NULL);
+			assert_ir_cleared(&ir);
+			asn1typed_module_clear(&ir);
+			asn1p_delete(tree);
+		}
+	}
+	puts("T2 declaration INTEGER ranges and T3 inline SEQUENCE-field closed range ownership: PASS");
 }
 
 static void

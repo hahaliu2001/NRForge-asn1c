@@ -97,6 +97,7 @@ asn1typed_field_copy(asn1typed_field_t *target,
 	target->source_name = asn1typed_strdup(source->source_name);
 	target->type_semantics = source->type_semantics;
 	target->size_constraint = source->size_constraint;
+	target->value_range = source->value_range;
 	target->presence = source->presence;
 	target->ioc.criticality = source->ioc.criticality;
 	target->ioc.has_numeric_id = source->ioc.has_numeric_id;
