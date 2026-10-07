@@ -1,0 +1,7 @@
+# Ordered NGAP source set; pass --asn1-root pointing at NRForge-RAN/src.
+ng/asn1/NGAP-CommonDataTypes.asn
+ng/asn1/NGAP-Constants.asn
+ng/asn1/NGAP-IEs.asn
+ng/asn1/NGAP-Containers.asn
+ng/asn1/NGAP-PDU-Contents.asn
+ng/asn1/NGAP-PDU-Descriptions.asn

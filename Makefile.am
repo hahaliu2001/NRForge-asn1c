@@ -8,7 +8,7 @@ SUBDIRS =                       \
     libasn1common libasn1typed libasn1parser \
     libasn1fix libasn1print     \
     libasn1compiler             \
-    asn1-tools asn1c skeletons  \
+    asn1-tools asn1c tools skeletons  \
     tests examples doc
 
 docsdir = $(datadir)/doc/asn1c

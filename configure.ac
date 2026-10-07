@@ -379,6 +379,7 @@ examples/Makefile                           \
 doc/man/Makefile                            \
 tests/Makefile                              \
 asn1c/Makefile                              \
+tools/Makefile                              \
 doc/Makefile                                \
 Makefile                                    \
 ])
