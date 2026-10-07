@@ -54,6 +54,12 @@ primitive_from_expr(const asn1p_expr_t *expr) {
 }
 
 static int
+primitive_accepts_exact_size(asn1typed_primitive_kind_e primitive) {
+	return primitive == ASN1TYPED_PRIMITIVE_OCTET_STRING ||
+		primitive == ASN1TYPED_PRIMITIVE_BIT_STRING;
+}
+
+static int
 reject_unowned_inline_constraint(const asn1p_expr_t *expr,
 		const char *owner, const char *use, char *error, size_t error_size) {
 	if(!expr || !expr->constraints) return 0;
@@ -303,7 +309,7 @@ add_field(asn1p_t *tree, asn1typed_type_t *type, asn1p_expr_t *field,
 		if(field->meta_type != AMT_TYPE || field->rhs_pspecs ||
 			primitive == ASN1TYPED_PRIMITIVE_INVALID ||
 			extract_size_constraint(field->constraints, &field_size,
-				primitive == ASN1TYPED_PRIMITIVE_OCTET_STRING)) {
+				primitive_accepts_exact_size(primitive))) {
 			if(reject_unowned_inline_constraint(field, module, field->Identifier,
 					error, error_size)) return -1;
 			return -1;
@@ -370,7 +376,7 @@ populate_type(asn1p_t *tree, asn1typed_type_t *out, asn1p_expr_t *decl,
 		if((primitive == ASN1TYPED_PRIMITIVE_INTEGER ?
 			extract_integer_value_range(constraint, &value_range) :
 			extract_size_constraint(constraint, &size_constraint,
-				primitive == ASN1TYPED_PRIMITIVE_OCTET_STRING))) {
+				primitive_accepts_exact_size(primitive)))) {
 			set_error(error, error_size,
 				"%s: unsupported or unrepresentable primitive constraint",
 				decl->Identifier);
@@ -490,7 +496,7 @@ populate_type(asn1p_t *tree, asn1typed_type_t *out, asn1p_expr_t *decl,
 				if(member->meta_type != AMT_TYPE || member->rhs_pspecs ||
 					primitive == ASN1TYPED_PRIMITIVE_INVALID ||
 					extract_size_constraint(member->constraints, &alternative_size,
-						primitive == ASN1TYPED_PRIMITIVE_OCTET_STRING)) {
+						primitive_accepts_exact_size(primitive))) {
 					if(reject_unowned_inline_constraint(member, decl->Identifier,
 							member->Identifier, error, error_size)) return -1;
 					return -1;

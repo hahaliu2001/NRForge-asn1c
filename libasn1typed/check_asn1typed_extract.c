@@ -247,7 +247,7 @@ check_inline_visible_constraints(void) {
 static void
 check_inline_bit_string_choice_size(void) {
 	static const char source[] = "BitStringChoiceSize DEFINITIONS AUTOMATIC TAGS ::= BEGIN\n"
-		"C ::= CHOICE { plain BIT STRING, sized BIT STRING (SIZE(22..32)) }\n"
+		"C ::= CHOICE { plain BIT STRING, sized BIT STRING (SIZE(22..32)), exact BIT STRING (SIZE(20)) }\n"
 		"END\n";
 	static const char unsupported[] = "UnsupportedBitStringChoiceSize DEFINITIONS AUTOMATIC TAGS ::= BEGIN\n"
 		"C ::= CHOICE { x BIT STRING (SIZE(1 | 3)) }\nEND\n";
@@ -261,7 +261,7 @@ check_inline_bit_string_choice_size(void) {
 		error, sizeof(error)) == 0);
 	asn1p_delete(tree);
 	choice = find_type(&ir, "C");
-	assert(choice && choice->alternative_count == 2);
+	assert(choice && choice->alternative_count == 3);
 	assert(!strcmp(choice->alternatives[0].source_name, "plain"));
 	assert(choice->alternatives[0].type_ref.kind == ASN1TYPED_REF_PRIMITIVE);
 	assert(choice->alternatives[0].type_ref.primitive_kind ==
@@ -275,8 +275,17 @@ check_inline_bit_string_choice_size(void) {
 	assert(choice->alternatives[1].size_constraint.lower_bound == 22);
 	assert(choice->alternatives[1].size_constraint.upper_bound == 32);
 	assert(!choice->alternatives[1].size_constraint.is_extensible);
+	assert(!strcmp(choice->alternatives[2].source_name, "exact"));
+	assert(choice->alternatives[2].type_ref.kind == ASN1TYPED_REF_PRIMITIVE);
+	assert(choice->alternatives[2].type_ref.primitive_kind ==
+		ASN1TYPED_PRIMITIVE_BIT_STRING);
+	assert(choice->alternatives[2].size_constraint.has_size_constraint);
+	assert(choice->alternatives[2].size_constraint.lower_bound == 20);
+	assert(choice->alternatives[2].size_constraint.upper_bound == 20);
+	assert(!choice->alternatives[2].size_constraint.is_extensible);
 	assert(choice->alternatives[0].location.file &&
-		choice->alternatives[1].location.file);
+		choice->alternatives[1].location.file &&
+		choice->alternatives[2].location.file);
 	asn1typed_module_clear(&ir);
 	asn1typed_module_clear(&ir);
 	tree = asn1p_parse_buffer(unsupported, -1,
