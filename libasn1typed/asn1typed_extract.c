@@ -187,23 +187,39 @@ extract_bound_body_size_constraint(asn1p_t *tree, asn1p_expr_t *context,
 	return 0;
 }
 
-/* Accept only one closed INTEGER value range: (lower..upper). */
+/* Accept one bounded INTEGER range, optionally followed by its sole
+ * extension marker: (lower..upper[, ...]). */
 static int
 extract_integer_value_range(const asn1p_constraint_t *constraint,
 		asn1typed_integer_value_range_t *out) {
-	const asn1p_constraint_t *range;
+	const asn1p_constraint_t *list, *range;
+	int extensible = 0;
 	if(!constraint) return 0;
 	if(constraint->type != ACT_CA_SET || constraint->el_count != 1 ||
-		!constraint->elements || !(range = constraint->elements[0]) ||
+		!constraint->elements || !(list = constraint->elements[0]) ||
 		constraint->value || constraint->containedSubtype ||
-		constraint->range_start || constraint->range_stop ||
-		range->type != ACT_EL_RANGE || range->el_count != 0 ||
+		constraint->range_start || constraint->range_stop) return -1;
+	if(list->type == ACT_EL_RANGE) {
+		range = list;
+	} else if(list->type == ACT_CA_CSV && list->el_count == 2 &&
+		list->elements && list->elements[0] && list->elements[1] &&
+		list->elements[1]->type == ACT_EL_EXT &&
+		list->elements[1]->el_count == 0 && !list->elements[1]->value &&
+		!list->elements[1]->containedSubtype &&
+		!list->elements[1]->range_start && !list->elements[1]->range_stop) {
+		range = list->elements[0];
+		extensible = 1;
+	} else {
+		return -1;
+	}
+	if(!range || range->type != ACT_EL_RANGE || range->el_count != 0 ||
 		range->value || range->containedSubtype ||
 		range->range_start == NULL || range->range_stop == NULL ||
 		constraint_bound(range->range_start, &out->lower_bound) ||
 		constraint_bound(range->range_stop, &out->upper_bound) ||
 		out->lower_bound > out->upper_bound) return -1;
 	out->has_value_range = 1;
+	out->is_extensible = extensible;
 	return 0;
 }
 

@@ -252,12 +252,28 @@ INTEGER named-number behavior is not expanded by this rule.
 ### Closed INTEGER Value Range
 
 -   **Status:** Supported, bounded
--   **Owned IR:** Bounded INTEGER value-range metadata.
+-   **Owned IR:** `asn1typed_integer_value_range_t` with lower and upper
+    bounds and `is_extensible`.
 -   **Supported boundary:** One closed inclusive range representable in
-    `intmax_t`.
--   **Fail-closed boundary:** Extensible, compound, MIN/MAX, or
-    unrepresentable ranges.
+    `intmax_t`; `is_extensible` is false.
+-   **Fail-closed boundary:** Compound, MIN/MAX, or unrepresentable ranges.
 -   **Evidence:** `ProtocolIE-ID` with `0..65535`.
+
+### Bounded Extensible INTEGER Value Range
+
+-   **Status:** Supported, bounded
+-   **Owned IR:** The same `asn1typed_integer_value_range_t`, with
+    `is_extensible` true.
+-   **Supported boundary:** One bounded inclusive range representable in
+    `intmax_t`, followed immediately by exactly one extension marker:
+    `INTEGER (a..b, ...)`.
+-   **Fail-closed boundary:** Extension additions after the marker, multiple
+    or malformed markers, compound unions/intersections, MIN/MAX, arbitrary
+    Generic Constraint AST forms, and unrepresentable bounds.
+-   **Evidence:** Synthetic extraction and parser-tree-independent ownership
+    for `INTEGER (0..65535, ...)`; NGAP-IEs `AveragingWindow` fixed-tree
+    shape (`0..4095, ...`). The `NGSetupRequest` golden probe passes, but its
+    output does not establish that extraction traversed `AveragingWindow`.
 
 ### Generic Constraint AST
 
@@ -493,7 +509,8 @@ Known boundaries include:
 -   BIT STRING named bits;
 -   unsupported primitive constraint shapes;
 -   unsupported/compound SIZE outside frozen rules;
--   unsupported INTEGER ranges outside one closed bounded range;
+-   unsupported INTEGER ranges outside one closed or bounded extensible
+    range;
 -   unsupported inline constraints not representable by accepted
     metadata;
 -   constrained SEQUENCE OF element use-sites outside the frozen
@@ -648,7 +665,7 @@ The accepted foundation includes:
 -   bounded extensibility metadata;
 -   qualified primitive strings, OCTET STRING, and BIT STRING;
 -   bounded and exact SIZE;
--   bounded INTEGER value ranges;
+-   bounded closed and extensible INTEGER value ranges;
 -   field and CHOICE SIZE ownership;
 -   parameterized object-set identity;
 -   bound specialization ownership/materialization for qualified

@@ -95,14 +95,17 @@ check_visible_string_size(void) {
 
 static void
 check_integer_value_range(void) {
-	static const char extensible[] =
-		"IntegerRangeNegative DEFINITIONS ::= BEGIN\n"
-		"Bad ::= INTEGER (0..65535, ...)\nEND\n";
+	static const char additions[] =
+		"IntegerRangeAddition DEFINITIONS ::= BEGIN\n"
+		"Bad ::= INTEGER (0..10, ..., 11..20)\nEND\n";
+	static const char compound[] =
+		"IntegerRangeCompound DEFINITIONS ::= BEGIN\n"
+		"Bad ::= INTEGER (0..10 | 20..30, ...)\nEND\n";
 	static const char inline_range[] =
 		"InlineIntegerRange DEFINITIONS ::= BEGIN\n"
 		"Bad ::= SEQUENCE { a INTEGER (0..10) }\nEND\n";
 	asn1typed_module_t ir = {0};
-	asn1typed_type_t *plain, *bounded;
+	asn1typed_type_t *plain, *bounded, *extensible_bounded;
 	asn1p_t *tree = asn1p_parse_file(T7_FIXTURE, A1P_NOFLAGS);
 	char error[256] = {0};
 	assert(tree != NULL);
@@ -123,20 +126,33 @@ check_integer_value_range(void) {
 	assert(bounded->value_range.has_value_range);
 	assert(bounded->value_range.lower_bound == 0);
 	assert(bounded->value_range.upper_bound == 65535);
+	assert(!bounded->value_range.is_extensible);
 	assert(!bounded->size_constraint.has_size_constraint);
 	assert(!bounded->size_constraint.lower_bound && !bounded->size_constraint.upper_bound);
+	extensible_bounded = find_type(&ir, "ExtensibleBoundedInteger");
+	assert(extensible_bounded && extensible_bounded->kind == ASN1TYPED_TYPE_PRIMITIVE);
+	assert(extensible_bounded->value_range.has_value_range);
+	assert(extensible_bounded->value_range.lower_bound == 0);
+	assert(extensible_bounded->value_range.upper_bound == 65535);
+	assert(extensible_bounded->value_range.is_extensible);
 	asn1typed_module_clear(&ir);
 
-	tree = asn1p_parse_buffer(extensible, -1, "integer-range-negative.asn",
-		1, A1P_NOFLAGS);
-	assert(tree && asn1f_process(tree, A1F_NOFLAGS, NULL) >= 0);
-	assert(asn1typed_extract_module(tree, "IntegerRangeNegative", &ir,
-		error, sizeof(error)) == -1);
-	assert(error[0] != '\0');
-	assert_ir_cleared(&ir);
-	asn1typed_module_clear(&ir);
-	asn1typed_module_clear(&ir);
-	asn1p_delete(tree);
+	{
+		const char *unsupported[] = { additions, compound };
+		const char *names[] = { "IntegerRangeAddition", "IntegerRangeCompound" };
+		size_t i;
+		for(i = 0; i < sizeof(unsupported) / sizeof(unsupported[0]); i++) {
+			tree = asn1p_parse_buffer(unsupported[i], -1, "integer-range-unsupported.asn",
+				1, A1P_NOFLAGS);
+			assert(tree && asn1f_process(tree, A1F_NOFLAGS, NULL) >= 0);
+			assert(asn1typed_extract_module(tree, names[i], &ir,
+				error, sizeof(error)) == -1);
+			assert(error[0] != '\0');
+			assert_ir_cleared(&ir);
+			asn1typed_module_clear(&ir);
+			asn1p_delete(tree);
+		}
+	}
 
 	tree = asn1p_parse_buffer(inline_range, -1, "inline-integer-range.asn",
 		1, A1P_NOFLAGS);

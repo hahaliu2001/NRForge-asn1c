@@ -41,11 +41,12 @@ typedef struct asn1typed_size_constraint_s {
 	int is_extensible;
 } asn1typed_size_constraint_t;
 
-/* One owned, closed INTEGER value range. */
+/* One owned bounded INTEGER value range. */
 typedef struct asn1typed_integer_value_range_s {
 	int has_value_range;
 	intmax_t lower_bound;
 	intmax_t upper_bound;
+	int is_extensible;
 } asn1typed_integer_value_range_t;
 
 typedef enum asn1typed_ref_kind_e {
