@@ -9,6 +9,9 @@
 #ifndef T4_FIXTURE
 #error T4_FIXTURE must name the cross-module fixture
 #endif
+#ifndef T9_FIXTURE
+#error T9_FIXTURE must name the empty IOC fixture
+#endif
 
 void check_asn1typed_ioc(void);
 void check_asn1typed_multimodule(void);
@@ -156,6 +159,44 @@ check_asn1typed_ioc(void) {
 	char saved_choice_name[11];
 	char error[256];
 	size_t i;
+	{
+		asn1p_t *empty_tree = asn1p_parse_file(T9_FIXTURE, A1P_NOFLAGS);
+		asn1p_expr_t *empty_set;
+		asn1typed_module_t empty_ir;
+		asn1typed_type_t *empty_message;
+		assert(empty_tree && asn1f_process(empty_tree, A1F_NOFLAGS, NULL) >= 0);
+		empty_set = TQ_FIRST(&TQ_FIRST(&empty_tree->modules)->members);
+		while(empty_set && (!empty_set->Identifier || strcmp(empty_set->Identifier, "EmptySet")))
+			empty_set = TQ_NEXT(empty_set, next);
+		assert(empty_set);
+		assert(empty_set->ioc_table && empty_set->ioc_table->rows == 0 &&
+			empty_set->ioc_table->extensible);
+		{
+			asn1p_ioc_table_t *saved = empty_set->ioc_table;
+			empty_set->ioc_table = NULL;
+			assert(asn1typed_extract_message(empty_tree, "EmptyTypedIOC", "EmptyMessage",
+				&empty_ir, error, sizeof(error)) == -1);
+			assert(strstr(error, "IOC table") != NULL);
+			empty_set->ioc_table = saved;
+		}
+		assert(asn1typed_extract_message(empty_tree, "EmptyTypedIOC",
+			"EmptyMessage", &empty_ir, error, sizeof(error)) == 0);
+		asn1p_delete(empty_tree);
+		assert(empty_ir.type_count == 1);
+		empty_message = &empty_ir.types[0];
+		assert(empty_message->kind == ASN1TYPED_TYPE_SEQUENCE);
+		assert(empty_message->field_count == 0);
+		assert(empty_message->has_ioc_table);
+		assert(empty_message->ioc_object_set_is_extensible);
+		assert(empty_message->ioc_container.kind == ASN1TYPED_REF_NAMED);
+		assert(!strcmp(empty_message->ioc_container.module, "EmptyTypedIOC"));
+		assert(!strcmp(empty_message->ioc_container.source_name, "ProtocolIE-Container"));
+		assert(empty_message->ioc_container.actual_count == 1);
+		assert(!strcmp(empty_message->ioc_container.actuals[0].source_name, "EmptySet"));
+		assert(empty_message->is_extensible);
+		asn1typed_module_clear(&empty_ir);
+		puts("T3 extensible empty IOC set and owned binding: PASS");
+	}
 	const char *names[] = { "NodeID", "NodeName", "Mode", "Items" };
 	const char *symbols[] = { "id-NodeID", "id-NodeName", "id-Mode", "id-Items" };
 	const char *types[] = { "NodeNumber", "LabelText", "OperatingMode", "ItemCollection" };

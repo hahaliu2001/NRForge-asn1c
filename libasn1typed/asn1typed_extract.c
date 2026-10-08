@@ -1909,6 +1909,7 @@ asn1typed_extract_message(asn1p_t *tree, const char *module_name,
 		char *error, size_t error_size) {
 	asn1p_module_t *source;
 	asn1p_expr_t *message = NULL, *set;
+	asn1p_expr_t *message_body, *container_use;
 	asn1typed_type_t *type;
 	const char *file;
 	size_t i, j;
@@ -1929,8 +1930,9 @@ asn1typed_extract_message(asn1p_t *tree, const char *module_name,
 		set_error(error, error_size, "missing or invalid IOC object-set association for '%s'", message_name);
 		return -1;
 	}
-	if(!set->ioc_table || !set->ioc_table->rows || !set->ioc_table->row) {
-		set_error(error, error_size, "missing or empty IOC table for '%s'", message_name);
+	if(!set->ioc_table || (set->ioc_table->rows && !set->ioc_table->row) ||
+		(!set->ioc_table->rows && !set->ioc_table->extensible)) {
+		set_error(error, error_size, "missing IOC table or non-extensible empty IOC table for '%s'", message_name);
 		return -1;
 	}
 	file = source->source_file_name ? source->source_file_name : "<unknown>";
@@ -1939,6 +1941,16 @@ asn1typed_extract_message(asn1p_t *tree, const char *module_name,
 			file, message->_lineno > 0 ? (unsigned)message->_lineno : 0, &type)) {
 		set_error(error, error_size, "out of memory storing IOC message");
 		goto fail;
+	}
+	message_body = terminal_type(message);
+	container_use = message_body ? TQ_FIRST(&message_body->members) : NULL;
+	if(!container_use || put_parameterized_object_set_ref(tree,
+			&type->ioc_container, container_use, error, error_size)) goto fail;
+	type->has_ioc_table = 1;
+	type->ioc_object_set_is_extensible = !!set->ioc_table->extensible;
+	{
+		asn1p_expr_t *marker = TQ_NEXT(container_use, next);
+		type->is_extensible = marker && marker->expr_type == A1TC_EXTENSIBLE;
 	}
 	for(i = 0; i < set->ioc_table->rows; ++i)
 		if(extract_ioc_row(tree, type, set->ioc_table->row[i], file, error, error_size))
