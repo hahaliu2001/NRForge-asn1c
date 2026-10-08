@@ -463,6 +463,64 @@ check_octet_string_size(void) {
 }
 
 static void
+check_extensible_exact_size(void) {
+	static const char source[] = "ExtensibleExactSize DEFINITIONS ::= BEGIN\n"
+		"Exact ::= BIT STRING (SIZE(8))\n"
+		"Exact8Ext ::= BIT STRING (SIZE(8, ...))\n"
+		"Exact16Ext ::= BIT STRING (SIZE(16, ...))\n"
+		"ClosedRange ::= BIT STRING (SIZE(2..9))\n"
+		"OpenRange ::= BIT STRING (SIZE(2..9, ...))\nEND\n";
+	static const char named[] = "NamedBitSize DEFINITIONS ::= BEGIN\n"
+		"Bad ::= BIT STRING { a(0) } (SIZE(8, ...))\nEND\n";
+	static const char post_marker[] = "PostMarkerSize DEFINITIONS ::= BEGIN\n"
+		"Bad ::= BIT STRING (SIZE(8, ..., 10))\nEND\n";
+	asn1typed_module_t ir = {0};
+	asn1typed_type_t *type;
+	asn1p_t *tree = asn1p_parse_buffer(source, -1, "extensible-exact-size.asn",
+		1, A1P_NOFLAGS);
+	char error[256] = {0};
+	assert(tree && asn1f_process(tree, A1F_NOFLAGS, NULL) >= 0);
+	assert(asn1typed_extract_module(tree, "ExtensibleExactSize", &ir,
+		error, sizeof(error)) == 0);
+	asn1p_delete(tree);
+	type = find_type(&ir, "Exact");
+	assert(type && type->size_constraint.has_size_constraint);
+	assert(type->size_constraint.lower_bound == 8 && type->size_constraint.upper_bound == 8);
+	assert(!type->size_constraint.is_extensible);
+	type = find_type(&ir, "Exact8Ext");
+	assert(type && type->size_constraint.has_size_constraint);
+	assert(type->size_constraint.lower_bound == 8 && type->size_constraint.upper_bound == 8);
+	assert(type->size_constraint.is_extensible);
+	type = find_type(&ir, "Exact16Ext");
+	assert(type && type->size_constraint.has_size_constraint);
+	assert(type->size_constraint.lower_bound == 16 && type->size_constraint.upper_bound == 16);
+	assert(type->size_constraint.is_extensible);
+	type = find_type(&ir, "ClosedRange");
+	assert(type && type->size_constraint.lower_bound == 2 && type->size_constraint.upper_bound == 9);
+	assert(!type->size_constraint.is_extensible);
+	type = find_type(&ir, "OpenRange");
+	assert(type && type->size_constraint.lower_bound == 2 && type->size_constraint.upper_bound == 9);
+	assert(type->size_constraint.is_extensible);
+	asn1typed_module_clear(&ir);
+
+	tree = asn1p_parse_buffer(named, -1, "named-bit-size.asn", 1, A1P_NOFLAGS);
+	assert(tree && asn1f_process(tree, A1F_NOFLAGS, NULL) >= 0);
+	assert(asn1typed_extract_module(tree, "NamedBitSize", &ir,
+		error, sizeof(error)) != 0);
+	assert_ir_cleared(&ir);
+	asn1p_delete(tree);
+
+	tree = asn1p_parse_buffer(post_marker, -1, "post-marker-size.asn", 1,
+		A1P_NOFLAGS);
+	assert(tree && asn1f_process(tree, A1F_NOFLAGS, NULL) >= 0);
+	assert(asn1typed_extract_module(tree, "PostMarkerSize", &ir,
+		error, sizeof(error)) != 0);
+	assert_ir_cleared(&ir);
+	asn1p_delete(tree);
+	puts("T9 extensible exact SIZE and fail-closed boundaries: PASS (parser tree destroyed)");
+}
+
+static void
 expect_inline_constraint_rejected(const char *source, const char *module_name) {
 	asn1typed_module_t ir = {0};
 	char error[256] = {0};
@@ -1558,6 +1616,7 @@ main(void) {
 	check_integer_value_range();
 	check_opaque_contents_compatibility();
 	check_octet_string_size();
+	check_extensible_exact_size();
 	check_inline_visible_constraints();
 	check_inline_bit_string_field_size();
 	check_inline_bit_string_choice_size();

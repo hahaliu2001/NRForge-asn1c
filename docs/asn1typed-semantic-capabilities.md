@@ -254,6 +254,29 @@ INTEGER named-number behavior is not expanded by this rule.
     combinations.
 -   **Evidence:** `PLMNIdentity` SIZE 3; `macroNgENB-ID` SIZE 20.
 
+### Extensible Exact SIZE: `SIZE(N, ...)`
+
+-   **Status:** Supported, bounded
+-   **Owned IR:** `asn1typed_size_constraint_t` with
+    `lower_bound=N`, `upper_bound=N`, and `is_extensible=true`.
+-   **Supported boundary:** One supported nonnegative exact bound followed
+    immediately by one extension marker, with no additions or other
+    constraint components; existing qualified primitive/use-site SIZE
+    ownership contexts.
+-   **Fail-closed boundary:** Compound or disjoint SIZE, additions after the
+    marker, multiple or malformed markers, unsupported bounds, and arbitrary
+    constraint AST shapes.
+-   **Evidence:** Synthetic parser-tree-independent BIT STRING extraction
+    for 8 and 16. Fixed-tree evidence: `NGAP-IEs.RATRestrictionInformation`
+    is `BIT STRING SIZE(8, ...)`, and
+    `NGAP-IEs.NRencryptionAlgorithms` is `BIT STRING SIZE(16, ...)`.
+    Real message traversal: `DownlinkNASTransport` passes extraction with
+    50 owned types and 26 bound instances, establishing traversal through
+    `RATRestrictionInformation SIZE(8, ...)`. `InitialContextSetupRequest`
+    traverses `NRencryptionAlgorithms SIZE(16, ...)` successfully, then
+    stops at `ExpectedActivityPeriod: unsupported or unrepresentable
+    primitive constraint`.
+
 ### Closed INTEGER Value Range
 
 -   **Status:** Supported, bounded
@@ -324,7 +347,7 @@ extensibility and SIZE extensibility are separate.
 -   **Owned IR:** A SEQUENCE field may own an identity-free nested `asn1typed_type_t` whose kind is ENUMERATED and whose ordered items reuse `asn1typed_enum_item_t`. Field presence remains on the field and is independent of the body.
 -   **Supported boundary:** Direct ordered named-value items; at least one root item; at most one marker after a root item; direct known named additions after the marker; existing mandatory/OPTIONAL presence.
 -   **Fail-closed boundary:** Malformed or unnamed items, multiple markers, marker before any root item, extension groups or non-direct additions, unsupported constraints or parameterization, DEFAULT presence, and arbitrary inline constructed types. This does not qualify inline ENUMERATED in CHOICE alternatives or SEQUENCE OF elements.
--   **Evidence:** Synthetic mandatory and OPTIONAL extensible inline fields plus a known extension addition; item order/status, deep copy, cleanup, repeated clear, and inspection after parser-tree destruction. A synthetic IOC message dependency test reaches a named SEQUENCE with an inline ENUMERATED field, completes dependency closure without inventing a named identity for that field, and still collects a genuine named dependency. Fixed-tree inspection confirms `NGAP-IEs.AUN3DeviceAccessInfo.aUN3DeviceAccess` (mandatory; `true`, marker) and `NGAP-IEs.UE-DifferentiationInfo.periodicCommunicationIndicator` (OPTIONAL; `periodically`, `ondemand`, marker). `InitialUEMessage` passes extraction with 50 owned types and 26 bound instances, establishing its field dependency path. After inline extensible INTEGER compatibility, `DownlinkNASTransport` and `InitialContextSetupRequest` both extract beyond `UE-DifferentiationInfo.periodicTime`; they stop later at `RATRestrictionInformation: unsupported or unrepresentable primitive constraint` and `NRencryptionAlgorithms: unsupported or unrepresentable primitive constraint`, respectively. This establishes traversal through the preceding `periodicCommunicationIndicator` field in those paths.
+-   **Evidence:** Synthetic mandatory and OPTIONAL extensible inline fields plus a known extension addition; item order/status, deep copy, cleanup, repeated clear, and inspection after parser-tree destruction. A synthetic IOC message dependency test reaches a named SEQUENCE with an inline ENUMERATED field, completes dependency closure without inventing a named identity for that field, and still collects a genuine named dependency. Fixed-tree inspection confirms `NGAP-IEs.AUN3DeviceAccessInfo.aUN3DeviceAccess` (mandatory; `true`, marker) and `NGAP-IEs.UE-DifferentiationInfo.periodicCommunicationIndicator` (OPTIONAL; `periodically`, `ondemand`, marker). `InitialUEMessage` passes extraction with 50 owned types and 26 bound instances, establishing its field dependency path. After inline extensible INTEGER compatibility, `DownlinkNASTransport` and `InitialContextSetupRequest` both extract beyond `UE-DifferentiationInfo.periodicTime`, establishing traversal through the preceding `periodicCommunicationIndicator` field in those paths. The later `DownlinkNASTransport` extraction passes with 50 owned types and 26 bound instances; `InitialContextSetupRequest` traverses `NRencryptionAlgorithms` and later stops at `ExpectedActivityPeriod: unsupported or unrepresentable primitive constraint`.
 
 ### CHOICE Alternative Inline SIZE
 
@@ -387,7 +410,8 @@ metadata. Otherwise extraction MUST fail closed.
 
 -   **Status:** Supported, bounded
 -   **Owned IR:** `size_constraint.is_extensible`.
--   **Supported boundary:** Qualified bounded SIZE plus marker.
+-   **Supported boundary:** Qualified bounded exact or range SIZE followed
+    by its sole extension marker.
 -   **Fail-closed boundary:** Unsupported compound/addition shapes.
 -   **Evidence:** `RANNodeNameVisibleString`.
 
@@ -621,7 +645,7 @@ harnesses.
 
 ### `NGAP-IEs.AUN3DeviceAccessInfo.aUN3DeviceAccess` and `NGAP-IEs.UE-DifferentiationInfo.periodicCommunicationIndicator`
 
--   **Evidence for:** SEQUENCE-field inline ENUMERATED fixed-tree shapes and synthetic owned-body extraction. `InitialUEMessage` passes full message extraction, establishing traversal of the mandatory `aUN3DeviceAccess` field. After inline extensible INTEGER compatibility, `DownlinkNASTransport` and `InitialContextSetupRequest` both extract beyond the earlier `periodicTime` field and reach later blockers, establishing traversal of the preceding `periodicCommunicationIndicator` field in those paths.
+-   **Evidence for:** SEQUENCE-field inline ENUMERATED fixed-tree shapes and synthetic owned-body extraction. `InitialUEMessage` passes full message extraction, establishing traversal of the mandatory `aUN3DeviceAccess` field. After inline extensible INTEGER compatibility, `DownlinkNASTransport` and `InitialContextSetupRequest` both extract beyond the earlier `periodicTime` field, establishing traversal of the preceding `periodicCommunicationIndicator` field in those paths.
 
 ### `NGAP-IEs.GNB-ID.gNB-ID`
 

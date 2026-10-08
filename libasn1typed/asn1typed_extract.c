@@ -117,11 +117,30 @@ extract_size_constraint(const asn1p_constraint_t *constraint,
 	if(list->type == ACT_EL_RANGE) {
 		range = list;
 	} else if(list->type == ACT_CA_CSV && list->elements &&
+		list->el_count == 2 && list->elements[0] &&
+		list->elements[0]->type == ACT_EL_VALUE && accept_exact_size) {
+		const asn1p_constraint_t *extension = list->elements[1];
+		intmax_t exact_size;
+		if(!extension || extension->type != ACT_EL_EXT ||
+			extension->el_count != 0 || extension->elements || extension->value ||
+			extension->containedSubtype || extension->range_start ||
+			extension->range_stop ||
+			constraint_bound(list->elements[0]->value, &exact_size) ||
+			exact_size < 0) return -1;
+		out->has_size_constraint = 1;
+		out->lower_bound = exact_size;
+		out->upper_bound = exact_size;
+		out->is_extensible = 1;
+		return 0;
+	} else if(list->type == ACT_CA_CSV && list->elements &&
 		(list->el_count == 1 || list->el_count == 2)) {
 		range = list->elements[0];
 		if(list->el_count == 2) {
 			const asn1p_constraint_t *extension = list->elements[1];
-			if(!extension || extension->type != ACT_EL_EXT) return -1;
+			if(!extension || extension->type != ACT_EL_EXT ||
+				extension->el_count != 0 || extension->elements ||
+				extension->value || extension->containedSubtype ||
+				extension->range_start || extension->range_stop) return -1;
 			extensible = 1;
 		}
 	} else if(list->type == ACT_EL_VALUE && accept_exact_size) {
