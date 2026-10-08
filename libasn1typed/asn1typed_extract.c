@@ -227,39 +227,174 @@ extract_bound_body_size_constraint(asn1p_t *tree, asn1p_expr_t *context,
 	return 0;
 }
 
-/* Accept one bounded INTEGER range, optionally followed by its sole
- * extension marker: (lower..upper[, ...]). */
+typedef struct integer_interval_list_s {
+	asn1typed_integer_interval_t *items;
+	size_t count;
+	size_t capacity;
+} integer_interval_list_t;
+
+static int
+integer_interval_append(integer_interval_list_t *list, intmax_t lower,
+		intmax_t upper) {
+	asn1typed_integer_interval_t *grown;
+	size_t capacity;
+	if(lower > upper || list->count == SIZE_MAX / sizeof(*list->items)) return -1;
+	if(list->count == list->capacity) {
+		capacity = list->capacity ? list->capacity * 2 : 4;
+		if(capacity < list->capacity || capacity > SIZE_MAX / sizeof(*list->items))
+			capacity = list->count + 1;
+		if(capacity > SIZE_MAX / sizeof(*list->items)) return -1;
+		grown = (asn1typed_integer_interval_t *)realloc(list->items,
+			capacity * sizeof(*list->items));
+		if(!grown) return -1;
+		list->items = grown;
+		list->capacity = capacity;
+	}
+	list->items[list->count].lower_bound = lower;
+	list->items[list->count].upper_bound = upper;
+	++list->count;
+	return 0;
+}
+
+static int
+integer_interval_compare(const void *left, const void *right) {
+	const asn1typed_integer_interval_t *a =
+		(const asn1typed_integer_interval_t *)left;
+	const asn1typed_integer_interval_t *b =
+		(const asn1typed_integer_interval_t *)right;
+	if(a->lower_bound < b->lower_bound) return -1;
+	if(a->lower_bound > b->lower_bound) return 1;
+	if(a->upper_bound < b->upper_bound) return -1;
+	if(a->upper_bound > b->upper_bound) return 1;
+	return 0;
+}
+
+static int
+integer_constraint_node_empty(const asn1p_constraint_t *node) {
+	return node && !node->value && !node->containedSubtype &&
+		!node->range_start && !node->range_stop;
+}
+
+static int
+integer_constraint_leaf(const asn1p_constraint_t *node) {
+	return node && !node->elements && !node->el_size;
+}
+
+static int
+collect_integer_union_terms(const asn1p_constraint_t *node,
+		integer_interval_list_t *terms) {
+	intmax_t lower, upper;
+	if(!node || node->containedSubtype) return -1;
+	if(node->type == ACT_CA_UNI) {
+		unsigned int i;
+		if(node->value || node->range_start || node->range_stop ||
+			node->el_count < 2 || !node->elements ||
+			node->el_size < node->el_count) return -1;
+		for(i = 0; i < node->el_count; ++i)
+			if(!node->elements[i] ||
+				collect_integer_union_terms(node->elements[i], terms)) return -1;
+		return 0;
+	}
+	if(node->el_count != 0 || !integer_constraint_leaf(node)) return -1;
+	if(node->type == ACT_EL_RANGE) {
+		if(node->value || !node->range_start || !node->range_stop ||
+			constraint_bound(node->range_start, &lower) ||
+			constraint_bound(node->range_stop, &upper) || lower > upper)
+			return -1;
+		return integer_interval_append(terms, lower, upper);
+	}
+	if(node->type == ACT_EL_VALUE) {
+		if(node->range_start || node->range_stop || !node->value ||
+			node->value->type != ATV_INTEGER ||
+			constraint_bound(node->value, &lower)) return -1;
+		return integer_interval_append(terms, lower, lower);
+	}
+	return -1;
+}
+
+/* Keep the original inline representation for a simple range. For a bounded
+ * UNION, collect into temporary storage, normalize, then publish atomically. */
 static int
 extract_integer_value_range(const asn1p_constraint_t *constraint,
 		asn1typed_integer_value_range_t *out) {
-	const asn1p_constraint_t *list, *range;
+	const asn1p_constraint_t *list, *root, *range;
+	integer_interval_list_t terms = {0};
+	asn1typed_integer_value_range_t pending = {0};
 	int extensible = 0;
+	size_t i, normalized;
 	if(!constraint) return 0;
-	if(constraint->type != ACT_CA_SET || constraint->el_count != 1 ||
-		!constraint->elements || !(list = constraint->elements[0]) ||
-		constraint->value || constraint->containedSubtype ||
-		constraint->range_start || constraint->range_stop) return -1;
-	if(list->type == ACT_EL_RANGE) {
-		range = list;
-	} else if(list->type == ACT_CA_CSV && list->el_count == 2 &&
-		list->elements && list->elements[0] && list->elements[1] &&
-		list->elements[1]->type == ACT_EL_EXT &&
-		list->elements[1]->el_count == 0 && !list->elements[1]->value &&
-		!list->elements[1]->containedSubtype &&
-		!list->elements[1]->range_start && !list->elements[1]->range_stop) {
-		range = list->elements[0];
+	if(!out || constraint->type != ACT_CA_SET || constraint->el_count != 1 ||
+		!constraint->elements || constraint->el_size < constraint->el_count ||
+		!(list = constraint->elements[0]) ||
+		!integer_constraint_node_empty(constraint)) return -1;
+	root = list;
+	if(list->type == ACT_CA_CSV) {
+		if(list->el_count != 2 || !list->elements ||
+			list->el_size < list->el_count || !list->elements[0] ||
+			!list->elements[1] || !integer_constraint_node_empty(list) ||
+			list->elements[1]->type != ACT_EL_EXT ||
+			list->elements[1]->el_count != 0 ||
+			!integer_constraint_leaf(list->elements[1]) ||
+			!integer_constraint_node_empty(list->elements[1])) return -1;
+		root = list->elements[0];
 		extensible = 1;
-	} else {
+	}
+	if(root->type == ACT_EL_RANGE) {
+		range = root;
+		if(range->el_count != 0 || !integer_constraint_leaf(range) ||
+			range->value || range->containedSubtype ||
+			!range->range_start || !range->range_stop ||
+			constraint_bound(range->range_start, &pending.lower_bound) ||
+			constraint_bound(range->range_stop, &pending.upper_bound) ||
+			pending.lower_bound > pending.upper_bound) return -1;
+		pending.has_value_range = 1;
+		pending.is_extensible = extensible;
+		*out = pending;
+		return 0;
+	}
+	if(root->type != ACT_CA_UNI ||
+		collect_integer_union_terms(root, &terms) || terms.count < 2) {
+		free(terms.items);
 		return -1;
 	}
-	if(!range || range->type != ACT_EL_RANGE || range->el_count != 0 ||
-		range->value || range->containedSubtype ||
-		range->range_start == NULL || range->range_stop == NULL ||
-		constraint_bound(range->range_start, &out->lower_bound) ||
-		constraint_bound(range->range_stop, &out->upper_bound) ||
-		out->lower_bound > out->upper_bound) return -1;
-	out->has_value_range = 1;
-	out->is_extensible = extensible;
+	qsort(terms.items, terms.count, sizeof(*terms.items),
+		integer_interval_compare);
+	normalized = 0;
+	for(i = 0; i < terms.count; ++i) {
+		asn1typed_integer_interval_t next = terms.items[i];
+		if(normalized) {
+			asn1typed_integer_interval_t *previous = &terms.items[normalized - 1];
+			int adjacent = previous->upper_bound != INTMAX_MAX &&
+				next.lower_bound == previous->upper_bound + 1;
+			if(next.lower_bound <= previous->upper_bound || adjacent) {
+				if(next.upper_bound > previous->upper_bound)
+					previous->upper_bound = next.upper_bound;
+				continue;
+			}
+		}
+		terms.items[normalized++] = next;
+	}
+	if(!normalized || normalized - 1 > SIZE_MAX / sizeof(*pending.tail)) {
+		free(terms.items);
+		return -1;
+	}
+	pending.has_value_range = 1;
+	pending.lower_bound = terms.items[0].lower_bound;
+	pending.upper_bound = terms.items[0].upper_bound;
+	pending.is_extensible = extensible;
+	pending.tail_count = normalized - 1;
+	if(pending.tail_count) {
+		pending.tail = (asn1typed_integer_interval_t *)malloc(
+			pending.tail_count * sizeof(*pending.tail));
+		if(!pending.tail) {
+			free(terms.items);
+			return -1;
+		}
+		memcpy(pending.tail, terms.items + 1,
+			pending.tail_count * sizeof(*pending.tail));
+	}
+	free(terms.items);
+	*out = pending;
 	return 0;
 }
 
@@ -468,9 +603,13 @@ add_field(asn1p_t *tree, asn1typed_type_t *type, asn1p_expr_t *field,
 		if(field->rhs_pspecs ?
 			put_parameterized_object_set_ref(tree, &ref, field,
 				error, error_size) : put_ref(&ref, field)) {
-			if(field->rhs_pspecs) return -1;
+			if(field->rhs_pspecs) {
+				free(field_value_range.tail);
+				return -1;
+			}
 			set_error(error, error_size, "%s.%s: unsupported field type at line %d",
 				module, field->Identifier, field->_lineno);
+			free(field_value_range.tail);
 			return -1;
 		}
 		if(field->rhs_pspecs) {
@@ -486,11 +625,14 @@ add_field(asn1p_t *tree, asn1typed_type_t *type, asn1p_expr_t *field,
 		asn1typed_type_ref_clear(&ref);
 		if(!result && owns_inline_size)
 			type->fields[type->field_count - 1].size_constraint = field_size;
-		if(!result && owns_inline_integer_range)
+		if(!result && owns_inline_integer_range) {
 			type->fields[type->field_count - 1].value_range = field_value_range;
+			field_value_range.tail = NULL;
+		}
 		if(result) {
 			set_error(error, error_size, "%s.%s: out of memory extracting field",
 				module, field->Identifier);
+			free(field_value_range.tail);
 			return -1;
 		}
 	}

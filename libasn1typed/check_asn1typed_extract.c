@@ -5,6 +5,9 @@
 #ifndef T7_FIXTURE
 #define T7_FIXTURE "fixtures/integer-value-range.asn1"
 #endif
+#ifndef T8_FIXTURE
+#define T8_FIXTURE "fixtures/integer-permitted-set-t8.asn1"
+#endif
 #include <asn1fix.h>
 
 #include <assert.h>
@@ -98,9 +101,6 @@ check_integer_value_range(void) {
 	static const char additions[] =
 		"IntegerRangeAddition DEFINITIONS ::= BEGIN\n"
 		"Bad ::= INTEGER (0..10, ..., 11..20)\nEND\n";
-	static const char compound[] =
-		"IntegerRangeCompound DEFINITIONS ::= BEGIN\n"
-		"Bad ::= INTEGER (0..10 | 20..30, ...)\nEND\n";
 	static const char inline_range[] =
 		"InlineIntegerRange DEFINITIONS ::= BEGIN\n"
 		"Required ::= SEQUENCE { value INTEGER (0..10) }\n"
@@ -110,15 +110,18 @@ check_integer_value_range(void) {
 		"PeriodicTime ::= SEQUENCE { periodicTime INTEGER (1..3600, ...) OPTIONAL }\nEND\n";
 	static const char inline_compound[] =
 		"InlineIntegerCompound DEFINITIONS ::= BEGIN\n"
-		"Bad ::= SEQUENCE { value INTEGER (0..10 | 20..30) }\nEND\n";
+		"Bad ::= SEQUENCE { value INTEGER (0..10 ^ 20..30) }\nEND\n";
 	asn1typed_module_t ir = {0};
 	asn1typed_type_t *plain, *bounded, *extensible_bounded;
 	asn1p_t *tree = asn1p_parse_file(T7_FIXTURE, A1P_NOFLAGS);
 	char error[256] = {0};
 	assert(tree != NULL);
 	assert(asn1f_process(tree, A1F_NOFLAGS, NULL) >= 0);
-	assert(asn1typed_extract_module(tree, "IntegerValueRange", &ir,
-		error, sizeof(error)) == 0);
+	if(asn1typed_extract_module(tree, "IntegerValueRange", &ir,
+		error, sizeof(error))) {
+		fprintf(stderr, "IntegerValueRange extraction: %s\n", error);
+		assert(0);
+	}
 	asn1p_delete(tree);
 	plain = find_type(&ir, "PlainInteger");
 	assert(plain && plain->kind == ASN1TYPED_TYPE_PRIMITIVE);
@@ -145,8 +148,8 @@ check_integer_value_range(void) {
 	asn1typed_module_clear(&ir);
 
 	{
-		const char *unsupported[] = { additions, compound };
-		const char *names[] = { "IntegerRangeAddition", "IntegerRangeCompound" };
+		const char *unsupported[] = { additions };
+		const char *names[] = { "IntegerRangeAddition" };
 		size_t i;
 		for(i = 0; i < sizeof(unsupported) / sizeof(unsupported[0]); i++) {
 			tree = asn1p_parse_buffer(unsupported[i], -1, "integer-range-unsupported.asn",
@@ -228,6 +231,183 @@ check_integer_value_range(void) {
 		}
 	}
 	puts("T2 declaration INTEGER ranges and T3 inline SEQUENCE-field INTEGER range ownership: PASS");
+}
+
+static void
+assert_integer_intervals(const asn1typed_integer_value_range_t *range,
+		const asn1typed_integer_interval_t *expected, size_t count,
+		int extensible) {
+	size_t i;
+	assert(range && range->has_value_range && count > 0);
+	assert(range->is_extensible == extensible);
+	assert(range->lower_bound == expected[0].lower_bound);
+	assert(range->upper_bound == expected[0].upper_bound);
+	assert(range->tail_count == count - 1);
+	assert((range->tail_count == 0) == (range->tail == NULL));
+	for(i = 1; i < count; ++i) {
+		assert(range->tail[i - 1].lower_bound == expected[i].lower_bound);
+		assert(range->tail[i - 1].upper_bound == expected[i].upper_bound);
+	}
+}
+
+static asn1p_expr_t *find_decl(asn1p_t *tree, const char *name);
+
+static void
+check_integer_permitted_value_sets(void) {
+	static const char *unsupported[] = {
+		"MalformedIntegerUnion DEFINITIONS ::= BEGIN\n"
+		"Bad ::= INTEGER (1..10 | 20..30 ^ 40)\nEND\n",
+		"IntegerMinMax DEFINITIONS ::= BEGIN\nBad ::= INTEGER (MIN..MAX)\nEND\n",
+		"IntegerExcept DEFINITIONS ::= BEGIN\nBad ::= INTEGER (1..10 EXCEPT 5)\nEND\n",
+		"IntegerNestedCompound DEFINITIONS ::= BEGIN\n"
+		"Bad ::= INTEGER ((1..10 ^ 20..30) | 40)\nEND\n",
+		"IntegerTooWide DEFINITIONS ::= BEGIN\n"
+		"Bad ::= INTEGER (1 | 9223372036854775808)\nEND\n",
+		"IntegerNonIntegerTerm DEFINITIONS ::= BEGIN\n"
+		"Bad ::= INTEGER (1 | \"x\")\nEND\n",
+		"IntegerStandaloneSingle DEFINITIONS ::= BEGIN\nBad ::= INTEGER (7)\nEND\n"
+	};
+	static const asn1typed_integer_interval_t range_and_singles[] = {
+		{ 1, 30 }, { 40, 40 }, { 50, 50 }
+	};
+	static const asn1typed_integer_interval_t multiple_singles[] = {
+		{ 1, 1 }, { 3, 3 }, { 5, 5 }
+	};
+	static const asn1typed_integer_interval_t merged_ranges[] = { { 1, 21 } };
+	static const asn1typed_integer_interval_t expected_activity_period[] = {
+		{ 1, 30 }, { 40, 40 }, { 50, 50 }, { 60, 60 }, { 80, 80 },
+		{ 100, 100 }, { 120, 120 }, { 150, 150 }, { 180, 181 }
+	};
+	asn1typed_module_t ir = {0}, copied = {0};
+	asn1typed_type_t *type, *owner, *copy_owner;
+	asn1p_t *tree;
+	char error[256] = {0};
+
+	tree = asn1p_parse_file(T8_FIXTURE, A1P_NOFLAGS);
+	assert(tree && asn1f_process(tree, A1F_NOFLAGS, NULL) >= 0);
+	if(asn1typed_extract_module(tree, "IntegerPermittedSet", &ir,
+		error, sizeof(error))) {
+		fprintf(stderr, "IntegerPermittedSet extraction: %s\n", error);
+		assert(0);
+	}
+	asn1p_delete(tree);
+	type = find_type(&ir, "RangeAndSingles");
+	assert_integer_intervals(&type->value_range, range_and_singles,
+		sizeof(range_and_singles) / sizeof(range_and_singles[0]), 1);
+	type = find_type(&ir, "MultipleSingles");
+	assert_integer_intervals(&type->value_range, multiple_singles,
+		sizeof(multiple_singles) / sizeof(multiple_singles[0]), 0);
+	type = find_type(&ir, "MergedRanges");
+	assert_integer_intervals(&type->value_range, merged_ranges,
+		sizeof(merged_ranges) / sizeof(merged_ranges[0]), 0);
+	type = find_type(&ir, "ExpectedActivityPeriod");
+	assert_integer_intervals(&type->value_range, expected_activity_period,
+		sizeof(expected_activity_period) /
+			sizeof(expected_activity_period[0]), 1);
+	owner = find_type(&ir, "FieldOwner");
+	assert(owner && owner->field_count == 1);
+	assert_integer_intervals(&owner->fields[0].value_range, range_and_singles,
+		sizeof(range_and_singles) / sizeof(range_and_singles[0]), 1);
+
+	/* Field copy owns its tail independently of both the parser tree and source IR. */
+	assert(asn1typed_module_init(&copied, "Copied", "copy.asn", 1) == 0);
+	assert(asn1typed_module_add_type(&copied, "CopyOwner",
+		ASN1TYPED_TYPE_SEQUENCE, "copy.asn", 1, &copy_owner) == 0);
+	assert(asn1typed_type_add_field_copy(copy_owner, &owner->fields[0]) == 0);
+	assert(copy_owner->fields[0].value_range.tail !=
+		owner->fields[0].value_range.tail);
+	asn1typed_module_clear(&ir);
+	assert_integer_intervals(&copy_owner->fields[0].value_range,
+		range_and_singles,
+		sizeof(range_and_singles) / sizeof(range_and_singles[0]), 1);
+	asn1typed_module_clear(&copied);
+	asn1typed_module_clear(&copied);
+
+	/* This malformed union must reach extraction and fail after collecting
+	 * the valid first range, without publishing partial metadata. */
+	{
+		size_t i;
+		static const char *module_names[] = {
+			"MalformedIntegerUnion", "IntegerMinMax", "IntegerExcept",
+			"IntegerNestedCompound", "IntegerTooWide",
+			"IntegerNonIntegerTerm", "IntegerStandaloneSingle"
+		};
+		tree = asn1p_parse_buffer(unsupported[0], -1,
+			"malformed-integer-union.asn", 1, A1P_NOFLAGS);
+		assert(tree && asn1f_process(tree, A1F_NOFLAGS, NULL) >= 0);
+		assert(asn1typed_extract_module(tree, module_names[0], &ir,
+			error, sizeof(error)) == -1);
+		assert(error[0] != '\0');
+		assert_ir_cleared(&ir);
+		asn1p_delete(tree);
+		asn1typed_module_clear(&ir);
+		for(i = 1; i < sizeof(unsupported) / sizeof(unsupported[0]); ++i) {
+			tree = asn1p_parse_buffer(unsupported[i], -1,
+				"unsupported-integer-permitted-set.asn", 1, A1P_NOFLAGS);
+			if(tree && asn1f_process(tree, A1F_NOFLAGS, NULL) >= 0) {
+				assert(asn1typed_extract_module(tree, module_names[i], &ir,
+					error, sizeof(error)) == -1);
+				assert(error[0] != '\0');
+				assert_ir_cleared(&ir);
+			}
+			asn1p_delete(tree);
+			asn1typed_module_clear(&ir);
+		}
+	}
+	/* These parser-valid inputs are mutated only after fixing so malformed
+	 * extension-marker shapes reach INTEGER permitted-set extraction. */
+	{
+		static const char *marker_fixtures[] = {
+			"IntegerMarkerInUnion DEFINITIONS ::= BEGIN\n"
+			"Bad ::= INTEGER (1..10 | 20..30)\nEND\n",
+			"IntegerMultipleMarkers DEFINITIONS ::= BEGIN\n"
+			"Bad ::= INTEGER (1..10, ...)\nEND\n"
+		};
+		static const char *marker_modules[] = {
+			"IntegerMarkerInUnion", "IntegerMultipleMarkers"
+		};
+		static const char *marker_shapes[] = {
+			"append ACT_EL_EXT to the fixed ACT_CA_UNI terms",
+			"append a second ACT_EL_EXT to the fixed extensible ACT_CA_CSV list"
+		};
+		size_t i;
+		for(i = 0; i < 2; ++i) {
+			asn1p_expr_t *decl;
+			asn1p_constraint_t *set, *list, *target, *marker;
+			tree = asn1p_parse_buffer(marker_fixtures[i], -1,
+				"integer-marker-mutation.asn", 1, A1P_NOFLAGS);
+			assert(tree != NULL);
+			assert(asn1f_process(tree, A1F_NOFLAGS, NULL) >= 0);
+			decl = find_decl(tree, "Bad");
+			set = decl ? (decl->combined_constraints ?
+				decl->combined_constraints : decl->constraints) : NULL;
+			assert(decl && set && set->el_count == 1);
+			list = set->elements[0];
+			if(i == 0) {
+				assert(list->type == ACT_CA_UNI && list->el_count == 2);
+				target = list;
+			} else {
+				assert(list->type == ACT_CA_CSV && list->el_count == 2);
+				target = list;
+			}
+			marker = asn1p_constraint_new(1, TQ_FIRST(&tree->modules));
+			assert(marker);
+			marker->type = ACT_EL_EXT;
+			assert(asn1p_constraint_insert(target, marker) == 0);
+			memset(error, 0, sizeof(error));
+			if(asn1typed_extract_module(tree, marker_modules[i], &ir,
+					error, sizeof(error)) != -1) {
+				fprintf(stderr, "%s unexpectedly extracted (%s)\n",
+					marker_shapes[i], error);
+				assert(0);
+			}
+			assert(error[0] != '\0');
+			assert_ir_cleared(&ir);
+			asn1typed_module_clear(&ir);
+			asn1p_delete(tree);
+		}
+	}
+	puts("T8 bounded INTEGER permitted sets, canonicalization, ownership, and fail-closed extraction: PASS");
 }
 
 static asn1p_expr_t *
@@ -1614,6 +1794,7 @@ main(void) {
 	check_enumerated_extensibility();
 	check_visible_string_size();
 	check_integer_value_range();
+	check_integer_permitted_value_sets();
 	check_opaque_contents_compatibility();
 	check_octet_string_size();
 	check_extensible_exact_size();

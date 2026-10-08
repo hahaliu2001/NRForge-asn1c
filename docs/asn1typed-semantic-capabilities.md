@@ -296,12 +296,46 @@ INTEGER named-number behavior is not expanded by this rule.
     `intmax_t`, followed immediately by exactly one extension marker:
     `INTEGER (a..b, ...)`.
 -   **Fail-closed boundary:** Extension additions after the marker, multiple
-    or malformed markers, compound unions/intersections, MIN/MAX, arbitrary
-    Generic Constraint AST forms, and unrepresentable bounds.
+    or malformed markers, intersections, MIN/MAX, arbitrary Generic
+    Constraint AST forms, and unrepresentable bounds. Disjoint root unions
+    are accepted only within the separate bounded permitted-value-set rule
+    below.
 -   **Evidence:** Synthetic extraction and parser-tree-independent ownership
     for `INTEGER (0..65535, ...)`; NGAP-IEs `AveragingWindow` fixed-tree
     shape (`0..4095, ...`). The `NGSetupRequest` golden probe passes, but its
     output does not establish that extraction traversed `AveragingWindow`.
+
+### Bounded INTEGER Permitted-Value Set
+
+-   **Status:** Supported, bounded
+-   **Owned IR:** Existing `asn1typed_integer_value_range_t`. The first
+    canonical interval uses `lower_bound` / `upper_bound`; `tail` owns only
+    subsequent `asn1typed_integer_interval_t` values. `is_extensible` remains
+    a separate fact. A simple range has no tail and preserves its prior field
+    values.
+-   **Supported boundary:** A single root `UNION` containing at least two
+    terms, each an inclusive bounded INTEGER `ValueRange` or INTEGER
+    `SingleValue`, optionally followed by exactly one final extension marker.
+    Values must be representable in `intmax_t`. Extraction sorts by lower
+    then upper bound and merges overlapping or adjacent intervals. This is a
+    bounded permitted-set semantic, not generic constraint AST ownership.
+-   **Fail-closed boundary:** Standalone single values; MIN/MAX; intersections;
+    EXCEPT; unsupported nested compounds; marker inside the union, before the
+    root, multiple or malformed markers, additions after the marker;
+    unrepresentable or non-integer terms; and arbitrary Generic Constraint
+    AST forms.
+-   **Evidence:** Synthetic fixture `libasn1typed/fixtures/integer-permitted-set-t8.asn1`
+    covers mixed range/singleton terms, multiple singletons, sorting, overlap
+    and adjacency merging, extensibility, and ExpectedActivityPeriod's exact
+    root set. The test inspects owned intervals after parser-tree deletion,
+    verifies deep field-copy ownership and repeated clear, and verifies a
+    malformed union fails after an earlier valid term without publishing
+    partial IR. Permanent fixed-tree inspection confirms
+    `NGAP-IEs.ExpectedActivityPeriod` has declared and combined root
+    `1..30 | 40 | 50 | 60 | 80 | 100 | 120 | 150 | 180 | 181` followed by
+    an extension marker. The rebuilt permanent probe extracts
+    `InitialContextSetupRequest` successfully with 179 owned types and 144
+    bound instances, establishing real traversal through this declaration.
 
 ### Generic Constraint AST
 

@@ -39,7 +39,8 @@ asn1typed_inline_enum_body_valid(const asn1typed_type_t *body) {
 		body->identity.module || body->identity.source_name ||
 		body->primitive_kind != ASN1TYPED_PRIMITIVE_INVALID ||
 		body->size_constraint.has_size_constraint ||
-		body->value_range.has_value_range || body->location.file ||
+		body->value_range.has_value_range || body->value_range.tail ||
+		body->value_range.tail_count || body->location.file ||
 		body->fields || body->field_count || body->field_capacity ||
 		body->alternatives || body->alternative_count ||
 		body->alternative_capacity || body->element_type.module ||
@@ -121,8 +122,37 @@ asn1typed_field_clear(asn1typed_field_t *field) {
 	}
 	if(field->has_class_field_relation)
 		asn1typed_class_field_relation_clear(&field->class_field_relation);
+	free(field->value_range.tail);
 	asn1typed_source_location_clear(&field->location);
 	memset(field, 0, sizeof(*field));
+}
+
+static int
+asn1typed_integer_value_range_copy(asn1typed_integer_value_range_t *target,
+		const asn1typed_integer_value_range_t *source) {
+	if(!target || !source ||
+		(source->has_value_range != 0 && source->has_value_range != 1) ||
+		(source->is_extensible != 0 && source->is_extensible != 1) ||
+		(source->has_value_range && source->lower_bound > source->upper_bound) ||
+		(!source->has_value_range && (source->lower_bound || source->upper_bound ||
+		 source->is_extensible || source->tail || source->tail_count)) ||
+		(source->tail_count && !source->tail) ||
+		(!source->tail_count && source->tail) ||
+		(source->tail_count && !source->has_value_range) ||
+		source->tail_count > SIZE_MAX / sizeof(*source->tail)) return -1;
+	*target = *source;
+	target->tail = NULL;
+	if(source->tail_count) {
+		target->tail = (asn1typed_integer_interval_t *)malloc(
+			source->tail_count * sizeof(*source->tail));
+		if(!target->tail) {
+			memset(target, 0, sizeof(*target));
+			return -1;
+		}
+		memcpy(target->tail, source->tail,
+			source->tail_count * sizeof(*source->tail));
+	}
+	return 0;
 }
 
 static int
@@ -150,12 +180,12 @@ asn1typed_field_copy(asn1typed_field_t *target,
 	target->source_name = asn1typed_strdup(source->source_name);
 	target->type_semantics = source->type_semantics;
 	target->size_constraint = source->size_constraint;
-	target->value_range = source->value_range;
 	target->presence = source->presence;
 	target->ioc.criticality = source->ioc.criticality;
 	target->ioc.has_numeric_id = source->ioc.has_numeric_id;
 	target->ioc.numeric_id = source->ioc.numeric_id;
-	if(!target->source_name) goto fail;
+	if(!target->source_name || asn1typed_integer_value_range_copy(
+			&target->value_range, &source->value_range)) goto fail;
 	if(source->type_semantics == ASN1TYPED_FIELD_FIXED_TYPE &&
 		!source->inline_enumerated &&
 		asn1typed_type_ref_copy(&target->type, &source->type)) goto fail;
@@ -365,6 +395,7 @@ asn1typed_type_clear(asn1typed_type_t *type) {
 		asn1typed_source_location_clear(&type->enum_items[i].location);
 	}
 	free(type->enum_items);
+	free(type->value_range.tail);
 	for(i = 0; i < type->alternative_count; ++i) {
 		free(type->alternatives[i].source_name);
 		asn1typed_type_ref_clear(&type->alternatives[i].type_ref);

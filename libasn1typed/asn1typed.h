@@ -41,12 +41,20 @@ typedef struct asn1typed_size_constraint_s {
 	int is_extensible;
 } asn1typed_size_constraint_t;
 
-/* One owned bounded INTEGER value range. */
+typedef struct asn1typed_integer_interval_s {
+	intmax_t lower_bound;
+	intmax_t upper_bound;
+} asn1typed_integer_interval_t;
+
+/* Owned bounded INTEGER permitted set. The first canonical interval is
+ * stored inline; tail contains only intervals after that first interval. */
 typedef struct asn1typed_integer_value_range_s {
 	int has_value_range;
 	intmax_t lower_bound;
 	intmax_t upper_bound;
 	int is_extensible;
+	asn1typed_integer_interval_t *tail;
+	size_t tail_count;
 } asn1typed_integer_value_range_t;
 
 typedef enum asn1typed_ref_kind_e {
@@ -131,7 +139,7 @@ typedef struct asn1typed_field_s {
 	asn1typed_type_ref_t type;
 	/* Inline SIZE semantics owned by this SEQUENCE use-site, when present. */
 	asn1typed_size_constraint_t size_constraint;
-	/* Inline primitive INTEGER range owned by this SEQUENCE use-site. */
+	/* Inline primitive INTEGER permitted set owned by this SEQUENCE use-site. */
 	asn1typed_integer_value_range_t value_range;
 	/* Owned inline ENUMERATED body for this SEQUENCE field, when present. */
 	asn1typed_type_t *inline_enumerated;
