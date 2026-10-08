@@ -70,11 +70,11 @@ during NGAP development:
 - CHOICE alternative inline INTEGER ranges.
 
 These capabilities are recorded as development and qualification scope, not
-as proof of exhaustive semantic correctness. The semantic capability matrix
-does not yet have dedicated entries for extensible empty IOC sets or CHOICE
-alternative inline INTEGER ranges. Its CHOICE inline-constraint entry covers
-SIZE, and its generic rule requires complete representation of accepted
-constraints.
+as proof of exhaustive semantic correctness. The [semantic capability
+matrix](asn1typed-semantic-capabilities.md) now has dedicated bounded
+entries for extensible empty IOC-set binding and CHOICE alternative inline
+INTEGER ranges. These entries define extraction support boundaries and do
+not claim exhaustive semantic correctness.
 
 ## Evidence and Limitations
 

@@ -393,6 +393,44 @@ extensibility and SIZE extensibility are separate.
 -   **Fail-closed boundary:** Other unsupported inline constraints.
 -   **Evidence:** `GNB-ID.gNB-ID`, `NgENB-ID.macroNgENB-ID`.
 
+### CHOICE Alternative Inline INTEGER Value Range
+
+-   **Status:** Supported, bounded
+-   **Owned IR:** Alternative-level
+    `asn1typed_integer_value_range_t`, including owned interval data,
+    independent of the alternative's primitive type reference.
+-   **Supported boundary:** The extractor reuses the existing bounded
+    INTEGER permitted-value-set domain for a constrained primitive INTEGER
+    alternative. This includes supported root UNION forms and owned
+    interval tails, with an extensibility flag for that alternative.
+    Alternative names and source order are retained. Existing CHOICE
+    alternative SIZE metadata and parameterized alternative references
+    remain supported independently.
+-   **Fail-closed boundary:** INTEGER constraints outside the bounded
+    permitted-value-set rules above, malformed constraint shapes, and
+    arbitrary inline constraints MUST remain rejected.
+-   **Evidence:** Implementation in `d003c926`
+    (`libasn1typed/asn1typed.h`, `libasn1typed/asn1typed.c`, and
+    `libasn1typed/asn1typed_extract.c`). Focused synthetic coverage in
+    `check_inline_integer_choice_ranges`
+    (`libasn1typed/check_asn1typed_extract.c`) verifies separate ranges and
+    extensibility, alternative order and names, retained parameterized
+    binding, ownership after parser-tree deletion, and rejection of an
+    unsupported compound range. The focused API test
+    `check_choice_alternative_size_api` (`libasn1typed/check_asn1typed.c`)
+    verifies deep-copy behavior, interval-tail ownership, invalid metadata
+    rejection, and repeated cleanup. Real NGAP qualification demonstrates
+    bounded extensible ranges in `NGAP-IEs.ClockAccuracy`:
+    `clockAccuracyValue INTEGER (1..40000000, ...)` and
+    `clockAccuracyIndex INTEGER (32..47, ...)`. The accepted
+    `TimingSynchronisationStatusReport` qualification report records PARSE /
+    FIX / EXTRACT PASS, 16 owned types, and 11 bound instances. Union-form
+    CHOICE extraction is not separately qualified by real-message evidence;
+    per-run qualification reports are not committed in the inspected
+    repository. This is Typed IR extraction support; it does not establish
+    that the C++ CHOICE renderer consumes range metadata or that runtime
+    Codec support is complete.
+
 ### SEQUENCE OF Element Inline Constraint
 
 -   **Status:** Fail closed / not qualified
@@ -468,6 +506,34 @@ forbidden.
 -   **Fail-closed boundary:** Unsupported or malformed actuals.
 -   **Evidence:**
     `ProtocolIE-SingleContainer{{GlobalRANNodeID-ExtIEs}}`.
+
+### Extensible Empty IOC Set Binding
+
+-   **Status:** Supported, bounded
+-   **Owned IR:** The message retains its parameterized container identity
+    and object-set reference, IOC-table presence and object-set
+    extensibility, and message SEQUENCE extensibility as separately stored
+    metadata. No placeholder IOC rows are synthesized.
+-   **Supported boundary:** A valid parameterized container binding to an
+    object set with zero known entries and an extension marker. The message
+    SEQUENCE extension marker is stored separately from object-set
+    extensibility.
+-   **Fail-closed boundary:** A missing or unresolved IOC table or binding
+    remains an error. The extractor rejects an empty object set without its
+    extension marker; this non-extensible-empty rejection does not have a
+    focused test.
+-   **Evidence:** Implementation commit `b9caffe5`
+    (`libasn1typed/asn1typed.h`, `libasn1typed/asn1typed.c`, and
+    `libasn1typed/asn1typed_extract.c`).
+    Synthetic fixture `libasn1typed/fixtures/ioc-empty-typed.asn1` and
+    focused checks in `libasn1typed/check_asn1typed_ioc.c` cover empty-set
+    extensibility, owned container/object-set binding, separate storage of
+    message SEQUENCE extensibility, and missing-table rejection. The real
+    NGAP object set is `NGAP-PDU-Contents.OverloadStopIEs`; the accepted
+    `OverloadStop` qualification report records PARSE / FIX / EXTRACT PASS,
+    1 owned type, and 0 bound instances. Per-run qualification reports are
+    not committed in the inspected repository. This documents Typed IR
+    extraction only and does not claim complete runtime Codec support.
 
 ### Parameterized Field Type Reference
 
@@ -590,8 +656,8 @@ Known boundaries include:
 -   BIT STRING named bits;
 -   unsupported primitive constraint shapes;
 -   unsupported/compound SIZE outside frozen rules;
--   unsupported INTEGER ranges outside one closed or bounded extensible
-    range;
+-   unsupported INTEGER ranges outside the closed/extensible range and
+    bounded permitted-value-set rules;
 -   unsupported inline constraints not representable by accepted
     metadata;
 -   constrained SEQUENCE OF element use-sites outside the frozen
@@ -689,6 +755,30 @@ harnesses.
 
 -   **Evidence for:** BIT STRING plus inline CHOICE exact SIZE.
 
+### `NGAP-IEs.ClockAccuracy`
+
+-   **Evidence for:** CHOICE alternative inline INTEGER range ownership for
+    `clockAccuracyValue` (`1..40000000, ...`) and `clockAccuracyIndex`
+    (`32..47, ...`). Implementation commit `d003c926`; focused synthetic
+    extractor evidence in `check_inline_integer_choice_ranges`
+    (`libasn1typed/check_asn1typed_extract.c`) and focused API evidence in
+    `check_choice_alternative_size_api` (`libasn1typed/check_asn1typed.c`).
+    The accepted `TimingSynchronisationStatusReport` qualification records
+    PARSE / FIX / EXTRACT PASS, 16 owned types, and 11 bound instances.
+    Real-message evidence demonstrates these bounded extensible ranges, not
+    union-form CHOICE extraction.
+
+### `NGAP-PDU-Contents.OverloadStopIEs`
+
+-   **Evidence for:** Extensible empty IOC-set binding with a valid
+    parameterized container reference and no synthesized placeholder rows.
+    Implementation commit `b9caffe5`; synthetic fixture
+    `libasn1typed/fixtures/ioc-empty-typed.asn1` and focused checks in
+    `libasn1typed/check_asn1typed_ioc.c`. The accepted `OverloadStop`
+    qualification records PARSE / FIX / EXTRACT PASS, 1 owned type, and 0
+    bound instances. Non-extensible empty IOC rejection is implemented but
+    lacks a focused test.
+
 ### `NGAP-Containers.ProtocolIE-SingleContainer` specialization
 
 -   **Evidence for:** Bound SEQUENCE materialization and class-field
@@ -750,6 +840,8 @@ The accepted foundation includes:
 -   qualified primitive strings, OCTET STRING, and BIT STRING;
 -   bounded and exact SIZE;
 -   bounded closed and extensible INTEGER value ranges;
+-   extensible empty IOC-set binding;
+-   bounded CHOICE-alternative inline INTEGER value-range ownership;
 -   bounded capability composition where an ownership location can retain an existing semantic representation's complete frozen supported domain;
 -   field and CHOICE SIZE ownership;
 -   parameterized object-set identity;
