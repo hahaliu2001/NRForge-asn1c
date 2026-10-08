@@ -1,0 +1,21 @@
+EmptyTypedIOC DEFINITIONS ::= BEGIN
+Criticality ::= ENUMERATED { reject, ignore, notify }
+Presence ::= ENUMERATED { mandatory, optional, conditional }
+SYNTHETIC-IES ::= CLASS {
+  &id INTEGER UNIQUE,
+  &criticality Criticality,
+  &Value,
+  &presence Presence
+} WITH SYNTAX { ID &id CRITICALITY &criticality TYPE &Value PRESENCE &presence }
+ProtocolIE-Field { SYNTHETIC-IES : IEs } ::= SEQUENCE {
+  id SYNTHETIC-IES.&id({IEs}),
+  criticality SYNTHETIC-IES.&criticality({IEs}),
+  value SYNTHETIC-IES.&Value({IEs}{@id})
+}
+ProtocolIE-Container { SYNTHETIC-IES : IEs } ::= SEQUENCE OF ProtocolIE-Field {{IEs}}
+EmptySet SYNTHETIC-IES ::= { ... }
+EmptyMessage ::= SEQUENCE {
+  ies ProtocolIE-Container {{EmptySet}},
+  ...
+}
+END

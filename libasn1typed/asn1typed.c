@@ -45,7 +45,10 @@ asn1typed_inline_enum_body_valid(const asn1typed_type_t *body) {
 		body->alternatives || body->alternative_count ||
 		body->alternative_capacity || body->element_type.module ||
 		body->element_type.source_name || body->element_type.actuals ||
-		body->element_type.actual_count || !body->enum_items ||
+		body->element_type.actual_count || body->ioc_container.module ||
+		body->ioc_container.source_name || body->ioc_container.actuals ||
+		body->ioc_container.actual_count || body->has_ioc_table ||
+		body->ioc_object_set_is_extensible || !body->enum_items ||
 		!body->enum_item_count ||
 		(body->is_extensible != 0 && body->is_extensible != 1)) return 0;
 	for(i = 0; i < body->enum_item_count; ++i) {
@@ -390,6 +393,7 @@ asn1typed_type_clear(asn1typed_type_t *type) {
 	}
 	free(type->fields);
 	asn1typed_type_ref_clear(&type->element_type);
+	asn1typed_type_ref_clear(&type->ioc_container);
 	for(i = 0; i < type->enum_item_count; ++i) {
 		free(type->enum_items[i].source_name);
 		asn1typed_source_location_clear(&type->enum_items[i].location);

@@ -174,6 +174,10 @@ struct asn1typed_type_s {
 	size_t field_count;
 	size_t field_capacity;
 	asn1typed_type_ref_t element_type;
+	/* Generic IOC association retained even when the set has no known rows. */
+	asn1typed_type_ref_t ioc_container;
+	int has_ioc_table;
+	int ioc_object_set_is_extensible;
 	asn1typed_enum_item_t *enum_items;
 	size_t enum_item_count;
 	size_t enum_item_capacity;
