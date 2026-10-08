@@ -133,6 +133,7 @@ asn1typed_field_clear(asn1typed_field_t *field) {
 static int
 asn1typed_integer_value_range_copy(asn1typed_integer_value_range_t *target,
 		const asn1typed_integer_value_range_t *source) {
+	size_t i;
 	if(!target || !source ||
 		(source->has_value_range != 0 && source->has_value_range != 1) ||
 		(source->is_extensible != 0 && source->is_extensible != 1) ||
@@ -143,6 +144,15 @@ asn1typed_integer_value_range_copy(asn1typed_integer_value_range_t *target,
 		(!source->tail_count && source->tail) ||
 		(source->tail_count && !source->has_value_range) ||
 		source->tail_count > SIZE_MAX / sizeof(*source->tail)) return -1;
+	for(i = 0; i < source->tail_count; ++i) {
+		const asn1typed_integer_interval_t *interval = &source->tail[i];
+		intmax_t previous_upper = i ? source->tail[i - 1].upper_bound :
+			source->upper_bound;
+		int adjacent = previous_upper != INTMAX_MAX &&
+			interval->lower_bound == previous_upper + 1;
+		if(interval->lower_bound > interval->upper_bound ||
+		interval->lower_bound <= previous_upper || adjacent) return -1;
+	}
 	*target = *source;
 	target->tail = NULL;
 	if(source->tail_count) {
@@ -403,6 +413,7 @@ asn1typed_type_clear(asn1typed_type_t *type) {
 	for(i = 0; i < type->alternative_count; ++i) {
 		free(type->alternatives[i].source_name);
 		asn1typed_type_ref_clear(&type->alternatives[i].type_ref);
+		free(type->alternatives[i].value_range.tail);
 		asn1typed_source_location_clear(&type->alternatives[i].location);
 	}
 	free(type->alternatives);
@@ -844,16 +855,24 @@ int
 asn1typed_type_add_choice_alternative(asn1typed_type_t *type,
 		const char *source_name, const asn1typed_type_ref_t *type_ref,
 		const asn1typed_size_constraint_t *size_constraint,
+		const asn1typed_integer_value_range_t *value_range,
 		const char *file, unsigned line) {
 	asn1typed_choice_alternative_t alternative;
 	if(!type || type->kind != ASN1TYPED_TYPE_CHOICE || !source_name ||
-		!type_ref || !file) return -1;
+		!source_name[0] || !type_ref || !file || !file[0] ||
+		(type_ref->kind != ASN1TYPED_REF_PRIMITIVE &&
+		 type_ref->kind != ASN1TYPED_REF_NAMED)) return -1;
 	if(size_constraint && (!size_constraint->has_size_constraint ||
 		size_constraint->lower_bound > size_constraint->upper_bound)) return -1;
+	if(value_range && (!value_range->has_value_range || size_constraint ||
+		type_ref->kind != ASN1TYPED_REF_PRIMITIVE ||
+		type_ref->primitive_kind != ASN1TYPED_PRIMITIVE_INTEGER)) return -1;
 	memset(&alternative, 0, sizeof(alternative));
 	alternative.source_name = asn1typed_strdup(source_name);
 	if(size_constraint) alternative.size_constraint = *size_constraint;
-	if(!alternative.source_name) return -1;
+	if(!alternative.source_name || (value_range &&
+		asn1typed_integer_value_range_copy(&alternative.value_range,
+			value_range))) goto fail;
 	if(type_ref->kind == ASN1TYPED_REF_PRIMITIVE && !type_ref->actual_count) {
 		if(asn1typed_type_ref_init_primitive(&alternative.type_ref,
 				type_ref->primitive_kind)) goto fail;
@@ -877,6 +896,7 @@ asn1typed_type_add_choice_alternative(asn1typed_type_t *type,
 fail:
 	free(alternative.source_name);
 	asn1typed_type_ref_clear(&alternative.type_ref);
+	free(alternative.value_range.tail);
 	asn1typed_source_location_clear(&alternative.location);
 	return -1;
 }

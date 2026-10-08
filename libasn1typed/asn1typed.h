@@ -160,6 +160,8 @@ typedef struct asn1typed_choice_alternative_s {
 	char *source_name;
 	asn1typed_type_ref_t type_ref;
 	asn1typed_size_constraint_t size_constraint;
+	/* Inline primitive INTEGER permitted set owned by this alternative. */
+	asn1typed_integer_value_range_t value_range;
 	asn1typed_source_location_t location;
 } asn1typed_choice_alternative_t;
 
@@ -279,6 +281,7 @@ int asn1typed_type_add_enum_item_ex(asn1typed_type_t *type,
 int asn1typed_type_add_choice_alternative(asn1typed_type_t *type,
 		const char *source_name, const asn1typed_type_ref_t *type_ref,
 		const asn1typed_size_constraint_t *size_constraint,
+		const asn1typed_integer_value_range_t *value_range,
 		const char *file, unsigned line);
 void asn1typed_type_clear(asn1typed_type_t *type);
 int asn1typed_field_set_ioc(asn1typed_field_t *field,

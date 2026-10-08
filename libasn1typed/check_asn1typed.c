@@ -186,25 +186,54 @@ check_choice_alternative_size_api(void) {
 	asn1typed_module_t module;
 	asn1typed_type_t *choice;
 	asn1typed_type_ref_t bit_string = {0};
+	asn1typed_type_ref_t integer = {0};
 	asn1typed_size_constraint_t size = {1, 22, 32, 0};
 	asn1typed_size_constraint_t invalid = {0, 22, 32, 0};
+	asn1typed_integer_value_range_t value_range = {1, 1, 10, 1, NULL, 0};
+	asn1typed_integer_value_range_t invalid_range = {0};
+	asn1typed_integer_interval_t tail[] = {{20, 30}};
 	assert(asn1typed_module_init(&module, "ChoiceFixture", "choice.asn", 1) == 0);
 	assert(asn1typed_module_add_type(&module, "C", ASN1TYPED_TYPE_CHOICE,
 		"choice.asn", 2, &choice) == 0);
 	assert(asn1typed_type_ref_init_primitive(&bit_string,
 		ASN1TYPED_PRIMITIVE_BIT_STRING) == 0);
+	assert(asn1typed_type_ref_init_primitive(&integer,
+		ASN1TYPED_PRIMITIVE_INTEGER) == 0);
 	assert(asn1typed_type_add_choice_alternative(choice, "bad", &bit_string,
-		&invalid, "choice.asn", 3) == -1);
+		&invalid, NULL, "choice.asn", 3) == -1);
 	assert(choice->alternative_count == 0);
 	assert(asn1typed_type_add_choice_alternative(choice, "sized", &bit_string,
-		&size, "choice.asn", 4) == 0);
+		&size, NULL, "choice.asn", 4) == 0);
+	assert(asn1typed_type_add_choice_alternative(choice, "wrong-primitive",
+		&bit_string, NULL, &value_range, "choice.asn", 5) == -1);
+	assert(asn1typed_type_add_choice_alternative(choice, "empty-range",
+		&integer, NULL, &invalid_range, "choice.asn", 6) == -1);
+	assert(asn1typed_type_add_choice_alternative(choice, "both-constraints",
+		&integer, &size, &value_range, "choice.asn", 7) == -1);
 	size.lower_bound = 1;
 	assert(choice->alternative_count == 1);
 	assert(choice->alternatives[0].size_constraint.lower_bound == 22);
 	assert(choice->alternatives[0].size_constraint.upper_bound == 32);
 	assert(!choice->alternatives[0].size_constraint.is_extensible);
 	assert(choice->alternatives[0].location.line == 4);
+	{
+		asn1typed_type_t *integer_choice;
+		assert(asn1typed_module_add_type(&module, "IntegerC",
+			ASN1TYPED_TYPE_CHOICE, "choice.asn", 8, &integer_choice) == 0);
+		value_range.tail = tail;
+		value_range.tail_count = 1;
+		assert(asn1typed_type_add_choice_alternative(integer_choice, "ranged",
+			&integer, NULL, &value_range, "choice.asn", 9) == 0);
+		tail[0].upper_bound = 31;
+		value_range.upper_bound = 11;
+		assert(integer_choice->alternatives[0].value_range.upper_bound == 10);
+		assert(integer_choice->alternatives[0].value_range.tail != tail);
+		assert(integer_choice->alternatives[0].value_range.tail[0].upper_bound == 30);
+		value_range.tail = NULL;
+		value_range.tail_count = 0;
+	}
 	asn1typed_type_ref_clear(&bit_string);
+	asn1typed_type_ref_clear(&integer);
 	asn1typed_module_clear(&module);
 	asn1typed_module_clear(&module);
 }

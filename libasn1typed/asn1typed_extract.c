@@ -744,7 +744,9 @@ populate_type(asn1p_t *tree, asn1typed_type_t *out, asn1p_expr_t *decl,
 		TQ_FOR(member, &body->members, next) {
 			asn1typed_type_ref_t ref;
 			asn1typed_size_constraint_t alternative_size = {0};
+			asn1typed_integer_value_range_t alternative_value_range = {0};
 			const asn1typed_size_constraint_t *size_ptr = NULL;
+			const asn1typed_integer_value_range_t *value_range_ptr = NULL;
 			if(!member->Identifier) {
 				set_error(error, error_size,
 					"%s: unnamed CHOICE alternative at line %d",
@@ -754,34 +756,61 @@ populate_type(asn1p_t *tree, asn1typed_type_t *out, asn1p_expr_t *decl,
 			if(member->constraints) {
 				asn1typed_primitive_kind_e primitive = primitive_from_expr(member);
 				if(member->meta_type != AMT_TYPE || member->rhs_pspecs ||
-					primitive == ASN1TYPED_PRIMITIVE_INVALID ||
-					extract_size_constraint(member->constraints, &alternative_size,
-						primitive_accepts_exact_size(primitive))) {
+					primitive == ASN1TYPED_PRIMITIVE_INVALID) {
 					if(reject_unowned_inline_constraint(member, decl->Identifier,
 							member->Identifier, error, error_size)) return -1;
 					return -1;
 				}
-				size_ptr = &alternative_size;
+				if(primitive == ASN1TYPED_PRIMITIVE_INTEGER) {
+					const asn1p_constraint_t *constraint =
+						member->combined_constraints ? member->combined_constraints :
+						member->constraints;
+					if(extract_integer_value_range(constraint,
+							&alternative_value_range) ||
+						!alternative_value_range.has_value_range) {
+						if(reject_unowned_inline_constraint(member,
+								decl->Identifier, member->Identifier,
+								error, error_size)) return -1;
+						return -1;
+					}
+					value_range_ptr = &alternative_value_range;
+				} else {
+					if(extract_size_constraint(member->constraints,
+							&alternative_size,
+							primitive_accepts_exact_size(primitive))) {
+						if(reject_unowned_inline_constraint(member,
+								decl->Identifier, member->Identifier,
+								error, error_size)) return -1;
+						return -1;
+					}
+					size_ptr = &alternative_size;
+				}
 			}
 			memset(&ref, 0, sizeof(ref));
 			if(member->rhs_pspecs ?
 				put_parameterized_object_set_ref(tree, &ref,
 					member, error, error_size) : put_ref(&ref, member)) {
-				if(member->rhs_pspecs) return -1;
+				if(member->rhs_pspecs) {
+					free(alternative_value_range.tail);
+					return -1;
+				}
 				set_error(error, error_size,
 					"%s.%s: unsupported or unresolved CHOICE alternative type at line %d",
 					decl->Identifier, member->Identifier, member->_lineno);
+				free(alternative_value_range.tail);
 				return -1;
 			}
 			if(asn1typed_type_add_choice_alternative(out, member->Identifier,
-					&ref, size_ptr, file, member->_lineno)) {
+					&ref, size_ptr, value_range_ptr, file, member->_lineno)) {
 				asn1typed_type_ref_clear(&ref);
+				free(alternative_value_range.tail);
 				set_error(error, error_size,
 					"%s.%s: could not store CHOICE alternative",
 					decl->Identifier, member->Identifier);
 				return -1;
 			}
 			asn1typed_type_ref_clear(&ref);
+			free(alternative_value_range.tail);
 		}
 		if(!out->alternative_count) {
 			set_error(error, error_size, "%s: empty CHOICE is unsupported",
