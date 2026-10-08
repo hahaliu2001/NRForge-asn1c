@@ -749,6 +749,7 @@ check_inline_visible_constraints(void) {
 	assert(type->alternatives[0].type_ref.kind == ASN1TYPED_REF_PRIMITIVE);
 	assert(type->alternatives[0].type_ref.primitive_kind ==
 		ASN1TYPED_PRIMITIVE_VISIBLE_STRING);
+	assert(!type->alternatives[0].value_range.has_value_range);
 	asn1typed_module_clear(&ir);
 	puts("T2 unsupported CHOICE and SEQUENCE OF inline constraints fail-closed: PASS");
 }
@@ -807,6 +808,89 @@ check_inline_bit_string_choice_size(void) {
 	asn1typed_module_clear(&ir);
 	asn1p_delete(tree);
 	puts("BIT STRING CHOICE alternative SIZE ownership: PASS (parser tree destroyed)");
+}
+
+static void
+check_inline_integer_choice_ranges(void) {
+	static const char source[] =
+		"InlineIntegerChoice DEFINITIONS AUTOMATIC TAGS ::= BEGIN\n"
+		"ExtensionClass ::= CLASS { &id INTEGER }\n"
+		"ExtensionSet ExtensionClass ::= { { &id 1 } }\n"
+		"ParameterizedContainer { ExtensionClass : Items } ::= CHOICE { selected BOOLEAN }\n"
+		"C ::= CHOICE {\n"
+		"  firstValue INTEGER (1..40000000, ...),\n"
+		"  secondValue INTEGER (32..47, ...),\n"
+		"  choice-Extensions ParameterizedContainer {{ExtensionSet}}\n"
+		"}\nEND\n";
+	static const char unsupported[] =
+		"InlineIntegerChoiceBad DEFINITIONS ::= BEGIN\n"
+		"C ::= CHOICE { bad INTEGER (0..10 ^ 20..30) }\nEND\n";
+	asn1typed_module_t ir = {0};
+	asn1typed_type_t *choice;
+	asn1p_t *tree;
+	char error[256] = {0};
+
+	tree = asn1p_parse_buffer(source, -1, "inline-integer-choice.asn", 1,
+		A1P_NOFLAGS);
+	assert(tree && asn1f_process(tree, A1F_NOFLAGS, NULL) >= 0);
+	assert(asn1typed_extract_module(tree, "InlineIntegerChoice", &ir,
+		error, sizeof(error)) == 0);
+	asn1p_delete(tree);
+	choice = find_type(&ir, "C");
+	assert(choice && choice->kind == ASN1TYPED_TYPE_CHOICE);
+	assert(choice->alternative_count == 3);
+	assert(!strcmp(choice->alternatives[0].source_name, "firstValue"));
+	assert(choice->alternatives[0].type_ref.kind == ASN1TYPED_REF_PRIMITIVE);
+	assert(choice->alternatives[0].type_ref.primitive_kind ==
+		ASN1TYPED_PRIMITIVE_INTEGER);
+	assert(choice->alternatives[0].value_range.has_value_range);
+	assert(choice->alternatives[0].value_range.lower_bound == 1);
+	assert(choice->alternatives[0].value_range.upper_bound == 40000000);
+	assert(choice->alternatives[0].value_range.is_extensible);
+	assert(!choice->alternatives[0].size_constraint.has_size_constraint);
+	assert(choice->alternatives[0].location.file &&
+		choice->alternatives[0].location.file[0]);
+	assert(choice->alternatives[0].location.line == 6);
+	assert(!strcmp(choice->alternatives[1].source_name, "secondValue"));
+	assert(choice->alternatives[1].type_ref.kind == ASN1TYPED_REF_PRIMITIVE);
+	assert(choice->alternatives[1].type_ref.primitive_kind ==
+		ASN1TYPED_PRIMITIVE_INTEGER);
+	assert(choice->alternatives[1].value_range.has_value_range);
+	assert(choice->alternatives[1].value_range.lower_bound == 32);
+	assert(choice->alternatives[1].value_range.upper_bound == 47);
+	assert(choice->alternatives[1].value_range.is_extensible);
+	assert(!choice->alternatives[1].size_constraint.has_size_constraint);
+	assert(!strcmp(choice->alternatives[2].source_name, "choice-Extensions"));
+	assert(choice->alternatives[2].type_ref.kind == ASN1TYPED_REF_NAMED);
+	assert(!strcmp(choice->alternatives[2].type_ref.module,
+		"InlineIntegerChoice"));
+	assert(!strcmp(choice->alternatives[2].type_ref.source_name,
+		"ParameterizedContainer"));
+	assert(choice->alternatives[2].type_ref.actual_count == 1);
+	assert(choice->alternatives[2].type_ref.actuals[0].kind ==
+		ASN1TYPED_ACTUAL_OBJECT_SET_REFERENCE);
+	assert(!strcmp(choice->alternatives[2].type_ref.actuals[0].module,
+		"InlineIntegerChoice"));
+	assert(!strcmp(choice->alternatives[2].type_ref.actuals[0].source_name,
+		"ExtensionSet"));
+	assert(!choice->alternatives[2].value_range.has_value_range);
+	assert(choice->alternatives[2].location.file);
+	/* The tree has been deleted; owned values and binding remain readable. */
+	assert(choice->alternatives[0].value_range.upper_bound == 40000000);
+	assert(!strcmp(choice->alternatives[2].type_ref.actuals[0].source_name,
+		"ExtensionSet"));
+	asn1typed_module_clear(&ir);
+	asn1typed_module_clear(&ir);
+
+	tree = asn1p_parse_buffer(unsupported, -1,
+		"inline-integer-choice-bad.asn", 1, A1P_NOFLAGS);
+	assert(tree && asn1f_process(tree, A1F_NOFLAGS, NULL) >= 0);
+	assert(asn1typed_extract_module(tree, "InlineIntegerChoiceBad", &ir,
+		error, sizeof(error)) == -1);
+	assert(strstr(error, "inline constrained type is unsupported") != NULL);
+	assert_ir_cleared(&ir);
+	asn1p_delete(tree);
+	puts("CHOICE inline INTEGER range ownership and fail-closed boundary: PASS");
 }
 
 static void
@@ -1987,6 +2071,7 @@ main(void) {
 	check_asn1typed_ioc();
 	check_asn1typed_multimodule();
 	check_inline_enumerated_fields();
+	check_inline_integer_choice_ranges();
 	check_bound_instance_body_attachment();
 	check_bound_specialization_materialization();
 	check_sequence_of_bound_specialization();
