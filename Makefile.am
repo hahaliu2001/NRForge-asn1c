@@ -5,7 +5,7 @@ ACLOCAL_AMFLAGS = -I m4
 CODE_COVERAGE_IGNORE_PATTERN="tests/*" "lex.yy.c" "y.tab.c" "asn1p_l.l" "asn1p_y.y"
 
 SUBDIRS =                       \
-    libasn1common libasn1typed libasn1parser \
+    libaper libasn1common libasn1typed libasn1parser \
     libasn1fix libasn1print     \
     libasn1compiler             \
     asn1-tools asn1c tools skeletons  \

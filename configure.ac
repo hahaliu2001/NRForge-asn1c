@@ -33,6 +33,23 @@ m4_ifdef([AM_PROG_AR],
 
 AC_PROG_CXX
 CXXFLAGS="-std=c++11"
+dnl The S3 runtime is the only C++20 component. Probe that requirement while
+dnl restoring the repository-wide C++11 flags for all existing libraries.
+nrforge_save_CXXFLAGS=$CXXFLAGS
+CXXFLAGS="$CXXFLAGS -std=c++20"
+AC_LANG_PUSH([C++])
+AC_MSG_CHECKING([whether the C++ compiler supports the C++20 runtime requirements])
+AC_COMPILE_IFELSE([
+  AC_LANG_PROGRAM([[#include <cstddef>
+                    #include <span>
+                    #include <variant>]],
+                  [[std::span<const std::byte> input;
+                    std::variant<int, long> result;
+                    (void)input;
+                    (void)result;]])
+], [AC_MSG_RESULT([yes])], [AC_MSG_FAILURE([libaper requires a C++20 compiler with std::span and std::variant])])
+AC_LANG_POP([C++])
+CXXFLAGS=$nrforge_save_CXXFLAGS
 dnl - needed for tests, some fail when _FILE_OFFSET_BITS is not 
 dnl   explicitly set
 dnl - for example, the case of crossdev environment
@@ -151,9 +168,11 @@ AC_ARG_ENABLE(Werror,
   AS_IF([test x$enable_werror != xno], [
       ADD_CFLAGS="${ADD_CFLAGS} -Werror -W -Wall -Wpointer-arith"
       SKELETONS_CFLAGS="${SKELETONS_CFLAGS} -Werror -W -Wall -Wpointer-arith"
+      APER_CXXFLAGS="-Werror -W -Wall -Wpointer-arith"
       AX_CHECK_COMPILE_FLAG([-Wgnu],
         [SKELETONS_CFLAGS="${SKELETONS_CFLAGS} -Wgnu"])
   ])
+AC_SUBST([APER_CXXFLAGS])
 
 AX_CHECK_COMPILE_FLAG([-Wno-long-long],
         [SKELETONS_CFLAGS="${SKELETONS_CFLAGS} -Wno-long-long"])
@@ -368,6 +387,7 @@ asn1-tools/enber/Makefile                   \
 asn1-tools/unber/Makefile                   \
 asn1-tools/Makefile                         \
 libasn1compiler/Makefile                    \
+libaper/Makefile                            \
 libasn1common/Makefile                      \
 libasn1typed/Makefile                       \
 libasn1parser/Makefile                      \
