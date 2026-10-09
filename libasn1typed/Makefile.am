@@ -44,6 +44,9 @@ check_asn1typed_ioc_cpp_CPPFLAGS = $(check_asn1typed_extract_CPPFLAGS)
 check_asn1typed_ioc_cpp_LDADD = $(check_asn1typed_extract_LDADD)
 EXTRA_DIST += check_asn1typed_ioc_cpp.sh
 
+# Opt-in external qualification: keep Python dependencies out of make check.
+EXTRA_DIST += qualification/qualify_wire.py qualification/wire_driver.cpp qualification/requirements.txt
+
 check_asn1typed_owned_slice_SOURCES = check_asn1typed_owned_slice.c check_asn1typed_choice_wire.c
 check_asn1typed_owned_slice_CPPFLAGS = $(check_asn1typed_extract_CPPFLAGS) -DS1_FIXTURE=\"$(abs_srcdir)/fixtures/cpp-aper-s1.asn1\" -DS1_INT64_FIXTURE=\"$(abs_srcdir)/fixtures/cpp-aper-s1-int64.asn1\" -DREVERSED_FIXTURE=\"$(abs_srcdir)/fixtures/cpp-aper-reversed-tags.asn1\" -DCOLLISION_FIXTURE=\"$(abs_srcdir)/fixtures/cpp-aper-wrapper-collision.asn1\" -DORDINAL_ZERO_FIXTURE=\"$(abs_srcdir)/fixtures/cpp-aper-ordinal-member-zero.asn1\" -DORDINAL_ONE_FIXTURE=\"$(abs_srcdir)/fixtures/cpp-aper-ordinal-member-one.asn1\" -DTAG_FIXTURE=\"$(abs_srcdir)/fixtures/choice-wire-evidence.asn1\"
 check_asn1typed_owned_slice_LDADD = $(check_asn1typed_extract_LDADD)

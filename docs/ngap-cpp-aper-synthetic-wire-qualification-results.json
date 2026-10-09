@@ -1,0 +1,38 @@
+{
+  "baseline_commit": "e0b6f2d97af1c4695e8686a8a3d4e5b1ae7ff1a7",
+  "compiler": "g++ (Ubuntu 13.3.0-6ubuntu2~24.04) 13.3.0",
+  "corpus_sha256": "2bd134b043629b4f9807f4b2880a6626d5834d84966a54ce326b6324c84d37cd",
+  "counts": {
+    "budget_exact_requests": 1640,
+    "checked_response_lines": 276148,
+    "external_cross_decodes": 131980,
+    "protocol_requests": 144168,
+    "strict_negative_requests": 10548,
+    "valid_values": 131980
+  },
+  "dependencies": {
+    "asn1tools": "0.167.0",
+    "bitstruct": "8.23.0",
+    "pyparsing": "3.3.3"
+  },
+  "external_native_reversed_discrepancy": {
+    "count": {
+      "canonical": "8000ff",
+      "native_reversed": "0000ff"
+    },
+    "flag": {
+      "canonical": "40",
+      "native_reversed": "c0"
+    }
+  },
+  "mode": "full",
+  "result": "PASS",
+  "schema_version": 1,
+  "scope": "synthetic Count/Selection/Packet only; reversed tag ranks checked by independent model; strict negatives are S3 policy",
+  "sources_sha256": {
+    "libasn1typed/fixtures/cpp-aper-reversed-tags.asn1": "79d90e87577a479ab345c4e14e3f4c8914abfd0b4c31af700462d45e95cba630",
+    "libasn1typed/fixtures/cpp-aper-s1.asn1": "4c85ed6d22386c86e6f4b1d89b52f15b5e0acd39a0f799eb0bfaade78f878c5a",
+    "libasn1typed/qualification/qualify_wire.py": "3d9a4dea78d76fe95f5ad55a024d6addd8046c98fb554d9bb6037211b30d1e29",
+    "libasn1typed/qualification/wire_driver.cpp": "bac97554ee766f887f90d19f15c5e641f258c11bc02a7cf73b36777a61f2ed36"
+  }
+}
