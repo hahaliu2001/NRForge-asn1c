@@ -1,0 +1,13 @@
+EnumeratedEvidence DEFINITIONS ::= BEGIN
+Plain ::= ENUMERATED { a, b, c }
+Reordered ::= ENUMERATED { high(9), low(2), mid(5) }
+Implicit ::= ENUMERATED { a(5), b, c(0) }
+Negative ::= ENUMERATED { a(-3), b(4), c(0) }
+Additions ::= ENUMERATED { a, z(25), ..., d, e(30) }
+BelowRoot ::= ENUMERATED { a(0), b(3), ..., c(1) }
+Singleton ::= ENUMERATED { only }
+EmptyAdditions ::= ENUMERATED { only, ... }
+Endpoints ::= ENUMERATED { low(-9223372036854775808), high(9223372036854775807) }
+Wide ::= ENUMERATED { zero(0), wide(9223372036854775808) }
+Holder ::= SEQUENCE { inlineValue ENUMERATED { high(9), low(2), mid(5) } }
+END

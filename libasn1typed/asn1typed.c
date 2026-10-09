@@ -31,6 +31,8 @@ asn1typed_class_field_relation_valid(
 	return relation->selector_source_name == NULL;
 }
 
+static void enumerated_mapping_invalidate(asn1typed_type_t *);
+
 static int
 asn1typed_inline_enum_body_valid(const asn1typed_type_t *body) {
 	size_t i;
@@ -49,7 +51,9 @@ asn1typed_inline_enum_body_valid(const asn1typed_type_t *body) {
 		body->element_type.actual_count || body->ioc_container.module ||
 		body->ioc_container.source_name || body->ioc_container.actuals ||
 		body->ioc_container.actual_count || body->has_ioc_table ||
-		body->ioc_object_set_is_extensible || !body->enum_items ||
+		body->ioc_object_set_is_extensible ||
+		body->enum_item_count > body->enum_item_capacity ||
+		!!body->enum_item_capacity != !!body->enum_items || !body->enum_items ||
 		!body->enum_item_count ||
 		(body->is_extensible != 0 && body->is_extensible != 1)) return 0;
 	for(i = 0; i < body->enum_item_count; ++i) {
@@ -170,6 +174,33 @@ asn1typed_integer_value_range_copy(asn1typed_integer_value_range_t *target,
 }
 
 static int
+copy_enum_body(asn1typed_type_t *target, const asn1typed_type_t *source) {
+	size_t i;
+	if(!asn1typed_inline_enum_body_valid(source) ||
+		source->enum_item_count > source->enum_item_capacity ||
+		!!source->enum_item_capacity != !!source->enum_items ||
+		(source->has_valid_per_enumeration_mapping &&
+		 asn1typed_enumerated_evidence_validate(source, NULL, 0))) return -1;
+	target->kind = ASN1TYPED_TYPE_ENUMERATED;
+	target->is_extensible = source->is_extensible;
+	for(i = 0; i < source->enum_item_count; ++i) {
+		const asn1typed_enum_item_t *item = &source->enum_items[i];
+		if(asn1typed_type_add_enum_item_ex(target, item->source_name,
+			item->is_extension_addition, item->location.file, item->location.line)) return -1;
+		target->enum_items[i].numeric_evidence = item->numeric_evidence;
+		target->enum_items[i].assigned_number = item->assigned_number;
+	}
+	if(source->has_valid_per_enumeration_mapping) {
+		for(i = 0; i < source->enum_item_count; ++i) {
+			target->enum_items[i].has_per_enumeration_index = 1;
+			target->enum_items[i].per_enumeration_index = source->enum_items[i].per_enumeration_index;
+		}
+		target->has_valid_per_enumeration_mapping = 1;
+	}
+	return 0;
+}
+
+static int
 asn1typed_field_copy(asn1typed_field_t *target,
 		const asn1typed_field_t *source) {
 	if(!target || !source || !source->source_name || !source->source_name[0] ||
@@ -204,22 +235,10 @@ asn1typed_field_copy(asn1typed_field_t *target,
 		!source->inline_enumerated &&
 		asn1typed_type_ref_copy(&target->type, &source->type)) goto fail;
 	if(source->inline_enumerated) {
-		const asn1typed_type_t *body = source->inline_enumerated;
-		size_t i;
 		target->inline_enumerated = (asn1typed_type_t *)calloc(1,
 			sizeof(*target->inline_enumerated));
-		if(!target->inline_enumerated) goto fail;
-		target->inline_enumerated->kind = ASN1TYPED_TYPE_ENUMERATED;
-		target->inline_enumerated->is_extensible = body->is_extensible;
-		for(i = 0; i < body->enum_item_count; ++i) {
-			const asn1typed_enum_item_t *item = &body->enum_items[i];
-			if(!item->source_name || !item->source_name[0] ||
-				(item->is_extension_addition != 0 &&
-				 item->is_extension_addition != 1) || !item->location.file ||
-				asn1typed_type_add_enum_item_ex(target->inline_enumerated,
-					item->source_name, item->is_extension_addition,
-					item->location.file, item->location.line)) goto fail;
-		}
+		if(!target->inline_enumerated ||
+			copy_enum_body(target->inline_enumerated, source->inline_enumerated)) goto fail;
 	}
 	if(source->has_class_field_relation) {
 		if(asn1typed_class_field_relation_copy(&target->class_field_relation,
@@ -739,23 +758,9 @@ asn1typed_type_add_inline_enumerated_field(asn1typed_type_t *type,
 		return -1;
 	}
 	field.type_semantics = ASN1TYPED_FIELD_INLINE_ENUMERATED;
-	field.inline_enumerated->kind = ASN1TYPED_TYPE_ENUMERATED;
-	field.inline_enumerated->is_extensible = body->is_extensible;
-	{
-		size_t i;
-		for(i = 0; i < body->enum_item_count; ++i) {
-			const asn1typed_enum_item_t *item = &body->enum_items[i];
-			if(!item->source_name || !item->source_name[0] ||
-				!item->location.file ||
-				(item->is_extension_addition != 0 &&
-				 item->is_extension_addition != 1) ||
-				asn1typed_type_add_enum_item_ex(field.inline_enumerated,
-					item->source_name, item->is_extension_addition,
-					item->location.file, item->location.line)) {
-				asn1typed_field_clear(&field);
-				return -1;
-			}
-		}
+	if(copy_enum_body(field.inline_enumerated, body)) {
+		asn1typed_field_clear(&field);
+		return -1;
 	}
 	if(asn1typed_reserve((void **)&type->fields, &type->field_capacity,
 			type->field_count + 1, sizeof(*type->fields))) {
@@ -849,6 +854,7 @@ asn1typed_type_add_enum_item_ex(asn1typed_type_t *type,
 		return -1;
 	}
 	type->enum_items[type->enum_item_count++] = item;
+	enumerated_mapping_invalidate(type);
 	return 0;
 }
 
@@ -1125,6 +1131,195 @@ asn1typed_choice_wire_evidence_finalize(asn1typed_type_t *type,
 	if(asn1typed_choice_wire_evidence_validate(type, error, error_size)) {
 		choice_wire_mapping_invalidate(type);
 		return ASN1TYPED_WIRE_FINALIZE_UNAVAILABLE;
+	}
+	return ASN1TYPED_WIRE_FINALIZE_OK;
+}
+
+static int
+enumerated_storage_valid(const asn1typed_type_t *type) {
+	return type && type->kind == ASN1TYPED_TYPE_ENUMERATED &&
+		type->enum_item_count <= type->enum_item_capacity &&
+		!!type->enum_item_capacity == !!type->enum_items;
+}
+
+static void
+enumerated_mapping_invalidate(asn1typed_type_t *type) {
+	size_t i;
+	type->has_valid_per_enumeration_mapping = 0;
+	for(i = 0; i < type->enum_item_count; ++i) {
+		type->enum_items[i].has_per_enumeration_index = 0;
+		type->enum_items[i].per_enumeration_index = 0;
+	}
+}
+
+static int
+enumerated_set_numeric(asn1typed_type_t *type, size_t index,
+		asn1typed_wire_evidence_e evidence, intmax_t number) {
+	if(!enumerated_storage_valid(type) || index >= type->enum_item_count)
+		return -1;
+	enumerated_mapping_invalidate(type);
+	type->enum_items[index].numeric_evidence = evidence;
+	type->enum_items[index].assigned_number = number;
+	return 0;
+}
+
+int
+asn1typed_enum_item_set_numeric_evidence(asn1typed_type_t *type,
+		size_t index, intmax_t number) {
+	return enumerated_set_numeric(type, index,
+		ASN1TYPED_WIRE_EVIDENCE_RESOLVED, number);
+}
+
+int
+asn1typed_enum_item_set_numeric_unavailable(asn1typed_type_t *type,
+		size_t index) {
+	return enumerated_set_numeric(type, index,
+		ASN1TYPED_WIRE_EVIDENCE_UNAVAILABLE, 0);
+}
+
+int
+asn1typed_enum_item_set_numeric_unsupported(asn1typed_type_t *type,
+		size_t index) {
+	return enumerated_set_numeric(type, index,
+		ASN1TYPED_WIRE_EVIDENCE_UNSUPPORTED, 0);
+}
+
+/* -1 is malformed storage/API; 1 is unusable semantic evidence. */
+static int
+enumerated_evidence_check(const asn1typed_type_t *type,
+		char *error, size_t error_size, int indexes) {
+	size_t i, j;
+	int saw_addition = 0, saw_root = 0;
+	intmax_t previous_addition = 0;
+#define ENUM_FAIL(result, message) do { \
+	if(error && error_size) snprintf(error, error_size, "%s", message); \
+	return result; \
+} while(0)
+	if(error && error_size) error[0] = 0;
+	if(!enumerated_storage_valid(type))
+		ENUM_FAIL(-1, "ENUMERATED has invalid kind or item storage");
+	if(type->is_extensible != 0 && type->is_extensible != 1)
+		ENUM_FAIL(1, "ENUMERATED has invalid extensibility flag");
+	for(i = 0; i < type->enum_item_count; ++i) {
+		const asn1typed_enum_item_t *item = &type->enum_items[i];
+		if(!item->source_name || !item->source_name[0])
+			ENUM_FAIL(1, "ENUMERATED item has missing source name");
+		if(item->is_extension_addition != 0 && item->is_extension_addition != 1)
+			ENUM_FAIL(1, "ENUMERATED item has invalid extension membership");
+		if(item->numeric_evidence != ASN1TYPED_WIRE_EVIDENCE_RESOLVED)
+			ENUM_FAIL(1, item->numeric_evidence == ASN1TYPED_WIRE_EVIDENCE_UNSUPPORTED ?
+				"ENUMERATED item has unsupported numeric evidence" :
+				"ENUMERATED item has unavailable numeric evidence");
+		if(item->is_extension_addition) {
+			if(!saw_root || !type->is_extensible)
+				ENUM_FAIL(1, "ENUMERATED addition requires an extensible root");
+			if(saw_addition && item->assigned_number <= previous_addition)
+				ENUM_FAIL(1, "ENUMERATED addition numbers are not strictly increasing");
+			saw_addition = 1;
+			previous_addition = item->assigned_number;
+		} else {
+			if(saw_addition)
+				ENUM_FAIL(1, "ENUMERATED root occurs after an addition");
+			saw_root = 1;
+		}
+		for(j = 0; j < i; ++j) {
+			const asn1typed_enum_item_t *other = &type->enum_items[j];
+			if(!strcmp(item->source_name, other->source_name))
+				ENUM_FAIL(1, "ENUMERATED has duplicate source names");
+			if(item->assigned_number == other->assigned_number)
+				ENUM_FAIL(1, "ENUMERATED has duplicate assigned numbers");
+		}
+	}
+	if(!saw_root) ENUM_FAIL(1, "ENUMERATED requires a root item");
+	if(indexes) {
+		for(i = 0; i < type->enum_item_count; ++i) {
+			const asn1typed_enum_item_t *item = &type->enum_items[i];
+			size_t rank = 0;
+			if(item->has_per_enumeration_index != 1)
+				ENUM_FAIL(1, "ENUMERATED item has missing PER enumeration index");
+			for(j = 0; j < type->enum_item_count; ++j) {
+				const asn1typed_enum_item_t *other = &type->enum_items[j];
+				if(other->is_extension_addition != item->is_extension_addition) continue;
+				if(other->assigned_number < item->assigned_number) ++rank;
+				if(j < i && other->per_enumeration_index == item->per_enumeration_index)
+					ENUM_FAIL(1, "ENUMERATED has duplicate PER enumeration indexes");
+			}
+			if(item->per_enumeration_index != rank)
+				ENUM_FAIL(1, "ENUMERATED PER enumeration index disagrees with numeric order");
+		}
+	}
+#undef ENUM_FAIL
+	return 0;
+}
+
+int
+asn1typed_enumerated_evidence_validate(const asn1typed_type_t *type,
+		char *error, size_t error_size) {
+	if(enumerated_evidence_check(type, error, error_size, 1)) return -1;
+	if(type->has_valid_per_enumeration_mapping != 1) {
+		if(error && error_size) snprintf(error, error_size,
+			"ENUMERATED mapping has not been finalized");
+		return -1;
+	}
+	return 0;
+}
+
+asn1typed_wire_finalize_result_e
+asn1typed_enumerated_evidence_finalize(asn1typed_type_t *type,
+		char *error, size_t error_size) {
+	size_t i, j, *pending;
+	int check;
+	if(!enumerated_storage_valid(type)) {
+		if(error && error_size) snprintf(error, error_size,
+			"ENUMERATED finalization requires valid kind and item storage");
+		return ASN1TYPED_WIRE_FINALIZE_ERROR;
+	}
+	enumerated_mapping_invalidate(type);
+	check = enumerated_evidence_check(type, error, error_size, 0);
+	if(check) return check < 0 ? ASN1TYPED_WIRE_FINALIZE_ERROR :
+		ASN1TYPED_WIRE_FINALIZE_UNAVAILABLE;
+	if(type->enum_item_count > SIZE_MAX / sizeof(*pending)) {
+		if(error && error_size) snprintf(error, error_size,
+			"ENUMERATED index allocation size overflow");
+		return ASN1TYPED_WIRE_FINALIZE_ERROR;
+	}
+	pending = (size_t *)malloc(type->enum_item_count * sizeof(*pending));
+	if(!pending) {
+		if(error && error_size) snprintf(error, error_size,
+			"out of memory finalizing ENUMERATED indexes");
+		return ASN1TYPED_WIRE_FINALIZE_ERROR;
+	}
+	for(i = 0; i < type->enum_item_count; ++i) {
+		pending[i] = 0;
+		for(j = 0; j < type->enum_item_count; ++j)
+			if(type->enum_items[j].is_extension_addition == type->enum_items[i].is_extension_addition &&
+				type->enum_items[j].assigned_number < type->enum_items[i].assigned_number)
+				++pending[i];
+	}
+	/* Check the private permutation before publishing any item index. */
+	for(i = 0; i < type->enum_item_count; ++i) {
+		size_t part_count = 0;
+		for(j = 0; j < type->enum_item_count; ++j) {
+			if(type->enum_items[j].is_extension_addition != type->enum_items[i].is_extension_addition) continue;
+			++part_count;
+			if(j < i && pending[j] == pending[i]) break;
+		}
+		if(j != type->enum_item_count || pending[i] >= part_count) {
+			free(pending);
+			if(error && error_size) snprintf(error, error_size,
+				"ENUMERATED internal index permutation failure");
+			return ASN1TYPED_WIRE_FINALIZE_ERROR;
+		}
+	}
+	for(i = 0; i < type->enum_item_count; ++i) {
+		type->enum_items[i].per_enumeration_index = pending[i];
+		type->enum_items[i].has_per_enumeration_index = 1;
+	}
+	free(pending);
+	type->has_valid_per_enumeration_mapping = 1;
+	if(asn1typed_enumerated_evidence_validate(type, error, error_size)) {
+		enumerated_mapping_invalidate(type);
+		return ASN1TYPED_WIRE_FINALIZE_ERROR;
 	}
 	return ASN1TYPED_WIRE_FINALIZE_OK;
 }

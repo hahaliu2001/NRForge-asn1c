@@ -181,6 +181,10 @@ typedef struct asn1typed_enum_item_s {
 	char *source_name;
 	asn1typed_source_location_t location;
 	int is_extension_addition;
+	asn1typed_wire_evidence_e numeric_evidence;
+	intmax_t assigned_number;
+	int has_per_enumeration_index;
+	size_t per_enumeration_index;
 } asn1typed_enum_item_t;
 
 typedef struct asn1typed_choice_alternative_s {
@@ -216,6 +220,7 @@ struct asn1typed_type_s {
 	asn1typed_enum_item_t *enum_items;
 	size_t enum_item_count;
 	size_t enum_item_capacity;
+	int has_valid_per_enumeration_mapping;
 	int is_extensible;
 	asn1typed_choice_alternative_t *alternatives;
 	size_t alternative_count;
@@ -314,6 +319,16 @@ int asn1typed_type_add_enum_item(asn1typed_type_t *type,
 int asn1typed_type_add_enum_item_ex(asn1typed_type_t *type,
 		const char *source_name, int is_extension_addition,
 		const char *file, unsigned line);
+/* Successful mutations invalidate every published enum index. Direct public
+ * edits require validation before use. Missing evidence never implies zero. */
+int asn1typed_enum_item_set_numeric_evidence(asn1typed_type_t *, size_t, intmax_t);
+int asn1typed_enum_item_set_numeric_unavailable(asn1typed_type_t *, size_t);
+int asn1typed_enum_item_set_numeric_unsupported(asn1typed_type_t *, size_t);
+/* ERROR includes malformed API/storage, allocation and internal failures;
+ * UNAVAILABLE means unusable evidence/semantics. Only OK publishes indexes. */
+asn1typed_wire_finalize_result_e asn1typed_enumerated_evidence_finalize(
+		asn1typed_type_t *, char *, size_t);
+int asn1typed_enumerated_evidence_validate(const asn1typed_type_t *, char *, size_t);
 int asn1typed_type_add_choice_alternative(asn1typed_type_t *type,
 		const char *source_name, const asn1typed_type_ref_t *type_ref,
 		const asn1typed_size_constraint_t *size_constraint,

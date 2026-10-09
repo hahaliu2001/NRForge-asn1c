@@ -50,3 +50,11 @@ EXTRA_DIST += qualification/qualify_wire.py qualification/wire_driver.cpp qualif
 check_asn1typed_owned_slice_SOURCES = check_asn1typed_owned_slice.c check_asn1typed_choice_wire.c
 check_asn1typed_owned_slice_CPPFLAGS = $(check_asn1typed_extract_CPPFLAGS) -DS1_FIXTURE=\"$(abs_srcdir)/fixtures/cpp-aper-s1.asn1\" -DS1_INT64_FIXTURE=\"$(abs_srcdir)/fixtures/cpp-aper-s1-int64.asn1\" -DREVERSED_FIXTURE=\"$(abs_srcdir)/fixtures/cpp-aper-reversed-tags.asn1\" -DCOLLISION_FIXTURE=\"$(abs_srcdir)/fixtures/cpp-aper-wrapper-collision.asn1\" -DORDINAL_ZERO_FIXTURE=\"$(abs_srcdir)/fixtures/cpp-aper-ordinal-member-zero.asn1\" -DORDINAL_ONE_FIXTURE=\"$(abs_srcdir)/fixtures/cpp-aper-ordinal-member-one.asn1\" -DTAG_FIXTURE=\"$(abs_srcdir)/fixtures/choice-wire-evidence.asn1\"
 check_asn1typed_owned_slice_LDADD = $(check_asn1typed_extract_LDADD)
+
+check_PROGRAMS += check_asn1typed_enum_evidence
+TESTS += check_asn1typed_enum_evidence
+check_asn1typed_enum_evidence_SOURCES = check_asn1typed_enum_evidence.c
+check_asn1typed_enum_evidence_CPPFLAGS = $(check_asn1typed_extract_CPPFLAGS) -DENUM_FIXTURE=\"$(abs_srcdir)/fixtures/enumerated-evidence-n3.asn1\"
+check_asn1typed_enum_evidence_LDADD = $(check_asn1typed_extract_LDADD)
+EXTRA_DIST += fixtures/enumerated-evidence-n3.asn1
+check_asn1typed_enum_evidence_LDFLAGS = -Wl,--wrap=malloc -Wl,--wrap=calloc -Wl,--wrap=realloc

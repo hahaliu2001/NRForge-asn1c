@@ -526,12 +526,28 @@ populate_enumerated_items(asn1typed_type_t *out, asn1p_expr_t *body,
 				owner_name);
 			return -1;
 		}
+		{
+			size_t index = out->enum_item_count - 1;
+			intmax_t number;
+			if(!member->value || member->value->type != ATV_INTEGER)
+				asn1typed_enum_item_set_numeric_unavailable(out, index);
+			else if(constraint_bound(member->value, &number))
+				asn1typed_enum_item_set_numeric_unsupported(out, index);
+			else asn1typed_enum_item_set_numeric_evidence(out, index, number);
+		}
 		if(!saw_extension_marker) saw_root_item = 1;
 	}
 	if(!saw_root_item) {
 		set_error(error, error_size, "%s: ENUMERATED requires a root item",
 			owner_name);
 		return -1;
+	}
+	{
+		asn1typed_wire_finalize_result_e finalized =
+			asn1typed_enumerated_evidence_finalize(out, error, error_size);
+		if(finalized == ASN1TYPED_WIRE_FINALIZE_ERROR) return -1;
+		if(finalized == ASN1TYPED_WIRE_FINALIZE_UNAVAILABLE && error && error_size)
+			error[0] = 0;
 	}
 	return 0;
 }
