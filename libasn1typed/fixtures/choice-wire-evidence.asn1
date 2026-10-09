@@ -1,0 +1,16 @@
+ChoiceWireEvidence DEFINITIONS EXPLICIT TAGS ::= BEGIN
+
+Alias ::= BOOLEAN
+TagOrder ::= CHOICE {
+    privateFirst [PRIVATE 1] IMPLICIT Alias,
+    contextSecond [0] IMPLICIT BOOLEAN,
+    applicationLast [APPLICATION 7] IMPLICIT INTEGER
+}
+
+NumericOrder ::= CHOICE {
+    nine [9] IMPLICIT BOOLEAN,
+    two [2] IMPLICIT INTEGER,
+    five [5] IMPLICIT BOOLEAN
+}
+
+END

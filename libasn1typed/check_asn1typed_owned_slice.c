@@ -6,6 +6,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+void check_asn1typed_choice_wire_evidence(void);
+
 int main(void) {
 	asn1p_t *tree = asn1p_parse_file(S1_FIXTURE, A1P_NOFLAGS);
 	asn1typed_module_t ir = {0}, wide_ir = {0}; char diag[256], *a = NULL, *b = NULL, *wide = NULL;
@@ -106,6 +108,7 @@ int main(void) {
 	assert(wide_ir.types[0].value_range.lower_bound == INT64_MIN);
 	assert(wide_ir.types[0].value_range.upper_bound == INT64_MAX);
 	assert(asn1typed_render_cpp_owned_slice(&wide_ir, "nrforge::synthetic::cpp_aper_int64", &wide, diag, sizeof(diag)) == 0);
+	check_asn1typed_choice_wire_evidence();
 	fputs(a, stdout); fputs(wide, stdout); free(a); free(b); free(wide);
 	asn1typed_module_clear(&ir); asn1typed_module_clear(&wide_ir);
 	return 0;

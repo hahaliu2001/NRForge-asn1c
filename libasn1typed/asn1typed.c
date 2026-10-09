@@ -1,6 +1,7 @@
 #include "asn1typed.h"
 
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -892,6 +893,14 @@ asn1typed_type_add_choice_alternative(asn1typed_type_t *type,
 			&type->alternative_capacity, type->alternative_count + 1,
 			sizeof(*type->alternatives))) goto fail;
 	type->alternatives[type->alternative_count++] = alternative;
+	type->has_valid_per_root_mapping = 0;
+	{
+		size_t i;
+		for(i = 0; i < type->alternative_count; ++i) {
+			type->alternatives[i].has_per_root_index = 0;
+			type->alternatives[i].per_root_index = 0;
+		}
+	}
 	return 0;
 fail:
 	free(alternative.source_name);
@@ -899,4 +908,223 @@ fail:
 	free(alternative.value_range.tail);
 	asn1typed_source_location_clear(&alternative.location);
 	return -1;
+}
+
+static void
+choice_wire_mapping_invalidate(asn1typed_type_t *choice) {
+	size_t i;
+	if(!choice) return;
+	choice->has_valid_per_root_mapping = 0;
+	for(i = 0; i < choice->alternative_count; ++i) {
+		choice->alternatives[i].has_per_root_index = 0;
+		choice->alternatives[i].per_root_index = 0;
+	}
+}
+
+int
+asn1typed_choice_alternative_set_wire_evidence(
+		asn1typed_type_t *choice, size_t alternative_index,
+		asn1typed_tag_class_e tag_class, intmax_t tag_number) {
+	asn1typed_choice_alternative_t *alternative;
+	if(!choice || choice->kind != ASN1TYPED_TYPE_CHOICE ||
+		alternative_index >= choice->alternative_count || !choice->alternatives ||
+		tag_class < ASN1TYPED_TAG_CLASS_UNIVERSAL ||
+		tag_class > ASN1TYPED_TAG_CLASS_PRIVATE || tag_number < 0) return -1;
+	choice_wire_mapping_invalidate(choice);
+	alternative = &choice->alternatives[alternative_index];
+	alternative->wire_evidence = ASN1TYPED_WIRE_EVIDENCE_RESOLVED;
+	alternative->effective_tag_class = tag_class;
+	alternative->effective_tag_number = tag_number;
+	return 0;
+}
+
+void
+asn1typed_choice_alternative_set_wire_unavailable(
+		asn1typed_type_t *choice, size_t alternative_index) {
+	asn1typed_choice_alternative_t *alternative;
+	if(!choice || choice->kind != ASN1TYPED_TYPE_CHOICE ||
+		alternative_index >= choice->alternative_count || !choice->alternatives) return;
+	choice_wire_mapping_invalidate(choice);
+	alternative = &choice->alternatives[alternative_index];
+	alternative->wire_evidence = ASN1TYPED_WIRE_EVIDENCE_UNAVAILABLE;
+	alternative->effective_tag_class = ASN1TYPED_TAG_CLASS_UNKNOWN;
+	alternative->effective_tag_number = 0;
+}
+
+void
+asn1typed_choice_alternative_set_wire_unsupported(
+		asn1typed_type_t *choice, size_t alternative_index) {
+	asn1typed_choice_alternative_t *alternative;
+	if(!choice || choice->kind != ASN1TYPED_TYPE_CHOICE ||
+		alternative_index >= choice->alternative_count || !choice->alternatives) return;
+	choice_wire_mapping_invalidate(choice);
+	alternative = &choice->alternatives[alternative_index];
+	alternative->wire_evidence = ASN1TYPED_WIRE_EVIDENCE_UNSUPPORTED;
+	alternative->effective_tag_class = ASN1TYPED_TAG_CLASS_UNKNOWN;
+	alternative->effective_tag_number = 0;
+}
+
+static int
+wire_tag_precedes(const asn1typed_choice_alternative_t *left,
+		const asn1typed_choice_alternative_t *right) {
+	if(left->effective_tag_class != right->effective_tag_class)
+		return left->effective_tag_class < right->effective_tag_class;
+	return left->effective_tag_number < right->effective_tag_number;
+}
+
+static int
+choice_wire_evidence_check(const asn1typed_type_t *type,
+		char *error, size_t error_size, int check_indexes) {
+	size_t i, j;
+	if(error && error_size) error[0] = '\0';
+	if(!type || type->kind != ASN1TYPED_TYPE_CHOICE ||
+		!type->alternative_count || !type->alternatives) {
+		if(error && error_size) snprintf(error, error_size,
+			"wire evidence requires a non-empty CHOICE");
+		return -1;
+	}
+	if(type->is_extensible) {
+		if(error && error_size) snprintf(error, error_size,
+			"extensible CHOICE wire mapping is unsupported");
+		return 1;
+	}
+	for(i = 0; i < type->alternative_count; ++i) {
+		const asn1typed_choice_alternative_t *alt = &type->alternatives[i];
+		if(!alt->source_name || !alt->source_name[0] ||
+			alt->wire_evidence != ASN1TYPED_WIRE_EVIDENCE_RESOLVED ||
+			(check_indexes && !alt->has_per_root_index) ||
+			alt->effective_tag_class < ASN1TYPED_TAG_CLASS_UNIVERSAL ||
+			alt->effective_tag_class > ASN1TYPED_TAG_CLASS_PRIVATE ||
+			alt->effective_tag_number < 0) {
+			if(error && error_size) snprintf(error, error_size,
+				"CHOICE alternative %s has unavailable or unsupported wire evidence",
+				alt->source_name ? alt->source_name : "<unnamed>");
+			return 1;
+		}
+		if(check_indexes && alt->per_root_index >= type->alternative_count) {
+			if(error && error_size) snprintf(error, error_size,
+				"CHOICE alternative %s has out-of-range PER root index",
+				alt->source_name);
+			return -1;
+		}
+		for(j = 0; j < i; ++j) {
+			const asn1typed_choice_alternative_t *prior = &type->alternatives[j];
+			if(alt->effective_tag_class == prior->effective_tag_class &&
+				alt->effective_tag_number == prior->effective_tag_number) {
+				if(error && error_size) snprintf(error, error_size,
+					"CHOICE alternatives %s and %s have duplicate effective tags",
+					prior->source_name, alt->source_name);
+				return 1;
+			}
+			if(check_indexes && alt->per_root_index == prior->per_root_index) {
+				if(error && error_size) snprintf(error, error_size,
+					"CHOICE alternatives %s and %s have duplicate PER root indexes",
+					prior->source_name, alt->source_name);
+				return 1;
+			}
+		}
+	}
+	if(!check_indexes) return 0;
+	/* Unique indexes in [0,count) prove a complete continuous mapping. */
+	for(i = 0; i < type->alternative_count; ++i) {
+		size_t found = 0;
+		for(j = 0; j < type->alternative_count; ++j) {
+			if(type->alternatives[j].per_root_index == i) ++found;
+		}
+		if(found != 1) {
+			if(error && error_size) snprintf(error, error_size,
+				"CHOICE PER root index mapping is incomplete at index %zu", i);
+			return 1;
+		}
+	}
+	/* Check that the supplied index actually follows X.680 tag ordering. */
+	for(i = 0; i < type->alternative_count; ++i) {
+		const asn1typed_choice_alternative_t *alt = &type->alternatives[i];
+		size_t before = 0;
+		for(j = 0; j < type->alternative_count; ++j)
+			if(wire_tag_precedes(&type->alternatives[j], alt)) ++before;
+		if(alt->per_root_index != before) {
+			if(error && error_size) snprintf(error, error_size,
+				"CHOICE alternative %s PER index disagrees with canonical tag order",
+				alt->source_name);
+			return 1;
+		}
+	}
+	return 0;
+}
+
+int
+asn1typed_choice_wire_evidence_validate(const asn1typed_type_t *type,
+		char *error, size_t error_size) {
+	int check = choice_wire_evidence_check(type, error, error_size, 1);
+	if(check != 0) return -1;
+	if(!type->has_valid_per_root_mapping) {
+		if(error && error_size) snprintf(error, error_size,
+			"CHOICE PER root mapping has not been finalized");
+		return -1;
+	}
+	return 0;
+}
+
+asn1typed_wire_finalize_result_e
+asn1typed_choice_wire_evidence_finalize(asn1typed_type_t *type,
+		char *error, size_t error_size) {
+	size_t i, j, *pending_indexes;
+	int check;
+	if(!type) {
+		if(error && error_size) snprintf(error, error_size,
+			"wire evidence finalization requires a CHOICE");
+		return ASN1TYPED_WIRE_FINALIZE_ERROR;
+	}
+	choice_wire_mapping_invalidate(type);
+	check = choice_wire_evidence_check(type, error, error_size, 0);
+	if(check != 0) return check > 0 ?
+		ASN1TYPED_WIRE_FINALIZE_UNAVAILABLE : ASN1TYPED_WIRE_FINALIZE_ERROR;
+	if(type->alternative_count > SIZE_MAX / sizeof(*pending_indexes)) {
+		if(error && error_size) snprintf(error, error_size,
+			"CHOICE PER index allocation size overflow");
+		return ASN1TYPED_WIRE_FINALIZE_ERROR;
+	}
+	pending_indexes = (size_t *)malloc(type->alternative_count *
+		sizeof(*pending_indexes));
+	if(!pending_indexes) {
+		if(error && error_size) snprintf(error, error_size,
+			"out of memory finalizing CHOICE PER indexes");
+		return ASN1TYPED_WIRE_FINALIZE_ERROR;
+	}
+	/* Derive and validate ranks privately; publish only the complete mapping. */
+	for(i = 0; i < type->alternative_count; ++i) {
+		const asn1typed_choice_alternative_t *alt = &type->alternatives[i];
+		size_t rank = 0;
+		for(j = 0; j < type->alternative_count; ++j)
+			if(wire_tag_precedes(&type->alternatives[j], alt)) ++rank;
+		pending_indexes[i] = rank;
+	}
+	for(i = 0; i < type->alternative_count; ++i) {
+		if(pending_indexes[i] >= type->alternative_count) {
+			free(pending_indexes);
+			if(error && error_size) snprintf(error, error_size,
+				"CHOICE PER root index is out of range");
+			return ASN1TYPED_WIRE_FINALIZE_UNAVAILABLE;
+		}
+		for(j = 0; j < i; ++j) {
+			if(pending_indexes[i] == pending_indexes[j]) {
+				free(pending_indexes);
+				if(error && error_size) snprintf(error, error_size,
+					"CHOICE PER root indexes are not unique");
+				return ASN1TYPED_WIRE_FINALIZE_UNAVAILABLE;
+			}
+		}
+	}
+	for(i = 0; i < type->alternative_count; ++i) {
+		type->alternatives[i].per_root_index = pending_indexes[i];
+		type->alternatives[i].has_per_root_index = 1;
+	}
+	free(pending_indexes);
+	type->has_valid_per_root_mapping = 1;
+	if(asn1typed_choice_wire_evidence_validate(type, error, error_size)) {
+		choice_wire_mapping_invalidate(type);
+		return ASN1TYPED_WIRE_FINALIZE_UNAVAILABLE;
+	}
+	return ASN1TYPED_WIRE_FINALIZE_OK;
 }

@@ -53,6 +53,32 @@ primitive_from_expr(const asn1p_expr_t *expr) {
 	}
 }
 
+static asn1typed_tag_default_e
+module_tag_default(const asn1p_module_t *module) {
+	if(!module) return ASN1TYPED_TAG_DEFAULT_UNKNOWN;
+	if(module->module_flags & MSF_AUTOMATIC_TAGS)
+		return ASN1TYPED_TAG_DEFAULT_AUTOMATIC;
+	if(module->module_flags & MSF_IMPLICIT_TAGS)
+		return ASN1TYPED_TAG_DEFAULT_IMPLICIT;
+	if(module->module_flags & MSF_EXPLICIT_TAGS)
+		return ASN1TYPED_TAG_DEFAULT_EXPLICIT;
+	/* X.680 13.2: empty TagDefault means EXPLICIT TAGS. */
+	if((module->module_flags & MSF_MASK_TAGS) == 0)
+		return ASN1TYPED_TAG_DEFAULT_EXPLICIT;
+	return ASN1TYPED_TAG_DEFAULT_UNKNOWN;
+}
+
+static asn1typed_tag_class_e
+owned_tag_class(int tag_class) {
+	switch(tag_class) {
+	case TC_UNIVERSAL: return ASN1TYPED_TAG_CLASS_UNIVERSAL;
+	case TC_APPLICATION: return ASN1TYPED_TAG_CLASS_APPLICATION;
+	case TC_CONTEXT_SPECIFIC: return ASN1TYPED_TAG_CLASS_CONTEXT_SPECIFIC;
+	case TC_PRIVATE: return ASN1TYPED_TAG_CLASS_PRIVATE;
+	default: return ASN1TYPED_TAG_CLASS_UNKNOWN;
+	}
+}
+
 static int
 primitive_accepts_exact_size(asn1typed_primitive_kind_e primitive) {
 	return primitive == ASN1TYPED_PRIMITIVE_OCTET_STRING ||
@@ -741,6 +767,16 @@ populate_type(asn1p_t *tree, asn1typed_type_t *out, asn1p_expr_t *decl,
 		return populate_enumerated_items(out, body, file, error, error_size,
 			decl->Identifier);
 	case ASN1TYPED_TYPE_CHOICE:
+		{
+			asn1typed_wire_finalize_result_e finalize_result;
+			TQ_FOR(member, &body->members, next) {
+				if(member->expr_type == A1TC_EXTENSIBLE) {
+					set_error(error, error_size,
+						"%s: CHOICE extension marker/additions are unsupported",
+						decl->Identifier);
+					return -1;
+				}
+			}
 		TQ_FOR(member, &body->members, next) {
 			asn1typed_type_ref_t ref;
 			asn1typed_size_constraint_t alternative_size = {0};
@@ -809,6 +845,28 @@ populate_type(asn1p_t *tree, asn1typed_type_t *out, asn1p_expr_t *decl,
 					decl->Identifier, member->Identifier);
 				return -1;
 			}
+			{
+				size_t alternative_index = out->alternative_count - 1;
+				asn1typed_tag_class_e tag_class =
+					owned_tag_class(member->tag.tag_class);
+				if(tag_class != ASN1TYPED_TAG_CLASS_UNKNOWN &&
+					member->tag.tag_value >= 0 &&
+					member->tag.tag_value <= INTMAX_MAX) {
+					if(asn1typed_choice_alternative_set_wire_evidence(
+						out, alternative_index, tag_class,
+						(intmax_t)member->tag.tag_value)) {
+						asn1typed_type_ref_clear(&ref);
+						free(alternative_value_range.tail);
+						set_error(error, error_size,
+							"%s.%s: could not store CHOICE tag evidence",
+							decl->Identifier, member->Identifier);
+						return -1;
+					}
+				} else if(member->tag.tag_class != TC_NOCLASS) {
+					asn1typed_choice_alternative_set_wire_unsupported(out,
+						alternative_index);
+				}
+			}
 			asn1typed_type_ref_clear(&ref);
 			free(alternative_value_range.tail);
 		}
@@ -816,6 +874,18 @@ populate_type(asn1p_t *tree, asn1typed_type_t *out, asn1p_expr_t *decl,
 			set_error(error, error_size, "%s: empty CHOICE is unsupported",
 				decl->Identifier);
 			return -1;
+		}
+		finalize_result = asn1typed_choice_wire_evidence_finalize(out,
+			error, error_size);
+		if(finalize_result == ASN1TYPED_WIRE_FINALIZE_ERROR) {
+			if(!error || !error_size || !error[0])
+				set_error(error, error_size,
+					"%s: internal CHOICE wire evidence finalization failure",
+					decl->Identifier);
+			return -1;
+		}
+		if(finalize_result == ASN1TYPED_WIRE_FINALIZE_UNAVAILABLE &&
+			error && error_size) error[0] = '\0';
 		}
 		return 0;
 	default:
@@ -855,6 +925,7 @@ asn1typed_extract_module(asn1p_t *tree, const char *module_name,
 		set_error(error, error_size, "%s: out of memory creating IR module", module_name);
 		return -1;
 	}
+	out->tag_default = module_tag_default(source);
 	TQ_FOR(decl, &source->members, next) {
 		asn1typed_type_kind_e kind;
 		asn1typed_type_t *type;
@@ -1971,6 +2042,7 @@ asn1typed_extract_message(asn1p_t *tree, const char *module_name,
 		set_error(error, error_size, "out of memory storing IOC message");
 		goto fail;
 	}
+	out->tag_default = module_tag_default(source);
 	message_body = terminal_type(message);
 	container_use = message_body ? TQ_FIRST(&message_body->members) : NULL;
 	if(!container_use || put_parameterized_object_set_ref(tree,

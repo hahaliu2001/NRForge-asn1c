@@ -29,7 +29,7 @@ check_asn1typed_extract_LDADD = \
 	$(top_builddir)/libasn1parser/libasn1parser.la \
 	$(top_builddir)/libasn1common/libasn1common.la
 
-EXTRA_DIST = check_asn1typed_render_cpp.sh check_asn1typed_owned_slice.sh fixtures/ordinary-t2.asn1 fixtures/cpp-aper-s1.asn1 fixtures/cpp-aper-s1-int64.asn1 fixtures/ioc-t3.asn1 fixtures/ioc-multimodule.asn1 fixtures/parameterized-reference-b7a.asn1 fixtures/visible-string-size-t6.asn1 fixtures/integer-value-range.asn1 fixtures/integer-permitted-set-t8.asn1 fixtures/ioc-empty-typed.asn1
+EXTRA_DIST = check_asn1typed_render_cpp.sh check_asn1typed_owned_slice.sh fixtures/ordinary-t2.asn1 fixtures/cpp-aper-s1.asn1 fixtures/cpp-aper-s1-int64.asn1 fixtures/choice-wire-evidence.asn1 fixtures/ioc-t3.asn1 fixtures/ioc-multimodule.asn1 fixtures/parameterized-reference-b7a.asn1 fixtures/visible-string-size-t6.asn1 fixtures/integer-value-range.asn1 fixtures/integer-permitted-set-t8.asn1 fixtures/ioc-empty-typed.asn1
 
 # Only the integration test links extraction/parser/fixer with the renderer.
 check_asn1typed_ioc_cpp_SOURCES = check_asn1typed_ioc_cpp.c
@@ -37,6 +37,6 @@ check_asn1typed_ioc_cpp_CPPFLAGS = $(check_asn1typed_extract_CPPFLAGS)
 check_asn1typed_ioc_cpp_LDADD = $(check_asn1typed_extract_LDADD)
 EXTRA_DIST += check_asn1typed_ioc_cpp.sh
 
-check_asn1typed_owned_slice_SOURCES = check_asn1typed_owned_slice.c
-check_asn1typed_owned_slice_CPPFLAGS = $(check_asn1typed_extract_CPPFLAGS) -DS1_FIXTURE=\"$(abs_srcdir)/fixtures/cpp-aper-s1.asn1\" -DS1_INT64_FIXTURE=\"$(abs_srcdir)/fixtures/cpp-aper-s1-int64.asn1\"
+check_asn1typed_owned_slice_SOURCES = check_asn1typed_owned_slice.c check_asn1typed_choice_wire.c
+check_asn1typed_owned_slice_CPPFLAGS = $(check_asn1typed_extract_CPPFLAGS) -DS1_FIXTURE=\"$(abs_srcdir)/fixtures/cpp-aper-s1.asn1\" -DS1_INT64_FIXTURE=\"$(abs_srcdir)/fixtures/cpp-aper-s1-int64.asn1\" -DTAG_FIXTURE=\"$(abs_srcdir)/fixtures/choice-wire-evidence.asn1\"
 check_asn1typed_owned_slice_LDADD = $(check_asn1typed_extract_LDADD)

@@ -16,6 +16,33 @@ typedef enum asn1typed_type_kind_e {
 	ASN1TYPED_TYPE_CHOICE
 } asn1typed_type_kind_e;
 
+typedef enum asn1typed_tag_default_e {
+	ASN1TYPED_TAG_DEFAULT_UNKNOWN,
+	ASN1TYPED_TAG_DEFAULT_EXPLICIT,
+	ASN1TYPED_TAG_DEFAULT_IMPLICIT,
+	ASN1TYPED_TAG_DEFAULT_AUTOMATIC
+} asn1typed_tag_default_e;
+
+typedef enum asn1typed_tag_class_e {
+	ASN1TYPED_TAG_CLASS_UNKNOWN,
+	ASN1TYPED_TAG_CLASS_UNIVERSAL,
+	ASN1TYPED_TAG_CLASS_APPLICATION,
+	ASN1TYPED_TAG_CLASS_CONTEXT_SPECIFIC,
+	ASN1TYPED_TAG_CLASS_PRIVATE
+} asn1typed_tag_class_e;
+
+typedef enum asn1typed_wire_evidence_e {
+	ASN1TYPED_WIRE_EVIDENCE_UNAVAILABLE,
+	ASN1TYPED_WIRE_EVIDENCE_RESOLVED,
+	ASN1TYPED_WIRE_EVIDENCE_UNSUPPORTED
+} asn1typed_wire_evidence_e;
+
+typedef enum asn1typed_wire_finalize_result_e {
+	ASN1TYPED_WIRE_FINALIZE_ERROR = -1,
+	ASN1TYPED_WIRE_FINALIZE_OK = 0,
+	ASN1TYPED_WIRE_FINALIZE_UNAVAILABLE = 1
+} asn1typed_wire_finalize_result_e;
+
 typedef enum asn1typed_presence_e {
 	ASN1TYPED_PRESENCE_MANDATORY,
 	ASN1TYPED_PRESENCE_OPTIONAL,
@@ -162,6 +189,12 @@ typedef struct asn1typed_choice_alternative_s {
 	asn1typed_size_constraint_t size_constraint;
 	/* Inline primitive INTEGER permitted set owned by this alternative. */
 	asn1typed_integer_value_range_t value_range;
+	/* Optional owned tag evidence; index is published only by finalization. */
+	asn1typed_wire_evidence_e wire_evidence;
+	asn1typed_tag_class_e effective_tag_class;
+	intmax_t effective_tag_number;
+	int has_per_root_index;
+	size_t per_root_index;
 	asn1typed_source_location_t location;
 } asn1typed_choice_alternative_t;
 
@@ -187,6 +220,8 @@ struct asn1typed_type_s {
 	asn1typed_choice_alternative_t *alternatives;
 	size_t alternative_count;
 	size_t alternative_capacity;
+	/* Set only after every root alternative is resolved and validated. */
+	int has_valid_per_root_mapping;
 };
 
 /* B7b.1 owns the identity before it owns the instance's semantic body. */
@@ -200,6 +235,7 @@ typedef struct asn1typed_bound_instance_s {
 
 typedef struct asn1typed_module_s {
 	char *source_name;
+	asn1typed_tag_default_e tag_default;
 	asn1typed_source_location_t location;
 	asn1typed_type_t *types;
 	size_t type_count;
@@ -283,6 +319,24 @@ int asn1typed_type_add_choice_alternative(asn1typed_type_t *type,
 		const asn1typed_size_constraint_t *size_constraint,
 		const asn1typed_integer_value_range_t *value_range,
 		const char *file, unsigned line);
+/* These CHOICE-scoped mutations invalidate the mapping and clear every
+ * published alternative index. The public structs can still be modified
+ * directly; callers must validate before using wire evidence. */
+int asn1typed_choice_alternative_set_wire_evidence(asn1typed_type_t *choice,
+		size_t alternative_index, asn1typed_tag_class_e tag_class,
+		intmax_t tag_number);
+void asn1typed_choice_alternative_set_wire_unavailable(
+		asn1typed_type_t *choice, size_t alternative_index);
+void asn1typed_choice_alternative_set_wire_unsupported(
+		asn1typed_type_t *choice, size_t alternative_index);
+/* Finalize publishes indexes only after the entire mapping checks. Returns
+ * UNAVAILABLE for incomplete/unsupported/duplicate evidence, ERROR for bad
+ * API arguments, and OK on success. */
+asn1typed_wire_finalize_result_e asn1typed_choice_wire_evidence_finalize(
+		asn1typed_type_t *type, char *error, size_t error_size);
+/* Rechecks tags, index uniqueness/continuity/order, and the valid flag. */
+int asn1typed_choice_wire_evidence_validate(const asn1typed_type_t *type,
+		char *error, size_t error_size);
 void asn1typed_type_clear(asn1typed_type_t *type);
 int asn1typed_field_set_ioc(asn1typed_field_t *field,
 		const char *symbolic_id, asn1typed_criticality_e criticality,
