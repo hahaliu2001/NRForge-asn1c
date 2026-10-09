@@ -42,6 +42,22 @@ extern "C" {
 int asn1typed_render_cpp(const asn1typed_module_t *module, char **out,
 		char *diagnostic, size_t diagnostic_size);
 
+/* Restricted owned C++20 value model for synthetic protocol fixtures. This
+ * opt-in entry emits a namespace, bounded INTEGER metadata, CHOICE wrappers,
+ * variant storage and OPTIONAL sequence fields. Alternative wrapper types
+ * carry identity; std::variant::index() is not a PER index. Unsupported IR
+ * semantics fail closed. It emits no wire mapping or codec. namespace_name is
+ * emitted verbatim after strict C++20 namespace validation. Each namespace
+ * segment is limited to 127 characters; any segment that is a C++ keyword,
+ * reserved identifier, or object-like standard macro from an included
+ * standard header (including <cstdint> limit macros) is rejected rather than
+ * rewritten. The emitted text is
+ * validated with strict C++20 compilation; GNU/platform macros are outside
+ * the naming guarantee. */
+int asn1typed_render_cpp_owned_slice(const asn1typed_module_t *module,
+		const char *namespace_name, char **out, char *diagnostic,
+		size_t diagnostic_size);
+
 #ifdef __cplusplus
 }
 #endif

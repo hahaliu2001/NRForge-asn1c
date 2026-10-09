@@ -129,6 +129,7 @@ doc/docsrc/*.xdv
 /libasn1typed/check_asn1typed_name
 /libasn1typed/check_asn1typed_render_cpp
 /libasn1typed/check_asn1typed_ioc_cpp
+/libasn1typed/check_asn1typed_owned_slice
 /libasn1parser/asn1p_l.c
 /libasn1parser/asn1p_y.c
 /libasn1parser/asn1p_y.h

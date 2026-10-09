@@ -1,0 +1,16 @@
+CppAperSlice DEFINITIONS AUTOMATIC TAGS ::= BEGIN
+
+Count ::= INTEGER (0..65535)
+
+Selection ::= CHOICE {
+    flag  BOOLEAN,
+    count Count
+}
+
+Packet ::= SEQUENCE {
+    count     Count,
+    enabled   BOOLEAN OPTIONAL,
+    selection Selection
+}
+
+END
