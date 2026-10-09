@@ -1,6 +1,7 @@
 #include "runtime.hpp"
 
 #include <array>
+#include <climits>
 #include <cstdio>
 #include <cstdlib>
 #include <limits>
@@ -473,6 +474,244 @@ void test_invalid_logical_limit() {
     expect_error(result, ErrorCode::invalid_argument, 0);
 }
 
+// Independent bit-list oracle for the four approved domains. It deliberately
+// does not invoke runtime alignment, length or payload routines.
+std::vector<std::byte> constrained_reference(unsigned width, std::uint64_t value,
+                                            unsigned residue, unsigned forced_octets = 0) {
+    std::vector<bool> bits(residue, true);
+    const unsigned length_width = width > 16 ? (width == 32 ? 2u : 3u) : 0u;
+    unsigned octets = width <= 16 ? width / 8 : 1;
+    if(width > 16)
+        while(octets < 8 && value >= (std::uint64_t{1} << (octets * 8))) ++octets;
+    if(forced_octets) octets = forced_octets;
+    for(unsigned i = length_width; i > 0; --i)
+        bits.push_back(((octets - 1) & (1u << (i - 1))) != 0);
+    while(bits.size() % 8) bits.push_back(false);
+    for(unsigned i = octets * 8; i > 0; --i)
+        bits.push_back((value & (std::uint64_t{1} << (i - 1))) != 0);
+    std::vector<std::byte> bytes(bits.size() / 8, std::byte{0});
+    for(std::size_t i = 0; i < bits.size(); ++i)
+        if(bits[i]) bytes[i / 8] |= static_cast<std::byte>(0x80u >> (i % 8));
+    return bytes;
+}
+
+void test_constrained_uint_vectors_and_failures() {
+    for(unsigned width : {8u, 16u, 32u, 40u}) {
+        const auto maximum = (std::uint64_t{1} << width) - 1;
+        const std::uint64_t candidates[] = {0, 1, 254, 255, 256, 65535, 65536,
+            16777215, 16777216, 4294967295ULL, 4294967296ULL, maximum};
+        for(auto value : candidates) {
+            if(value > maximum) continue;
+            for(unsigned residue = 0; residue < 8; ++residue) {
+                const auto bytes = constrained_reference(width, value, residue);
+                const auto end = bytes.size() * 8;
+                EncodeContext ec;
+                BitWriter writer(ec);
+                for(unsigned i = 0; i < residue; ++i) REQUIRE(writer.write_bit(true));
+                FieldWriter field(writer);
+                REQUIRE(field.write_constrained_uint(value, width));
+                REQUIRE(writer.cursor_bit() == end && ec.wire_bits() == end);
+                REQUIRE(ec.logical_output_octets() == bytes.size());
+                auto encoded = writer.finish();
+                REQUIRE(encoded && encoded.value().octets == bytes);
+                REQUIRE(encoded.value().last_field_end_bit == end);
+                REQUIRE(encoded.value().final_padding_bits == 0);
+                REQUIRE(encoded.value().complete_encoding_bits == end);
+                DecodeContext dc;
+                auto made = BitReader::make(bytes, dc);
+                REQUIRE(made);
+                auto reader = std::move(made).value();
+                for(unsigned i = 0; i < residue; ++i) REQUIRE(reader.read_bit().value());
+                FieldReader input(reader);
+                auto decoded = input.read_constrained_uint(width);
+                REQUIRE(decoded && decoded.value() == value);
+                REQUIRE(reader.cursor_bit() == end && dc.wire_bits() == end);
+                REQUIRE(reader.validate_complete_value());
+
+                // Every logical-bit truncation, including partial prefix and
+                // alignment-complete / payload-incomplete cases, stays atomic.
+                for(std::size_t limit = residue; limit < end; ++limit) {
+                    DecodeContext tc;
+                    auto bounded = BitReader::make_bounded_for_test(bytes, limit, tc);
+                    REQUIRE(bounded);
+                    auto truncated = std::move(bounded).value();
+                    for(unsigned i = 0; i < residue; ++i) REQUIRE(truncated.read_bit());
+                    expect_error(truncated.read_constrained_uint(width), ErrorCode::truncated_input, limit);
+                    REQUIRE(truncated.cursor_bit() == residue && tc.wire_bits() == residue);
+                    expect_error(truncated.read_constrained_uint(0), ErrorCode::truncated_input, limit);
+                    expect_error(truncated.validate_complete_value(), ErrorCode::truncated_input, limit);
+                }
+                const auto prefix = width > 16 ? (width == 32 ? 2u : 3u) : 0u;
+                const auto pad_start = residue + prefix;
+                const auto payload_start = (pad_start + 7u) / 8u * 8u;
+                for(unsigned position = pad_start; position < payload_start; ++position) {
+                    auto bad = bytes;
+                    bad[position / 8] |= static_cast<std::byte>(0x80u >> (position % 8));
+                    DecodeContext pc;
+                    auto result = BitReader::make(bad, pc);
+                    REQUIRE(result);
+                    auto padding_reader = std::move(result).value();
+                    for(unsigned i = 0; i < residue; ++i) REQUIRE(padding_reader.read_bit());
+                    expect_error(padding_reader.read_constrained_uint(width), ErrorCode::nonzero_padding, position);
+                    REQUIRE(padding_reader.cursor_bit() == residue && pc.wire_bits() == residue);
+                    expect_error(padding_reader.read_bit(), ErrorCode::nonzero_padding, position);
+                }
+                // Exact / one-less resource budgets in both directions.
+                for(bool short_budget : {false, true}) {
+                    for(bool output_budget : {false, true}) {
+                        Limits limits;
+                        if(output_budget) limits.max_output_octets = bytes.size() - (short_budget ? 1 : 0);
+                        else limits.max_wire_bits = end - (short_budget ? 1 : 0);
+                        EncodeContext bc(limits);
+                        BitWriter bw(bc);
+                        for(unsigned i = 0; i < residue; ++i) REQUIRE(bw.write_bit(true));
+                        auto result = bw.write_constrained_uint(value, width);
+                        if(short_budget) {
+                            expect_error(result, ErrorCode::resource_limit, residue);
+                            REQUIRE(bw.cursor_bit() == residue && bc.wire_bits() == residue);
+                            REQUIRE(bc.logical_output_octets() == (residue ? 1u : 0u));
+                            expect_error(bw.finish(), ErrorCode::resource_limit, residue);
+                        } else {
+                            REQUIRE(result);
+                            REQUIRE(bw.finish().value().octets == bytes);
+                        }
+                    }
+                    Limits limits;
+                    limits.max_wire_bits = end - (short_budget ? 1 : 0);
+                    DecodeContext bc(limits);
+                    auto result = BitReader::make(bytes, bc);
+                    REQUIRE(result);
+                    auto br = std::move(result).value();
+                    for(unsigned i = 0; i < residue; ++i) REQUIRE(br.read_bit());
+                    auto read = br.read_constrained_uint(width);
+                    if(short_budget) {
+                        expect_error(read, ErrorCode::resource_limit, residue);
+                        REQUIRE(br.cursor_bit() == residue && bc.wire_bits() == residue);
+                    } else REQUIRE(read && read.value() == value);
+                    limits = Limits{};
+                    limits.max_input_octets = bytes.size() - (short_budget ? 1 : 0);
+                    DecodeContext ic(limits);
+                    auto input_result = BitReader::make(bytes, ic);
+                    if(short_budget) expect_error(input_result, ErrorCode::resource_limit, 0);
+                    else REQUIRE(input_result);
+                }
+            }
+        }
+        for(auto value : {maximum + 1, UINT64_MAX}) {
+            EncodeContext c;
+            BitWriter w(c);
+            REQUIRE(w.write_bit(true));
+            expect_error(w.write_constrained_uint(value, width), ErrorCode::constraint_violation, 1);
+            REQUIRE(w.cursor_bit() == 1 && c.wire_bits() == 1 && c.logical_output_octets() == 1);
+            expect_error(w.write_constrained_uint(0, 0), ErrorCode::constraint_violation, 1);
+            expect_error(w.finish(), ErrorCode::constraint_violation, 1);
+        }
+    }
+}
+
+void test_constrained_uint_malformed_and_state() {
+    for(unsigned width : {32u, 40u}) {
+        // Illegal leading zero: semantic rejection after availability and budget.
+        auto bytes = constrained_reference(width, 1, 3, 2);
+        for(unsigned failure : {0u, 1u, 2u, 3u}) {
+            Limits limits;
+            if(failure == 1) limits.max_wire_bits = bytes.size() * 8 - 1;
+            DecodeContext c(limits);
+            if(failure == 3) bytes[0] |= std::byte{1}; // last alignment bit
+            auto made = BitReader::make_bounded_for_test(bytes,
+                bytes.size() * 8 - (failure == 2 ? 1 : 0), c);
+            REQUIRE(made);
+            auto r = std::move(made).value();
+            for(unsigned i = 0; i < 3; ++i) REQUIRE(r.read_bit());
+            const auto code = failure == 1 ? ErrorCode::resource_limit :
+                (failure == 2 ? ErrorCode::truncated_input :
+                 (failure == 3 ? ErrorCode::nonzero_padding : ErrorCode::constraint_violation));
+            const auto offset = failure == 2 ? bytes.size() * 8 - 1 : (failure == 3 ? 7u : 3u);
+            expect_error(r.read_constrained_uint(width), code, offset);
+            REQUIRE(r.cursor_bit() == 3 && c.wire_bits() == 3);
+        }
+    }
+    for(unsigned octets : {6u, 7u, 8u}) {
+        const auto bytes = constrained_reference(40, 1, 3, octets);
+        Limits limits;
+        limits.max_wire_bits = 3; // selector priority over budget/payload absence
+        DecodeContext c(limits);
+        auto made = BitReader::make_bounded_for_test(bytes, 6, c);
+        REQUIRE(made);
+        auto r = std::move(made).value();
+        for(unsigned i = 0; i < 3; ++i) REQUIRE(r.read_bit());
+        expect_error(r.read_constrained_uint(40), ErrorCode::constraint_violation, 3);
+        REQUIRE(r.cursor_bit() == 3 && c.wire_bits() == 3);
+    }
+    for(unsigned width : {0u, 1u, 7u, 9u, 24u, 64u, 65u, UINT_MAX}) {
+        EncodeContext ec;
+        BitWriter w(ec);
+        expect_error(w.write_constrained_uint(UINT64_MAX, width), ErrorCode::invalid_argument, 0);
+        expect_error(w.write_constrained_uint(0, 8), ErrorCode::invalid_argument, 0);
+        REQUIRE(w.cursor_bit() == 0 && ec.wire_bits() == 0);
+        DecodeContext dc;
+        auto made = BitReader::make({}, dc);
+        REQUIRE(made);
+        auto r = std::move(made).value();
+        expect_error(r.read_constrained_uint(width), ErrorCode::invalid_argument, 0);
+        expect_error(r.read_constrained_uint(8), ErrorCode::invalid_argument, 0);
+        REQUIRE(r.cursor_bit() == 0 && dc.wire_bits() == 0);
+    }
+    for(unsigned width : {0u, 8u, 16u, 32u, 40u}) {
+        EncodeContext c;
+        BitWriter w(c);
+        REQUIRE(w.finish());
+        expect_error(w.write_constrained_uint(UINT64_MAX, width), ErrorCode::invalid_state, 8);
+        REQUIRE(c.finished() && !c.failed() && c.wire_bits() == 8);
+        c.record_failure({ErrorCode::resource_limit, 42});
+        expect_error(w.write_constrained_uint(0, width), ErrorCode::resource_limit, 42);
+        EncodeContext mc;
+        BitWriter source(mc);
+        BitWriter destination(std::move(source));
+        expect_error(source.write_constrained_uint(UINT64_MAX, width), ErrorCode::invalid_state, 0);
+        REQUIRE(!mc.failed() && mc.wire_bits() == 0);
+        REQUIRE(destination.write_constrained_uint(1, 8));
+        const std::array<std::byte, 1> zero{std::byte{0}};
+        DecodeContext dc;
+        auto made = BitReader::make(zero, dc);
+        REQUIRE(made);
+        auto rs = std::move(made).value();
+        BitReader rd(std::move(rs));
+        expect_error(rs.read_constrained_uint(width), ErrorCode::invalid_state, 0);
+        REQUIRE(!dc.failed() && dc.wire_bits() == 0);
+        REQUIRE(rd.read_constrained_uint(8));
+        REQUIRE(rd.validate_complete_value());
+        expect_error(rd.read_constrained_uint(width), ErrorCode::invalid_state, 8);
+        REQUIRE(dc.finished() && !dc.failed() && dc.wire_bits() == 8);
+        dc.record_failure({ErrorCode::resource_limit, 42});
+        expect_error(rd.read_constrained_uint(width), ErrorCode::resource_limit, 42);
+    }
+    for(unsigned width : {8u, 16u, 32u, 40u}) {
+        for(bool prefix : {false, true}) {
+            EncodeContext c;
+            BitWriter w(c);
+            if(prefix) REQUIRE(w.write_bit(true));
+            fail_next_allocation = true;
+            expect_error(w.write_constrained_uint((std::uint64_t{1} << width) - 1, width),
+                         ErrorCode::allocation_failure, prefix ? 1 : 0);
+            REQUIRE(!fail_next_allocation);
+            REQUIRE(w.cursor_bit() == (prefix ? 1u : 0u));
+            REQUIRE(c.wire_bits() == w.cursor_bit());
+            REQUIRE(c.logical_output_octets() == (prefix ? 1u : 0u));
+            expect_error(w.write_constrained_uint(0, 0), ErrorCode::allocation_failure, prefix ? 1 : 0);
+        }
+    }
+    expect_error(nrforge::aper::encode_complete<int>(0, Limits{}, [](FieldWriter& f) {
+        (void)f.write_constrained_uint(UINT64_MAX, 40);
+        return f.write_constrained_uint(0, 8);
+    }), ErrorCode::constraint_violation, 0);
+    const std::array<std::byte, 1> incomplete{std::byte{0}};
+    expect_error(nrforge::aper::decode_complete<std::uint64_t>(incomplete, Limits{}, [](FieldReader& f) {
+        (void)f.read_constrained_uint(40);
+        return f.read_constrained_uint(8);
+    }), ErrorCode::truncated_input, 8);
+}
+
 } // namespace
 
 void* operator new(std::size_t size) {
@@ -510,5 +749,7 @@ int main() {
     test_result_wrong_arm_accessors();
     test_checked_size_arithmetic();
     test_invalid_logical_limit();
+    test_constrained_uint_vectors_and_failures();
+    test_constrained_uint_malformed_and_state();
     return 0;
 }

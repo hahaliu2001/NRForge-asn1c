@@ -23,6 +23,10 @@ void set_bit(std::vector<std::byte>& bytes, std::size_t position, bool value) no
     bytes[position / 8] = static_cast<std::byte>(byte);
 }
 
+bool constrained_width_supported(unsigned bits) noexcept {
+    return bits == 8 || bits == 16 || bits == 32 || bits == 40;
+}
+
 } // namespace
 
 bool detail::checked_add_size(std::size_t left, std::size_t right,
@@ -191,6 +195,55 @@ Result<void> BitReader::validate_complete_value() {
     return Result<void>::success();
 }
 
+Result<std::uint64_t> BitReader::read_constrained_uint(unsigned root_bits) {
+    auto live = validate_live();
+    if(!live) return Result<std::uint64_t>::failure(live.error());
+    const auto start = cursor_bit_;
+    if(!constrained_width_supported(root_bits))
+        return Result<std::uint64_t>::failure(fail({ErrorCode::invalid_argument, start}).error());
+    if(root_bits == 16) {
+        auto value = read_aligned_u16_be();
+        return value ? Result<std::uint64_t>::success(value.value())
+                     : Result<std::uint64_t>::failure(value.error());
+    }
+
+    const unsigned prefix_bits = root_bits == 32 ? 2u : (root_bits == 40 ? 3u : 0u);
+    unsigned octets = 1;
+    // Peek the prefix without a budget debit or cursor publication. Invalid
+    // selectors have the explicit N1 priority over payload availability/budget.
+    if(prefix_bits) {
+        if(start > logical_bit_limit_ || prefix_bits > logical_bit_limit_ - start)
+            return Result<std::uint64_t>::failure(fail({ErrorCode::truncated_input, logical_bit_limit_}).error());
+        unsigned selector = 0;
+        for(unsigned i = 0; i < prefix_bits; ++i)
+            selector = (selector << 1) | get_bit(input_, start + i);
+        octets = selector + 1;
+        if(octets > root_bits / 8)
+            return Result<std::uint64_t>::failure(fail({ErrorCode::constraint_violation, start}).error());
+    }
+    std::size_t after_prefix = 0;
+    std::size_t total = 0;
+    if(!checked_add_size(start, prefix_bits, after_prefix))
+        return Result<std::uint64_t>::failure(fail({ErrorCode::resource_limit, start}).error());
+    const auto padding = (8 - (after_prefix % 8)) % 8;
+    if(!checked_add_size(prefix_bits, padding + octets * std::size_t{8}, total))
+        return Result<std::uint64_t>::failure(fail({ErrorCode::resource_limit, start}).error());
+    auto ready = preflight(total, start);
+    if(!ready) return Result<std::uint64_t>::failure(ready.error());
+    for(std::size_t i = 0; i < padding; ++i)
+        if(get_bit(input_, after_prefix + i))
+            return Result<std::uint64_t>::failure(fail({ErrorCode::nonzero_padding, after_prefix + i}).error());
+    const auto payload_start = after_prefix + padding;
+    std::uint64_t value = 0;
+    for(std::size_t i = 0; i < octets * std::size_t{8}; ++i)
+        value = (value << 1) | get_bit(input_, payload_start + i);
+    if(prefix_bits && octets > 1 && (value >> ((octets - 1) * 8)) == 0)
+        return Result<std::uint64_t>::failure(fail({ErrorCode::constraint_violation, start}).error());
+    cursor_bit_ = start + total;
+    context_->wire_bits_ += total;
+    return Result<std::uint64_t>::success(value);
+}
+
 BitWriter::BitWriter(BitWriter&& other) noexcept
     : context_(other.context_), output_(std::move(other.output_)), cursor_bit_(other.cursor_bit_) {
     other.context_ = nullptr;
@@ -334,6 +387,47 @@ Result<CompleteEncoding> BitWriter::finish() {
     context_->finished_ = true;
     cursor_bit_ = end;
     return Result<CompleteEncoding>::success(std::move(result));
+}
+
+Result<void> BitWriter::write_constrained_uint(std::uint64_t value, unsigned root_bits) {
+    auto live = validate_live();
+    if(!live) return live;
+    const auto start = cursor_bit_;
+    if(!constrained_width_supported(root_bits))
+        return fail({ErrorCode::invalid_argument, start});
+    if(root_bits == 16) return write_aligned_u16_be(value);
+    if(value > ((std::uint64_t{1} << root_bits) - 1))
+        return fail({ErrorCode::constraint_violation, start});
+    const unsigned prefix_bits = root_bits == 32 ? 2u : (root_bits == 40 ? 3u : 0u);
+    unsigned octets = 1;
+    if(prefix_bits)
+        for(auto rest = value >> 8; rest; rest >>= 8) ++octets;
+    std::size_t after_prefix = 0;
+    std::size_t total = 0;
+    std::size_t end = 0;
+    if(!checked_add_size(start, prefix_bits, after_prefix))
+        return fail({ErrorCode::resource_limit, start});
+    const auto padding = (8 - (after_prefix % 8)) % 8;
+    if(!checked_add_size(prefix_bits, padding + octets * std::size_t{8}, total) ||
+       !checked_add_size(start, total, end))
+        return fail({ErrorCode::resource_limit, start});
+    auto ready = preflight(total, end, start);
+    if(!ready) return ready;
+    std::size_t output_octets = 0;
+    (void)checked_bits_to_octets(end, output_octets);
+    auto grown = grow_to(output_octets, start);
+    if(!grown) return grown;
+    for(unsigned i = 0; i < prefix_bits; ++i)
+        set_bit(output_, start + i, (((octets - 1) >> (prefix_bits - i - 1)) & 1u) != 0);
+    for(std::size_t i = 0; i < padding; ++i)
+        set_bit(output_, after_prefix + i, false);
+    const auto payload_start = after_prefix + padding;
+    for(unsigned i = 0; i < octets * 8; ++i)
+        set_bit(output_, payload_start + i, ((value >> (octets * 8 - i - 1)) & 1u) != 0);
+    cursor_bit_ = end;
+    context_->wire_bits_ += total;
+    context_->logical_output_octets_ = output_octets;
+    return Result<void>::success();
 }
 
 } // namespace nrforge::aper

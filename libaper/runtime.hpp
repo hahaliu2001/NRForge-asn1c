@@ -142,6 +142,9 @@ public:
     Result<bool> read_bit();
     Result<void> align_to_octet_zero();
     Result<std::uint16_t> read_aligned_u16_be();
+    // Zero-based, non-extensible INTEGER domains with root_bits 8/16/32/40.
+    // Prefix, octet alignment and payload form one atomic operation (N1).
+    Result<std::uint64_t> read_constrained_uint(unsigned root_bits);
     Result<void> validate_complete_value();
     std::size_t cursor_bit() const noexcept { return cursor_bit_; }
 
@@ -168,6 +171,7 @@ public:
     Result<void> write_bit(bool value);
     Result<void> align_to_octet_zero();
     Result<void> write_aligned_u16_be(std::uint64_t value);
+    Result<void> write_constrained_uint(std::uint64_t value, unsigned root_bits);
     Result<CompleteEncoding> finish();
     std::size_t cursor_bit() const noexcept { return cursor_bit_; }
 
@@ -190,6 +194,9 @@ public:
     Result<bool> read_bit() { return reader_.read_bit(); }
     Result<void> align_to_octet_zero() { return reader_.align_to_octet_zero(); }
     Result<std::uint16_t> read_aligned_u16_be() { return reader_.read_aligned_u16_be(); }
+    Result<std::uint64_t> read_constrained_uint(unsigned root_bits) {
+        return reader_.read_constrained_uint(root_bits);
+    }
     std::size_t cursor_bit() const noexcept { return reader_.cursor_bit(); }
 private:
     BitReader& reader_;
@@ -204,6 +211,9 @@ public:
     Result<void> align_to_octet_zero() { return writer_.align_to_octet_zero(); }
     Result<void> write_aligned_u16_be(std::uint64_t value) {
         return writer_.write_aligned_u16_be(value);
+    }
+    Result<void> write_constrained_uint(std::uint64_t value, unsigned root_bits) {
+        return writer_.write_constrained_uint(value, root_bits);
     }
     std::size_t cursor_bit() const noexcept { return writer_.cursor_bit(); }
 private:
