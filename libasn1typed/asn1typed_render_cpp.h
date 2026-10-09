@@ -73,6 +73,19 @@ int asn1typed_render_cpp_owned_aper_codec(const asn1typed_module_t *module,
 		const char *namespace_name, char **out, char *diagnostic,
 		size_t diagnostic_size);
 
+/* Standalone named ENUMERATED output family, from the same unchanged owned IR
+ * and namespace: include runtime, types, mapping, then codec. Each entry checks
+ * complete N3 evidence, int64 assigned numbers, root_count 1..255 and naming.
+ * Types/mapping need no runtime. Mixed modules and inline enums are rejected.
+ * Unknown extension indexes preserve uint64 values and are distinct per schema;
+ * known additions must use Known. Failure keeps *out NULL; caller frees success. */
+int asn1typed_render_cpp_owned_enum_types(const asn1typed_module_t *,
+		const char *, char **, char *, size_t);
+int asn1typed_render_cpp_owned_enum_mapping(const asn1typed_module_t *,
+		const char *, char **, char *, size_t);
+int asn1typed_render_cpp_owned_enum_codec(const asn1typed_module_t *,
+		const char *, char **, char *, size_t);
+
 #ifdef __cplusplus
 }
 #endif

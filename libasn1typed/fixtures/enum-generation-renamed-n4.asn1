@@ -1,0 +1,4 @@
+EnumRenamed DEFINITIONS ::= BEGIN
+Altitude ::= ENUMERATED { zenith(9), nadir(-2), horizon(5) }
+Status ::= ENUMERATED { initial(0), final(3), ..., intermediate(1) }
+END

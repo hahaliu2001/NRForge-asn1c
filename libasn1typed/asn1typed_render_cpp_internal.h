@@ -8,4 +8,6 @@ char *asn1typed_render_cpp_final_name(const char *source,
 		asn1typed_name_style_e style);
 int asn1typed_render_cpp_header_macro(const char *spelling);
 
+int asn1typed_render_cpp_safe_namespace(const char *namespace_name);
+
 #endif

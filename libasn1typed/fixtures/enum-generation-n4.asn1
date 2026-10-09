@@ -1,0 +1,9 @@
+EnumGeneration DEFINITIONS ::= BEGIN
+Entry ::= ENUMERATED { a, b }
+Reordered ::= ENUMERATED { high(9), low(-2), mid(5) }
+Implicit ::= ENUMERATED { a(5), b, c(0) }
+Endpoints ::= ENUMERATED { low(-9223372036854775808), high(9223372036854775807) }
+Singleton ::= ENUMERATED { only(9) }
+BelowRoot ::= ENUMERATED { a(0), b(3), ..., c(1) }
+NoAdditions ::= ENUMERATED { only(7), ... }
+END

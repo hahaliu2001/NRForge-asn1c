@@ -105,6 +105,9 @@ static int safe_namespace(const char *ns) {
 	}
 	return 1;
 }
+int asn1typed_render_cpp_safe_namespace(const char *ns) {
+	return safe_namespace(ns);
+}
 static const asn1typed_type_t *find_type(const asn1typed_module_t *m,
 		const char *s) {
 	size_t i; for(i = 0; i < m->type_count; ++i)
