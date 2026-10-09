@@ -86,6 +86,19 @@ int asn1typed_render_cpp_owned_enum_mapping(const asn1typed_module_t *,
 int asn1typed_render_cpp_owned_enum_codec(const asn1typed_module_t *,
 		const char *, char **, char *, size_t);
 
+/* Standalone named INTEGER output family for exact non-extensible zero-based
+ * 8/16/32/40-bit domains. uint64 storage does not supply schema type identity;
+ * choose the schema-specific API. Generate unchanged IR/exact namespace and
+ * include runtime, types, mapping, codec. Types/mapping do not need runtime.
+ * Each entry independently rejects unsupported shape/naming. Output follows
+ * the caller-owned/NULL-on-failure contract above. Runtime performs range checks. */
+int asn1typed_render_cpp_owned_uint_types(const asn1typed_module_t *,
+		const char *, char **, char *, size_t);
+int asn1typed_render_cpp_owned_uint_mapping(const asn1typed_module_t *,
+		const char *, char **, char *, size_t);
+int asn1typed_render_cpp_owned_uint_codec(const asn1typed_module_t *,
+		const char *, char **, char *, size_t);
+
 #ifdef __cplusplus
 }
 #endif

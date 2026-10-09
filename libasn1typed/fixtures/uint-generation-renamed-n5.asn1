@@ -1,0 +1,6 @@
+UIntRenamed DEFINITIONS ::= BEGIN
+Octet ::= INTEGER (0..255)
+Pair ::= INTEGER (0..65535)
+Word ::= INTEGER (0..4294967295)
+Identity ::= INTEGER (0..1099511627775)
+END
