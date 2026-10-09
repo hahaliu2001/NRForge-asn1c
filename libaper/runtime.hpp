@@ -175,6 +175,7 @@ public:
     std::size_t cursor_bit() const noexcept { return cursor_bit_; }
 
 private:
+    friend class FieldReader;
     BitReader(std::span<const std::byte> input, DecodeContext& context,
               std::size_t logical_bit_limit) noexcept;
     Result<void> validate_live() const noexcept;
@@ -228,6 +229,11 @@ public:
     }
     Result<EnumeratedIndex> read_enumerated(unsigned root_count, bool extensible) {
         return reader_.read_enumerated(root_count, extensible);
+    }
+    // Generated helper failures preserve sticky state and lifecycle semantics.
+    Result<void> record_failure(Error error) {
+        auto live = reader_.validate_live();
+        return live ? reader_.fail(error) : live;
     }
     Result<SequenceExtensionBitmap> read_sequence_extension_bitmap() {
         return reader_.read_sequence_extension_bitmap();

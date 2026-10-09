@@ -1,5 +1,5 @@
 noinst_LTLIBRARIES = libaper.la
-libaper_la_SOURCES = runtime.cpp runtime.hpp
+libaper_la_SOURCES = runtime.cpp runtime.hpp sequence_extensions.hpp
 AM_CXXFLAGS = -Wall -Wextra -Wpedantic -Wconversion -Wsign-conversion $(APER_CXXFLAGS)
 override CXXFLAGS += -std=c++20
 

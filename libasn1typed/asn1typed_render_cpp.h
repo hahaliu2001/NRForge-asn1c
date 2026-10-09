@@ -111,6 +111,20 @@ int asn1typed_render_cpp_owned_compound_mapping(const asn1typed_module_t *,
 int asn1typed_render_cpp_owned_compound_codec(const asn1typed_module_t *,
 		const char *, char **, char *, size_t);
 
+
+/* Opt-in N7 root-only extensible SEQUENCE family. Requires validated structural
+ * evidence and N6 payload semantics; keeps owned opaque additions on decode,
+ * rejects any retained extension sidecar on encode. Do not mix output families
+ * for the same graph. Generate unchanged IR/namespace; include runtime, types,
+ * mapping, codec, with sequence_extensions.hpp available on the include path.
+ * The runtime namespace nrforge::aper and its descendants are reserved. */
+int asn1typed_render_cpp_owned_sequence_extension_types(const asn1typed_module_t *,
+        const char *, char **, char *, size_t);
+int asn1typed_render_cpp_owned_sequence_extension_mapping(const asn1typed_module_t *,
+        const char *, char **, char *, size_t);
+int asn1typed_render_cpp_owned_sequence_extension_codec(const asn1typed_module_t *,
+        const char *, char **, char *, size_t);
+
 #ifdef __cplusplus
 }
 #endif

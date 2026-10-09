@@ -1,0 +1,28 @@
+{
+  "native_receiver_distinct_cases": 328,
+  "qualified_native_receiver_union": 326,
+  "native_large_bitmap_unqualified_cases": [
+    326,
+    327
+  ],
+  "root_encode_cases_each_oracle": 252,
+  "pycrate": {
+    "version": "0.7.11",
+    "attempted": 328,
+    "matched": 116,
+    "mismatched": 212
+  },
+  "asn1tools": {
+    "version": "0.167.0",
+    "attempted": 325,
+    "matched": 323,
+    "mismatched": 2
+  },
+  "byte_normalization": false,
+  "production_disagreements_unresolved": 0,
+  "limitations": [
+    "Not an all-case zero-difference claim; see README for reproduced oracle defects.",
+    "Widths65/255 have normative/manual evidence, not native oracle qualification.",
+    "Not whole NGAP qualification; no opaque extension encoding."
+  ]
+}

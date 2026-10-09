@@ -1,0 +1,20 @@
+SequenceExtensionSender DEFINITIONS AUTOMATIC TAGS ::= BEGIN
+Flag ::= BOOLEAN
+Word ::= INTEGER (0..4294967295)
+Inner ::= SEQUENCE {
+ value Word, flag Flag OPTIONAL, ...,
+ extraFlag Flag OPTIONAL, extraWord Word OPTIONAL, extraBytes OCTET STRING OPTIONAL
+}
+Outer ::= SEQUENCE {
+ inner Inner, flag Flag OPTIONAL, ...,
+ extraFlag Flag OPTIONAL, extraWord Word OPTIONAL, extraBytes OCTET STRING OPTIONAL
+}
+Pick ::= CHOICE { flag Flag, inner Inner }
+Envelope ::= SEQUENCE { pick Pick, outer Outer OPTIONAL }
+Collision ::= SEQUENCE {
+ sequence-extensions Flag, sequence-extensions-1 Flag OPTIONAL, ...,
+ extraFlag Flag OPTIONAL
+}
+Empty ::= SEQUENCE { ..., extraFlag Flag OPTIONAL }
+Tail ::= SEQUENCE { flag Flag }
+END

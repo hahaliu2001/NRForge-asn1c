@@ -1,0 +1,11 @@
+SequenceExtensionGeneration DEFINITIONS AUTOMATIC TAGS ::= BEGIN
+Flag ::= BOOLEAN
+Word ::= INTEGER (0..4294967295)
+Inner ::= SEQUENCE { value Word, flag Flag OPTIONAL, ... }
+Outer ::= SEQUENCE { inner Inner, flag Flag OPTIONAL, ... }
+Pick ::= CHOICE { flag Flag, inner Inner }
+Envelope ::= SEQUENCE { pick Pick, outer Outer OPTIONAL }
+Collision ::= SEQUENCE { sequence-extensions Flag, sequence-extensions-1 Flag OPTIONAL, ... }
+Empty ::= SEQUENCE { ... }
+Tail ::= SEQUENCE { flag Flag }
+END

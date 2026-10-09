@@ -91,3 +91,11 @@ check_asn1typed_sequence_extension_LDADD = $(check_asn1typed_extract_LDADD)
 EXTRA_DIST += fixtures/sequence-extension-evidence-n7.asn1 fixtures/sequence-extension-additions-n7.asn1 fixtures/sequence-extension-repeated-n7.asn1
 
 EXTRA_DIST += fixtures/sequence-extension-bound-n7.asn1
+
+check_PROGRAMS += check_asn1typed_sequence_extension_render
+TESTS += check_asn1typed_sequence_extension_generated.sh
+check_asn1typed_sequence_extension_render_SOURCES = check_asn1typed_sequence_extension_render.c
+check_asn1typed_sequence_extension_render_CPPFLAGS = $(check_asn1typed_extract_CPPFLAGS) -DNDEBUG
+check_asn1typed_sequence_extension_render_LDADD = $(check_asn1typed_extract_LDADD)
+check_asn1typed_sequence_extension_render_LDFLAGS = -Wl,--wrap=malloc -Wl,--wrap=calloc -Wl,--wrap=realloc
+EXTRA_DIST += check_asn1typed_sequence_extension_generated.sh check_asn1typed_sequence_extension_generated.cpp fixtures/sequence-extension-generation-n7.asn1 fixtures/sequence-extension-sender-n7.asn1

@@ -6,6 +6,7 @@ common_libs = $(top_builddir)/libasn1fix/libasn1fix.la $(top_builddir)/libasn1pa
 noinst_PROGRAMS = asn1typed_real_probe asn1typed_tree_inspect
 TESTS = test_tools.sh
 EXTRA_DIST = developer_tree.h test_tools.sh README.md qualification/ngap-rel18.modules
+EXTRA_DIST += n7-sequence-extension-qualification/qualify.py n7-sequence-extension-qualification/driver.cpp n7-sequence-extension-qualification/README.md n7-sequence-extension-qualification/requirements.txt n7-sequence-extension-qualification/qualification-summary.json n7-sequence-extension-qualification/accepted-profile.json
 asn1typed_real_probe_SOURCES = asn1typed_real_probe.c $(tool_common)
 asn1typed_real_probe_LDADD = $(top_builddir)/libasn1typed/libasn1typed_extract.la $(top_builddir)/libasn1typed/libasn1typed.la $(common_libs)
 asn1typed_tree_inspect_SOURCES = asn1typed_tree_inspect.c $(tool_common)

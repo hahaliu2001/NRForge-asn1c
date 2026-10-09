@@ -149,3 +149,5 @@ asn1c/tmp/
 /tools/asn1typed_tree_inspect
 
 /libaper/check_aper_extensions
+
+/libasn1typed/check_asn1typed_sequence_extension_render
