@@ -340,3 +340,163 @@ fail:
 	if(generated) { for(i = 0; i < generated_count; ++i) free(generated[i]); free(generated); }
 	free(b.p); return -1;
 }
+
+/* This sibling entry intentionally shares the exact spelling and reference
+ * helpers above with the owned type renderer. */
+int asn1typed_render_cpp_owned_aper_mapping(const asn1typed_module_t *m,
+		const char *ns, char **out, char *diag, size_t dsz) {
+	struct outbuf b = {0}; size_t i, j; const char *err = "invalid arguments";
+	char **names = NULL, **mapping_names = NULL, ***wrappers = NULL;
+	char choice_error[256];
+	if(out) *out = NULL;
+	if(diag && dsz) diag[0] = 0;
+	if(!m || !ns || !out || !m->source_name || (m->type_count && !m->types)) goto fail;
+	if(!safe_namespace(ns)) { err = "invalid or reserved output namespace"; goto fail; }
+	if(m->bound_instance_count || m->bound_instances) { err = "bound instances unsupported by owned APER mapping"; goto fail; }
+	names = calloc(m->type_count ? m->type_count : 1, sizeof(*names));
+	if(!names) { err = "out of memory"; goto fail; }
+	for(i = 0; i < m->type_count; ++i) {
+		if(!type_storage_valid(&m->types[i])) { err = "type kind has inconsistent or unrelated IR storage"; goto fail; }
+		names[i] = name(m->types[i].identity.source_name, ASN1TYPED_NAME_TYPE);
+		if(!names[i] || !m->types[i].identity.module || strcmp(m->types[i].identity.module, m->source_name)) { err = "invalid type identity or unsafe name"; goto fail; }
+		for(j = 0; j < i; ++j) if(!strcmp(names[i], names[j])) { err = "type name collision after normalization"; goto fail; }
+	}
+	wrappers = calloc(m->type_count ? m->type_count : 1, sizeof(*wrappers));
+	mapping_names = calloc(m->type_count ? m->type_count : 1, sizeof(*mapping_names));
+	if(!wrappers || !mapping_names) goto oom;
+	for(i = 0; i < m->type_count; ++i) {
+		size_t n = strlen(names[i]) + sizeof("_aper"); char *helper = malloc(n);
+		if(!helper) goto oom;
+		snprintf(helper, n, "%s_aper", names[i]);
+		mapping_names[i] = helper;
+		for(j = 0; j < m->type_count; ++j) if(!strcmp(helper, names[j])) { err = "generated APER mapping name collision"; goto fail; }
+		for(j = 0; j < m->type_count; ++j) if(wrappers[j]) {
+			size_t k;
+			for(k = 0; k < m->types[j].alternative_count; ++k)
+				if(!strcmp(helper, wrappers[j][k])) { err = "APER mapping name collides with CHOICE wrapper"; goto fail; }
+		}
+		if(!strcmp(names[i], "APER_BOOLEAN") || !strcmp(names[i], "APER_COMPLETE_ENCODING")) { err = "generated APER mapping name collision"; goto fail; }
+		if(m->types[i].kind == ASN1TYPED_TYPE_CHOICE) {
+			const asn1typed_type_t *t = &m->types[i];
+			wrappers[i] = calloc(t->alternative_count ? t->alternative_count : 1, sizeof(*wrappers[i]));
+			if(!wrappers[i]) goto oom;
+			for(j = 0; j < t->alternative_count; ++j) {
+				char *alt = name(t->alternatives[j].source_name, ASN1TYPED_NAME_FIELD);
+				size_t wn;
+				if(!alt) { err = "unsafe CHOICE alternative name"; goto fail; }
+				/* The APER mapping reserves this prefix for ordinal type associations. */
+				if(!strncmp(alt, "storage_ordinal_", sizeof("storage_ordinal_") - 1)) {
+					free(alt);
+					err = "CHOICE alternative spelling conflicts with the reserved storage_ordinal_ member alias namespace";
+					goto fail;
+				}
+				wn = strlen(names[i]) + strlen(alt) + 2;
+				wrappers[i][j] = malloc(wn);
+				if(!wrappers[i][j]) { free(alt); goto oom; }
+				snprintf(wrappers[i][j], wn, "%s_%s", names[i], alt);
+				free(alt);
+				for(size_t x = 0; x < m->type_count; ++x) {
+					if(!strcmp(wrappers[i][j], names[x]) || (mapping_names[x] && !strcmp(wrappers[i][j], mapping_names[x]))) { err = "CHOICE wrapper collides with generated type or APER mapping name"; goto fail; }
+					if(wrappers[x]) for(size_t y = 0; y < (x == i ? j : m->types[x].alternative_count); ++y)
+						if(wrappers[x][y] && !strcmp(wrappers[i][j], wrappers[x][y])) { err = "CHOICE wrapper name collision"; goto fail; }
+				}
+				if(!strcmp(wrappers[i][j], "APER_BOOLEAN") || !strcmp(wrappers[i][j], "APER_COMPLETE_ENCODING")) { err = "CHOICE wrapper collides with APER mapping helper"; goto fail; }
+			}
+		}
+	}
+	if(put(&b, "#include <cstddef>\n#include <cstdint>\n\nnamespace ") || put(&b, ns) || put(&b, " {\n\nstruct APER_BOOLEAN { static constexpr std::uint8_t false_bit = 0; static constexpr std::uint8_t true_bit = 1; static constexpr std::uint8_t value_bit_width = 1; static constexpr bool align_before_payload_to_octet = false; };\nstruct APER_COMPLETE_ENCODING { static constexpr bool outermost_only_final_zero_padding = true; };\n\n")) goto oom;
+	for(i = 0; i < m->type_count; ++i) {
+		const asn1typed_type_t *t = &m->types[i];
+		if(!type_storage_valid(t)) { err = "type kind has inconsistent or unrelated IR storage"; goto fail; }
+		if(t->is_extensible || t->has_ioc_table || t->ioc_object_set_is_extensible) { err = "extension or IOC semantics unsupported by owned APER mapping"; goto fail; }
+		if(t->kind == ASN1TYPED_TYPE_PRIMITIVE && t->primitive_kind == ASN1TYPED_PRIMITIVE_INTEGER) {
+			const asn1typed_integer_value_range_t *r = &t->value_range;
+			if(!r->has_value_range || r->is_extensible || r->tail || r->tail_count || r->lower_bound != 0 || r->upper_bound != 65535 || !size_constraint_is_empty(&t->size_constraint)) { err = "APER mapping supports only non-extensible INTEGER (0..65535)"; goto fail; }
+			if(fmt(&b, "struct %s_aper {\n    static constexpr std::uint64_t lower_bound = 0;\n    static constexpr std::uint64_t upper_bound = 65535;\n    static constexpr std::uint8_t value_bit_width = 16;\n    static constexpr bool align_before_payload_to_octet = true;\n    static constexpr bool most_significant_octet_first = true;\n    static constexpr bool has_length_determinant = false;\n    static constexpr bool has_extension_bit = false;\n};\n\n", names[i])) goto oom;
+		} else if(t->kind == ASN1TYPED_TYPE_PRIMITIVE && t->primitive_kind == ASN1TYPED_PRIMITIVE_BOOLEAN) {
+			if(!value_range_is_empty(&t->value_range) || !size_constraint_is_empty(&t->size_constraint)) { err = "constraint on BOOLEAN unsupported by owned APER mapping"; goto fail; }
+			if(fmt(&b, "struct %s_aper : APER_BOOLEAN { static constexpr bool has_extension_bit = false; };\n\n", names[i])) goto oom;
+		} else if(t->kind == ASN1TYPED_TYPE_CHOICE) {
+			char why[192];
+			if(!size_constraint_is_empty(&t->size_constraint) || t->alternative_count != 2 || !t->alternatives) { err = "APER CHOICE mapping requires exactly two root alternatives without constraints"; goto fail; }
+			if(asn1typed_choice_wire_evidence_validate(t, why, sizeof(why))) {
+				snprintf(choice_error, sizeof(choice_error), "CHOICE wire evidence: %s", why);
+				err = choice_error;
+				goto fail;
+			}
+			if(put(&b, "struct ") || put(&b, names[i]) || put(&b, "_aper {\n    static constexpr std::uint8_t selector_bit_width = 1;\n    static constexpr std::uint8_t selector_min = 0;\n    static constexpr std::uint8_t selector_max = 1;\n    static constexpr bool selector_align_before_payload_to_octet = false;\n    static constexpr bool has_extension_bit = false;\n    static constexpr std::uint8_t storage_alternative_to_per_root_index[2] = {")) goto oom;
+			for(j = 0; j < 2; ++j) {
+				char *alt = name(t->alternatives[j].source_name, ASN1TYPED_NAME_FIELD);
+				if(!alt) { err = "unsafe CHOICE alternative name"; goto fail; }
+				if(j && put(&b, ", ")) { free(alt); goto oom; }
+				if(fmt(&b, "%u", (unsigned)t->alternatives[j].per_root_index)) { free(alt); goto oom; }
+				free(alt);
+			}
+			if(put(&b, "};\n    static constexpr std::uint8_t per_root_index_to_storage_ordinal[2] = {")) goto oom;
+			for(j = 0; j < 2; ++j) {
+				size_t k; int found = 0;
+				for(k = 0; k < 2; ++k) if(t->alternatives[k].per_root_index == j) { found = 1; break; }
+				if(!found) { err = "CHOICE PER index mapping incomplete"; goto fail; }
+				if(j && put(&b, ", ")) goto oom;
+				if(fmt(&b, "%zu", k)) goto oom;
+			}
+			if(put(&b, "};\n")) goto oom;
+			for(j = 0; j < 2; ++j) {
+				const char *ref_error = NULL, *payload; size_t ri; char *alt = name(t->alternatives[j].source_name, ASN1TYPED_NAME_FIELD);
+				payload = ref_cpp(m, &t->alternatives[j].type_ref, names, &ri, &ref_error);
+				if(!alt || !payload || !size_constraint_is_empty(&t->alternatives[j].size_constraint) || !value_range_is_empty(&t->alternatives[j].value_range) || (t->alternatives[j].type_ref.kind == ASN1TYPED_REF_NAMED && ri >= i)) { free(alt); err = ref_error ? ref_error : "unsupported CHOICE payload semantics or reference"; goto fail; }
+				if(fmt(&b, "    using %s_payload_type = %s;\n", alt, payload)) { free(alt); goto oom; }
+				if(t->alternatives[j].type_ref.kind == ASN1TYPED_REF_PRIMITIVE) {
+					if(fmt(&b, "    using %s_payload_mapping = APER_BOOLEAN;\n", alt)) { free(alt); goto oom; }
+				} else if(fmt(&b, "    using %s_payload_mapping = %s_aper;\n", alt, names[ri])) { free(alt); goto oom; }
+				if(fmt(&b, "    using storage_ordinal_%zu_wrapper = %s;\n    using storage_ordinal_%zu_payload_type = %s;\n", j, wrappers[i][j], j, payload)) { free(alt); goto oom; }
+				if(t->alternatives[j].type_ref.kind == ASN1TYPED_REF_PRIMITIVE) {
+					if(fmt(&b, "    using storage_ordinal_%zu_payload_mapping = APER_BOOLEAN;\n", j)) { free(alt); goto oom; }
+				} else if(fmt(&b, "    using storage_ordinal_%zu_payload_mapping = %s_aper;\n", j, names[ri])) { free(alt); goto oom; }
+				free(alt);
+			}
+			if(put(&b, "};\n\n")) goto oom;
+		} else if(t->kind == ASN1TYPED_TYPE_SEQUENCE) {
+			size_t optional = 0;
+			if(!size_constraint_is_empty(&t->size_constraint) || (t->field_count && !t->fields)) { err = "unsupported SEQUENCE constraints or storage"; goto fail; }
+			for(j = 0; j < t->field_count; ++j) {
+				const asn1typed_field_t *f = &t->fields[j];
+				if(f->presence == ASN1TYPED_PRESENCE_OPTIONAL) ++optional;
+				else if(f->presence != ASN1TYPED_PRESENCE_MANDATORY) { err = "unsupported SEQUENCE presence semantics"; goto fail; }
+				if(f->type_semantics != ASN1TYPED_FIELD_FIXED_TYPE || f->inline_enumerated || f->has_class_field_relation || !ioc_metadata_is_empty(&f->ioc) || !value_range_is_empty(&f->value_range) || !size_constraint_is_empty(&f->size_constraint)) { err = "unsupported SEQUENCE field semantics"; goto fail; }
+			}
+			if(fmt(&b, "struct %s_aper {\n    static constexpr std::size_t field_count = %zu;\n    static constexpr std::size_t optional_bitmap_bit_count = %zu;\n    static constexpr bool has_extension_bit = false;\n", names[i], t->field_count, optional)) goto oom;
+			for(j = 0; j < t->field_count; ++j) {
+				const asn1typed_field_t *f = &t->fields[j]; char *field = name(f->source_name, ASN1TYPED_NAME_FIELD); const char *ref_error = NULL, *payload; size_t ri, ordinal = 0, k;
+				payload = ref_cpp(m, &f->type, names, &ri, &ref_error);
+				if(!field || !payload || (f->type.kind == ASN1TYPED_REF_NAMED && ri >= i)) { free(field); err = ref_error ? ref_error : "unsupported SEQUENCE field reference"; goto fail; }
+				if(f->presence == ASN1TYPED_PRESENCE_OPTIONAL) for(k = 0; k < j; ++k) if(t->fields[k].presence == ASN1TYPED_PRESENCE_OPTIONAL) ++ordinal;
+				if(fmt(&b, "    static constexpr std::size_t field_%s_declaration_ordinal = %zu;\n    static constexpr bool field_%s_mandatory = %s;\n    static constexpr std::size_t field_%s_optional_bitmap_ordinal = ", field, j, field, f->presence == ASN1TYPED_PRESENCE_MANDATORY ? "true" : "false", field)) { free(field); goto oom; }
+				if(f->presence == ASN1TYPED_PRESENCE_OPTIONAL) { if(fmt(&b, "%zu;\n", ordinal)) { free(field); goto oom; } } else if(put(&b, "static_cast<std::size_t>(-1);\n")) { free(field); goto oom; }
+				if(fmt(&b, "    using field_%s_payload_type = %s;\n", field, payload)) { free(field); goto oom; }
+				if(f->type.kind == ASN1TYPED_REF_PRIMITIVE) {
+					if(fmt(&b, "    using field_%s_payload_mapping = APER_BOOLEAN;\n", field)) { free(field); goto oom; }
+				} else if(fmt(&b, "    using field_%s_payload_mapping = %s_aper;\n", field, names[ri])) { free(field); goto oom; }
+				free(field);
+			}
+			if(put(&b, "};\n\n")) goto oom;
+		} else { err = "type category unsupported by owned APER mapping"; goto fail; }
+	}
+	if(put(&b, "} // namespace ") || put(&b, ns) || put(&b, "\n")) goto oom;
+	for(i = 0; i < m->type_count; ++i) free(names[i]);
+	free(names);
+	for(i = 0; i < m->type_count; ++i) {
+		if(wrappers[i]) { for(j = 0; j < m->types[i].alternative_count; ++j) free(wrappers[i][j]); free(wrappers[i]); }
+		free(mapping_names[i]);
+	}
+	free(wrappers); free(mapping_names);
+	*out = b.p;
+	return 0;
+oom: err = "out of memory";
+fail:
+	if(diag && dsz) snprintf(diag, dsz, "%s", err);
+	if(names) { for(i = 0; i < m->type_count; ++i) free(names[i]); free(names); }
+	if(wrappers) { for(i = 0; i < m->type_count; ++i) if(wrappers[i]) { for(j = 0; j < m->types[i].alternative_count; ++j) free(wrappers[i][j]); free(wrappers[i]); } free(wrappers); }
+	if(mapping_names) { for(i = 0; i < m->type_count; ++i) free(mapping_names[i]); free(mapping_names); }
+	free(b.p); return -1;
+}

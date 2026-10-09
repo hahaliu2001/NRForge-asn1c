@@ -1,0 +1,10 @@
+CppAperOrdinalMemberZero DEFINITIONS AUTOMATIC TAGS ::= BEGIN
+
+Count ::= INTEGER (0..65535)
+
+Selection ::= CHOICE {
+    storage-ordinal-1 BOOLEAN,
+    count Count
+}
+
+END

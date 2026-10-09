@@ -1,0 +1,10 @@
+CppAperReversedTags DEFINITIONS ::= BEGIN
+
+Count ::= INTEGER (0..65535)
+
+Selection ::= CHOICE {
+    count [1] Count,
+    flag  [0] BOOLEAN
+}
+
+END

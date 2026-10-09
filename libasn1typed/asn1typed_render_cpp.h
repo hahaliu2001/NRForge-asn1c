@@ -58,6 +58,15 @@ int asn1typed_render_cpp_owned_slice(const asn1typed_module_t *module,
 		const char *namespace_name, char **out, char *diagnostic,
 		size_t diagnostic_size);
 
+/* Emit synthetic basic APER mapping metadata for the restricted owned slice.
+ * Generate both headers from the same unchanged Owned IR contents and exact
+ * namespace. Include the owned value header first, then this mapping header;
+ * the mapping metadata reuses its final type and CHOICE wrapper spellings.
+ * This emits constraints/layout traits only; it does not encode values. */
+int asn1typed_render_cpp_owned_aper_mapping(const asn1typed_module_t *module,
+		const char *namespace_name, char **out, char *diagnostic,
+		size_t diagnostic_size);
+
 #ifdef __cplusplus
 }
 #endif
