@@ -1,0 +1,3 @@
+SequenceExtensionRepeated DEFINITIONS ::= BEGIN
+Repeated ::= SEQUENCE { flag BOOLEAN, ..., ... }
+END

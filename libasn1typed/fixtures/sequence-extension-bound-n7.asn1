@@ -1,0 +1,35 @@
+SequenceExtensionBound DEFINITIONS AUTOMATIC TAGS ::= BEGIN
+Criticality ::= ENUMERATED { reject, ignore, notify }
+Presence ::= ENUMERATED { mandatory, optional, conditional }
+Payload ::= INTEGER (0..255)
+id-Payload INTEGER ::= 1
+BOUND-IES ::= CLASS {
+  &id INTEGER UNIQUE,
+  &criticality Criticality,
+  &Value,
+  &presence Presence
+} WITH SYNTAX { ID &id CRITICALITY &criticality TYPE &Value PRESENCE &presence }
+RootField { BOUND-IES : IEs } ::= SEQUENCE {
+  id BOUND-IES.&id({IEs}),
+  criticality BOUND-IES.&criticality({IEs}{@id}),
+  value BOUND-IES.&Value({IEs}{@id}),
+  ...
+}
+PlainField { BOUND-IES : IEs } ::= SEQUENCE {
+  id BOUND-IES.&id({IEs}),
+  criticality BOUND-IES.&criticality({IEs}),
+  value BOUND-IES.&Value({IEs}{@id})
+}
+RootContainer { BOUND-IES : IEs } ::= SEQUENCE OF PlainField {{IEs}}
+BodyRows BOUND-IES ::= {
+  { ID id-Payload CRITICALITY reject TYPE Payload PRESENCE mandatory }
+}
+BodyUse ::= SEQUENCE { entry RootField {{BodyRows}} }
+Rows BOUND-IES ::= {
+  { ID id-Payload CRITICALITY reject TYPE BodyUse PRESENCE mandatory }
+}
+Message ::= SEQUENCE {
+  protocolIEs RootContainer {{Rows}},
+  ...
+}
+END

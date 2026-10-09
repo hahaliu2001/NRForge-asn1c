@@ -720,6 +720,8 @@ populate_type(asn1p_t *tree, asn1typed_type_t *out, asn1p_expr_t *decl,
 	}
 	case ASN1TYPED_TYPE_SEQUENCE: {
 		int saw_extension_marker = 0;
+		size_t physical_roots = 0;
+		int one_to_one = 1;
 		TQ_FOR(member, &body->members, next) {
 			if(member->expr_type == A1TC_EXTENSIBLE) {
 				if(saw_extension_marker) {
@@ -738,8 +740,22 @@ populate_type(asn1p_t *tree, asn1typed_type_t *out, asn1p_expr_t *decl,
 					decl->Identifier);
 				return -1;
 			}
-			if(add_field(tree, out, member, file, decl->module->ModuleName,
-					error, error_size)) return -1;
+			{
+				size_t before = out->field_count;
+				if(add_field(tree, out, member, file, decl->module->ModuleName,
+						error, error_size)) return -1;
+				if(out->field_count <= before || out->field_count - before != 1 || physical_roots == SIZE_MAX)
+					one_to_one = 0;
+				else ++physical_roots;
+			}
+		}
+		if(saw_extension_marker) {
+			if(!one_to_one) asn1typed_sequence_set_extension_unsupported(out);
+			else if(asn1typed_sequence_set_extension_structure(out, physical_roots, 0) ||
+				asn1typed_sequence_extension_structure_finalize(out, error, error_size) != ASN1TYPED_WIRE_FINALIZE_OK) {
+				if(error && error_size && !error[0]) set_error(error, error_size, "could not finalize owned SEQUENCE extension structure");
+				return -1;
+			}
 		}
 		return 0;
 	}
@@ -1767,6 +1783,8 @@ materialize_bound_instance(asn1p_t *tree, asn1typed_module_t *out,
 	asn1typed_type_t body;
 	asn1p_expr_t *generic, *specialization, *resolved, *member;
 	int saw_extension = 0;
+	size_t physical_roots = 0;
+	int one_to_one = 1;
 	if(!tree || !out || instance_index >= out->bound_instance_count) return -1;
 	identity = &out->bound_instances[instance_index].identity;
 	if(out->bound_instances[instance_index].body_materialized) return 0;
@@ -1804,6 +1822,7 @@ materialize_bound_instance(asn1p_t *tree, asn1typed_module_t *out,
 			generic->module->source_file_name : "<unknown>";
 		unsigned member_line = member->_lineno > 0 ?
 			(unsigned)member->_lineno : 0;
+		size_t before = body.field_count;
 		if(member->expr_type == A1TC_EXTENSIBLE) {
 			if(saw_extension) goto malformed_body;
 			saw_extension = 1;
@@ -1845,6 +1864,14 @@ materialize_bound_instance(asn1p_t *tree, asn1typed_module_t *out,
 			asn1typed_type_ref_clear(&ref);
 			if(rc) goto malformed_body;
 		}
+		if(body.field_count <= before || body.field_count - before != 1 || physical_roots == SIZE_MAX)
+			one_to_one = 0;
+		else ++physical_roots;
+	}
+	if(saw_extension) {
+		if(!one_to_one) asn1typed_sequence_set_extension_unsupported(&body);
+		else if(asn1typed_sequence_set_extension_structure(&body, physical_roots, 0) ||
+			asn1typed_sequence_extension_structure_finalize(&body, error, error_size) != ASN1TYPED_WIRE_FINALIZE_OK) goto fail;
 	}
 	if(!body.field_count || asn1typed_bound_instance_set_body(out,
 			instance_index, &body)) goto malformed_body;
@@ -2072,6 +2099,8 @@ asn1typed_extract_message(asn1p_t *tree, const char *module_name,
 	for(i = 0; i < set->ioc_table->rows; ++i)
 		if(extract_ioc_row(tree, type, set->ioc_table->row[i], file, error, error_size))
 			goto fail;
+	/* IOC rows are flattened fields, not the physical SEQUENCE root layout. */
+	asn1typed_sequence_set_extension_unsupported(type);
 	for(i = 0; i < out->type_count; ++i) {
 		for(j = 0; j < out->types[i].field_count; ++j) {
 			asn1typed_field_t *field = &out->types[i].fields[j];

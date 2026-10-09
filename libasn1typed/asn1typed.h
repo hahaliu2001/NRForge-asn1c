@@ -222,6 +222,12 @@ struct asn1typed_type_s {
 	size_t enum_item_capacity;
 	int has_valid_per_enumeration_mapping;
 	int is_extensible;
+	/* Explicit physical root-only SEQUENCE structure evidence; extensibility
+	 * alone never proves the root/addition boundary. Direct edits need validate. */
+	asn1typed_wire_evidence_e sequence_extension_evidence;
+	size_t sequence_root_field_count;
+	size_t sequence_known_addition_count;
+	int has_valid_sequence_extension_structure;
 	asn1typed_choice_alternative_t *alternatives;
 	size_t alternative_count;
 	size_t alternative_capacity;
@@ -352,6 +358,19 @@ asn1typed_wire_finalize_result_e asn1typed_choice_wire_evidence_finalize(
 /* Rechecks tags, index uniqueness/continuity/order, and the valid flag. */
 int asn1typed_choice_wire_evidence_validate(const asn1typed_type_t *type,
 		char *error, size_t error_size);
+/* These SEQUENCE-scoped setters do not infer structure. Resolved requires
+ * is_extensible == 1, roots == field_count and zero known additions. Misuse
+ * leaves state unchanged. Successful field insertions erase the evidence. */
+int asn1typed_sequence_set_extension_structure(asn1typed_type_t *, size_t, size_t);
+int asn1typed_sequence_set_extension_unavailable(asn1typed_type_t *);
+int asn1typed_sequence_set_extension_unsupported(asn1typed_type_t *);
+/* Finalize requires explicit RESOLVED evidence; only OK publishes validation.
+ * ERROR means invalid kind/storage; UNAVAILABLE means unsupported/missing or
+ * inconsistent structure. Validate rechecks all scalar/storage invariants. */
+asn1typed_wire_finalize_result_e asn1typed_sequence_extension_structure_finalize(
+		asn1typed_type_t *, char *, size_t);
+int asn1typed_sequence_extension_structure_validate(const asn1typed_type_t *,
+		char *, size_t);
 void asn1typed_type_clear(asn1typed_type_t *type);
 int asn1typed_field_set_ioc(asn1typed_field_t *field,
 		const char *symbolic_id, asn1typed_criticality_e criticality,

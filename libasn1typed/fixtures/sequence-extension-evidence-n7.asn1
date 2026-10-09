@@ -1,0 +1,6 @@
+SequenceExtensionEvidence DEFINITIONS ::= BEGIN
+Flag ::= BOOLEAN
+Plain ::= SEQUENCE { flag Flag }
+RootOnly ::= SEQUENCE { flag Flag, optionalFlag Flag OPTIONAL, ... }
+EmptyRoot ::= SEQUENCE { ... }
+END

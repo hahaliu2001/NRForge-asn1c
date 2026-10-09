@@ -82,3 +82,12 @@ check_asn1typed_compound_render_CPPFLAGS = $(check_asn1typed_extract_CPPFLAGS)
 check_asn1typed_compound_render_LDADD = $(check_asn1typed_extract_LDADD)
 check_asn1typed_compound_render_LDFLAGS = -Wl,--wrap=malloc -Wl,--wrap=calloc -Wl,--wrap=realloc
 EXTRA_DIST += check_asn1typed_compound_generated.sh check_asn1typed_compound_generated.cpp fixtures/compound-generation-n6.asn1 fixtures/compound-generation-reversed-n6.asn1
+
+check_PROGRAMS += check_asn1typed_sequence_extension
+TESTS += check_asn1typed_sequence_extension
+check_asn1typed_sequence_extension_SOURCES = check_asn1typed_sequence_extension.c
+check_asn1typed_sequence_extension_CPPFLAGS = $(check_asn1typed_extract_CPPFLAGS) -DSEQ_EXT_FIXTURE=\"$(abs_srcdir)/fixtures/sequence-extension-evidence-n7.asn1\" -DSEQ_ADD_FIXTURE=\"$(abs_srcdir)/fixtures/sequence-extension-additions-n7.asn1\" -DSEQ_REPEAT_FIXTURE=\"$(abs_srcdir)/fixtures/sequence-extension-repeated-n7.asn1\" -DBOUND_SEQUENCE_FIXTURE=\"$(abs_srcdir)/fixtures/sequence-extension-bound-n7.asn1\" -DIOC_FIXTURE=\"$(abs_srcdir)/fixtures/ioc-t3.asn1\"
+check_asn1typed_sequence_extension_LDADD = $(check_asn1typed_extract_LDADD)
+EXTRA_DIST += fixtures/sequence-extension-evidence-n7.asn1 fixtures/sequence-extension-additions-n7.asn1 fixtures/sequence-extension-repeated-n7.asn1
+
+EXTRA_DIST += fixtures/sequence-extension-bound-n7.asn1

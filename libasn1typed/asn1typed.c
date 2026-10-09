@@ -32,6 +32,7 @@ asn1typed_class_field_relation_valid(
 }
 
 static void enumerated_mapping_invalidate(asn1typed_type_t *);
+static void sequence_extension_invalidate(asn1typed_type_t *);
 
 static int
 asn1typed_inline_enum_body_valid(const asn1typed_type_t *body) {
@@ -650,6 +651,7 @@ asn1typed_type_add_field(asn1typed_type_t *type,
 		return -1;
 	}
 	type->fields[type->field_count++] = field;
+	sequence_extension_invalidate(type);
 	return 0;
 }
 
@@ -674,6 +676,7 @@ asn1typed_type_add_field_ref(asn1typed_type_t *type,
 		return -1;
 	}
 	type->fields[type->field_count++] = field;
+	sequence_extension_invalidate(type);
 	return 0;
 }
 
@@ -717,6 +720,7 @@ asn1typed_type_add_class_field(asn1typed_type_t *type,
 		return -1;
 	}
 	type->fields[type->field_count++] = field;
+	sequence_extension_invalidate(type);
 	return 0;
 }
 
@@ -734,6 +738,7 @@ asn1typed_type_add_field_copy(asn1typed_type_t *type,
 		return -1;
 	}
 	type->fields[type->field_count++] = field;
+	sequence_extension_invalidate(type);
 	return 0;
 }
 
@@ -768,6 +773,7 @@ asn1typed_type_add_inline_enumerated_field(asn1typed_type_t *type,
 		return -1;
 	}
 	type->fields[type->field_count++] = field;
+	sequence_extension_invalidate(type);
 	return 0;
 }
 
@@ -825,6 +831,7 @@ asn1typed_type_add_primitive_field(asn1typed_type_t *type,
 		return -1;
 	}
 	type->fields[type->field_count++] = field;
+	sequence_extension_invalidate(type);
 	return 0;
 }
 
@@ -1321,5 +1328,88 @@ asn1typed_enumerated_evidence_finalize(asn1typed_type_t *type,
 		enumerated_mapping_invalidate(type);
 		return ASN1TYPED_WIRE_FINALIZE_ERROR;
 	}
+	return ASN1TYPED_WIRE_FINALIZE_OK;
+}
+
+static int
+sequence_extension_storage_valid(const asn1typed_type_t *type) {
+	return type && type->kind == ASN1TYPED_TYPE_SEQUENCE &&
+		type->field_count <= type->field_capacity &&
+		!!type->field_capacity == !!type->fields;
+}
+static void
+sequence_extension_invalidate(asn1typed_type_t *type) {
+	type->sequence_extension_evidence = ASN1TYPED_WIRE_EVIDENCE_UNAVAILABLE;
+	type->sequence_root_field_count = 0;
+	type->sequence_known_addition_count = 0;
+	type->has_valid_sequence_extension_structure = 0;
+}
+int
+asn1typed_sequence_set_extension_structure(asn1typed_type_t *type,
+		size_t roots, size_t additions) {
+	if(!sequence_extension_storage_valid(type) || type->is_extensible != 1 ||
+		roots != type->field_count || additions != 0) return -1;
+	sequence_extension_invalidate(type);
+	type->sequence_extension_evidence = ASN1TYPED_WIRE_EVIDENCE_RESOLVED;
+	type->sequence_root_field_count = roots;
+	return 0;
+}
+int
+asn1typed_sequence_set_extension_unavailable(asn1typed_type_t *type) {
+	if(!sequence_extension_storage_valid(type)) return -1;
+	sequence_extension_invalidate(type);
+	return 0;
+}
+int
+asn1typed_sequence_set_extension_unsupported(asn1typed_type_t *type) {
+	if(!sequence_extension_storage_valid(type)) return -1;
+	sequence_extension_invalidate(type);
+	type->sequence_extension_evidence = ASN1TYPED_WIRE_EVIDENCE_UNSUPPORTED;
+	return 0;
+}
+static int
+sequence_extension_check(const asn1typed_type_t *type, char *error, size_t size) {
+#define SEQUENCE_FAIL(code, message) do { \
+	if(error && size) snprintf(error, size, "%s", message); \
+	return code; \
+} while(0)
+	if(error && size) error[0] = 0;
+	if(!sequence_extension_storage_valid(type))
+		SEQUENCE_FAIL(-1, "SEQUENCE extension structure has invalid kind or field storage");
+	if(type->is_extensible != 1)
+		SEQUENCE_FAIL(1, "SEQUENCE extension structure requires an extensible SEQUENCE");
+	if(type->sequence_extension_evidence != ASN1TYPED_WIRE_EVIDENCE_RESOLVED)
+		SEQUENCE_FAIL(1, type->sequence_extension_evidence == ASN1TYPED_WIRE_EVIDENCE_UNSUPPORTED ?
+			"SEQUENCE extension structure evidence is unsupported" :
+			"SEQUENCE extension structure evidence is unavailable");
+	if(type->sequence_root_field_count != type->field_count)
+		SEQUENCE_FAIL(1, "SEQUENCE root field count disagrees with owned physical fields");
+	if(type->sequence_known_addition_count != 0)
+		SEQUENCE_FAIL(1, "SEQUENCE known extension additions are unsupported");
+#undef SEQUENCE_FAIL
+	return 0;
+}
+int
+asn1typed_sequence_extension_structure_validate(const asn1typed_type_t *type,
+		char *error, size_t size) {
+	if(sequence_extension_check(type, error, size)) return -1;
+	if(type->has_valid_sequence_extension_structure != 1) {
+		if(error && size) snprintf(error, size, "SEQUENCE extension structure has not been finalized");
+		return -1;
+	}
+	return 0;
+}
+asn1typed_wire_finalize_result_e
+asn1typed_sequence_extension_structure_finalize(asn1typed_type_t *type,
+		char *error, size_t size) {
+	int check;
+	if(!sequence_extension_storage_valid(type)) {
+		if(error && size) snprintf(error, size, "SEQUENCE finalization requires valid kind and field storage");
+		return ASN1TYPED_WIRE_FINALIZE_ERROR;
+	}
+	type->has_valid_sequence_extension_structure = 0;
+	check = sequence_extension_check(type, error, size);
+	if(check) return check < 0 ? ASN1TYPED_WIRE_FINALIZE_ERROR : ASN1TYPED_WIRE_FINALIZE_UNAVAILABLE;
+	type->has_valid_sequence_extension_structure = 1;
 	return ASN1TYPED_WIRE_FINALIZE_OK;
 }

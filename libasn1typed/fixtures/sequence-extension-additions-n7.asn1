@@ -1,0 +1,3 @@
+SequenceExtensionAdditions DEFINITIONS ::= BEGIN
+WithAddition ::= SEQUENCE { flag BOOLEAN, ..., added BOOLEAN OPTIONAL }
+END
