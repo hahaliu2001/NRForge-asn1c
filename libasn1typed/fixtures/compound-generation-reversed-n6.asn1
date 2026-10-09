@@ -1,0 +1,7 @@
+CompoundReversed DEFINITIONS ::= BEGIN
+Signal ::= BOOLEAN
+Counter ::= INTEGER (0..4294967295)
+Mode ::= ENUMERATED { high(5), low(0), ..., addition(9) }
+Pick ::= CHOICE { counter [2] Counter, mode [1] Mode, signal [0] Signal }
+Envelope ::= SEQUENCE { pick Pick, mode Mode OPTIONAL, signal Signal OPTIONAL }
+END

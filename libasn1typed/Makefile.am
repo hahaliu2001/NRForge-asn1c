@@ -3,7 +3,7 @@ AM_CPPFLAGS = -I$(top_srcdir)/libasn1common
 
 noinst_LTLIBRARIES = libasn1typed.la libasn1typed_extract.la
 libasn1typed_la_SOURCES = asn1typed.c asn1typed.h asn1typed_name.c asn1typed_name.h asn1typed_render_cpp_internal.h \
-	asn1typed_render_cpp.c asn1typed_render_cpp_slice.c asn1typed_render_cpp_codec.c asn1typed_render_cpp_enum.c asn1typed_render_cpp_uint.c asn1typed_render_cpp.h
+	asn1typed_render_cpp.c asn1typed_render_cpp_slice.c asn1typed_render_cpp_codec.c asn1typed_render_cpp_enum.c asn1typed_render_cpp_uint.c asn1typed_render_cpp_compound.c asn1typed_render_cpp.h
 libasn1typed_extract_la_SOURCES = asn1typed_extract.c asn1typed_extract.h
 libasn1typed_extract_la_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/libasn1parser -I$(top_srcdir)/libasn1fix
 libasn1typed_extract_la_LIBADD = \
@@ -74,3 +74,11 @@ check_asn1typed_uint_render_CPPFLAGS = $(check_asn1typed_extract_CPPFLAGS)
 check_asn1typed_uint_render_LDADD = $(check_asn1typed_extract_LDADD)
 check_asn1typed_uint_render_LDFLAGS = -Wl,--wrap=malloc -Wl,--wrap=calloc -Wl,--wrap=realloc
 EXTRA_DIST += check_asn1typed_uint_generated.sh check_asn1typed_uint_generated.cpp fixtures/uint-generation-n5.asn1 fixtures/uint-generation-renamed-n5.asn1
+
+check_PROGRAMS += check_asn1typed_compound_render
+TESTS += check_asn1typed_compound_generated.sh
+check_asn1typed_compound_render_SOURCES = check_asn1typed_compound_render.c
+check_asn1typed_compound_render_CPPFLAGS = $(check_asn1typed_extract_CPPFLAGS)
+check_asn1typed_compound_render_LDADD = $(check_asn1typed_extract_LDADD)
+check_asn1typed_compound_render_LDFLAGS = -Wl,--wrap=malloc -Wl,--wrap=calloc -Wl,--wrap=realloc
+EXTRA_DIST += check_asn1typed_compound_generated.sh check_asn1typed_compound_generated.cpp fixtures/compound-generation-n6.asn1 fixtures/compound-generation-reversed-n6.asn1

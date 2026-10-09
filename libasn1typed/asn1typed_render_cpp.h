@@ -99,6 +99,18 @@ int asn1typed_render_cpp_owned_uint_mapping(const asn1typed_module_t *,
 int asn1typed_render_cpp_owned_uint_codec(const asn1typed_module_t *,
 		const char *, char **, char *, size_t);
 
+/* Mixed N4/N5 primitives plus BOOLEAN, non-extensible root CHOICE (1..255)
+ * and mandatory/OPTIONAL fixed SEQUENCE. References must be earlier/local;
+ * inline BOOLEAN only. Same unchanged IR/namespace and runtime/types/mapping/
+ * codec include order apply. Do not also include standalone primitive outputs
+ * for the same declarations. Every entry preflights the whole module. */
+int asn1typed_render_cpp_owned_compound_types(const asn1typed_module_t *,
+		const char *, char **, char *, size_t);
+int asn1typed_render_cpp_owned_compound_mapping(const asn1typed_module_t *,
+		const char *, char **, char *, size_t);
+int asn1typed_render_cpp_owned_compound_codec(const asn1typed_module_t *,
+		const char *, char **, char *, size_t);
+
 #ifdef __cplusplus
 }
 #endif

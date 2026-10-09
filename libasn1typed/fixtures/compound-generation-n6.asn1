@@ -1,0 +1,14 @@
+CompoundGeneration DEFINITIONS AUTOMATIC TAGS ::= BEGIN
+Flag ::= BOOLEAN
+Octet ::= INTEGER (0..255)
+Pair ::= INTEGER (0..65535)
+Word ::= INTEGER (0..4294967295)
+Identity ::= INTEGER (0..1099511627775)
+State ::= ENUMERATED { high(5), low(0), ..., addition(9) }
+Tri ::= CHOICE { flag Flag, state State, word Word }
+Inner ::= SEQUENCE { identity Identity, state State OPTIONAL, flag Flag OPTIONAL }
+Six ::= CHOICE { flag Flag, state State, word Word, identity Identity, inner Inner, tri Tri }
+Outer ::= SEQUENCE { selection Six, inner Inner OPTIONAL, flag Flag OPTIONAL }
+Solo ::= CHOICE { only BOOLEAN }
+Empty ::= SEQUENCE {}
+END
