@@ -712,6 +712,266 @@ void test_constrained_uint_malformed_and_state() {
     }), ErrorCode::truncated_input, 8);
 }
 
+// Independent bit-list oracle: no production arithmetic or codec helper reused.
+std::vector<std::byte> enum_oracle(nrforge::aper::EnumeratedIndex v,
+                                  unsigned roots, bool extensible,
+                                  unsigned residue, std::size_t& end) {
+    std::vector<bool> bits(residue, true);
+    const auto put = [&](std::uint64_t n, unsigned width) {
+        for(unsigned j = width; j > 0; --j) bits.push_back(((n >> (j - 1)) & 1u) != 0);
+    };
+    if(extensible) bits.push_back(v.is_extension);
+    if(!v.is_extension) {
+        unsigned width = 0;
+        for(unsigned n = roots - 1; n; n /= 2) ++width;
+        put(v.index, width);
+    } else if(v.index < 64) {
+        bits.push_back(false); put(v.index, 6);
+    } else {
+        bits.push_back(true);
+        while(bits.size() % 8) bits.push_back(false);
+        unsigned octets = 1;
+        for(std::uint64_t n = v.index; n > 255; n >>= 8) ++octets;
+        put(octets, 8); put(v.index, octets * 8);
+    }
+    end = bits.size();
+    if(bits.empty()) bits.resize(8, false);
+    while(bits.size() % 8) bits.push_back(false);
+    std::vector<std::byte> bytes(bits.size() / 8, std::byte{0});
+    for(std::size_t j = 0; j < bits.size(); ++j)
+        if(bits[j]) bytes[j / 8] |= static_cast<std::byte>(1u << (7 - j % 8));
+    return bytes;
+}
+
+void test_enumerated_vectors_and_atomicity() {
+    using nrforge::aper::EnumeratedIndex;
+    std::vector<std::uint64_t> extensions{0, 1, 63, 64, 255, 256, UINT64_MAX};
+    for(unsigned n = 2; n <= 7; ++n) {
+        const auto boundary = std::uint64_t{1} << (8 * n);
+        extensions.push_back(boundary - 1); extensions.push_back(boundary);
+    }
+    for(unsigned residue = 0; residue < 8; ++residue) {
+        for(unsigned roots : {1u, 2u, 3u, 4u, 6u, 7u, 45u, 255u}) {
+            for(bool extensible : {false, true}) {
+                for(std::uint64_t index = 0; index < roots; ++index) {
+                    std::size_t end;
+                    const auto bytes = enum_oracle({false, index}, roots, extensible, residue, end);
+                    EncodeContext ec; BitWriter w(ec);
+                    for(unsigned i = 0; i < residue; ++i) REQUIRE(w.write_bit(true));
+                    FieldWriter f(w); REQUIRE(f.write_enumerated({false, index}, roots, extensible));
+                    REQUIRE(w.cursor_bit() == end && ec.wire_bits() == end);
+                    auto encoded = w.finish(); REQUIRE(encoded && encoded.value().octets == bytes);
+                    DecodeContext dc; auto made = BitReader::make(bytes, dc); REQUIRE(made);
+                    auto r = std::move(made).value();
+                    for(unsigned i = 0; i < residue; ++i) REQUIRE(r.read_bit().value());
+                    FieldReader input(r); auto got = input.read_enumerated(roots, extensible);
+                    REQUIRE(got && !got.value().is_extension && got.value().index == index);
+                    REQUIRE(r.cursor_bit() == end); REQUIRE(r.validate_complete_value());
+                }
+            }
+        }
+        for(unsigned roots : {1u, 3u, 45u, 255u}) {
+            for(bool extensible : {false, true}) {
+                std::size_t end;
+                const auto bytes = enum_oracle({false, roots - 1}, roots, extensible, residue, end);
+                for(std::size_t cut = residue; cut < end; ++cut) {
+                    DecodeContext c; auto m = BitReader::make_bounded_for_test(bytes, cut, c); REQUIRE(m);
+                    auto r = std::move(m).value();
+                    for(unsigned i = 0; i < residue; ++i) REQUIRE(r.read_bit());
+                    expect_error(r.read_enumerated(roots, extensible), ErrorCode::truncated_input, cut);
+                    REQUIRE(r.cursor_bit() == residue && c.wire_bits() == residue);
+                }
+                for(bool short_budget : {false, true}) {
+                    if(short_budget && end == residue) continue;
+                    Limits l; l.max_wire_bits = end - (short_budget ? 1 : 0);
+                    EncodeContext c(l); BitWriter w(c);
+                    for(unsigned i = 0; i < residue; ++i) REQUIRE(w.write_bit(true));
+                    auto written = w.write_enumerated({false, roots - 1}, roots, extensible);
+                    DecodeContext d(l); auto m = BitReader::make(bytes, d); REQUIRE(m);
+                    auto r = std::move(m).value();
+                    for(unsigned i = 0; i < residue; ++i) REQUIRE(r.read_bit());
+                    auto read = r.read_enumerated(roots, extensible);
+                    if(short_budget) {
+                        expect_error(written, ErrorCode::resource_limit, residue);
+                        expect_error(read, ErrorCode::resource_limit, residue);
+                        REQUIRE(w.cursor_bit() == residue && c.wire_bits() == residue);
+                        REQUIRE(r.cursor_bit() == residue && d.wire_bits() == residue);
+                    } else {
+                        REQUIRE(written && read);
+                        REQUIRE(w.cursor_bit() == end && r.cursor_bit() == end);
+                    }
+                }
+            }
+        }
+        for(auto index : extensions) {
+            std::size_t end;
+            const auto bytes = enum_oracle({true, index}, 3, true, residue, end);
+            EncodeContext ec; BitWriter w(ec);
+            for(unsigned i = 0; i < residue; ++i) REQUIRE(w.write_bit(true));
+            REQUIRE(w.write_enumerated({true, index}, 3, true));
+            REQUIRE(w.cursor_bit() == end && ec.wire_bits() == end);
+            auto encoded = w.finish(); REQUIRE(encoded && encoded.value().octets == bytes);
+            DecodeContext dc; auto made = BitReader::make(bytes, dc); REQUIRE(made);
+            auto r = std::move(made).value();
+            for(unsigned i = 0; i < residue; ++i) REQUIRE(r.read_bit().value());
+            auto got = r.read_enumerated(3, true);
+            REQUIRE(got && got.value().is_extension && got.value().index == index);
+            REQUIRE(r.cursor_bit() == end); REQUIRE(r.validate_complete_value());
+            // Every logical truncation, including metadata and aligned payload.
+            for(std::size_t cut = residue; cut < end; ++cut) {
+                DecodeContext c; auto m = BitReader::make_bounded_for_test(bytes, cut, c); REQUIRE(m);
+                auto reader = std::move(m).value();
+                for(unsigned i = 0; i < residue; ++i) REQUIRE(reader.read_bit());
+                expect_error(reader.read_enumerated(3, true), ErrorCode::truncated_input, cut);
+                REQUIRE(reader.cursor_bit() == residue && c.wire_bits() == residue);
+                expect_error(reader.read_enumerated(0, false), ErrorCode::truncated_input, cut);
+            }
+            for(bool short_budget : {false, true}) {
+                Limits l; l.max_wire_bits = end - (short_budget ? 1 : 0);
+                EncodeContext c(l); BitWriter writer(c);
+                for(unsigned i = 0; i < residue; ++i) REQUIRE(writer.write_bit(true));
+                auto written = writer.write_enumerated({true, index}, 3, true);
+                if(short_budget) {
+                    expect_error(written, ErrorCode::resource_limit, residue);
+                    REQUIRE(writer.cursor_bit() == residue && c.wire_bits() == residue);
+                } else REQUIRE(written);
+                DecodeContext d(l); auto m = BitReader::make(bytes, d); REQUIRE(m);
+                auto reader = std::move(m).value();
+                for(unsigned i = 0; i < residue; ++i) REQUIRE(reader.read_bit());
+                auto read = reader.read_enumerated(3, true);
+                if(short_budget) expect_error(read, ErrorCode::resource_limit, residue);
+                else REQUIRE(read);
+                l = Limits{}; l.max_output_octets = bytes.size() - (short_budget ? 1 : 0);
+                EncodeContext oc(l); BitWriter ow(oc);
+                for(unsigned i = 0; i < residue; ++i) REQUIRE(ow.write_bit(true));
+                auto out = ow.write_enumerated({true, index}, 3, true);
+                if(short_budget) expect_error(out, ErrorCode::resource_limit, residue);
+                else REQUIRE(out);
+                l = Limits{}; l.max_input_octets = bytes.size() - (short_budget ? 1 : 0);
+                DecodeContext ic(l); auto admitted = BitReader::make(bytes, ic);
+                if(short_budget) expect_error(admitted, ErrorCode::resource_limit, 0);
+                else REQUIRE(admitted);
+            }
+            if(index >= 64) {
+                const std::size_t aligned = ((residue + 2 + 7) / 8) * 8;
+                for(std::size_t bit = residue + 2; bit < aligned; ++bit) {
+                    auto bad = bytes; bad[bit / 8] |= static_cast<std::byte>(1u << (7 - bit % 8));
+                    DecodeContext c; auto m = BitReader::make(bad, c); REQUIRE(m);
+                    auto reader = std::move(m).value();
+                    for(unsigned i = 0; i < residue; ++i) REQUIRE(reader.read_bit());
+                    expect_error(reader.read_enumerated(3, true), ErrorCode::nonzero_padding, bit);
+                    REQUIRE(reader.cursor_bit() == residue && c.wire_bits() == residue);
+                }
+            }
+        }
+    }
+}
+
+void test_enumerated_malformed_and_state() {
+    const auto reject = [](std::initializer_list<unsigned> octets, ErrorCode code) {
+        std::vector<std::byte> bytes;
+        for(auto v : octets) bytes.push_back(static_cast<std::byte>(v));
+        Limits l; l.max_wire_bits = 0; // malformed length takes precedence over budget
+        DecodeContext c(l); auto m = BitReader::make(bytes, c); REQUIRE(m);
+        auto r = std::move(m).value(); expect_error(r.read_enumerated(3, true), code, 0);
+        REQUIRE(r.cursor_bit() == 0 && c.wire_bits() == 0);
+    };
+    reject({0xff, 0}, ErrorCode::constraint_violation); // bad pad + zero length
+    reject({0xff, 9}, ErrorCode::resource_limit);
+    reject({0xff, 0xc1}, ErrorCode::resource_limit);
+    reject({0xff, 0x80, 1}, ErrorCode::constraint_violation);
+    reject({0xff, 0x80, 9}, ErrorCode::resource_limit);
+    const std::array<std::array<std::byte, 4>, 2> nonminimal{{
+        {std::byte{0xc0}, std::byte{1}, std::byte{63}, std::byte{0}},
+        {std::byte{0xc0}, std::byte{2}, std::byte{0}, std::byte{64}}}};
+    for(const auto& bytes : nonminimal) {
+        DecodeContext c; auto m = BitReader::make(bytes, c); REQUIRE(m);
+        auto r = std::move(m).value(); expect_error(r.read_enumerated(3, true), ErrorCode::constraint_violation, 0);
+        REQUIRE(c.wire_bits() == 0 && r.cursor_bit() == 0);
+    }
+    for(unsigned roots : {3u, 6u, 7u, 45u, 255u}) {
+        unsigned width = 0; for(unsigned n = roots - 1; n; n /= 2) ++width;
+        for(unsigned pattern = roots; pattern < (1u << width); ++pattern) {
+            const std::array<std::byte, 1> bytes{static_cast<std::byte>(pattern << (8 - width))};
+            DecodeContext c; auto m = BitReader::make(bytes, c); REQUIRE(m);
+            auto r = std::move(m).value(); expect_error(r.read_enumerated(roots, false), ErrorCode::constraint_violation, 0);
+            REQUIRE(r.cursor_bit() == 0 && c.wire_bits() == 0);
+        }
+    }
+    for(unsigned roots : {0u, 256u}) {
+        EncodeContext c; BitWriter w(c);
+        expect_error(w.write_enumerated({false, 0}, roots, false), ErrorCode::invalid_argument, 0);
+    }
+    for(unsigned roots : {0u, 256u}) {
+        const std::array<std::byte, 1> bytes{std::byte{0}};
+        DecodeContext c; auto made = BitReader::make(bytes, c); REQUIRE(made);
+        auto r = std::move(made).value();
+        expect_error(r.read_enumerated(roots, false), ErrorCode::invalid_argument, 0);
+        REQUIRE(r.cursor_bit() == 0 && c.wire_bits() == 0);
+    }
+    // Valid length: payload availability precedes budget and bad alignment.
+    {
+        const std::array<std::byte, 2> bytes{std::byte{0xff}, std::byte{1}};
+        Limits l; l.max_wire_bits = 0;
+        DecodeContext c(l); auto made = BitReader::make(bytes, c); REQUIRE(made);
+        auto r = std::move(made).value();
+        expect_error(r.read_enumerated(3, true), ErrorCode::truncated_input, 16);
+        REQUIRE(r.cursor_bit() == 0 && c.wire_bits() == 0);
+    }
+    for(auto v : {nrforge::aper::EnumeratedIndex{false, 3}, nrforge::aper::EnumeratedIndex{true, 0}}) {
+        EncodeContext c; BitWriter w(c);
+        expect_error(w.write_enumerated(v, 3, false), ErrorCode::constraint_violation, 0);
+        REQUIRE(c.wire_bits() == 0 && c.logical_output_octets() == 0);
+    }
+    EncodeContext c; BitWriter w(c); REQUIRE(w.write_enumerated({false, 0}, 1, false));
+    REQUIRE(w.cursor_bit() == 0 && c.wire_bits() == 0);
+    auto moved = std::move(w);
+    expect_error(w.write_enumerated({false, 0}, 0, false), ErrorCode::invalid_state, 0);
+    REQUIRE(moved.finish()); expect_error(moved.write_enumerated({false, 0}, 0, false), ErrorCode::invalid_state, 8);
+    REQUIRE(!c.failed());
+    const std::array<std::byte, 1> zero{std::byte{0}};
+    DecodeContext dc; auto m = BitReader::make(zero, dc); REQUIRE(m); auto reader = std::move(m).value();
+    REQUIRE(reader.read_enumerated(1, false)); auto target = std::move(reader);
+    expect_error(reader.read_enumerated(0, false), ErrorCode::invalid_state, 0);
+    REQUIRE(target.validate_complete_value()); expect_error(target.read_enumerated(0, false), ErrorCode::invalid_state, 8);
+    REQUIRE(!dc.failed());
+    for(bool prefix : {false, true}) {
+        EncodeContext ac; BitWriter aw(ac); if(prefix) REQUIRE(aw.write_bit(true));
+        fail_next_allocation = true;
+        expect_error(aw.write_enumerated({true, UINT64_MAX}, 3, true), ErrorCode::allocation_failure, prefix ? 1 : 0);
+        REQUIRE(!fail_next_allocation && aw.cursor_bit() == (prefix ? 1u : 0u));
+        REQUIRE(ac.wire_bits() == (prefix ? 1u : 0u));
+        expect_error(aw.write_enumerated({false, 0}, 1, false), ErrorCode::allocation_failure, prefix ? 1 : 0);
+    }
+    // Root fields requiring an initial octet really trigger allocation failure.
+    for(unsigned roots : {1u, 3u, 45u, 255u}) {
+        for(bool extensible : {false, true}) {
+            if(roots == 1 && !extensible) continue;
+            EncodeContext c; BitWriter w(c); fail_next_allocation = true;
+            expect_error(w.write_enumerated({false, roots - 1}, roots, extensible), ErrorCode::allocation_failure, 0);
+            REQUIRE(!fail_next_allocation && w.cursor_bit() == 0);
+            REQUIRE(c.wire_bits() == 0 && c.logical_output_octets() == 0);
+        }
+    }
+    {
+        Limits l; l.max_wire_bits = 0; l.max_output_octets = 0;
+        EncodeContext c(l); BitWriter w(c); REQUIRE(w.write_enumerated({false, 0}, 1, false));
+        REQUIRE(w.cursor_bit() == 0 && c.wire_bits() == 0 && c.logical_output_octets() == 0);
+        l.max_input_octets = 0;
+        DecodeContext d(l); auto m = BitReader::make(std::span<const std::byte>{}, d); REQUIRE(m);
+        auto r = std::move(m).value(); REQUIRE(r.read_enumerated(1, false));
+        REQUIRE(r.cursor_bit() == 0 && d.wire_bits() == 0);
+    }
+    expect_error(nrforge::aper::encode_complete<int>(0, Limits{}, [](FieldWriter& f) {
+        (void)f.write_enumerated({false, 3}, 3, false);
+        return f.write_enumerated({false, 0}, 1, false);
+    }), ErrorCode::constraint_violation, 0);
+    const std::array<std::byte, 1> spare{std::byte{0xc0}};
+    expect_error(nrforge::aper::decode_complete<nrforge::aper::EnumeratedIndex>(spare, Limits{}, [](FieldReader& f) {
+        (void)f.read_enumerated(3, false); return f.read_enumerated(1, false);
+    }), ErrorCode::constraint_violation, 0);
+}
+
 } // namespace
 
 void* operator new(std::size_t size) {
@@ -751,5 +1011,7 @@ int main() {
     test_invalid_logical_limit();
     test_constrained_uint_vectors_and_failures();
     test_constrained_uint_malformed_and_state();
+    test_enumerated_vectors_and_atomicity();
+    test_enumerated_malformed_and_state();
     return 0;
 }

@@ -33,6 +33,13 @@ struct Error {
     std::size_t bit_offset;
 };
 
+// Independent root/addition wire indexes, not ASN.1 assigned numeric values.
+// Unknown addition indexes are preserved through the full uint64 domain.
+struct EnumeratedIndex {
+    bool is_extension;
+    std::uint64_t index;
+};
+
 template<class T>
 class [[nodiscard]] Result {
 public:
@@ -145,6 +152,8 @@ public:
     // Zero-based, non-extensible INTEGER domains with root_bits 8/16/32/40.
     // Prefix, octet alignment and payload form one atomic operation (N1).
     Result<std::uint64_t> read_constrained_uint(unsigned root_bits);
+    // root_count 1..255; flags, length, alignment and index are atomic (N2).
+    Result<EnumeratedIndex> read_enumerated(unsigned root_count, bool extensible);
     Result<void> validate_complete_value();
     std::size_t cursor_bit() const noexcept { return cursor_bit_; }
 
@@ -172,6 +181,8 @@ public:
     Result<void> align_to_octet_zero();
     Result<void> write_aligned_u16_be(std::uint64_t value);
     Result<void> write_constrained_uint(std::uint64_t value, unsigned root_bits);
+    // root_count 1..255; extension indexes require extensible=true (N2).
+    Result<void> write_enumerated(EnumeratedIndex value, unsigned root_count, bool extensible);
     Result<CompleteEncoding> finish();
     std::size_t cursor_bit() const noexcept { return cursor_bit_; }
 
@@ -197,6 +208,9 @@ public:
     Result<std::uint64_t> read_constrained_uint(unsigned root_bits) {
         return reader_.read_constrained_uint(root_bits);
     }
+    Result<EnumeratedIndex> read_enumerated(unsigned root_count, bool extensible) {
+        return reader_.read_enumerated(root_count, extensible);
+    }
     std::size_t cursor_bit() const noexcept { return reader_.cursor_bit(); }
 private:
     BitReader& reader_;
@@ -214,6 +228,9 @@ public:
     }
     Result<void> write_constrained_uint(std::uint64_t value, unsigned root_bits) {
         return writer_.write_constrained_uint(value, root_bits);
+    }
+    Result<void> write_enumerated(EnumeratedIndex value, unsigned root_count, bool extensible) {
+        return writer_.write_enumerated(value, root_count, extensible);
     }
     std::size_t cursor_bit() const noexcept { return writer_.cursor_bit(); }
 private:

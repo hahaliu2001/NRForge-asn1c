@@ -430,4 +430,133 @@ Result<void> BitWriter::write_constrained_uint(std::uint64_t value, unsigned roo
     return Result<void>::success();
 }
 
+
+Result<void> BitWriter::write_enumerated(EnumeratedIndex value,
+                                         unsigned root_count, bool extensible) {
+    auto live = validate_live();
+    if(!live) return live;
+    const auto start = cursor_bit_;
+    if(root_count == 0 || root_count > 255)
+        return fail({ErrorCode::invalid_argument, start});
+    if((value.is_extension && !extensible) ||
+       (!value.is_extension && value.index >= root_count))
+        return fail({ErrorCode::constraint_violation, start});
+    unsigned root_bits = 0;
+    for(auto remaining = root_count - 1; remaining; remaining >>= 1) ++root_bits;
+    const bool long_form = value.is_extension && value.index >= 64;
+    const unsigned prefix_bits = value.is_extension ? (long_form ? 2u : 8u)
+                                                    : (root_bits + (extensible ? 1u : 0u));
+    unsigned octets = 1;
+    if(long_form)
+        for(auto remaining = value.index >> 8; remaining; remaining >>= 8) ++octets;
+    std::size_t after_prefix = 0;
+    std::size_t total = prefix_bits;
+    std::size_t end = 0;
+    if(!checked_add_size(start, prefix_bits, after_prefix))
+        return fail({ErrorCode::resource_limit, start});
+    const auto padding = long_form ? (8 - after_prefix % 8) % 8 : 0;
+    if((long_form && !checked_add_size(total, padding + 8 + octets * std::size_t{8}, total)) ||
+       !checked_add_size(start, total, end))
+        return fail({ErrorCode::resource_limit, start});
+    auto ready = preflight(total, end, start);
+    if(!ready) return ready;
+    std::size_t output_octets = 0;
+    (void)checked_bits_to_octets(end, output_octets);
+    auto grown = grow_to(output_octets, start);
+    if(!grown) return grown;
+    auto position = start;
+    auto emit = [&](std::uint64_t number, unsigned width) {
+        for(unsigned i = 0; i < width; ++i)
+            set_bit(output_, position++, ((number >> (width - i - 1)) & 1u) != 0);
+    };
+    if(extensible) emit(value.is_extension ? 1u : 0u, 1);
+    if(!value.is_extension) {
+        emit(value.index, root_bits);
+    } else {
+        emit(long_form ? 1u : 0u, 1);
+        if(!long_form) {
+            emit(value.index, 6);
+        } else {
+            for(std::size_t i = 0; i < padding; ++i) emit(0, 1);
+            emit(octets, 8);
+            emit(value.index, octets * 8);
+        }
+    }
+    cursor_bit_ = end;
+    context_->wire_bits_ += total;
+    context_->logical_output_octets_ = output_octets;
+    return Result<void>::success();
+}
+
+Result<EnumeratedIndex> BitReader::read_enumerated(unsigned root_count, bool extensible) {
+    auto live = validate_live();
+    if(!live) return Result<EnumeratedIndex>::failure(live.error());
+    const auto start = cursor_bit_;
+    auto reject = [&](ErrorCode code, std::size_t offset) {
+        return Result<EnumeratedIndex>::failure(fail({code, offset}).error());
+    };
+    if(root_count == 0 || root_count > 255)
+        return reject(ErrorCode::invalid_argument, start);
+    auto peek = [&](std::size_t position, unsigned width, std::uint64_t& number) {
+        if(position > logical_bit_limit_ || width > logical_bit_limit_ - position) return false;
+        number = 0;
+        for(unsigned i = 0; i < width; ++i)
+            number = (number << 1) | get_bit(input_, position + i);
+        return true;
+    };
+    auto position = start;
+    std::uint64_t flag = 0;
+    if(extensible) {
+        if(!peek(position, 1, flag)) return reject(ErrorCode::truncated_input, logical_bit_limit_);
+        ++position;
+    }
+    EnumeratedIndex value{flag != 0, 0};
+    unsigned index_bits = 0;
+    std::size_t padding_start = position;
+    std::size_t padding = 0;
+    bool long_form = false;
+    if(!value.is_extension) {
+        for(auto remaining = root_count - 1; remaining; remaining >>= 1) ++index_bits;
+    } else {
+        if(!peek(position, 1, flag)) return reject(ErrorCode::truncated_input, logical_bit_limit_);
+        ++position;
+        long_form = flag != 0;
+        if(!long_form) {
+            index_bits = 6;
+        } else {
+            padding_start = position;
+            padding = (8 - position % 8) % 8;
+            if(!checked_add_size(position, padding, position))
+                return reject(ErrorCode::resource_limit, start);
+            std::uint64_t length = 0;
+            if(!peek(position, 8, length)) return reject(ErrorCode::truncated_input, logical_bit_limit_);
+            position += 8;
+            if((length & 0xc0u) == 0xc0u) return reject(ErrorCode::resource_limit, start);
+            if(length & 0x80u) {
+                std::uint64_t low = 0;
+                if(!peek(position, 8, low)) return reject(ErrorCode::truncated_input, logical_bit_limit_);
+                length = ((length & 0x3fu) << 8) | low;
+                return reject(length > 8 ? ErrorCode::resource_limit : ErrorCode::constraint_violation, start);
+            }
+            if(length == 0) return reject(ErrorCode::constraint_violation, start);
+            if(length > 8) return reject(ErrorCode::resource_limit, start);
+            index_bits = static_cast<unsigned>(length) * 8;
+        }
+    }
+    std::size_t end = 0;
+    if(!checked_add_size(position, index_bits, end)) return reject(ErrorCode::resource_limit, start);
+    auto ready = preflight(end - start, start);
+    if(!ready) return Result<EnumeratedIndex>::failure(ready.error());
+    for(std::size_t i = 0; i < padding; ++i)
+        if(get_bit(input_, padding_start + i)) return reject(ErrorCode::nonzero_padding, padding_start + i);
+    (void)peek(position, index_bits, value.index);
+    if((!value.is_extension && value.index >= root_count) ||
+       (long_form && (value.index < 64 ||
+         (index_bits > 8 && (value.index >> (index_bits - 8)) == 0))))
+        return reject(ErrorCode::constraint_violation, start);
+    cursor_bit_ = end;
+    context_->wire_bits_ += end - start;
+    return Result<EnumeratedIndex>::success(value);
+}
+
 } // namespace nrforge::aper
