@@ -559,4 +559,210 @@ Result<EnumeratedIndex> BitReader::read_enumerated(unsigned root_count, bool ext
     return Result<EnumeratedIndex>::success(value);
 }
 
+namespace {
+
+enum class FramingPass { availability, padding, canonical, copy };
+struct FramingScan { std::size_t end; std::size_t units; };
+
+// Re-scan bounded input instead of retaining attacker-sized fragment descriptors.
+// Availability and size budgets precede padding and canonicality checks.
+Result<FramingScan> scan_extension_frame(std::span<const std::byte> input,
+                                        std::size_t limit, std::size_t start,
+                                        bool bitmap, FramingPass pass,
+                                        std::size_t expected_units,
+                                        std::vector<std::byte>* output = nullptr) {
+    std::size_t position = start;
+    std::size_t total = 0;
+    bool any_present = false;
+    auto reject = [](ErrorCode code, std::size_t offset) {
+        return Result<FramingScan>::failure({code, offset});
+    };
+    auto take = [&](unsigned bits, std::size_t& value) {
+        if(position > limit || bits > limit - position) return false;
+        value = 0;
+        for(unsigned i = 0; i < bits; ++i)
+            value = (value << 1) | get_bit(input, position++);
+        return true;
+    };
+    auto align = [&]() -> Result<void> {
+        const std::size_t padding = (8 - position % 8) % 8;
+        if(position > limit || padding > limit - position)
+            return Result<void>::failure({ErrorCode::truncated_input, limit});
+        if(pass == FramingPass::padding) {
+            for(std::size_t i = 0; i < padding; ++i)
+                if(get_bit(input, position + i))
+                    return Result<void>::failure({ErrorCode::nonzero_padding, position + i});
+        }
+        position += padding;
+        return Result<void>::success();
+    };
+    auto contents = [&](std::size_t units) -> Result<void> {
+        std::size_t bits = units;
+        std::size_t next_total = 0;
+        if((!bitmap && !checked_octets_to_bits(units, bits)) ||
+           !checked_add_size(total, units, next_total))
+            return Result<void>::failure({ErrorCode::resource_limit, start});
+        if(position > limit || bits > limit - position)
+            return Result<void>::failure({ErrorCode::truncated_input, limit});
+        if(bitmap && (pass == FramingPass::canonical || pass == FramingPass::copy)) {
+            for(std::size_t i = 0; i < units; ++i) {
+                const bool value = get_bit(input, position + i) != 0;
+                any_present = any_present || value;
+                if(output) set_bit(*output, total + i, value);
+            }
+        } else if(output) {
+            for(std::size_t i = 0; i < units; ++i)
+                (*output)[total + i] = input[position / 8 + i];
+        }
+        position += bits;
+        total = next_total;
+        return Result<void>::success();
+    };
+    if(bitmap) {
+        std::size_t large = 0;
+        if(!take(1, large)) return reject(ErrorCode::truncated_input, limit);
+        if(large == 0) {
+            std::size_t count_minus_one = 0;
+            if(!take(6, count_minus_one)) return reject(ErrorCode::truncated_input, limit);
+            auto added = contents(count_minus_one + 1);
+            if(!added) return reject(added.error().code, added.error().bit_offset);
+            if(pass == FramingPass::canonical && !any_present)
+                return reject(ErrorCode::constraint_violation, start);
+            return Result<FramingScan>::success({position, total});
+        }
+    }
+    for(;;) {
+        auto aligned = align();
+        if(!aligned) return reject(aligned.error().code, aligned.error().bit_offset);
+        const std::size_t determinant = position;
+        std::size_t first = 0;
+        if(!take(8, first)) return reject(ErrorCode::truncated_input, limit);
+        std::size_t units = 0;
+        bool fragmented = false;
+        bool overlong = false;
+        if((first & 0x80u) == 0) {
+            units = first;
+        } else if((first & 0xc0u) == 0x80u) {
+            std::size_t low = 0;
+            if(!take(8, low)) return reject(ErrorCode::truncated_input, limit);
+            units = ((first & 0x3fu) << 8) | low;
+            overlong = units < 128;
+        } else {
+            const std::size_t multiplier = first & 0x3fu;
+            if(multiplier < 1 || multiplier > 4)
+                return reject(ErrorCode::constraint_violation, determinant);
+            units = multiplier * 16384;
+            fragmented = true;
+        }
+        if(pass == FramingPass::canonical) {
+            if(overlong) return reject(ErrorCode::constraint_violation, determinant);
+            if(fragmented) {
+                const std::size_t remaining = expected_units - total;
+                const std::size_t maximum = remaining / 16384 < 4 ? remaining / 16384 : 4;
+                if(units / 16384 != maximum)
+                    return reject(ErrorCode::constraint_violation, determinant);
+            }
+        }
+        auto added = contents(units);
+        if(!added) return reject(added.error().code, added.error().bit_offset);
+        if(!fragmented) break;
+    }
+    if(pass == FramingPass::canonical &&
+       (total == 0 || (bitmap && (total <= 64 || !any_present))))
+        return reject(ErrorCode::constraint_violation, start);
+    return Result<FramingScan>::success({position, total});
+}
+
+} // namespace
+
+Result<SequenceExtensionBitmap> BitReader::read_sequence_extension_bitmap() {
+    auto live = validate_live();
+    if(!live) return Result<SequenceExtensionBitmap>::failure(live.error());
+    const std::size_t start = cursor_bit_;
+    auto reject = [&](Error error) {
+        return Result<SequenceExtensionBitmap>::failure(fail(error).error());
+    };
+    auto scanned = scan_extension_frame(input_, logical_bit_limit_, start, true,
+                                         FramingPass::availability, 0);
+    if(!scanned) return reject(scanned.error());
+    const auto frame = scanned.value();
+    std::size_t projected = 0;
+    if(!checked_add_size(context_->extension_bitmap_bits_, frame.units, projected) ||
+       projected > context_->limits_.max_extension_bitmap_bits)
+        return reject({ErrorCode::resource_limit, start});
+    auto ready = preflight(frame.end - start, start);
+    if(!ready) return Result<SequenceExtensionBitmap>::failure(ready.error());
+    for(auto pass : {FramingPass::padding, FramingPass::canonical}) {
+        auto checked = scan_extension_frame(input_, logical_bit_limit_, start, true, pass, frame.units);
+        if(!checked) return reject(checked.error());
+    }
+    SequenceExtensionBitmap result{frame.units, {}};
+    std::size_t octets = 0;
+    (void)checked_bits_to_octets(frame.units, octets);
+    if(octets > result.packed_bits.max_size()) return reject({ErrorCode::resource_limit, start});
+    try {
+        result.packed_bits.resize(octets);
+    } catch(const std::bad_alloc&) {
+        return reject({ErrorCode::allocation_failure, start});
+    } catch(const std::length_error&) {
+        return reject({ErrorCode::resource_limit, start});
+    }
+    auto copied = scan_extension_frame(input_, logical_bit_limit_, start, true,
+                                        FramingPass::copy, frame.units, &result.packed_bits);
+    if(!copied) return reject(copied.error());
+    cursor_bit_ = frame.end;
+    context_->wire_bits_ += frame.end - start;
+    context_->extension_bitmap_bits_ = projected;
+    return Result<SequenceExtensionBitmap>::success(std::move(result));
+}
+
+Result<std::vector<std::byte>> BitReader::read_open_type_owned() {
+    auto live = validate_live();
+    if(!live) return Result<std::vector<std::byte>>::failure(live.error());
+    const std::size_t start = cursor_bit_;
+    auto reject = [&](Error error) {
+        return Result<std::vector<std::byte>>::failure(fail(error).error());
+    };
+    auto scanned = scan_extension_frame(input_, logical_bit_limit_, start, false,
+                                         FramingPass::availability, 0);
+    if(!scanned) return reject(scanned.error());
+    const auto frame = scanned.value();
+    std::size_t projected_octets = 0;
+    std::size_t projected_records = 0;
+    if(!checked_add_size(context_->retained_unknown_payload_octets_, frame.units, projected_octets) ||
+       projected_octets > context_->limits_.max_retained_unknown_payload_octets ||
+       !checked_add_size(context_->retained_unknown_records_, 1, projected_records) ||
+       projected_records > context_->limits_.max_retained_unknown_records)
+        return reject({ErrorCode::resource_limit, start});
+    auto ready = preflight(frame.end - start, start);
+    if(!ready) return Result<std::vector<std::byte>>::failure(ready.error());
+    for(auto pass : {FramingPass::padding, FramingPass::canonical}) {
+        auto checked = scan_extension_frame(input_, logical_bit_limit_, start, false, pass, frame.units);
+        if(!checked) return reject(checked.error());
+    }
+    std::vector<std::byte> result;
+    if(frame.units > result.max_size()) return reject({ErrorCode::resource_limit, start});
+    try {
+        result.resize(frame.units);
+    } catch(const std::bad_alloc&) {
+        return reject({ErrorCode::allocation_failure, start});
+    } catch(const std::length_error&) {
+        return reject({ErrorCode::resource_limit, start});
+    }
+    auto copied = scan_extension_frame(input_, logical_bit_limit_, start, false,
+                                        FramingPass::copy, frame.units, &result);
+    if(!copied) return reject(copied.error());
+    cursor_bit_ = frame.end;
+    context_->wire_bits_ += frame.end - start;
+    context_->retained_unknown_payload_octets_ = projected_octets;
+    context_->retained_unknown_records_ = projected_records;
+    return Result<std::vector<std::byte>>::success(std::move(result));
+}
+
+Result<void> BitWriter::reject_sequence_extension_data() {
+    auto live = validate_live();
+    if(!live) return live;
+    return fail({ErrorCode::constraint_violation, cursor_bit_});
+}
+
 } // namespace nrforge::aper

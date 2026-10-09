@@ -147,3 +147,5 @@ asn1c/tmp/
 
 /tools/asn1typed_real_probe
 /tools/asn1typed_tree_inspect
+
+/libaper/check_aper_extensions

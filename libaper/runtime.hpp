@@ -82,6 +82,14 @@ struct Limits {
     std::size_t max_input_octets = 1u << 20;
     std::size_t max_output_octets = 1u << 20;
     std::size_t max_wire_bits = 8u << 20;
+    std::size_t max_extension_bitmap_bits = 1024;
+    std::size_t max_retained_unknown_payload_octets = 1u << 20;
+    std::size_t max_retained_unknown_records = 1024;
+};
+
+struct SequenceExtensionBitmap {
+    std::size_t bit_count;
+    std::vector<std::byte> packed_bits;
 };
 
 class DecodeContext {
@@ -89,6 +97,9 @@ public:
     explicit DecodeContext(Limits limits = {}) noexcept : limits_(limits) {}
     const Limits& limits() const noexcept { return limits_; }
     std::size_t wire_bits() const noexcept { return wire_bits_; }
+    std::size_t extension_bitmap_bits() const noexcept { return extension_bitmap_bits_; }
+    std::size_t retained_unknown_payload_octets() const noexcept { return retained_unknown_payload_octets_; }
+    std::size_t retained_unknown_records() const noexcept { return retained_unknown_records_; }
     bool failed() const noexcept { return failed_; }
     bool finished() const noexcept { return finished_; }
     const Error* first_error() const noexcept { return failed_ ? &error_ : nullptr; }
@@ -98,6 +109,9 @@ private:
     friend class BitReader;
     Limits limits_;
     std::size_t wire_bits_ = 0;
+    std::size_t extension_bitmap_bits_ = 0;
+    std::size_t retained_unknown_payload_octets_ = 0;
+    std::size_t retained_unknown_records_ = 0;
     bool failed_ = false;
     bool finished_ = false;
     Error error_{ErrorCode::invalid_state, 0};
@@ -154,6 +168,9 @@ public:
     Result<std::uint64_t> read_constrained_uint(unsigned root_bits);
     // root_count 1..255; flags, length, alignment and index are atomic (N2).
     Result<EnumeratedIndex> read_enumerated(unsigned root_count, bool extensible);
+    // N7-P2: owned, atomic extension framing; no inner payload interpretation.
+    Result<SequenceExtensionBitmap> read_sequence_extension_bitmap();
+    Result<std::vector<std::byte>> read_open_type_owned();
     Result<void> validate_complete_value();
     std::size_t cursor_bit() const noexcept { return cursor_bit_; }
 
@@ -183,6 +200,7 @@ public:
     Result<void> write_constrained_uint(std::uint64_t value, unsigned root_bits);
     // root_count 1..255; extension indexes require extensible=true (N2).
     Result<void> write_enumerated(EnumeratedIndex value, unsigned root_count, bool extensible);
+    Result<void> reject_sequence_extension_data();
     Result<CompleteEncoding> finish();
     std::size_t cursor_bit() const noexcept { return cursor_bit_; }
 
@@ -211,6 +229,10 @@ public:
     Result<EnumeratedIndex> read_enumerated(unsigned root_count, bool extensible) {
         return reader_.read_enumerated(root_count, extensible);
     }
+    Result<SequenceExtensionBitmap> read_sequence_extension_bitmap() {
+        return reader_.read_sequence_extension_bitmap();
+    }
+    Result<std::vector<std::byte>> read_open_type_owned() { return reader_.read_open_type_owned(); }
     std::size_t cursor_bit() const noexcept { return reader_.cursor_bit(); }
 private:
     BitReader& reader_;
@@ -232,6 +254,7 @@ public:
     Result<void> write_enumerated(EnumeratedIndex value, unsigned root_count, bool extensible) {
         return writer_.write_enumerated(value, root_count, extensible);
     }
+    Result<void> reject_sequence_extension_data() { return writer_.reject_sequence_extension_data(); }
     std::size_t cursor_bit() const noexcept { return writer_.cursor_bit(); }
 private:
     BitWriter& writer_;
