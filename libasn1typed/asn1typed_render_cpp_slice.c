@@ -1,4 +1,5 @@
 #include "asn1typed_render_cpp.h"
+#include "asn1typed_render_cpp_internal.h"
 #include "asn1typed_name.h"
 
 #include <inttypes.h>
@@ -61,7 +62,10 @@ static int cpp_header_macro(const char *s) {
 	for(i = 0; i < sizeof(names)/sizeof(names[0]); ++i) if(!strcmp(s, names[i])) return 1;
 	return 0;
 }
-static char *name(const char *s, asn1typed_name_style_e style) {
+int asn1typed_render_cpp_header_macro(const char *spelling) {
+	return cpp_header_macro(spelling);
+}
+char *asn1typed_render_cpp_final_name(const char *s, asn1typed_name_style_e style) {
 	char *p = NULL;
 	if(asn1typed_name_make(s, style, &p) != ASN1TYPED_NAME_OK) return NULL;
 	size_t n = strlen(p);
@@ -76,6 +80,9 @@ static char *name(const char *s, asn1typed_name_style_e style) {
 		sprintf(q, "cpp_%s", p); free(p); p = q;
 	}
 	return p;
+}
+static char *name(const char *s, asn1typed_name_style_e style) {
+	return asn1typed_render_cpp_final_name(s, style);
 }
 static int safe_namespace(const char *ns) {
 	const char *p = ns, *start;

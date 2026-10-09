@@ -1,0 +1,4 @@
+S4ErrnoAlternative DEFINITIONS ::= BEGIN
+Num ::= INTEGER (0..65535)
+Selection ::= CHOICE { errno [0] BOOLEAN, amount [1] Num }
+END

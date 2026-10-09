@@ -1,0 +1,3 @@
+S4EmptySequence DEFINITIONS ::= BEGIN
+Empty ::= SEQUENCE { }
+END

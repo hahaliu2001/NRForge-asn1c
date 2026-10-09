@@ -67,6 +67,12 @@ int asn1typed_render_cpp_owned_aper_mapping(const asn1typed_module_t *module,
 		const char *namespace_name, char **out, char *diagnostic,
 		size_t diagnostic_size);
 
+/* Restricted S4 synthetic typed codec. Generate from the same unchanged IR
+ * and namespace. Include runtime, type, mapping, then codec headers, in that order. */
+int asn1typed_render_cpp_owned_aper_codec(const asn1typed_module_t *module,
+		const char *namespace_name, char **out, char *diagnostic,
+		size_t diagnostic_size);
+
 #ifdef __cplusplus
 }
 #endif

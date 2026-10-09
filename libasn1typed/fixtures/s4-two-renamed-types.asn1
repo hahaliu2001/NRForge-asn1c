@@ -1,0 +1,4 @@
+S4TwoRenamedTypes DEFINITIONS AUTOMATIC TAGS ::= BEGIN
+Number ::= INTEGER (0..65535)
+Envelope ::= SEQUENCE { value Number, marker BOOLEAN OPTIONAL }
+END

@@ -1,0 +1,5 @@
+S4RenamedNum DEFINITIONS AUTOMATIC TAGS ::= BEGIN
+Num ::= INTEGER (0..65535)
+Selection ::= CHOICE { flag BOOLEAN, amount Num }
+Packet ::= SEQUENCE { count Num, enabled BOOLEAN OPTIONAL, selection Selection }
+END

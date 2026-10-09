@@ -195,7 +195,7 @@ int main(void) {
 		}
 	}
 	{
-		asn1typed_module_t reversed = {0}; char *types = NULL, *wire = NULL;
+		asn1typed_module_t reversed = {0}; char *types = NULL, *wire = NULL, *codec = NULL;
 		tree = asn1p_parse_file(REVERSED_FIXTURE, A1P_NOFLAGS);
 		assert(tree && asn1f_process(tree, A1F_NOFLAGS, NULL) >= 0);
 		assert(asn1typed_extract_module(tree, "CppAperReversedTags", &reversed, diag, sizeof(diag)) == 0);
@@ -204,12 +204,18 @@ int main(void) {
 		assert(reversed.types[1].alternatives[1].per_root_index == 0);
 		assert(asn1typed_render_cpp_owned_slice(&reversed, "nrforge::synthetic::reversed", &types, diag, sizeof(diag)) == 0);
 		assert(asn1typed_render_cpp_owned_aper_mapping(&reversed, "nrforge::synthetic::reversed", &wire, diag, sizeof(diag)) == 0);
+		assert(asn1typed_render_cpp_owned_aper_codec(&reversed, "nrforge::synthetic::reversed", &codec, diag, sizeof(diag)) == 0);
 		assert(strstr(types, "std::variant<Selection_count, Selection_flag>"));
 		assert(strstr(wire, "storage_alternative_to_per_root_index[2] = {1, 0}"));
-		fputs(types, stdout); fputs(wire, stdout);
-		free(types); free(wire); asn1typed_module_clear(&reversed);
+		fputs(types, stdout); fputs(wire, stdout); fputs(codec, stdout);
+		free(types); free(wire); free(codec); asn1typed_module_clear(&reversed);
 	}
-	fputs(a, stdout); fputs(mapping, stdout); fputs(wide, stdout); free(a); free(b); free(wide); free(mapping); free(mapping2);
+	{
+		char *codec = NULL;
+		assert(asn1typed_render_cpp_owned_aper_codec(&ir, "nrforge::synthetic::cpp_aper_slice", &codec, diag, sizeof(diag)) == 0);
+		fputs(a, stdout); fputs(mapping, stdout); fputs(codec, stdout); free(codec);
+	}
+	fputs(wide, stdout); free(a); free(b); free(wide); free(mapping); free(mapping2);
 	asn1typed_module_clear(&ir); asn1typed_module_clear(&wide_ir);
 	return 0;
 }

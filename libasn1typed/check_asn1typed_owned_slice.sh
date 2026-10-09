@@ -2,7 +2,8 @@
 set -eu
 work=$(mktemp -d "${TMPDIR:-/tmp}/asn1typed-s1.XXXXXX")
 trap 'rm -rf "$work"' EXIT HUP INT TERM
-./check_asn1typed_owned_slice > "$work/generated.cpp"
+printf '%s\n' '#include "../libaper/runtime.hpp"' > "$work/generated.cpp"
+./check_asn1typed_owned_slice >> "$work/generated.cpp"
 cat >> "$work/generated.cpp" <<'CPP'
 #include <cassert>
 #include <type_traits>
@@ -88,6 +89,6 @@ int main() {
     assert(nrforge::synthetic::cpp_aper_int64::Wide_constraint::lower_bound == INT64_MIN);
 }
 CPP
-${CXX:-c++} -std=c++20 -Wall -Wextra -Werror -pedantic "$work/generated.cpp" -o "$work/check"
+${CXX:-c++} -std=c++20 -Wall -Wextra -Werror -pedantic -I../libaper "$work/generated.cpp" ../libaper/runtime.cpp -o "$work/check"
 "$work/check"
 echo 'PASS owned synthetic C++20 generated type compilation and value semantics'

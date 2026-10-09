@@ -1,0 +1,5 @@
+S4Presence DEFINITIONS AUTOMATIC TAGS ::= BEGIN
+Count ::= INTEGER (0..65535)
+Selection ::= CHOICE { flag BOOLEAN, amount Count }
+Packet ::= SEQUENCE { count Count, enabled BOOLEAN, selection Selection, extra BOOLEAN OPTIONAL, trailing BOOLEAN OPTIONAL }
+END

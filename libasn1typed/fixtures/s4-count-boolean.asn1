@@ -1,0 +1,5 @@
+S4CountBoolean DEFINITIONS AUTOMATIC TAGS ::= BEGIN
+Count ::= BOOLEAN
+Selection ::= CHOICE { flag BOOLEAN, amount Count }
+Packet ::= SEQUENCE { count Count, enabled BOOLEAN OPTIONAL, selection Selection }
+END

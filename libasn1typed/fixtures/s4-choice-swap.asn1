@@ -1,0 +1,5 @@
+S4ChoiceSwap DEFINITIONS ::= BEGIN
+Num ::= INTEGER (0..65535)
+Selection ::= CHOICE { amount [1] Num, switch [0] BOOLEAN }
+Packet ::= SEQUENCE { count Num, enabled BOOLEAN OPTIONAL, selection Selection }
+END

@@ -1,0 +1,5 @@
+S4Reordered DEFINITIONS AUTOMATIC TAGS ::= BEGIN
+Count ::= INTEGER (0..65535)
+Selection ::= CHOICE { flag BOOLEAN, amount Count }
+Packet ::= SEQUENCE { enabled BOOLEAN OPTIONAL, selection Selection, count Count }
+END

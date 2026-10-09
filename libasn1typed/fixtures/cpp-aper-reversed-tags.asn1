@@ -7,4 +7,10 @@ Selection ::= CHOICE {
     flag  [0] BOOLEAN
 }
 
+Packet ::= SEQUENCE {
+    count Count,
+    enabled BOOLEAN OPTIONAL,
+    selection Selection
+}
+
 END
