@@ -1,0 +1,57 @@
+CppPayloadTypes DEFINITIONS AUTOMATIC TAGS ::= BEGIN
+Identifier ::= INTEGER (0..65535)
+Policy ::= ENUMERATED { reject, ignore, notify }
+Flag ::= BOOLEAN
+Word ::= INTEGER (0..255)
+Pair ::= SEQUENCE { value Word, marker Flag OPTIONAL }
+WordList ::= SEQUENCE (SIZE (0..3)) OF Word
+END
+
+IOCCppGeneration DEFINITIONS AUTOMATIC TAGS ::= BEGIN
+IMPORTS Identifier, Policy, Flag, Word, Pair, WordList FROM CppPayloadTypes;
+Requirement ::= ENUMERATED { mandatory, optional, conditional }
+id-First Identifier ::= 91
+id-Second Identifier ::= 7
+id-Third Identifier ::= 42
+id-Pair Identifier ::= 50
+id-Words Identifier ::= 80
+id-Extra Identifier ::= 13
+GENERATION-IES ::= CLASS {
+  &id Identifier UNIQUE, &criticality Policy, &Value, &presence Requirement
+} WITH SYNTAX { ID &id CRITICALITY &criticality TYPE &Value PRESENCE &presence }
+GenericEntry { GENERATION-IES : Rows } ::= SEQUENCE {
+  number GENERATION-IES.&id({Rows}),
+  policy GENERATION-IES.&criticality({Rows}{@number}),
+  content GENERATION-IES.&Value({Rows}{@number})
+}
+GenericContainer { GENERATION-IES : Rows } ::= SEQUENCE (SIZE (0..65535)) OF GenericEntry {{Rows}}
+SourceRows GENERATION-IES ::= {
+  { ID id-First CRITICALITY reject TYPE Flag PRESENCE mandatory } |
+  { ID id-Second CRITICALITY ignore TYPE Word PRESENCE optional } |
+  { ID id-Third CRITICALITY notify TYPE Flag PRESENCE conditional } |
+  { ID id-Pair CRITICALITY reject TYPE Pair PRESENCE optional } |
+  { ID id-Words CRITICALITY ignore TYPE WordList PRESENCE optional }, ...
+}
+EmptyRows GENERATION-IES ::= { ... }
+ClosedRows GENERATION-IES ::= {
+  { ID id-First CRITICALITY reject TYPE Flag PRESENCE mandatory }
+}
+DispatchMessage ::= SEQUENCE { entries GenericContainer {{SourceRows}}, ... }
+EmptyMessage ::= SEQUENCE { items GenericContainer {{EmptyRows}} }
+ClosedMessage ::= SEQUENCE { entries GenericContainer {{ClosedRows}} }
+GENERATION-EXTENSIONS ::= CLASS {
+  &id Identifier UNIQUE, &criticality Policy, &Extension
+} WITH SYNTAX { ID &id CRITICALITY &criticality EXTENSION &Extension }
+GenericExtensionEntry { GENERATION-EXTENSIONS : Rows } ::= SEQUENCE {
+  tag GENERATION-EXTENSIONS.&id({Rows}),
+  receivedPolicy GENERATION-EXTENSIONS.&criticality({Rows}{@tag}),
+  extensionContent GENERATION-EXTENSIONS.&Extension({Rows}{@tag})
+}
+GenericExtensionContainer { GENERATION-EXTENSIONS : Rows } ::= SEQUENCE (SIZE (1..65535)) OF GenericExtensionEntry {{Rows}}
+ExtensionRows GENERATION-EXTENSIONS ::= {
+  { ID id-Extra CRITICALITY ignore EXTENSION Flag }, ...
+}
+EmptyExtensionRows GENERATION-EXTENSIONS ::= { ... }
+ExtensionMessage ::= SEQUENCE { additions GenericExtensionContainer {{ExtensionRows}} }
+EmptyExtensionMessage ::= SEQUENCE { additions GenericExtensionContainer {{EmptyExtensionRows}} }
+END

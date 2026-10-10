@@ -3,6 +3,7 @@ set -eu
 probe=${1:-./asn1typed_real_probe}
 inspect=${2:-./asn1typed_tree_inspect}
 fixture_root=${3:-../libasn1typed/fixtures}
+ioc_probe=${4:-./asn1typed_ioc_probe}
 tmp=${TMPDIR:-/tmp}/asn1typed-tools-$$
 trap 'rm -rf "$tmp"' EXIT HUP INT TERM
 mkdir -p "$tmp"
@@ -42,3 +43,14 @@ grep -q 'ValueRange' "$tmp/out"
 "$inspect" --module-list "$tmp/parameterized.modules" --type ParameterizedReferenceB7A.UseA --member selected >"$tmp/out"
 grep -q '^RHS_PARAMETER_COUNT 1$' "$tmp/out"
 grep -q 'CONTAINED_SUBTYPE TYPE REFERENCE SetA' "$tmp/out"
+printf '%s\n' "$fixture_root/ioc-generation-n9.asn1" > "$tmp/physical.modules"
+if "$ioc_probe" >/dev/null 2>&1; then exit 1; fi
+"$ioc_probe" --module-list "$tmp/physical.modules" --root-module IOCCppGeneration --message DispatchMessage --output-prefix "$tmp/physical" >"$tmp/out"
+grep -q '^PARSER_DELETED$' "$tmp/out"
+grep -q '^GENERATION codec PASS$' "$tmp/out"
+test -s "$tmp/physical_types.hpp"
+test -s "$tmp/physical_mapping.hpp"
+test -s "$tmp/physical_codec.hpp"
+if "$ioc_probe" --module-list "$tmp/physical.modules" --root-module IOCCppGeneration --message DispatchMessage --namespace class --output-prefix "$tmp/refused" >"$tmp/out"; then exit 1; fi
+grep -q '^GENERATION types FAIL$' "$tmp/out"
+test ! -e "$tmp/refused_types.hpp"

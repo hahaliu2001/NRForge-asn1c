@@ -1,0 +1,58 @@
+IOCNativeSender DEFINITIONS AUTOMATIC TAGS ::= BEGIN
+Identifier ::= INTEGER (0..65535)
+Policy ::= ENUMERATED { reject, ignore, notify }
+Requirement ::= ENUMERATED { mandatory, optional, conditional }
+Flag ::= BOOLEAN
+Pair ::= SEQUENCE { value Word, marker Flag OPTIONAL }
+WordList ::= SEQUENCE (SIZE (0..3)) OF Word
+Blob ::= OCTET STRING
+Word ::= INTEGER (0..255)
+id-First Identifier ::= 91
+id-Second Identifier ::= 7
+id-Third Identifier ::= 42
+id-Extra Identifier ::= 13
+REGISTRY-CLASS ::= CLASS {
+  &id Identifier UNIQUE,
+  &criticality Policy,
+  &Value,
+  &presence Requirement
+} WITH SYNTAX { ID &id CRITICALITY &criticality TYPE &Value PRESENCE &presence }
+GenericEntry { REGISTRY-CLASS : Rows } ::= SEQUENCE {
+  number REGISTRY-CLASS.&id({Rows}),
+  policy REGISTRY-CLASS.&criticality({Rows}{@number}),
+  content REGISTRY-CLASS.&Value({Rows}{@number})
+}
+GenericContainer { REGISTRY-CLASS : Rows } ::= SEQUENCE (SIZE (0..65535)) OF GenericEntry {{Rows}}
+SourceRows REGISTRY-CLASS ::= {
+  { ID id-First CRITICALITY reject TYPE Flag PRESENCE mandatory } |
+  { ID id-Second CRITICALITY ignore TYPE Word PRESENCE optional } |
+  { ID id-Third CRITICALITY notify TYPE Flag PRESENCE conditional } |
+  { ID 50 CRITICALITY reject TYPE Pair PRESENCE optional } |
+  { ID 80 CRITICALITY ignore TYPE WordList PRESENCE optional } |
+  { ID 300 CRITICALITY ignore TYPE Pair PRESENCE optional } |
+  { ID 301 CRITICALITY notify TYPE Blob PRESENCE optional }, ...
+}
+EmptyRows REGISTRY-CLASS ::= { ... }
+ClosedRows REGISTRY-CLASS ::= {{ ID id-First CRITICALITY reject TYPE Flag PRESENCE mandatory }}
+DispatchMessage ::= SEQUENCE { entries GenericContainer {{SourceRows}}, ... }
+EmptyMessage ::= SEQUENCE { items GenericContainer {{EmptyRows}} }
+ClosedMessage ::= SEQUENCE { entries GenericContainer {{ClosedRows}} }
+
+EXTENSION-CLASS ::= CLASS {
+  &id Identifier UNIQUE,
+  &criticality Policy,
+  &Extension
+} WITH SYNTAX { ID &id CRITICALITY &criticality EXTENSION &Extension }
+GenericExtensionEntry { EXTENSION-CLASS : Rows } ::= SEQUENCE {
+  tag EXTENSION-CLASS.&id({Rows}),
+  receivedPolicy EXTENSION-CLASS.&criticality({Rows}{@tag}),
+  extensionContent EXTENSION-CLASS.&Extension({Rows}{@tag})
+}
+GenericExtensionContainer { EXTENSION-CLASS : Rows } ::= SEQUENCE (SIZE (1..65535)) OF GenericExtensionEntry {{Rows}}
+ExtensionRows EXTENSION-CLASS ::= {
+  { ID id-Extra CRITICALITY ignore EXTENSION Flag }, ...
+}
+EmptyExtensionRows EXTENSION-CLASS ::= { ... }
+ExtensionMessage ::= SEQUENCE { additions GenericExtensionContainer {{ExtensionRows}} }
+EmptyExtensionMessage ::= SEQUENCE { additions GenericExtensionContainer {{EmptyExtensionRows}} }
+END

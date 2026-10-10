@@ -1,0 +1,25 @@
+{
+  "versions": {
+    "pycrate": "0.7.11",
+    "asn1tools": "0.167.0"
+  },
+  "byte_normalization": false,
+  "profile_verified": true,
+  "production_disagreements_unresolved": 0,
+  "matched_checks": 258,
+  "matched_checks_by_kind": {
+    "pycrate": 97,
+    "asn1tools_raw_framing": 97,
+    "generated_encode_both_oracles": 49,
+    "unknown_encode_refusal": 12,
+    "strict_literal_rejection": 3
+  },
+  "matched_checks_by_kind": {
+    "pycrate": 97,
+    "asn1tools_raw_framing": 97,
+    "generated_encode_both_oracles": 49,
+    "unknown_encode_refusal": 12,
+    "strict_literal_rejection": 3
+  },
+  "known_oracle_disagreements": 0
+}

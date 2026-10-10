@@ -1,0 +1,16 @@
+IOCRawFraming DEFINITIONS AUTOMATIC TAGS ::= BEGIN
+Identifier ::= INTEGER (0..65535)
+Policy ::= ENUMERATED { reject, ignore, notify }
+Flag ::= BOOLEAN
+Word ::= INTEGER (0..255)
+Pair ::= SEQUENCE { value Word, marker Flag OPTIONAL }
+WordList ::= SEQUENCE (SIZE (0..3)) OF Word
+Blob ::= OCTET STRING
+RawEntry ::= SEQUENCE { number Identifier, policy Policy, content OCTET STRING }
+RawExtensionEntry ::= SEQUENCE { tag Identifier, receivedPolicy Policy, extensionContent OCTET STRING }
+DispatchMessage ::= SEQUENCE { entries SEQUENCE (SIZE (0..65535)) OF RawEntry, ... }
+ClosedMessage ::= SEQUENCE { entries SEQUENCE (SIZE (0..65535)) OF RawEntry }
+EmptyMessage ::= SEQUENCE { items SEQUENCE (SIZE (0..65535)) OF RawEntry }
+ExtensionMessage ::= SEQUENCE { additions SEQUENCE (SIZE (1..65535)) OF RawExtensionEntry }
+EmptyExtensionMessage ::= SEQUENCE { additions SEQUENCE (SIZE (1..65535)) OF RawExtensionEntry }
+END

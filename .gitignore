@@ -158,3 +158,6 @@ asn1c/tmp/
 /libasn1typed/check_asn1typed_collection_render
 
 /libaper/check_aper_known_open
+/libasn1typed/check_asn1typed_ioc_evidence
+/libasn1typed/check_asn1typed_ioc_render
+/tools/asn1typed_ioc_probe

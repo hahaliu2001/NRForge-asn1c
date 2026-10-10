@@ -138,6 +138,20 @@ int asn1typed_render_cpp_owned_collection_mapping(const asn1typed_module_t *,
 int asn1typed_render_cpp_owned_collection_codec(const asn1typed_module_t *,
         const char *, char **, char *, size_t);
 
+/* Opt-in physical N9 IOC graph family. Requires independently validated owned
+ * registry and selector-role evidence, complete module-qualified dependency
+ * closure and full bound actual identities. Includes N6/N7/N8 ordinary graphs;
+ * declarations need not be source ordered. Unknown entries are retained on
+ * decode but sticky-refused on encode. Duplicate/missing rows and received
+ * criticality are preserved; protocol policy is not evaluated. Same unchanged
+ * IR/namespace/include order and reserved runtime namespace rules apply. */
+int asn1typed_render_cpp_owned_ioc_types(const asn1typed_module_t *,
+        const char *, char **, char *, size_t);
+int asn1typed_render_cpp_owned_ioc_mapping(const asn1typed_module_t *,
+        const char *, char **, char *, size_t);
+int asn1typed_render_cpp_owned_ioc_codec(const asn1typed_module_t *,
+        const char *, char **, char *, size_t);
+
 #ifdef __cplusplus
 }
 #endif

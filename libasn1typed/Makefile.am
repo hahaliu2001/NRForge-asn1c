@@ -3,7 +3,7 @@ AM_CPPFLAGS = -I$(top_srcdir)/libasn1common
 
 noinst_LTLIBRARIES = libasn1typed.la libasn1typed_extract.la
 libasn1typed_la_SOURCES = asn1typed.c asn1typed.h asn1typed_name.c asn1typed_name.h asn1typed_render_cpp_internal.h \
-	asn1typed_render_cpp.c asn1typed_render_cpp_slice.c asn1typed_render_cpp_codec.c asn1typed_render_cpp_enum.c asn1typed_render_cpp_uint.c asn1typed_render_cpp_compound.c asn1typed_render_cpp.h
+	asn1typed_render_cpp.c asn1typed_render_cpp_slice.c asn1typed_render_cpp_codec.c asn1typed_render_cpp_enum.c asn1typed_render_cpp_uint.c asn1typed_render_cpp_compound.c asn1typed_render_cpp_ioc.c asn1typed_render_cpp_ioc_internal.h asn1typed_render_cpp.h
 libasn1typed_extract_la_SOURCES = asn1typed_extract.c asn1typed_extract.h
 libasn1typed_extract_la_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/libasn1parser -I$(top_srcdir)/libasn1fix
 libasn1typed_extract_la_LIBADD = \
@@ -121,3 +121,11 @@ check_asn1typed_ioc_evidence_SOURCES = check_asn1typed_ioc_evidence.c check_ioc_
 check_asn1typed_ioc_evidence_CPPFLAGS = $(check_asn1typed_extract_CPPFLAGS) -DIOC_EVIDENCE_FIXTURE=\"$(abs_srcdir)/fixtures/ioc-evidence-n9.asn1\" -DNDEBUG
 check_asn1typed_ioc_evidence_LDADD = $(check_asn1typed_extract_LDADD)
 EXTRA_DIST += fixtures/ioc-evidence-n9.asn1
+
+check_PROGRAMS += check_asn1typed_ioc_render
+TESTS += check_asn1typed_ioc_generated.sh
+check_asn1typed_ioc_render_SOURCES = check_asn1typed_ioc_render.c
+check_asn1typed_ioc_render_CPPFLAGS = $(check_asn1typed_extract_CPPFLAGS) -DNDEBUG
+check_asn1typed_ioc_render_LDADD = $(check_asn1typed_extract_LDADD)
+check_asn1typed_ioc_render_LDFLAGS = -Wl,--wrap=malloc -Wl,--wrap=calloc -Wl,--wrap=realloc
+EXTRA_DIST += check_asn1typed_ioc_generated.sh check_asn1typed_ioc_generated.cpp fixtures/ioc-generation-n9.asn1

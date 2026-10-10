@@ -1,6 +1,6 @@
 # ASN.1 Typed developer tools
 
-Both tools accept an ordered module list. Each nonblank, noncomment line is a
+The tools accept an ordered module list. Each nonblank, noncomment line is a
 source path; relative paths are resolved against `--asn1-root` when supplied.
 Without a root, paths are resolved from the current working directory. No
 module discovery is performed.
@@ -24,3 +24,21 @@ tools/asn1typed_tree_inspect --asn1-root ../NRForge-RAN/src \
 
 The inspector reports fixed-tree evidence. These parser/fixer pointers and
 indices are diagnostic views, not durable Typed identities.
+
+`asn1typed_ioc_probe` is the opt-in physical IOC generation readiness probe.
+It deletes the Parser tree after extraction, reports owned registry summaries,
+then preflights all three output families before writing headers. The default
+namespace is `ioc_probe`; `--namespace` selects another validated namespace.
+
+```sh
+tools/asn1typed_ioc_probe --asn1-root ../NRForge-RAN/src \
+  --module-list tools/qualification/ngap-rel18.modules \
+  --root-module NGAP-PDU-Contents --message UEContextReleaseCommand \
+  --output-prefix /existing/output/directory/command --namespace command_probe
+```
+
+The output names are `command_types.hpp`, `command_mapping.hpp` and
+`command_codec.hpp`. Include runtime, types, mapping, then codec. Generation
+failure exits 6 without creating files; output I/O failure exits 7 and can leave
+earlier files. Existing output files are replaced. Success proves generation
+readiness only, not message-body or complete NGAP-PDU wire qualification.

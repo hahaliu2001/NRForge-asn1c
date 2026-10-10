@@ -1,0 +1,1557 @@
+{
+  "versions": {
+    "pycrate": "0.7.11",
+    "asn1tools": "0.167.0"
+  },
+  "matches": [
+    {
+      "case": "empty",
+      "oracle": "pycrate",
+      "octet_count": 3,
+      "sha256": "709e80c88487a2411e1ee4dfb9f22a861492d20c4765150c0c794abd70f8147c"
+    },
+    {
+      "case": "empty",
+      "oracle": "asn1tools_raw_framing",
+      "octet_count": 3,
+      "sha256": "709e80c88487a2411e1ee4dfb9f22a861492d20c4765150c0c794abd70f8147c"
+    },
+    {
+      "case": "empty",
+      "oracle": "generated_encode_both_oracles",
+      "octet_count": 3,
+      "sha256": "709e80c88487a2411e1ee4dfb9f22a861492d20c4765150c0c794abd70f8147c"
+    },
+    {
+      "case": "id91-reject-0",
+      "oracle": "pycrate",
+      "octet_count": 8,
+      "sha256": "cba38f0134eab4431a699c13c4f130c34162a9575f134be22a05143177d46025"
+    },
+    {
+      "case": "id91-reject-0",
+      "oracle": "asn1tools_raw_framing",
+      "octet_count": 8,
+      "sha256": "cba38f0134eab4431a699c13c4f130c34162a9575f134be22a05143177d46025"
+    },
+    {
+      "case": "id91-reject-0",
+      "oracle": "generated_encode_both_oracles",
+      "octet_count": 8,
+      "sha256": "cba38f0134eab4431a699c13c4f130c34162a9575f134be22a05143177d46025"
+    },
+    {
+      "case": "id91-reject-1",
+      "oracle": "pycrate",
+      "octet_count": 8,
+      "sha256": "77f2ffa9db2b09f1f4f794e7ac98fd9057c9da4712a8b6ef2714548dc01ac144"
+    },
+    {
+      "case": "id91-reject-1",
+      "oracle": "asn1tools_raw_framing",
+      "octet_count": 8,
+      "sha256": "77f2ffa9db2b09f1f4f794e7ac98fd9057c9da4712a8b6ef2714548dc01ac144"
+    },
+    {
+      "case": "id91-reject-1",
+      "oracle": "generated_encode_both_oracles",
+      "octet_count": 8,
+      "sha256": "77f2ffa9db2b09f1f4f794e7ac98fd9057c9da4712a8b6ef2714548dc01ac144"
+    },
+    {
+      "case": "id91-ignore-0",
+      "oracle": "pycrate",
+      "octet_count": 8,
+      "sha256": "8ae82038ef6f520b13b723056643adab3e9fdb9fc428649615efc2cc6dd0f681"
+    },
+    {
+      "case": "id91-ignore-0",
+      "oracle": "asn1tools_raw_framing",
+      "octet_count": 8,
+      "sha256": "8ae82038ef6f520b13b723056643adab3e9fdb9fc428649615efc2cc6dd0f681"
+    },
+    {
+      "case": "id91-ignore-0",
+      "oracle": "generated_encode_both_oracles",
+      "octet_count": 8,
+      "sha256": "8ae82038ef6f520b13b723056643adab3e9fdb9fc428649615efc2cc6dd0f681"
+    },
+    {
+      "case": "id91-ignore-1",
+      "oracle": "pycrate",
+      "octet_count": 8,
+      "sha256": "02ef579c65eacced33ba5e3bf4f8802d37a8edabf78e28c33a45f6d2903fccc5"
+    },
+    {
+      "case": "id91-ignore-1",
+      "oracle": "asn1tools_raw_framing",
+      "octet_count": 8,
+      "sha256": "02ef579c65eacced33ba5e3bf4f8802d37a8edabf78e28c33a45f6d2903fccc5"
+    },
+    {
+      "case": "id91-ignore-1",
+      "oracle": "generated_encode_both_oracles",
+      "octet_count": 8,
+      "sha256": "02ef579c65eacced33ba5e3bf4f8802d37a8edabf78e28c33a45f6d2903fccc5"
+    },
+    {
+      "case": "id91-notify-0",
+      "oracle": "pycrate",
+      "octet_count": 8,
+      "sha256": "0af2d9a4081d0ab6ab85d6a65320ddef158058345177ff9af154433fe01e1e17"
+    },
+    {
+      "case": "id91-notify-0",
+      "oracle": "asn1tools_raw_framing",
+      "octet_count": 8,
+      "sha256": "0af2d9a4081d0ab6ab85d6a65320ddef158058345177ff9af154433fe01e1e17"
+    },
+    {
+      "case": "id91-notify-0",
+      "oracle": "generated_encode_both_oracles",
+      "octet_count": 8,
+      "sha256": "0af2d9a4081d0ab6ab85d6a65320ddef158058345177ff9af154433fe01e1e17"
+    },
+    {
+      "case": "id91-notify-1",
+      "oracle": "pycrate",
+      "octet_count": 8,
+      "sha256": "998efde84d42d2c8a08d38e11523cf7596532d3117e58ea70cc40c13b22e5851"
+    },
+    {
+      "case": "id91-notify-1",
+      "oracle": "asn1tools_raw_framing",
+      "octet_count": 8,
+      "sha256": "998efde84d42d2c8a08d38e11523cf7596532d3117e58ea70cc40c13b22e5851"
+    },
+    {
+      "case": "id91-notify-1",
+      "oracle": "generated_encode_both_oracles",
+      "octet_count": 8,
+      "sha256": "998efde84d42d2c8a08d38e11523cf7596532d3117e58ea70cc40c13b22e5851"
+    },
+    {
+      "case": "id42-reject-0",
+      "oracle": "pycrate",
+      "octet_count": 8,
+      "sha256": "03e6269d4199da053c50e2ea6d0dc6bae5a48226b7877f76f49e0b0c25594bc4"
+    },
+    {
+      "case": "id42-reject-0",
+      "oracle": "asn1tools_raw_framing",
+      "octet_count": 8,
+      "sha256": "03e6269d4199da053c50e2ea6d0dc6bae5a48226b7877f76f49e0b0c25594bc4"
+    },
+    {
+      "case": "id42-reject-0",
+      "oracle": "generated_encode_both_oracles",
+      "octet_count": 8,
+      "sha256": "03e6269d4199da053c50e2ea6d0dc6bae5a48226b7877f76f49e0b0c25594bc4"
+    },
+    {
+      "case": "id42-reject-1",
+      "oracle": "pycrate",
+      "octet_count": 8,
+      "sha256": "06c073e91f907458f104e0ee28cee1430c3ed64bbceb6aec3a29b955507572be"
+    },
+    {
+      "case": "id42-reject-1",
+      "oracle": "asn1tools_raw_framing",
+      "octet_count": 8,
+      "sha256": "06c073e91f907458f104e0ee28cee1430c3ed64bbceb6aec3a29b955507572be"
+    },
+    {
+      "case": "id42-reject-1",
+      "oracle": "generated_encode_both_oracles",
+      "octet_count": 8,
+      "sha256": "06c073e91f907458f104e0ee28cee1430c3ed64bbceb6aec3a29b955507572be"
+    },
+    {
+      "case": "id42-ignore-0",
+      "oracle": "pycrate",
+      "octet_count": 8,
+      "sha256": "6d707f812169577e824dd468ae95d08b3a5de629ff969fe8f4ad06136341ee37"
+    },
+    {
+      "case": "id42-ignore-0",
+      "oracle": "asn1tools_raw_framing",
+      "octet_count": 8,
+      "sha256": "6d707f812169577e824dd468ae95d08b3a5de629ff969fe8f4ad06136341ee37"
+    },
+    {
+      "case": "id42-ignore-0",
+      "oracle": "generated_encode_both_oracles",
+      "octet_count": 8,
+      "sha256": "6d707f812169577e824dd468ae95d08b3a5de629ff969fe8f4ad06136341ee37"
+    },
+    {
+      "case": "id42-ignore-1",
+      "oracle": "pycrate",
+      "octet_count": 8,
+      "sha256": "10e95dd7838cf1a764bebb71c7c420fd62c3c96baf83ceac246901840965124e"
+    },
+    {
+      "case": "id42-ignore-1",
+      "oracle": "asn1tools_raw_framing",
+      "octet_count": 8,
+      "sha256": "10e95dd7838cf1a764bebb71c7c420fd62c3c96baf83ceac246901840965124e"
+    },
+    {
+      "case": "id42-ignore-1",
+      "oracle": "generated_encode_both_oracles",
+      "octet_count": 8,
+      "sha256": "10e95dd7838cf1a764bebb71c7c420fd62c3c96baf83ceac246901840965124e"
+    },
+    {
+      "case": "id42-notify-0",
+      "oracle": "pycrate",
+      "octet_count": 8,
+      "sha256": "2ee31820288858b845e7c5bdeff4929d44b55456211f1dae545c6c2da5c196ab"
+    },
+    {
+      "case": "id42-notify-0",
+      "oracle": "asn1tools_raw_framing",
+      "octet_count": 8,
+      "sha256": "2ee31820288858b845e7c5bdeff4929d44b55456211f1dae545c6c2da5c196ab"
+    },
+    {
+      "case": "id42-notify-0",
+      "oracle": "generated_encode_both_oracles",
+      "octet_count": 8,
+      "sha256": "2ee31820288858b845e7c5bdeff4929d44b55456211f1dae545c6c2da5c196ab"
+    },
+    {
+      "case": "id42-notify-1",
+      "oracle": "pycrate",
+      "octet_count": 8,
+      "sha256": "15384ff29ac557b0fc70c9d7a7c3204ace3133542fc82799b4b860d63bd34496"
+    },
+    {
+      "case": "id42-notify-1",
+      "oracle": "asn1tools_raw_framing",
+      "octet_count": 8,
+      "sha256": "15384ff29ac557b0fc70c9d7a7c3204ace3133542fc82799b4b860d63bd34496"
+    },
+    {
+      "case": "id42-notify-1",
+      "oracle": "generated_encode_both_oracles",
+      "octet_count": 8,
+      "sha256": "15384ff29ac557b0fc70c9d7a7c3204ace3133542fc82799b4b860d63bd34496"
+    },
+    {
+      "case": "id7-reject-0",
+      "oracle": "pycrate",
+      "octet_count": 8,
+      "sha256": "fb6d92bd90d2ada02cc290d5d3be78c3eaa921006769efdeeb6cd0559855f539"
+    },
+    {
+      "case": "id7-reject-0",
+      "oracle": "asn1tools_raw_framing",
+      "octet_count": 8,
+      "sha256": "fb6d92bd90d2ada02cc290d5d3be78c3eaa921006769efdeeb6cd0559855f539"
+    },
+    {
+      "case": "id7-reject-0",
+      "oracle": "generated_encode_both_oracles",
+      "octet_count": 8,
+      "sha256": "fb6d92bd90d2ada02cc290d5d3be78c3eaa921006769efdeeb6cd0559855f539"
+    },
+    {
+      "case": "id7-reject-1",
+      "oracle": "pycrate",
+      "octet_count": 8,
+      "sha256": "a71a165b551113ff1b66e74910d59752c0f6a036783f8c91aa721ca829aacd97"
+    },
+    {
+      "case": "id7-reject-1",
+      "oracle": "asn1tools_raw_framing",
+      "octet_count": 8,
+      "sha256": "a71a165b551113ff1b66e74910d59752c0f6a036783f8c91aa721ca829aacd97"
+    },
+    {
+      "case": "id7-reject-1",
+      "oracle": "generated_encode_both_oracles",
+      "octet_count": 8,
+      "sha256": "a71a165b551113ff1b66e74910d59752c0f6a036783f8c91aa721ca829aacd97"
+    },
+    {
+      "case": "id7-reject-127",
+      "oracle": "pycrate",
+      "octet_count": 8,
+      "sha256": "73876e994a00bfe236895205a3317cec8b636d543f9d3efacd934534d04be07c"
+    },
+    {
+      "case": "id7-reject-127",
+      "oracle": "asn1tools_raw_framing",
+      "octet_count": 8,
+      "sha256": "73876e994a00bfe236895205a3317cec8b636d543f9d3efacd934534d04be07c"
+    },
+    {
+      "case": "id7-reject-127",
+      "oracle": "generated_encode_both_oracles",
+      "octet_count": 8,
+      "sha256": "73876e994a00bfe236895205a3317cec8b636d543f9d3efacd934534d04be07c"
+    },
+    {
+      "case": "id7-reject-255",
+      "oracle": "pycrate",
+      "octet_count": 8,
+      "sha256": "300b90807789fd05a730fc9f96f9ce6ab739c259f7a5a66012ebd6a7956492c1"
+    },
+    {
+      "case": "id7-reject-255",
+      "oracle": "asn1tools_raw_framing",
+      "octet_count": 8,
+      "sha256": "300b90807789fd05a730fc9f96f9ce6ab739c259f7a5a66012ebd6a7956492c1"
+    },
+    {
+      "case": "id7-reject-255",
+      "oracle": "generated_encode_both_oracles",
+      "octet_count": 8,
+      "sha256": "300b90807789fd05a730fc9f96f9ce6ab739c259f7a5a66012ebd6a7956492c1"
+    },
+    {
+      "case": "id7-ignore-0",
+      "oracle": "pycrate",
+      "octet_count": 8,
+      "sha256": "340abca4b4a456714b0f1a4ec245532422d2761dd1cd74a44b919dcfe8371410"
+    },
+    {
+      "case": "id7-ignore-0",
+      "oracle": "asn1tools_raw_framing",
+      "octet_count": 8,
+      "sha256": "340abca4b4a456714b0f1a4ec245532422d2761dd1cd74a44b919dcfe8371410"
+    },
+    {
+      "case": "id7-ignore-0",
+      "oracle": "generated_encode_both_oracles",
+      "octet_count": 8,
+      "sha256": "340abca4b4a456714b0f1a4ec245532422d2761dd1cd74a44b919dcfe8371410"
+    },
+    {
+      "case": "id7-ignore-1",
+      "oracle": "pycrate",
+      "octet_count": 8,
+      "sha256": "6ea2a95bec0870cdb9f5aa649602a6ce4fca1e42d89c8daecb47b1190ad4376d"
+    },
+    {
+      "case": "id7-ignore-1",
+      "oracle": "asn1tools_raw_framing",
+      "octet_count": 8,
+      "sha256": "6ea2a95bec0870cdb9f5aa649602a6ce4fca1e42d89c8daecb47b1190ad4376d"
+    },
+    {
+      "case": "id7-ignore-1",
+      "oracle": "generated_encode_both_oracles",
+      "octet_count": 8,
+      "sha256": "6ea2a95bec0870cdb9f5aa649602a6ce4fca1e42d89c8daecb47b1190ad4376d"
+    },
+    {
+      "case": "id7-ignore-127",
+      "oracle": "pycrate",
+      "octet_count": 8,
+      "sha256": "64b966a9ceb86fb3edbd780057a6a341af3554d157372d5ec0e187abf99cfe09"
+    },
+    {
+      "case": "id7-ignore-127",
+      "oracle": "asn1tools_raw_framing",
+      "octet_count": 8,
+      "sha256": "64b966a9ceb86fb3edbd780057a6a341af3554d157372d5ec0e187abf99cfe09"
+    },
+    {
+      "case": "id7-ignore-127",
+      "oracle": "generated_encode_both_oracles",
+      "octet_count": 8,
+      "sha256": "64b966a9ceb86fb3edbd780057a6a341af3554d157372d5ec0e187abf99cfe09"
+    },
+    {
+      "case": "id7-ignore-255",
+      "oracle": "pycrate",
+      "octet_count": 8,
+      "sha256": "465d8f9bafef35ac875dd92d2deb804be3e64b8b6c4f3351f7e09d841e1d91a9"
+    },
+    {
+      "case": "id7-ignore-255",
+      "oracle": "asn1tools_raw_framing",
+      "octet_count": 8,
+      "sha256": "465d8f9bafef35ac875dd92d2deb804be3e64b8b6c4f3351f7e09d841e1d91a9"
+    },
+    {
+      "case": "id7-ignore-255",
+      "oracle": "generated_encode_both_oracles",
+      "octet_count": 8,
+      "sha256": "465d8f9bafef35ac875dd92d2deb804be3e64b8b6c4f3351f7e09d841e1d91a9"
+    },
+    {
+      "case": "id7-notify-0",
+      "oracle": "pycrate",
+      "octet_count": 8,
+      "sha256": "20412c65fdf363d6724b2c4b5eccd3f76379f9112518158dbcba14e14833f598"
+    },
+    {
+      "case": "id7-notify-0",
+      "oracle": "asn1tools_raw_framing",
+      "octet_count": 8,
+      "sha256": "20412c65fdf363d6724b2c4b5eccd3f76379f9112518158dbcba14e14833f598"
+    },
+    {
+      "case": "id7-notify-0",
+      "oracle": "generated_encode_both_oracles",
+      "octet_count": 8,
+      "sha256": "20412c65fdf363d6724b2c4b5eccd3f76379f9112518158dbcba14e14833f598"
+    },
+    {
+      "case": "id7-notify-1",
+      "oracle": "pycrate",
+      "octet_count": 8,
+      "sha256": "936bde47ba4013c70bc4e0ddda294cbd092c583811b6d428b4d333cda89ca8c4"
+    },
+    {
+      "case": "id7-notify-1",
+      "oracle": "asn1tools_raw_framing",
+      "octet_count": 8,
+      "sha256": "936bde47ba4013c70bc4e0ddda294cbd092c583811b6d428b4d333cda89ca8c4"
+    },
+    {
+      "case": "id7-notify-1",
+      "oracle": "generated_encode_both_oracles",
+      "octet_count": 8,
+      "sha256": "936bde47ba4013c70bc4e0ddda294cbd092c583811b6d428b4d333cda89ca8c4"
+    },
+    {
+      "case": "id7-notify-127",
+      "oracle": "pycrate",
+      "octet_count": 8,
+      "sha256": "f0dcbb3ffe102a5ec414cb0157af97efbd038a203adfd4f48f2779fa3a35df45"
+    },
+    {
+      "case": "id7-notify-127",
+      "oracle": "asn1tools_raw_framing",
+      "octet_count": 8,
+      "sha256": "f0dcbb3ffe102a5ec414cb0157af97efbd038a203adfd4f48f2779fa3a35df45"
+    },
+    {
+      "case": "id7-notify-127",
+      "oracle": "generated_encode_both_oracles",
+      "octet_count": 8,
+      "sha256": "f0dcbb3ffe102a5ec414cb0157af97efbd038a203adfd4f48f2779fa3a35df45"
+    },
+    {
+      "case": "id7-notify-255",
+      "oracle": "pycrate",
+      "octet_count": 8,
+      "sha256": "b8788c8ac66266ec062e2109b5802a9c6a3291a83c7baafa4e45fd1a238cd75e"
+    },
+    {
+      "case": "id7-notify-255",
+      "oracle": "asn1tools_raw_framing",
+      "octet_count": 8,
+      "sha256": "b8788c8ac66266ec062e2109b5802a9c6a3291a83c7baafa4e45fd1a238cd75e"
+    },
+    {
+      "case": "id7-notify-255",
+      "oracle": "generated_encode_both_oracles",
+      "octet_count": 8,
+      "sha256": "b8788c8ac66266ec062e2109b5802a9c6a3291a83c7baafa4e45fd1a238cd75e"
+    },
+    {
+      "case": "duplicate-reordered-reject",
+      "oracle": "pycrate",
+      "octet_count": 23,
+      "sha256": "1ee23eeb9e89309b874e497ded72de9567c26ceea25f8dd385c99ec690cbc1d2"
+    },
+    {
+      "case": "duplicate-reordered-reject",
+      "oracle": "asn1tools_raw_framing",
+      "octet_count": 23,
+      "sha256": "1ee23eeb9e89309b874e497ded72de9567c26ceea25f8dd385c99ec690cbc1d2"
+    },
+    {
+      "case": "duplicate-reordered-reject",
+      "oracle": "generated_encode_both_oracles",
+      "octet_count": 23,
+      "sha256": "1ee23eeb9e89309b874e497ded72de9567c26ceea25f8dd385c99ec690cbc1d2"
+    },
+    {
+      "case": "unknown-compound-reject",
+      "oracle": "pycrate",
+      "octet_count": 10,
+      "sha256": "4d30241e93121bc055eee261dced84b4d35560ffe71a47122578589bf3aaa035"
+    },
+    {
+      "case": "unknown-compound-reject",
+      "oracle": "asn1tools_raw_framing",
+      "octet_count": 10,
+      "sha256": "4d30241e93121bc055eee261dced84b4d35560ffe71a47122578589bf3aaa035"
+    },
+    {
+      "case": "duplicate-reordered-ignore",
+      "oracle": "pycrate",
+      "octet_count": 23,
+      "sha256": "705efd5755e2e1b6bbcdfa3ecf535fc17b86e4f1350620e2743920514527aaf5"
+    },
+    {
+      "case": "duplicate-reordered-ignore",
+      "oracle": "asn1tools_raw_framing",
+      "octet_count": 23,
+      "sha256": "705efd5755e2e1b6bbcdfa3ecf535fc17b86e4f1350620e2743920514527aaf5"
+    },
+    {
+      "case": "duplicate-reordered-ignore",
+      "oracle": "generated_encode_both_oracles",
+      "octet_count": 23,
+      "sha256": "705efd5755e2e1b6bbcdfa3ecf535fc17b86e4f1350620e2743920514527aaf5"
+    },
+    {
+      "case": "unknown-compound-ignore",
+      "oracle": "pycrate",
+      "octet_count": 10,
+      "sha256": "43d687ed8c2b0ce16608d5b5fced66d1ad71159c2184d9de810dfa3fdcc6b06f"
+    },
+    {
+      "case": "unknown-compound-ignore",
+      "oracle": "asn1tools_raw_framing",
+      "octet_count": 10,
+      "sha256": "43d687ed8c2b0ce16608d5b5fced66d1ad71159c2184d9de810dfa3fdcc6b06f"
+    },
+    {
+      "case": "duplicate-reordered-notify",
+      "oracle": "pycrate",
+      "octet_count": 23,
+      "sha256": "c609376e8b811aa49226d53dd68e37c40b8bfcc488cf8d3d9bb979ce08f5db85"
+    },
+    {
+      "case": "duplicate-reordered-notify",
+      "oracle": "asn1tools_raw_framing",
+      "octet_count": 23,
+      "sha256": "c609376e8b811aa49226d53dd68e37c40b8bfcc488cf8d3d9bb979ce08f5db85"
+    },
+    {
+      "case": "duplicate-reordered-notify",
+      "oracle": "generated_encode_both_oracles",
+      "octet_count": 23,
+      "sha256": "c609376e8b811aa49226d53dd68e37c40b8bfcc488cf8d3d9bb979ce08f5db85"
+    },
+    {
+      "case": "unknown-compound-notify",
+      "oracle": "pycrate",
+      "octet_count": 10,
+      "sha256": "8c436adbd14ae64881f215b7e46490779ea1b648925e5a524f0b2e425bb656a3"
+    },
+    {
+      "case": "unknown-compound-notify",
+      "oracle": "asn1tools_raw_framing",
+      "octet_count": 10,
+      "sha256": "8c436adbd14ae64881f215b7e46490779ea1b648925e5a524f0b2e425bb656a3"
+    },
+    {
+      "case": "known-pair-reject-None",
+      "oracle": "pycrate",
+      "octet_count": 9,
+      "sha256": "d82ef7f247e150762561aedaeca6913004e6b1854f1884e077812982a7d6c808"
+    },
+    {
+      "case": "known-pair-reject-None",
+      "oracle": "asn1tools_raw_framing",
+      "octet_count": 9,
+      "sha256": "d82ef7f247e150762561aedaeca6913004e6b1854f1884e077812982a7d6c808"
+    },
+    {
+      "case": "known-pair-reject-None",
+      "oracle": "generated_encode_both_oracles",
+      "octet_count": 9,
+      "sha256": "d82ef7f247e150762561aedaeca6913004e6b1854f1884e077812982a7d6c808"
+    },
+    {
+      "case": "known-pair-reject-False",
+      "oracle": "pycrate",
+      "octet_count": 10,
+      "sha256": "647a491eb04b76d474a00172536c556828f50175ed2b5352d63d9e488ccb4fa1"
+    },
+    {
+      "case": "known-pair-reject-False",
+      "oracle": "asn1tools_raw_framing",
+      "octet_count": 10,
+      "sha256": "647a491eb04b76d474a00172536c556828f50175ed2b5352d63d9e488ccb4fa1"
+    },
+    {
+      "case": "known-pair-reject-False",
+      "oracle": "generated_encode_both_oracles",
+      "octet_count": 10,
+      "sha256": "647a491eb04b76d474a00172536c556828f50175ed2b5352d63d9e488ccb4fa1"
+    },
+    {
+      "case": "known-pair-reject-True",
+      "oracle": "pycrate",
+      "octet_count": 10,
+      "sha256": "c14a7717fba74f0ca32e6a266b15e3029ce7bf72e3d544ac654965d441670112"
+    },
+    {
+      "case": "known-pair-reject-True",
+      "oracle": "asn1tools_raw_framing",
+      "octet_count": 10,
+      "sha256": "c14a7717fba74f0ca32e6a266b15e3029ce7bf72e3d544ac654965d441670112"
+    },
+    {
+      "case": "known-pair-reject-True",
+      "oracle": "generated_encode_both_oracles",
+      "octet_count": 10,
+      "sha256": "c14a7717fba74f0ca32e6a266b15e3029ce7bf72e3d544ac654965d441670112"
+    },
+    {
+      "case": "known-words-reject-0",
+      "oracle": "pycrate",
+      "octet_count": 8,
+      "sha256": "c08bdafc17a3c93d877366035c31b0132fdb2458545486e9a95b6ef724bc24ae"
+    },
+    {
+      "case": "known-words-reject-0",
+      "oracle": "asn1tools_raw_framing",
+      "octet_count": 8,
+      "sha256": "c08bdafc17a3c93d877366035c31b0132fdb2458545486e9a95b6ef724bc24ae"
+    },
+    {
+      "case": "known-words-reject-0",
+      "oracle": "generated_encode_both_oracles",
+      "octet_count": 8,
+      "sha256": "c08bdafc17a3c93d877366035c31b0132fdb2458545486e9a95b6ef724bc24ae"
+    },
+    {
+      "case": "known-words-reject-1",
+      "oracle": "pycrate",
+      "octet_count": 9,
+      "sha256": "0c1a48cb02fd4b2f4d8c638c188157292aef2c78b4a3b48f5cfd7eeea97c0eeb"
+    },
+    {
+      "case": "known-words-reject-1",
+      "oracle": "asn1tools_raw_framing",
+      "octet_count": 9,
+      "sha256": "0c1a48cb02fd4b2f4d8c638c188157292aef2c78b4a3b48f5cfd7eeea97c0eeb"
+    },
+    {
+      "case": "known-words-reject-1",
+      "oracle": "generated_encode_both_oracles",
+      "octet_count": 9,
+      "sha256": "0c1a48cb02fd4b2f4d8c638c188157292aef2c78b4a3b48f5cfd7eeea97c0eeb"
+    },
+    {
+      "case": "known-words-reject-2",
+      "oracle": "pycrate",
+      "octet_count": 10,
+      "sha256": "6e6449842fc0a59d2dbb8b4873e2a222eb76c610512d64daef0e9b0c67eceba2"
+    },
+    {
+      "case": "known-words-reject-2",
+      "oracle": "asn1tools_raw_framing",
+      "octet_count": 10,
+      "sha256": "6e6449842fc0a59d2dbb8b4873e2a222eb76c610512d64daef0e9b0c67eceba2"
+    },
+    {
+      "case": "known-words-reject-2",
+      "oracle": "generated_encode_both_oracles",
+      "octet_count": 10,
+      "sha256": "6e6449842fc0a59d2dbb8b4873e2a222eb76c610512d64daef0e9b0c67eceba2"
+    },
+    {
+      "case": "known-words-reject-3",
+      "oracle": "pycrate",
+      "octet_count": 11,
+      "sha256": "aab684b64e1698db9e6c1c22a49abefc41d92d9f754e575e672f0c1ffb5a23be"
+    },
+    {
+      "case": "known-words-reject-3",
+      "oracle": "asn1tools_raw_framing",
+      "octet_count": 11,
+      "sha256": "aab684b64e1698db9e6c1c22a49abefc41d92d9f754e575e672f0c1ffb5a23be"
+    },
+    {
+      "case": "known-words-reject-3",
+      "oracle": "generated_encode_both_oracles",
+      "octet_count": 11,
+      "sha256": "aab684b64e1698db9e6c1c22a49abefc41d92d9f754e575e672f0c1ffb5a23be"
+    },
+    {
+      "case": "known-pair-ignore-None",
+      "oracle": "pycrate",
+      "octet_count": 9,
+      "sha256": "eb110d6dc1580de57a3d9dd9f9e4c4197b7273c144ef2afe43d9aa26fcc8279e"
+    },
+    {
+      "case": "known-pair-ignore-None",
+      "oracle": "asn1tools_raw_framing",
+      "octet_count": 9,
+      "sha256": "eb110d6dc1580de57a3d9dd9f9e4c4197b7273c144ef2afe43d9aa26fcc8279e"
+    },
+    {
+      "case": "known-pair-ignore-None",
+      "oracle": "generated_encode_both_oracles",
+      "octet_count": 9,
+      "sha256": "eb110d6dc1580de57a3d9dd9f9e4c4197b7273c144ef2afe43d9aa26fcc8279e"
+    },
+    {
+      "case": "known-pair-ignore-False",
+      "oracle": "pycrate",
+      "octet_count": 10,
+      "sha256": "f9b6c61e923c842e45045606c8ae45b72f7828f9130a0e21893242d6c1ef5f6e"
+    },
+    {
+      "case": "known-pair-ignore-False",
+      "oracle": "asn1tools_raw_framing",
+      "octet_count": 10,
+      "sha256": "f9b6c61e923c842e45045606c8ae45b72f7828f9130a0e21893242d6c1ef5f6e"
+    },
+    {
+      "case": "known-pair-ignore-False",
+      "oracle": "generated_encode_both_oracles",
+      "octet_count": 10,
+      "sha256": "f9b6c61e923c842e45045606c8ae45b72f7828f9130a0e21893242d6c1ef5f6e"
+    },
+    {
+      "case": "known-pair-ignore-True",
+      "oracle": "pycrate",
+      "octet_count": 10,
+      "sha256": "1abb0ede21d5eed231975c09ee4fac9d6f7fa620303aecd995de043051c92ba9"
+    },
+    {
+      "case": "known-pair-ignore-True",
+      "oracle": "asn1tools_raw_framing",
+      "octet_count": 10,
+      "sha256": "1abb0ede21d5eed231975c09ee4fac9d6f7fa620303aecd995de043051c92ba9"
+    },
+    {
+      "case": "known-pair-ignore-True",
+      "oracle": "generated_encode_both_oracles",
+      "octet_count": 10,
+      "sha256": "1abb0ede21d5eed231975c09ee4fac9d6f7fa620303aecd995de043051c92ba9"
+    },
+    {
+      "case": "known-words-ignore-0",
+      "oracle": "pycrate",
+      "octet_count": 8,
+      "sha256": "5f9ed3f45bb3d608a5d4501edd148b556485da9d5975a4170b35403ac09a9b2a"
+    },
+    {
+      "case": "known-words-ignore-0",
+      "oracle": "asn1tools_raw_framing",
+      "octet_count": 8,
+      "sha256": "5f9ed3f45bb3d608a5d4501edd148b556485da9d5975a4170b35403ac09a9b2a"
+    },
+    {
+      "case": "known-words-ignore-0",
+      "oracle": "generated_encode_both_oracles",
+      "octet_count": 8,
+      "sha256": "5f9ed3f45bb3d608a5d4501edd148b556485da9d5975a4170b35403ac09a9b2a"
+    },
+    {
+      "case": "known-words-ignore-1",
+      "oracle": "pycrate",
+      "octet_count": 9,
+      "sha256": "3657f4b3a26234c4e680577bbce75301b7a4a6804c382139a713688bbdd43799"
+    },
+    {
+      "case": "known-words-ignore-1",
+      "oracle": "asn1tools_raw_framing",
+      "octet_count": 9,
+      "sha256": "3657f4b3a26234c4e680577bbce75301b7a4a6804c382139a713688bbdd43799"
+    },
+    {
+      "case": "known-words-ignore-1",
+      "oracle": "generated_encode_both_oracles",
+      "octet_count": 9,
+      "sha256": "3657f4b3a26234c4e680577bbce75301b7a4a6804c382139a713688bbdd43799"
+    },
+    {
+      "case": "known-words-ignore-2",
+      "oracle": "pycrate",
+      "octet_count": 10,
+      "sha256": "1b87e274bcdba9d3d459c853ba2c3afda56926d98d72f5ce466427e3fb2b94eb"
+    },
+    {
+      "case": "known-words-ignore-2",
+      "oracle": "asn1tools_raw_framing",
+      "octet_count": 10,
+      "sha256": "1b87e274bcdba9d3d459c853ba2c3afda56926d98d72f5ce466427e3fb2b94eb"
+    },
+    {
+      "case": "known-words-ignore-2",
+      "oracle": "generated_encode_both_oracles",
+      "octet_count": 10,
+      "sha256": "1b87e274bcdba9d3d459c853ba2c3afda56926d98d72f5ce466427e3fb2b94eb"
+    },
+    {
+      "case": "known-words-ignore-3",
+      "oracle": "pycrate",
+      "octet_count": 11,
+      "sha256": "8ca9c98d1549d12ca8fbb33224d0c42bd4734a682dbd888bc1e75ca33a08a44a"
+    },
+    {
+      "case": "known-words-ignore-3",
+      "oracle": "asn1tools_raw_framing",
+      "octet_count": 11,
+      "sha256": "8ca9c98d1549d12ca8fbb33224d0c42bd4734a682dbd888bc1e75ca33a08a44a"
+    },
+    {
+      "case": "known-words-ignore-3",
+      "oracle": "generated_encode_both_oracles",
+      "octet_count": 11,
+      "sha256": "8ca9c98d1549d12ca8fbb33224d0c42bd4734a682dbd888bc1e75ca33a08a44a"
+    },
+    {
+      "case": "known-pair-notify-None",
+      "oracle": "pycrate",
+      "octet_count": 9,
+      "sha256": "76e991c7114148d557b55191bba675ffa821ee21d8551f53b3d549ceec154e21"
+    },
+    {
+      "case": "known-pair-notify-None",
+      "oracle": "asn1tools_raw_framing",
+      "octet_count": 9,
+      "sha256": "76e991c7114148d557b55191bba675ffa821ee21d8551f53b3d549ceec154e21"
+    },
+    {
+      "case": "known-pair-notify-None",
+      "oracle": "generated_encode_both_oracles",
+      "octet_count": 9,
+      "sha256": "76e991c7114148d557b55191bba675ffa821ee21d8551f53b3d549ceec154e21"
+    },
+    {
+      "case": "known-pair-notify-False",
+      "oracle": "pycrate",
+      "octet_count": 10,
+      "sha256": "d14f18086110c3fe4113ba7d5c177ef386293e878b6cdbc768b73bfbd21b3023"
+    },
+    {
+      "case": "known-pair-notify-False",
+      "oracle": "asn1tools_raw_framing",
+      "octet_count": 10,
+      "sha256": "d14f18086110c3fe4113ba7d5c177ef386293e878b6cdbc768b73bfbd21b3023"
+    },
+    {
+      "case": "known-pair-notify-False",
+      "oracle": "generated_encode_both_oracles",
+      "octet_count": 10,
+      "sha256": "d14f18086110c3fe4113ba7d5c177ef386293e878b6cdbc768b73bfbd21b3023"
+    },
+    {
+      "case": "known-pair-notify-True",
+      "oracle": "pycrate",
+      "octet_count": 10,
+      "sha256": "b23b49dc4b18dcdf11cd136a4046f33097a301ef190b57ff992728c7cffd1770"
+    },
+    {
+      "case": "known-pair-notify-True",
+      "oracle": "asn1tools_raw_framing",
+      "octet_count": 10,
+      "sha256": "b23b49dc4b18dcdf11cd136a4046f33097a301ef190b57ff992728c7cffd1770"
+    },
+    {
+      "case": "known-pair-notify-True",
+      "oracle": "generated_encode_both_oracles",
+      "octet_count": 10,
+      "sha256": "b23b49dc4b18dcdf11cd136a4046f33097a301ef190b57ff992728c7cffd1770"
+    },
+    {
+      "case": "known-words-notify-0",
+      "oracle": "pycrate",
+      "octet_count": 8,
+      "sha256": "9a90600df1ab97613c034c51044977ca8c31376f9b6609791413686cc177bced"
+    },
+    {
+      "case": "known-words-notify-0",
+      "oracle": "asn1tools_raw_framing",
+      "octet_count": 8,
+      "sha256": "9a90600df1ab97613c034c51044977ca8c31376f9b6609791413686cc177bced"
+    },
+    {
+      "case": "known-words-notify-0",
+      "oracle": "generated_encode_both_oracles",
+      "octet_count": 8,
+      "sha256": "9a90600df1ab97613c034c51044977ca8c31376f9b6609791413686cc177bced"
+    },
+    {
+      "case": "known-words-notify-1",
+      "oracle": "pycrate",
+      "octet_count": 9,
+      "sha256": "353ca0b539ae74e6691fa9386b1e470ad0428786986d3b7d507867257bbcbb04"
+    },
+    {
+      "case": "known-words-notify-1",
+      "oracle": "asn1tools_raw_framing",
+      "octet_count": 9,
+      "sha256": "353ca0b539ae74e6691fa9386b1e470ad0428786986d3b7d507867257bbcbb04"
+    },
+    {
+      "case": "known-words-notify-1",
+      "oracle": "generated_encode_both_oracles",
+      "octet_count": 9,
+      "sha256": "353ca0b539ae74e6691fa9386b1e470ad0428786986d3b7d507867257bbcbb04"
+    },
+    {
+      "case": "known-words-notify-2",
+      "oracle": "pycrate",
+      "octet_count": 10,
+      "sha256": "eb4975e16357d4f7685292b3f3ccd5d1e5fe70fa502dc227fc928a252684995f"
+    },
+    {
+      "case": "known-words-notify-2",
+      "oracle": "asn1tools_raw_framing",
+      "octet_count": 10,
+      "sha256": "eb4975e16357d4f7685292b3f3ccd5d1e5fe70fa502dc227fc928a252684995f"
+    },
+    {
+      "case": "known-words-notify-2",
+      "oracle": "generated_encode_both_oracles",
+      "octet_count": 10,
+      "sha256": "eb4975e16357d4f7685292b3f3ccd5d1e5fe70fa502dc227fc928a252684995f"
+    },
+    {
+      "case": "known-words-notify-3",
+      "oracle": "pycrate",
+      "octet_count": 11,
+      "sha256": "f23a3936f4dcea16abafa28745134a086380c6bbe85dddbdde811d068059ab0c"
+    },
+    {
+      "case": "known-words-notify-3",
+      "oracle": "asn1tools_raw_framing",
+      "octet_count": 11,
+      "sha256": "f23a3936f4dcea16abafa28745134a086380c6bbe85dddbdde811d068059ab0c"
+    },
+    {
+      "case": "known-words-notify-3",
+      "oracle": "generated_encode_both_oracles",
+      "octet_count": 11,
+      "sha256": "f23a3936f4dcea16abafa28745134a086380c6bbe85dddbdde811d068059ab0c"
+    },
+    {
+      "case": "unknown-blob-0",
+      "oracle": "pycrate",
+      "octet_count": 8,
+      "sha256": "7b9b25ebe31dd629ed1c37ffbaae6656d95bf5782771800e4d83aa7f442f8145"
+    },
+    {
+      "case": "unknown-blob-0",
+      "oracle": "asn1tools_raw_framing",
+      "octet_count": 8,
+      "sha256": "7b9b25ebe31dd629ed1c37ffbaae6656d95bf5782771800e4d83aa7f442f8145"
+    },
+    {
+      "case": "unknown-blob-1",
+      "oracle": "pycrate",
+      "octet_count": 9,
+      "sha256": "8817d09383d9031c408a34357b67aa7ceff8c17d36a6ddb6b518cd72b77d0eb0"
+    },
+    {
+      "case": "unknown-blob-1",
+      "oracle": "asn1tools_raw_framing",
+      "octet_count": 9,
+      "sha256": "8817d09383d9031c408a34357b67aa7ceff8c17d36a6ddb6b518cd72b77d0eb0"
+    },
+    {
+      "case": "unknown-blob-127",
+      "oracle": "pycrate",
+      "octet_count": 136,
+      "sha256": "ac138daba46bd4fb9a6c80238a0a745655406b9de394df7862e90651e76e40f7"
+    },
+    {
+      "case": "unknown-blob-127",
+      "oracle": "asn1tools_raw_framing",
+      "octet_count": 136,
+      "sha256": "ac138daba46bd4fb9a6c80238a0a745655406b9de394df7862e90651e76e40f7"
+    },
+    {
+      "case": "unknown-blob-128",
+      "oracle": "pycrate",
+      "octet_count": 138,
+      "sha256": "ebf93629357665fc74f4ff97f607e2b52142c6c2b8483f0d4872dda83da6c139"
+    },
+    {
+      "case": "unknown-blob-128",
+      "oracle": "asn1tools_raw_framing",
+      "octet_count": 138,
+      "sha256": "ebf93629357665fc74f4ff97f607e2b52142c6c2b8483f0d4872dda83da6c139"
+    },
+    {
+      "case": "unknown-blob-16383",
+      "oracle": "pycrate",
+      "octet_count": 16393,
+      "sha256": "f37c77b61948d14953e7c3f3568cc52087d07fd83aecd3a9bdb987d5e52b1511"
+    },
+    {
+      "case": "unknown-blob-16383",
+      "oracle": "asn1tools_raw_framing",
+      "octet_count": 16393,
+      "sha256": "f37c77b61948d14953e7c3f3568cc52087d07fd83aecd3a9bdb987d5e52b1511"
+    },
+    {
+      "case": "unknown-blob-16384",
+      "oracle": "pycrate",
+      "octet_count": 16394,
+      "sha256": "559e3f753b41025b63f27729d7ab5796de486da54a694d60c311ec263245c242"
+    },
+    {
+      "case": "unknown-blob-16384",
+      "oracle": "asn1tools_raw_framing",
+      "octet_count": 16394,
+      "sha256": "559e3f753b41025b63f27729d7ab5796de486da54a694d60c311ec263245c242"
+    },
+    {
+      "case": "unknown-blob-16385",
+      "oracle": "pycrate",
+      "octet_count": 16395,
+      "sha256": "2aa68ddda90ae6282ac2257e0326b8e232e61c74d8263acef62fd9fb9fd9fe31"
+    },
+    {
+      "case": "unknown-blob-16385",
+      "oracle": "asn1tools_raw_framing",
+      "octet_count": 16395,
+      "sha256": "2aa68ddda90ae6282ac2257e0326b8e232e61c74d8263acef62fd9fb9fd9fe31"
+    },
+    {
+      "case": "unknown-blob-32768",
+      "oracle": "pycrate",
+      "octet_count": 32778,
+      "sha256": "900338d8216f390d5c49379f2bc011782e0c9cbcf6bd7f2dfc70c4c47296e0f3"
+    },
+    {
+      "case": "unknown-blob-32768",
+      "oracle": "asn1tools_raw_framing",
+      "octet_count": 32778,
+      "sha256": "900338d8216f390d5c49379f2bc011782e0c9cbcf6bd7f2dfc70c4c47296e0f3"
+    },
+    {
+      "case": "unknown-blob-65536",
+      "oracle": "pycrate",
+      "octet_count": 65546,
+      "sha256": "54bdefb592d6eb7786917053fa37e5f3bf7bf46f07732ecab0f3525d61656e83"
+    },
+    {
+      "case": "unknown-blob-65536",
+      "oracle": "asn1tools_raw_framing",
+      "octet_count": 65546,
+      "sha256": "54bdefb592d6eb7786917053fa37e5f3bf7bf46f07732ecab0f3525d61656e83"
+    },
+    {
+      "case": "unknown-compound-reject",
+      "oracle": "unknown_encode_refusal",
+      "octet_count": 10,
+      "sha256": "4d30241e93121bc055eee261dced84b4d35560ffe71a47122578589bf3aaa035"
+    },
+    {
+      "case": "unknown-compound-ignore",
+      "oracle": "unknown_encode_refusal",
+      "octet_count": 10,
+      "sha256": "43d687ed8c2b0ce16608d5b5fced66d1ad71159c2184d9de810dfa3fdcc6b06f"
+    },
+    {
+      "case": "unknown-compound-notify",
+      "oracle": "unknown_encode_refusal",
+      "octet_count": 10,
+      "sha256": "8c436adbd14ae64881f215b7e46490779ea1b648925e5a524f0b2e425bb656a3"
+    },
+    {
+      "case": "unknown-blob-0",
+      "oracle": "unknown_encode_refusal",
+      "octet_count": 8,
+      "sha256": "7b9b25ebe31dd629ed1c37ffbaae6656d95bf5782771800e4d83aa7f442f8145"
+    },
+    {
+      "case": "unknown-blob-1",
+      "oracle": "unknown_encode_refusal",
+      "octet_count": 9,
+      "sha256": "8817d09383d9031c408a34357b67aa7ceff8c17d36a6ddb6b518cd72b77d0eb0"
+    },
+    {
+      "case": "unknown-blob-127",
+      "oracle": "unknown_encode_refusal",
+      "octet_count": 136,
+      "sha256": "ac138daba46bd4fb9a6c80238a0a745655406b9de394df7862e90651e76e40f7"
+    },
+    {
+      "case": "unknown-blob-128",
+      "oracle": "unknown_encode_refusal",
+      "octet_count": 138,
+      "sha256": "ebf93629357665fc74f4ff97f607e2b52142c6c2b8483f0d4872dda83da6c139"
+    },
+    {
+      "case": "unknown-blob-16383",
+      "oracle": "unknown_encode_refusal",
+      "octet_count": 16393,
+      "sha256": "f37c77b61948d14953e7c3f3568cc52087d07fd83aecd3a9bdb987d5e52b1511"
+    },
+    {
+      "case": "unknown-blob-16384",
+      "oracle": "unknown_encode_refusal",
+      "octet_count": 16394,
+      "sha256": "559e3f753b41025b63f27729d7ab5796de486da54a694d60c311ec263245c242"
+    },
+    {
+      "case": "unknown-blob-16385",
+      "oracle": "unknown_encode_refusal",
+      "octet_count": 16395,
+      "sha256": "2aa68ddda90ae6282ac2257e0326b8e232e61c74d8263acef62fd9fb9fd9fe31"
+    },
+    {
+      "case": "unknown-blob-32768",
+      "oracle": "unknown_encode_refusal",
+      "octet_count": 32778,
+      "sha256": "900338d8216f390d5c49379f2bc011782e0c9cbcf6bd7f2dfc70c4c47296e0f3"
+    },
+    {
+      "case": "unknown-blob-65536",
+      "oracle": "unknown_encode_refusal",
+      "octet_count": 65546,
+      "sha256": "54bdefb592d6eb7786917053fa37e5f3bf7bf46f07732ecab0f3525d61656e83"
+    },
+    {
+      "case": "empty-id13-reject",
+      "oracle": "pycrate",
+      "octet_count": 9,
+      "sha256": "cc170a45eef426f5c1560fe2ca7e6527953f9eea48c857e052b673b230dab045"
+    },
+    {
+      "case": "empty-id13-reject",
+      "oracle": "asn1tools_raw_framing",
+      "octet_count": 9,
+      "sha256": "cc170a45eef426f5c1560fe2ca7e6527953f9eea48c857e052b673b230dab045"
+    },
+    {
+      "case": "empty-id13-ignore",
+      "oracle": "pycrate",
+      "octet_count": 9,
+      "sha256": "b78c14ab1f88ab359eb460e08ceffe32b0d0b828976c453d491f58c8273f5faa"
+    },
+    {
+      "case": "empty-id13-ignore",
+      "oracle": "asn1tools_raw_framing",
+      "octet_count": 9,
+      "sha256": "b78c14ab1f88ab359eb460e08ceffe32b0d0b828976c453d491f58c8273f5faa"
+    },
+    {
+      "case": "empty-id13-notify",
+      "oracle": "pycrate",
+      "octet_count": 9,
+      "sha256": "601b14ee9866e1d7d12f64971d43a2551ba9426d1de39eb28d520123fe686a3a"
+    },
+    {
+      "case": "empty-id13-notify",
+      "oracle": "asn1tools_raw_framing",
+      "octet_count": 9,
+      "sha256": "601b14ee9866e1d7d12f64971d43a2551ba9426d1de39eb28d520123fe686a3a"
+    },
+    {
+      "case": "empty-id300-reject",
+      "oracle": "pycrate",
+      "octet_count": 9,
+      "sha256": "8e2f717985f192944b5d8c2b5d91622f7f01f22f0c013e790c34431062b6c30d"
+    },
+    {
+      "case": "empty-id300-reject",
+      "oracle": "asn1tools_raw_framing",
+      "octet_count": 9,
+      "sha256": "8e2f717985f192944b5d8c2b5d91622f7f01f22f0c013e790c34431062b6c30d"
+    },
+    {
+      "case": "empty-id300-ignore",
+      "oracle": "pycrate",
+      "octet_count": 9,
+      "sha256": "408ce924d057ed9b22bd23622180c909cd126e157f808d7114f3d691e75432e2"
+    },
+    {
+      "case": "empty-id300-ignore",
+      "oracle": "asn1tools_raw_framing",
+      "octet_count": 9,
+      "sha256": "408ce924d057ed9b22bd23622180c909cd126e157f808d7114f3d691e75432e2"
+    },
+    {
+      "case": "empty-id300-notify",
+      "oracle": "pycrate",
+      "octet_count": 9,
+      "sha256": "fafa154ca2d91196e9d8a6bcf304aba291131f4bd6df9b3cb562aa6257a93fe5"
+    },
+    {
+      "case": "empty-id300-notify",
+      "oracle": "asn1tools_raw_framing",
+      "octet_count": 9,
+      "sha256": "fafa154ca2d91196e9d8a6bcf304aba291131f4bd6df9b3cb562aa6257a93fe5"
+    },
+    {
+      "case": "empty-id65535-reject",
+      "oracle": "pycrate",
+      "octet_count": 9,
+      "sha256": "184a902ecbca245e48a324c163edb65cd016e5cbe0a9a8fb575db302447f14bd"
+    },
+    {
+      "case": "empty-id65535-reject",
+      "oracle": "asn1tools_raw_framing",
+      "octet_count": 9,
+      "sha256": "184a902ecbca245e48a324c163edb65cd016e5cbe0a9a8fb575db302447f14bd"
+    },
+    {
+      "case": "empty-id65535-ignore",
+      "oracle": "pycrate",
+      "octet_count": 9,
+      "sha256": "e5ca6dd87085d12b5c03b0194d5265e93457735beef270c4395942d1635f6b9e"
+    },
+    {
+      "case": "empty-id65535-ignore",
+      "oracle": "asn1tools_raw_framing",
+      "octet_count": 9,
+      "sha256": "e5ca6dd87085d12b5c03b0194d5265e93457735beef270c4395942d1635f6b9e"
+    },
+    {
+      "case": "empty-id65535-notify",
+      "oracle": "pycrate",
+      "octet_count": 9,
+      "sha256": "8355cb975b0b44af9a658f050de61d04d8094da39fc1b8ee0225b8b42ba1a807"
+    },
+    {
+      "case": "empty-id65535-notify",
+      "oracle": "asn1tools_raw_framing",
+      "octet_count": 9,
+      "sha256": "8355cb975b0b44af9a658f050de61d04d8094da39fc1b8ee0225b8b42ba1a807"
+    },
+    {
+      "case": "extension-id13-reject",
+      "oracle": "pycrate",
+      "octet_count": 7,
+      "sha256": "a4007fc7f15a15a5814fc8ce5bea4d0e750b14d767d6b1083e5811efe76604e6"
+    },
+    {
+      "case": "extension-id13-reject",
+      "oracle": "asn1tools_raw_framing",
+      "octet_count": 7,
+      "sha256": "a4007fc7f15a15a5814fc8ce5bea4d0e750b14d767d6b1083e5811efe76604e6"
+    },
+    {
+      "case": "extension-id13-ignore",
+      "oracle": "pycrate",
+      "octet_count": 7,
+      "sha256": "9894c64001f857da3e2a26872c0ca9bd16f34dfb95e4d4e325574551dfb569d7"
+    },
+    {
+      "case": "extension-id13-ignore",
+      "oracle": "asn1tools_raw_framing",
+      "octet_count": 7,
+      "sha256": "9894c64001f857da3e2a26872c0ca9bd16f34dfb95e4d4e325574551dfb569d7"
+    },
+    {
+      "case": "extension-id13-notify",
+      "oracle": "pycrate",
+      "octet_count": 7,
+      "sha256": "082fc35402f18b6b6009b5eb6f437615ed52c85389ff18969a07ec038329cd3c"
+    },
+    {
+      "case": "extension-id13-notify",
+      "oracle": "asn1tools_raw_framing",
+      "octet_count": 7,
+      "sha256": "082fc35402f18b6b6009b5eb6f437615ed52c85389ff18969a07ec038329cd3c"
+    },
+    {
+      "case": "extension-id300-reject",
+      "oracle": "pycrate",
+      "octet_count": 9,
+      "sha256": "ec13497fc30759a2f6fe41ee068cb02fe83e8860197e599dff05335392acd67c"
+    },
+    {
+      "case": "extension-id300-reject",
+      "oracle": "asn1tools_raw_framing",
+      "octet_count": 9,
+      "sha256": "ec13497fc30759a2f6fe41ee068cb02fe83e8860197e599dff05335392acd67c"
+    },
+    {
+      "case": "extension-id300-ignore",
+      "oracle": "pycrate",
+      "octet_count": 9,
+      "sha256": "9d479bced244635e44688285e462a2cbb7e75d8921f615f4bd2a9ddaa701dfda"
+    },
+    {
+      "case": "extension-id300-ignore",
+      "oracle": "asn1tools_raw_framing",
+      "octet_count": 9,
+      "sha256": "9d479bced244635e44688285e462a2cbb7e75d8921f615f4bd2a9ddaa701dfda"
+    },
+    {
+      "case": "extension-id300-notify",
+      "oracle": "pycrate",
+      "octet_count": 9,
+      "sha256": "b96745dd3d110876c6a81a87260a48be9c7b214f111330195d1df3821e130498"
+    },
+    {
+      "case": "extension-id300-notify",
+      "oracle": "asn1tools_raw_framing",
+      "octet_count": 9,
+      "sha256": "b96745dd3d110876c6a81a87260a48be9c7b214f111330195d1df3821e130498"
+    },
+    {
+      "case": "extension-id65535-reject",
+      "oracle": "pycrate",
+      "octet_count": 9,
+      "sha256": "978ff7369162065678a907642f4cfb3d9d86c0dfb3ac0952c0e7f6151448ecd2"
+    },
+    {
+      "case": "extension-id65535-reject",
+      "oracle": "asn1tools_raw_framing",
+      "octet_count": 9,
+      "sha256": "978ff7369162065678a907642f4cfb3d9d86c0dfb3ac0952c0e7f6151448ecd2"
+    },
+    {
+      "case": "extension-id65535-ignore",
+      "oracle": "pycrate",
+      "octet_count": 9,
+      "sha256": "ed58e0a600b518bf3d233d94e8a871016c39b4f0637ac0099d3b26db9968d740"
+    },
+    {
+      "case": "extension-id65535-ignore",
+      "oracle": "asn1tools_raw_framing",
+      "octet_count": 9,
+      "sha256": "ed58e0a600b518bf3d233d94e8a871016c39b4f0637ac0099d3b26db9968d740"
+    },
+    {
+      "case": "extension-id65535-notify",
+      "oracle": "pycrate",
+      "octet_count": 9,
+      "sha256": "002d97c061e6917ffea24a8d8cc1bce4065dcbe567badc0d9e6c357dd6eaa398"
+    },
+    {
+      "case": "extension-id65535-notify",
+      "oracle": "asn1tools_raw_framing",
+      "octet_count": 9,
+      "sha256": "002d97c061e6917ffea24a8d8cc1bce4065dcbe567badc0d9e6c357dd6eaa398"
+    },
+    {
+      "case": "empty_extension-id13-reject",
+      "oracle": "pycrate",
+      "octet_count": 9,
+      "sha256": "c8a36f85caffd6fa584ee704c4fb7c5112dba5c4fec9f02fb8f4a7fb100ec6a8"
+    },
+    {
+      "case": "empty_extension-id13-reject",
+      "oracle": "asn1tools_raw_framing",
+      "octet_count": 9,
+      "sha256": "c8a36f85caffd6fa584ee704c4fb7c5112dba5c4fec9f02fb8f4a7fb100ec6a8"
+    },
+    {
+      "case": "empty_extension-id13-ignore",
+      "oracle": "pycrate",
+      "octet_count": 9,
+      "sha256": "a83fa2d50ae9bfa0a2ae4c86a334d98b26b8dd366bf79d7b496b4b695cc723cc"
+    },
+    {
+      "case": "empty_extension-id13-ignore",
+      "oracle": "asn1tools_raw_framing",
+      "octet_count": 9,
+      "sha256": "a83fa2d50ae9bfa0a2ae4c86a334d98b26b8dd366bf79d7b496b4b695cc723cc"
+    },
+    {
+      "case": "empty_extension-id13-notify",
+      "oracle": "pycrate",
+      "octet_count": 9,
+      "sha256": "7bfbf9e853c8d819b135ce338aad9d2e7e4653736efcbdb41774adb483faade9"
+    },
+    {
+      "case": "empty_extension-id13-notify",
+      "oracle": "asn1tools_raw_framing",
+      "octet_count": 9,
+      "sha256": "7bfbf9e853c8d819b135ce338aad9d2e7e4653736efcbdb41774adb483faade9"
+    },
+    {
+      "case": "empty_extension-id300-reject",
+      "oracle": "pycrate",
+      "octet_count": 9,
+      "sha256": "ec13497fc30759a2f6fe41ee068cb02fe83e8860197e599dff05335392acd67c"
+    },
+    {
+      "case": "empty_extension-id300-reject",
+      "oracle": "asn1tools_raw_framing",
+      "octet_count": 9,
+      "sha256": "ec13497fc30759a2f6fe41ee068cb02fe83e8860197e599dff05335392acd67c"
+    },
+    {
+      "case": "empty_extension-id300-ignore",
+      "oracle": "pycrate",
+      "octet_count": 9,
+      "sha256": "9d479bced244635e44688285e462a2cbb7e75d8921f615f4bd2a9ddaa701dfda"
+    },
+    {
+      "case": "empty_extension-id300-ignore",
+      "oracle": "asn1tools_raw_framing",
+      "octet_count": 9,
+      "sha256": "9d479bced244635e44688285e462a2cbb7e75d8921f615f4bd2a9ddaa701dfda"
+    },
+    {
+      "case": "empty_extension-id300-notify",
+      "oracle": "pycrate",
+      "octet_count": 9,
+      "sha256": "b96745dd3d110876c6a81a87260a48be9c7b214f111330195d1df3821e130498"
+    },
+    {
+      "case": "empty_extension-id300-notify",
+      "oracle": "asn1tools_raw_framing",
+      "octet_count": 9,
+      "sha256": "b96745dd3d110876c6a81a87260a48be9c7b214f111330195d1df3821e130498"
+    },
+    {
+      "case": "empty_extension-id65535-reject",
+      "oracle": "pycrate",
+      "octet_count": 9,
+      "sha256": "978ff7369162065678a907642f4cfb3d9d86c0dfb3ac0952c0e7f6151448ecd2"
+    },
+    {
+      "case": "empty_extension-id65535-reject",
+      "oracle": "asn1tools_raw_framing",
+      "octet_count": 9,
+      "sha256": "978ff7369162065678a907642f4cfb3d9d86c0dfb3ac0952c0e7f6151448ecd2"
+    },
+    {
+      "case": "empty_extension-id65535-ignore",
+      "oracle": "pycrate",
+      "octet_count": 9,
+      "sha256": "ed58e0a600b518bf3d233d94e8a871016c39b4f0637ac0099d3b26db9968d740"
+    },
+    {
+      "case": "empty_extension-id65535-ignore",
+      "oracle": "asn1tools_raw_framing",
+      "octet_count": 9,
+      "sha256": "ed58e0a600b518bf3d233d94e8a871016c39b4f0637ac0099d3b26db9968d740"
+    },
+    {
+      "case": "empty_extension-id65535-notify",
+      "oracle": "pycrate",
+      "octet_count": 9,
+      "sha256": "002d97c061e6917ffea24a8d8cc1bce4065dcbe567badc0d9e6c357dd6eaa398"
+    },
+    {
+      "case": "empty_extension-id65535-notify",
+      "oracle": "asn1tools_raw_framing",
+      "octet_count": 9,
+      "sha256": "002d97c061e6917ffea24a8d8cc1bce4065dcbe567badc0d9e6c357dd6eaa398"
+    },
+    {
+      "case": "closed-id13-reject",
+      "oracle": "pycrate",
+      "octet_count": 9,
+      "sha256": "cc170a45eef426f5c1560fe2ca7e6527953f9eea48c857e052b673b230dab045"
+    },
+    {
+      "case": "closed-id13-reject",
+      "oracle": "asn1tools_raw_framing",
+      "octet_count": 9,
+      "sha256": "cc170a45eef426f5c1560fe2ca7e6527953f9eea48c857e052b673b230dab045"
+    },
+    {
+      "case": "closed-id13-ignore",
+      "oracle": "pycrate",
+      "octet_count": 9,
+      "sha256": "b78c14ab1f88ab359eb460e08ceffe32b0d0b828976c453d491f58c8273f5faa"
+    },
+    {
+      "case": "closed-id13-ignore",
+      "oracle": "asn1tools_raw_framing",
+      "octet_count": 9,
+      "sha256": "b78c14ab1f88ab359eb460e08ceffe32b0d0b828976c453d491f58c8273f5faa"
+    },
+    {
+      "case": "closed-id13-notify",
+      "oracle": "pycrate",
+      "octet_count": 9,
+      "sha256": "601b14ee9866e1d7d12f64971d43a2551ba9426d1de39eb28d520123fe686a3a"
+    },
+    {
+      "case": "closed-id13-notify",
+      "oracle": "asn1tools_raw_framing",
+      "octet_count": 9,
+      "sha256": "601b14ee9866e1d7d12f64971d43a2551ba9426d1de39eb28d520123fe686a3a"
+    },
+    {
+      "case": "closed-id300-reject",
+      "oracle": "pycrate",
+      "octet_count": 9,
+      "sha256": "8e2f717985f192944b5d8c2b5d91622f7f01f22f0c013e790c34431062b6c30d"
+    },
+    {
+      "case": "closed-id300-reject",
+      "oracle": "asn1tools_raw_framing",
+      "octet_count": 9,
+      "sha256": "8e2f717985f192944b5d8c2b5d91622f7f01f22f0c013e790c34431062b6c30d"
+    },
+    {
+      "case": "closed-id300-ignore",
+      "oracle": "pycrate",
+      "octet_count": 9,
+      "sha256": "408ce924d057ed9b22bd23622180c909cd126e157f808d7114f3d691e75432e2"
+    },
+    {
+      "case": "closed-id300-ignore",
+      "oracle": "asn1tools_raw_framing",
+      "octet_count": 9,
+      "sha256": "408ce924d057ed9b22bd23622180c909cd126e157f808d7114f3d691e75432e2"
+    },
+    {
+      "case": "closed-id300-notify",
+      "oracle": "pycrate",
+      "octet_count": 9,
+      "sha256": "fafa154ca2d91196e9d8a6bcf304aba291131f4bd6df9b3cb562aa6257a93fe5"
+    },
+    {
+      "case": "closed-id300-notify",
+      "oracle": "asn1tools_raw_framing",
+      "octet_count": 9,
+      "sha256": "fafa154ca2d91196e9d8a6bcf304aba291131f4bd6df9b3cb562aa6257a93fe5"
+    },
+    {
+      "case": "closed-id65535-reject",
+      "oracle": "pycrate",
+      "octet_count": 9,
+      "sha256": "184a902ecbca245e48a324c163edb65cd016e5cbe0a9a8fb575db302447f14bd"
+    },
+    {
+      "case": "closed-id65535-reject",
+      "oracle": "asn1tools_raw_framing",
+      "octet_count": 9,
+      "sha256": "184a902ecbca245e48a324c163edb65cd016e5cbe0a9a8fb575db302447f14bd"
+    },
+    {
+      "case": "closed-id65535-ignore",
+      "oracle": "pycrate",
+      "octet_count": 9,
+      "sha256": "e5ca6dd87085d12b5c03b0194d5265e93457735beef270c4395942d1635f6b9e"
+    },
+    {
+      "case": "closed-id65535-ignore",
+      "oracle": "asn1tools_raw_framing",
+      "octet_count": 9,
+      "sha256": "e5ca6dd87085d12b5c03b0194d5265e93457735beef270c4395942d1635f6b9e"
+    },
+    {
+      "case": "closed-id65535-notify",
+      "oracle": "pycrate",
+      "octet_count": 9,
+      "sha256": "8355cb975b0b44af9a658f050de61d04d8094da39fc1b8ee0225b8b42ba1a807"
+    },
+    {
+      "case": "closed-id65535-notify",
+      "oracle": "asn1tools_raw_framing",
+      "octet_count": 9,
+      "sha256": "8355cb975b0b44af9a658f050de61d04d8094da39fc1b8ee0225b8b42ba1a807"
+    },
+    {
+      "case": "known-boolean-nonzero-padding",
+      "oracle": "strict_literal_rejection",
+      "octet_count": 8,
+      "sha256": "5ca5e471ccb2e736feae70e0ed5613061cec53c9ae5a914a0a9a1a707ab22dd1"
+    },
+    {
+      "case": "known-boolean-trailing",
+      "oracle": "strict_literal_rejection",
+      "octet_count": 9,
+      "sha256": "e735b43086f2da5a1a9e71df612cc73a99de423a7dbf27048b527d98d27567f7"
+    },
+    {
+      "case": "known-word-trailing",
+      "oracle": "strict_literal_rejection",
+      "octet_count": 9,
+      "sha256": "28e5f4205c637bf42febe787f6d9033d6dd6e44d657496971837b0a9b24459dd"
+    }
+  ],
+  "mismatches": []
+}

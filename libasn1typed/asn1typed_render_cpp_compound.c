@@ -1,19 +1,12 @@
 #include "asn1typed_render_cpp.h"
 #include "asn1typed_render_cpp_internal.h"
+#include "asn1typed_render_cpp_ioc_internal.h"
 #include <inttypes.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-struct compound_buf { char *text; size_t length; };
-struct member_plan { char *name, *wrapper, *qualified_wrapper; const char *type, *mapping, *put, *get; };
-struct type_plan {
-	char *type, *qualified_type, *mapping, *qualified_mapping, *constraint;
-	char *encode, *decode, *put, *get, *qualified_put, *qualified_get, *extension_member;
-	struct member_plan *members;
-	size_t member_count;
-};
-struct plan { struct type_plan *types; char *boolean_mapping, *boolean_put, *boolean_get; int extensions, has_extension_sequence, collections; };
+struct plan { struct type_plan *types; char *boolean_mapping, *boolean_put, *boolean_get; int extensions, has_extension_sequence, collections; const struct asn1typed_cpp_ioc_entry *ioc; };
 static int
 append(struct compound_buf *b, const char *text) {
 	size_t n = strlen(text);
@@ -95,6 +88,7 @@ clear(struct plan *p, const asn1typed_module_t *m) {
 		struct type_plan *t = &p->types[i];
 		free(t->type); free(t->qualified_type); free(t->mapping); free(t->qualified_mapping); free(t->constraint);
 		free(t->encode); free(t->decode); free(t->put); free(t->get); free(t->qualified_put); free(t->qualified_get); free(t->extension_member);
+		free(t->unknown_wrapper); free(t->qualified_unknown_wrapper); free(t->value_member);
 		if(t->members) for(j = 0; j < t->member_count; ++j) {
 			free(t->members[j].name); free(t->members[j].wrapper); free(t->members[j].qualified_wrapper);
 		}
@@ -176,7 +170,7 @@ preflight(const asn1typed_module_t *m, const char *ns, struct plan *p, char *why
 	static const char *const reserved[] = {"enum_codec", "uint_codec", "compound_codec", "COMPOUND_BOOLEAN"};
 #define FAIL(message) do { snprintf(why, size, "%s", message); goto fail; } while(0)
 	if(!m || !m->source_name || !m->source_name[0] || !m->types || !m->type_count || m->type_count > m->type_capacity ||
-		m->type_count > SIZE_MAX / sizeof(*p->types) || m->bound_instances || m->bound_instance_count || m->bound_instance_capacity)
+		m->type_count > SIZE_MAX / sizeof(*p->types) || m->bound_instances || m->bound_instance_count || m->bound_instance_capacity || m->ioc_registries || m->ioc_registry_count || m->ioc_registry_capacity)
 		FAIL("compound module has invalid storage or unsupported bound instances");
 	if(!asn1typed_render_cpp_safe_namespace(ns)) FAIL("invalid or unsafe compound namespace");
 	if(p->extensions && (!strcmp(ns, "nrforge::aper") || !strncmp(ns, "nrforge::aper::", sizeof("nrforge::aper::") - 1)))
@@ -252,10 +246,10 @@ preflight(const asn1typed_module_t *m, const char *ns, struct plan *p, char *why
 			}
 			if(!source || !source[0]) FAIL("compound member has missing source name");
 			mp->name = asn1typed_render_cpp_final_name(source, ASN1TYPED_NAME_FIELD);
-			if(!mp->name || asn1typed_render_cpp_header_macro(mp->name)) FAIL("compound member spelling is unsafe, a standard header macro, or unavailable");
-			for(k = 0; k < j; ++k) if(!strcmp(mp->name, tp->members[k].name)) FAIL("compound member final name collision");
+			if(!mp->name || (asn1typed_render_cpp_header_macro(mp->name) && !(p->ioc && p->ioc[i].registry && j >= 2))) FAIL("compound member spelling is unsafe, a standard header macro, or unavailable");
+			for(k = (p->ioc && p->ioc[i].registry && j >= 2) ? 2 : 0; k < j; ++k) if(!strcmp(mp->name, tp->members[k].name)) FAIL("compound member final name collision");
 			if(resolve(m, p, i, ref, mp)) FAIL("unsupported, missing, external, forward or recursive compound reference");
-			if(t->kind == ASN1TYPED_TYPE_CHOICE) {
+			if(t->kind == ASN1TYPED_TYPE_CHOICE || (p->ioc && p->ioc[i].registry && j >= 2)) {
 				char *prefix = join("", tp->type, "_");
 				if(!prefix) FAIL("out of memory naming CHOICE wrapper");
 				mp->wrapper = join(prefix, mp->name, ""); free(prefix);
@@ -263,6 +257,14 @@ preflight(const asn1typed_module_t *m, const char *ns, struct plan *p, char *why
 				if(!mp->wrapper || !mp->qualified_wrapper) FAIL("out of memory qualifying CHOICE wrapper");
 				if(register_symbol(mp->wrapper, &symbols, &symbol_count, why, size)) goto fail;
 			}
+		}
+		if(p->ioc && p->ioc[i].registry) {
+			tp->value_member = asn1typed_render_cpp_final_name(p->ioc[i].value_source_name, ASN1TYPED_NAME_FIELD);
+			tp->unknown_wrapper = join("", tp->type, "_unknown");
+			tp->qualified_unknown_wrapper = tp->unknown_wrapper ? qualified(ns, "", tp->unknown_wrapper) : NULL;
+			if(!tp->value_member || asn1typed_render_cpp_header_macro(tp->value_member) || !tp->unknown_wrapper || !tp->qualified_unknown_wrapper) FAIL("invalid or unsafe IOC value name or allocation failure");
+			if(!strcmp(tp->value_member, tp->type) || !strcmp(tp->value_member, tp->members[0].name) || !strcmp(tp->value_member, tp->members[1].name)) FAIL("IOC physical member name collision");
+			if(register_symbol(tp->unknown_wrapper, &symbols, &symbol_count, why, size)) goto fail;
 		}
 		if(t->kind == ASN1TYPED_TYPE_SEQUENCE && t->is_extensible) {
 			size_t suffix = 0;
@@ -452,13 +454,13 @@ emit_codec(struct compound_buf *b, const asn1typed_type_t *t, const struct type_
 	return format(b, "}\n} // namespace compound_codec\ninline ::nrforge::aper::Result<::nrforge::aper::CompleteEncoding> %s(const %s& v, const ::nrforge::aper::Limits& limits = {}) {\n    return ::nrforge::aper::encode_complete(v, limits, [&](::nrforge::aper::FieldWriter& f) { return %s(f, v); });\n}\ninline ::nrforge::aper::Result<%s> %s(::std::span<const ::std::byte> input, const ::nrforge::aper::Limits& limits = {}) {\n    return ::nrforge::aper::decode_complete<%s>(input, limits, [](::nrforge::aper::FieldReader& f) { return %s(f); });\n}\n", p->encode, p->qualified_type, p->qualified_put, p->qualified_type, p->decode, p->qualified_type, p->qualified_get);
 }
 static int
-render(const asn1typed_module_t *m, const char *ns, char **out, char *diagnostic, size_t size, int mode, int extensions, int collections) {
-	struct plan p = {NULL, NULL, NULL, NULL, 0, 0, 0};
+render(const asn1typed_module_t *m, const char *ns, char **out, char *diagnostic, size_t size, int mode, int extensions, int collections, const struct asn1typed_cpp_ioc_entry *ioc) {
+	struct plan p = {NULL, NULL, NULL, NULL, 0, 0, 0, NULL};
 	struct compound_buf b = {NULL, 0};
 	char why[512] = "invalid compound renderer arguments";
 	size_t i;
 	int result = -1;
-	p.extensions = extensions; p.collections = collections;
+	p.extensions = extensions; p.collections = collections; p.ioc = ioc;
 	if(out) *out = NULL;
 	if(diagnostic && size) diagnostic[0] = 0;
 	if(!out || preflight(m, ns, &p, why, sizeof(why))) goto done;
@@ -474,7 +476,7 @@ render(const asn1typed_module_t *m, const char *ns, char **out, char *diagnostic
 			if(single_view(m, i, ns, mode, &text, why, sizeof(why))) { free(text); goto done; }
 			if(append(&b, text)) { free(text); goto oom; } free(text);
 		} else {
-			if(format(&b, "namespace %s {\n", ns) || (mode == 0 ? emit_types(&b, t, &p.types[i]) : mode == 1 ? emit_mapping(&b, t, &p.types[i], &p) : emit_codec(&b, t, &p.types[i], &p)) || append(&b, "} // namespace\n")) goto oom;
+			if(format(&b, "namespace %s {\n", ns) || (ioc && ioc[i].registry ? asn1typed_render_cpp_ioc_emit(&b, &p.types[i], &ioc[i], mode) : mode == 0 ? emit_types(&b, t, &p.types[i]) : mode == 1 ? emit_mapping(&b, t, &p.types[i], &p) : emit_codec(&b, t, &p.types[i], &p)) || append(&b, "} // namespace\n")) goto oom;
 		}
 	}
 	*out = b.text; b.text = NULL; result = 0; goto done;
@@ -487,30 +489,37 @@ done:
 }
 int
 asn1typed_render_cpp_owned_compound_types(const asn1typed_module_t *m, const char *ns,
-		char **out, char *diagnostic, size_t size) { return render(m, ns, out, diagnostic, size, 0, 0, 0); }
+		char **out, char *diagnostic, size_t size) { return render(m, ns, out, diagnostic, size, 0, 0, 0, NULL); }
 int
 asn1typed_render_cpp_owned_compound_mapping(const asn1typed_module_t *m, const char *ns,
-		char **out, char *diagnostic, size_t size) { return render(m, ns, out, diagnostic, size, 1, 0, 0); }
+		char **out, char *diagnostic, size_t size) { return render(m, ns, out, diagnostic, size, 1, 0, 0, NULL); }
 int
 asn1typed_render_cpp_owned_compound_codec(const asn1typed_module_t *m, const char *ns,
-		char **out, char *diagnostic, size_t size) { return render(m, ns, out, diagnostic, size, 2, 0, 0); }
+		char **out, char *diagnostic, size_t size) { return render(m, ns, out, diagnostic, size, 2, 0, 0, NULL); }
 
 int
 asn1typed_render_cpp_owned_sequence_extension_types(const asn1typed_module_t *m, const char *ns,
-		char **out, char *diagnostic, size_t size) { return render(m, ns, out, diagnostic, size, 0, 1, 0); }
+		char **out, char *diagnostic, size_t size) { return render(m, ns, out, diagnostic, size, 0, 1, 0, NULL); }
 int
 asn1typed_render_cpp_owned_sequence_extension_mapping(const asn1typed_module_t *m, const char *ns,
-		char **out, char *diagnostic, size_t size) { return render(m, ns, out, diagnostic, size, 1, 1, 0); }
+		char **out, char *diagnostic, size_t size) { return render(m, ns, out, diagnostic, size, 1, 1, 0, NULL); }
 int
 asn1typed_render_cpp_owned_sequence_extension_codec(const asn1typed_module_t *m, const char *ns,
-		char **out, char *diagnostic, size_t size) { return render(m, ns, out, diagnostic, size, 2, 1, 0); }
+		char **out, char *diagnostic, size_t size) { return render(m, ns, out, diagnostic, size, 2, 1, 0, NULL); }
 
 int
 asn1typed_render_cpp_owned_collection_types(const asn1typed_module_t *m, const char *ns,
-		char **out, char *diagnostic, size_t size) { return render(m, ns, out, diagnostic, size, 0, 1, 1); }
+		char **out, char *diagnostic, size_t size) { return render(m, ns, out, diagnostic, size, 0, 1, 1, NULL); }
 int
 asn1typed_render_cpp_owned_collection_mapping(const asn1typed_module_t *m, const char *ns,
-		char **out, char *diagnostic, size_t size) { return render(m, ns, out, diagnostic, size, 1, 1, 1); }
+		char **out, char *diagnostic, size_t size) { return render(m, ns, out, diagnostic, size, 1, 1, 1, NULL); }
 int
 asn1typed_render_cpp_owned_collection_codec(const asn1typed_module_t *m, const char *ns,
-		char **out, char *diagnostic, size_t size) { return render(m, ns, out, diagnostic, size, 2, 1, 1); }
+		char **out, char *diagnostic, size_t size) { return render(m, ns, out, diagnostic, size, 2, 1, 1, NULL); }
+
+int
+asn1typed_render_cpp_compound_ioc(const asn1typed_module_t *m, const char *ns,
+        const struct asn1typed_cpp_ioc_entry *ioc, int mode,
+        char **out, char *diagnostic, size_t size) {
+    return render(m, ns, out, diagnostic, size, mode, 1, 1, ioc);
+}
