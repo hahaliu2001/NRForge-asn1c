@@ -218,9 +218,9 @@ static int build_file(const char *dir,const struct message *rows,size_t count) {
     FILE *f=new_file(dir,"CMakeLists.txt");
     size_t i;
     if(!f) return -1;
-    fprintf(f,"cmake_minimum_required(VERSION 3.16)\nproject(nrforge_ngap LANGUAGES CXX)\nset(NRFORGE_SOURCE_ROOT \"\" CACHE PATH \"NRForge-asn1c source directory\")\nif(NOT EXISTS \"${NRFORGE_SOURCE_ROOT}/libngap/pdu.cpp\")\n  message(FATAL_ERROR \"Set NRFORGE_SOURCE_ROOT to NRForge-asn1c\")\nendif()\nadd_library(nrforge_ngap STATIC\n  \"${NRFORGE_SOURCE_ROOT}/libngap/pdu.cpp\"\n  \"${NRFORGE_SOURCE_ROOT}/libaper/runtime.cpp\"\n  registry.cpp\n");
+    fprintf(f,"cmake_minimum_required(VERSION 3.20)\nproject(nrforge_ngap VERSION 0.1.0 LANGUAGES CXX)\nset(NRFORGE_SOURCE_ROOT \"\" CACHE PATH \"NRForge-asn1c source directory\")\nif(NOT EXISTS \"${NRFORGE_SOURCE_ROOT}/cmake/NrforgeNgapSdk.cmake\")\n  message(FATAL_ERROR \"Set NRFORGE_SOURCE_ROOT to NRForge-asn1c\")\nendif()\ninclude(\"${NRFORGE_SOURCE_ROOT}/cmake/NrforgeNgapSdk.cmake\")\nnrforge_verify_sdk_lock()\nadd_library(nrforge_ngap STATIC\n  \"${NRFORGE_SOURCE_ROOT}/libngap/pdu.cpp\"\n  \"${NRFORGE_SOURCE_ROOT}/libaper/runtime.cpp\"\n  registry.cpp sdk_identity.cpp\n");
     for(i=0;i<count;++i) fprintf(f,"  adapters/%s.cpp\n",rows[i].name);
-    fprintf(f,")\ntarget_compile_features(nrforge_ngap PUBLIC cxx_std_20)\ntarget_include_directories(nrforge_ngap PUBLIC\n  \"${NRFORGE_SOURCE_ROOT}/libngap\"\n  \"${NRFORGE_SOURCE_ROOT}/libaper\"\n  \"${CMAKE_CURRENT_SOURCE_DIR}\")\n");
+    fprintf(f,")\nnrforge_package_sdk(nrforge_ngap)\n");
     return finish_file(f);
 }
 static int manifest(const char *dir,const struct message *rows,size_t count,const char *const *inputs) {
@@ -296,7 +296,7 @@ int main(int argc,char **argv) {
         }
         if(public_header(argv[4],&rows[i]) || adapter(argv[4],&rows[i],i)) { snprintf(why,sizeof(why),"adapter/public-header output failed"); goto done; }
     }
-    if(registry(argv[4],rows,count) || save(argv[4],"ngap.hpp","#ifndef NRFORGE_GENERATED_NGAP_HPP\n#define NRFORGE_GENERATED_NGAP_HPP\n#include <pdu.hpp>\n#endif\n") || build_file(argv[4],rows,count)) { snprintf(why,sizeof(why),"registry/build output failed"); goto done; }
+    if(registry(argv[4],rows,count) || save(argv[4],"ngap.hpp","#ifndef NRFORGE_GENERATED_NGAP_HPP\n#define NRFORGE_GENERATED_NGAP_HPP\n#include <pdu.hpp>\n#include <sdk_version.hpp>\n#endif\n") || build_file(argv[4],rows,count)) { snprintf(why,sizeof(why),"registry/build output failed"); goto done; }
     /* Success evidence is deliberately last; partial generation never has it. */
     if(manifest(argv[4],rows,count,(const char *const *)argv)) { snprintf(why,sizeof(why),"manifest output failed"); goto done; }
     printf("Generated complete typed dispatch: %zu owned declared message slots\n",count); result=0;

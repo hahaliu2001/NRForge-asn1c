@@ -1,0 +1,542 @@
+{
+  "oracle": "pycrate 0.7.11",
+  "source_authority": {
+    "authority_commit": "d6e514a33ec3695925c24aa292900514b371b074",
+    "release": "TS38.413 V18.10.0",
+    "modules": [
+      {
+        "path": "ng/asn1/NGAP-CommonDataTypes.asn",
+        "git_blob": "acaba01d1fad8d656ae8f568bf951de3b67278ac",
+        "sha256": "774d888f3f63ff33508c1f5f7ca9a3f1a0a5ee5e102decb3ffed99700df5f7c1"
+      },
+      {
+        "path": "ng/asn1/NGAP-Constants.asn",
+        "git_blob": "ba80f8fd34d41c48087417dc702622abff4bbaaf",
+        "sha256": "492d40aad525d645a90cdfe2b644066007cc5ac81f6e527df9efa30bf6c8ebb8"
+      },
+      {
+        "path": "ng/asn1/NGAP-IEs.asn",
+        "git_blob": "a8974dd27e5c7f37bf439990fb39da397ec97044",
+        "sha256": "ae4edee7e7d69ac6db94e44f5e716445990ecf5943edbc9a0f328ed210c25831"
+      },
+      {
+        "path": "ng/asn1/NGAP-Containers.asn",
+        "git_blob": "978bbf5864787b87eefcfbf26c84d471de330eb5",
+        "sha256": "3165b49eb2476b0d85ad261e983e1eb29cecb32c075f9bf81546cfe7a08a2bcb"
+      },
+      {
+        "path": "ng/asn1/NGAP-PDU-Contents.asn",
+        "git_blob": "fb48dd32c66479cf539c7e1d9676c5a90919b996",
+        "sha256": "93baf5a65b4e3971839c82ef87467fffaf1a5f1dd9c159c297f6ce779e1acfd0"
+      },
+      {
+        "path": "ng/asn1/NGAP-PDU-Descriptions.asn",
+        "git_blob": "aad6567aad39cebe0591c9a16b7c25bc012d1a45",
+        "sha256": "6fc4e2326ea449942195742efc0325a4181a94aadee99da8f1e2d76fe59dfa6d"
+      }
+    ]
+  },
+  "claim": "Frozen ASN.1 mandatory IE rows, not application procedure qualification",
+  "cases": [
+    {
+      "message": "NGSetupRequest",
+      "procedure": 21,
+      "root": "initiatingMessage",
+      "criticality": "reject",
+      "variant": "low-mandatory-minimum",
+      "semantic_value": "{'protocolIEs': [{'id': 27, 'criticality': 'reject', 'value': ('GlobalRANNodeID', ('globalGNB-ID', {'pLMNIdentity': b'\\x00\\x00\\x00', 'gNB-ID': ('gNB-ID', (0, 22))}))}, {'id': 102, 'criticality': 'reject', 'value': ('SupportedTAList', [{'tAC': b'\\x00\\x00\\x00', 'broadcastPLMNList': [{'pLMNIdentity': b'\\x00\\x00\\x00', 'tAISliceSupportList': [{'s-NSSAI': {'sST': b'\\x00'}}]}]}])}, {'id': 21, 'criticality': 'ignore', 'value': ('PagingDRX', 'v32')}]}",
+      "declared_criticality": "reject",
+      "policy_profile": "declared",
+      "semantic_json": {
+        "protocolIEs": [
+          {
+            "id": 27,
+            "criticality": "reject",
+            "value": {
+              "kind": "tuple",
+              "items": [
+                "GlobalRANNodeID",
+                {
+                  "kind": "tuple",
+                  "items": [
+                    "globalGNB-ID",
+                    {
+                      "pLMNIdentity": {
+                        "kind": "bytes",
+                        "hex": "000000"
+                      },
+                      "gNB-ID": {
+                        "kind": "tuple",
+                        "items": [
+                          "gNB-ID",
+                          {
+                            "kind": "tuple",
+                            "items": [
+                              0,
+                              22
+                            ]
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "id": 102,
+            "criticality": "reject",
+            "value": {
+              "kind": "tuple",
+              "items": [
+                "SupportedTAList",
+                [
+                  {
+                    "tAC": {
+                      "kind": "bytes",
+                      "hex": "000000"
+                    },
+                    "broadcastPLMNList": [
+                      {
+                        "pLMNIdentity": {
+                          "kind": "bytes",
+                          "hex": "000000"
+                        },
+                        "tAISliceSupportList": [
+                          {
+                            "s-NSSAI": {
+                              "sST": {
+                                "kind": "bytes",
+                                "hex": "00"
+                              }
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              ]
+            }
+          },
+          {
+            "id": 21,
+            "criticality": "ignore",
+            "value": {
+              "kind": "tuple",
+              "items": [
+                "PagingDRX",
+                "v32"
+              ]
+            }
+          }
+        ]
+      },
+      "known_table_trace": [
+        {
+          "path": "NGSetupRequest.protocolIEs[0]",
+          "row_id": 27,
+          "presence": "mandatory",
+          "table_field": "value"
+        },
+        {
+          "path": "NGSetupRequest.protocolIEs[1]",
+          "row_id": 102,
+          "presence": "mandatory",
+          "table_field": "value"
+        },
+        {
+          "path": "NGSetupRequest.protocolIEs[2]",
+          "row_id": 21,
+          "presence": "mandatory",
+          "table_field": "value"
+        }
+      ],
+      "status": "PASS",
+      "body_hex": "000003001b000800000000000000000066000d000000000000000000000000000015400100",
+      "pdu_hex": "00150025000003001b000800000000000000000066000d000000000000000000000000000015400100",
+      "storage_semantic_json": {
+        "protocolIEs": [
+          {
+            "id": 27,
+            "criticality": "reject",
+            "value": {
+              "kind": "tuple",
+              "items": [
+                "GlobalRANNodeID",
+                {
+                  "kind": "tuple",
+                  "items": [
+                    "globalGNB-ID",
+                    {
+                      "pLMNIdentity": {
+                        "kind": "bytes",
+                        "hex": "000000"
+                      },
+                      "gNB-ID": {
+                        "kind": "tuple",
+                        "items": [
+                          "gNB-ID",
+                          {
+                            "kind": "tuple",
+                            "items": [
+                              0,
+                              22
+                            ]
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "id": 102,
+            "criticality": "reject",
+            "value": {
+              "kind": "tuple",
+              "items": [
+                "SupportedTAList",
+                [
+                  {
+                    "tAC": {
+                      "kind": "bytes",
+                      "hex": "000000"
+                    },
+                    "broadcastPLMNList": [
+                      {
+                        "pLMNIdentity": {
+                          "kind": "bytes",
+                          "hex": "000000"
+                        },
+                        "tAISliceSupportList": [
+                          {
+                            "s-NSSAI": {
+                              "sST": {
+                                "kind": "bytes",
+                                "hex": "00"
+                              }
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              ]
+            }
+          },
+          {
+            "id": 21,
+            "criticality": "ignore",
+            "value": {
+              "kind": "tuple",
+              "items": [
+                "PagingDRX",
+                "v32"
+              ]
+            }
+          }
+        ]
+      },
+      "id": "low-mandatory-minimum-reject"
+    },
+    {
+      "message": "NGSetupResponse",
+      "procedure": 21,
+      "root": "successfulOutcome",
+      "criticality": "reject",
+      "variant": "low-mandatory-minimum",
+      "semantic_value": "{'protocolIEs': [{'id': 1, 'criticality': 'reject', 'value': ('AMFName', 'A')}, {'id': 96, 'criticality': 'reject', 'value': ('ServedGUAMIList', [{'gUAMI': {'pLMNIdentity': b'\\x00\\x00\\x00', 'aMFRegionID': (0, 8), 'aMFSetID': (0, 10), 'aMFPointer': (0, 6)}}])}, {'id': 86, 'criticality': 'ignore', 'value': ('RelativeAMFCapacity', 0)}, {'id': 80, 'criticality': 'reject', 'value': ('PLMNSupportList', [{'pLMNIdentity': b'\\x00\\x00\\x00', 'sliceSupportList': [{'s-NSSAI': {'sST': b'\\x00'}}]}])}]}",
+      "declared_criticality": "reject",
+      "policy_profile": "declared",
+      "semantic_json": {
+        "protocolIEs": [
+          {
+            "id": 1,
+            "criticality": "reject",
+            "value": {
+              "kind": "tuple",
+              "items": [
+                "AMFName",
+                "A"
+              ]
+            }
+          },
+          {
+            "id": 96,
+            "criticality": "reject",
+            "value": {
+              "kind": "tuple",
+              "items": [
+                "ServedGUAMIList",
+                [
+                  {
+                    "gUAMI": {
+                      "pLMNIdentity": {
+                        "kind": "bytes",
+                        "hex": "000000"
+                      },
+                      "aMFRegionID": {
+                        "kind": "tuple",
+                        "items": [
+                          0,
+                          8
+                        ]
+                      },
+                      "aMFSetID": {
+                        "kind": "tuple",
+                        "items": [
+                          0,
+                          10
+                        ]
+                      },
+                      "aMFPointer": {
+                        "kind": "tuple",
+                        "items": [
+                          0,
+                          6
+                        ]
+                      }
+                    }
+                  }
+                ]
+              ]
+            }
+          },
+          {
+            "id": 86,
+            "criticality": "ignore",
+            "value": {
+              "kind": "tuple",
+              "items": [
+                "RelativeAMFCapacity",
+                0
+              ]
+            }
+          },
+          {
+            "id": 80,
+            "criticality": "reject",
+            "value": {
+              "kind": "tuple",
+              "items": [
+                "PLMNSupportList",
+                [
+                  {
+                    "pLMNIdentity": {
+                      "kind": "bytes",
+                      "hex": "000000"
+                    },
+                    "sliceSupportList": [
+                      {
+                        "s-NSSAI": {
+                          "sST": {
+                            "kind": "bytes",
+                            "hex": "00"
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              ]
+            }
+          }
+        ]
+      },
+      "known_table_trace": [
+        {
+          "path": "NGSetupResponse.protocolIEs[0]",
+          "row_id": 1,
+          "presence": "mandatory",
+          "table_field": "value"
+        },
+        {
+          "path": "NGSetupResponse.protocolIEs[1]",
+          "row_id": 96,
+          "presence": "mandatory",
+          "table_field": "value"
+        },
+        {
+          "path": "NGSetupResponse.protocolIEs[2]",
+          "row_id": 86,
+          "presence": "mandatory",
+          "table_field": "value"
+        },
+        {
+          "path": "NGSetupResponse.protocolIEs[3]",
+          "row_id": 80,
+          "presence": "mandatory",
+          "table_field": "value"
+        }
+      ],
+      "status": "PASS",
+      "body_hex": "000004000100030000410060000800000000000000000056400100005000080000000000000000",
+      "pdu_hex": "20150027000004000100030000410060000800000000000000000056400100005000080000000000000000",
+      "storage_semantic_json": {
+        "protocolIEs": [
+          {
+            "id": 1,
+            "criticality": "reject",
+            "value": {
+              "kind": "tuple",
+              "items": [
+                "AMFName",
+                "A"
+              ]
+            }
+          },
+          {
+            "id": 96,
+            "criticality": "reject",
+            "value": {
+              "kind": "tuple",
+              "items": [
+                "ServedGUAMIList",
+                [
+                  {
+                    "gUAMI": {
+                      "pLMNIdentity": {
+                        "kind": "bytes",
+                        "hex": "000000"
+                      },
+                      "aMFRegionID": {
+                        "kind": "tuple",
+                        "items": [
+                          0,
+                          8
+                        ]
+                      },
+                      "aMFSetID": {
+                        "kind": "tuple",
+                        "items": [
+                          0,
+                          10
+                        ]
+                      },
+                      "aMFPointer": {
+                        "kind": "tuple",
+                        "items": [
+                          0,
+                          6
+                        ]
+                      }
+                    }
+                  }
+                ]
+              ]
+            }
+          },
+          {
+            "id": 86,
+            "criticality": "ignore",
+            "value": {
+              "kind": "tuple",
+              "items": [
+                "RelativeAMFCapacity",
+                0
+              ]
+            }
+          },
+          {
+            "id": 80,
+            "criticality": "reject",
+            "value": {
+              "kind": "tuple",
+              "items": [
+                "PLMNSupportList",
+                [
+                  {
+                    "pLMNIdentity": {
+                      "kind": "bytes",
+                      "hex": "000000"
+                    },
+                    "sliceSupportList": [
+                      {
+                        "s-NSSAI": {
+                          "sST": {
+                            "kind": "bytes",
+                            "hex": "00"
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              ]
+            }
+          }
+        ]
+      },
+      "id": "low-mandatory-minimum-reject"
+    },
+    {
+      "message": "NGSetupFailure",
+      "procedure": 21,
+      "root": "unsuccessfulOutcome",
+      "criticality": "reject",
+      "variant": "low-mandatory-minimum",
+      "semantic_value": "{'protocolIEs': [{'id': 15, 'criticality': 'ignore', 'value': ('Cause', ('radioNetwork', 'unspecified'))}]}",
+      "declared_criticality": "reject",
+      "policy_profile": "declared",
+      "semantic_json": {
+        "protocolIEs": [
+          {
+            "id": 15,
+            "criticality": "ignore",
+            "value": {
+              "kind": "tuple",
+              "items": [
+                "Cause",
+                {
+                  "kind": "tuple",
+                  "items": [
+                    "radioNetwork",
+                    "unspecified"
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "known_table_trace": [
+        {
+          "path": "NGSetupFailure.protocolIEs[0]",
+          "row_id": 15,
+          "presence": "mandatory",
+          "table_field": "value"
+        }
+      ],
+      "status": "PASS",
+      "body_hex": "000001000f40020000",
+      "pdu_hex": "40150009000001000f40020000",
+      "storage_semantic_json": {
+        "protocolIEs": [
+          {
+            "id": 15,
+            "criticality": "ignore",
+            "value": {
+              "kind": "tuple",
+              "items": [
+                "Cause",
+                {
+                  "kind": "tuple",
+                  "items": [
+                    "radioNetwork",
+                    "unspecified"
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "id": "low-mandatory-minimum-reject"
+    }
+  ]
+}

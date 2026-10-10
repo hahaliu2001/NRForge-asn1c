@@ -50,3 +50,16 @@ Owner authorization: 2026-10-10 (Etc/UTC), “做完整 NGAP-PDU 互通资格验
 ## Unified typed NGAP-PDU dispatch and public API integration
 
 Owner authorization: 2026-10-10 (Etc/UTC), “同意”, following complete-PDU qualification. Implement a single immutable complete registry and unified typed make/encode/decode API for all 131 identities, preserve existing unknown receive-only policy, and replay all 3432 accepted cases through that public boundary. Internal design/contract, independent agent review/fix, relevant correctness checks, evidence and routine commit/push may proceed without repeated approval. Preserve frozen schemas, prior wire/semantic hashes and bounded support. Stop at this milestone; no RAN application integration, Python bindings, benchmark, merge, deletion or force push.
+
+## Installable NGAP C++ SDK and independent consumer
+
+Owner authorization: 2026-10-10 (America/New_York), “同意”, after unified dispatch
+commit `3f8a915768b28e0129736618e2f4c28c3dcbeb25`. Complete actual CMake build,
+installation and relocation of the full registry SDK; prove a consumer outside
+the checkout can construct/encode/decode NG Setup Request, Response and Failure
+using only installed public headers/library. Add content/version consistency,
+minimal documentation and focused CI. Autonomous design, implementation,
+independent agent review/fix, verification evidence and routine commit/push are
+authorized without per-task approval. Preserve frozen schemas and accepted
+production wire behavior. Stop before NRForge-RAN CU-CP application integration;
+no merge, branch deletion, force push, Python binding or benchmark.

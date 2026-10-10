@@ -38,3 +38,15 @@ EXTRA_DIST += tools/unified-ngap-qualification/compatibility-summary.json
 EXTRA_DIST += docs/ngap-cpp-aper-unified-dispatch-closeout.md \
  tools/unified-ngap-qualification/accepted-profile.json \
  tools/unified-ngap-qualification/qualification-summary.json
+
+EXTRA_DIST += docs/ngap-cpp-sdk-contract.md \
+ cmake/NrforgeNgapSdk.cmake cmake/VerifyNgapSdk.cmake \
+ cmake/WriteNgapSdkReceipt.cmake cmake/NRForgeNGAPConfig.cmake.in \
+ tools/ngap-dispatch/seal_sdk.py \
+ tools/ngap-sdk/build.py tools/ngap-sdk/README.md \
+ tools/ngap-sdk-consumer/CMakeLists.txt tools/ngap-sdk-consumer/ng_setup.cpp \
+ tools/ngap-sdk-consumer/prepare.py tools/ngap-sdk-consumer/verify.py \
+ tools/ngap-sdk-consumer/native-fixtures.json tools/ngap-sdk-consumer/README.md \
+ .github/workflows/ngap-sdk.yml
+
+EXTRA_DIST += docs/ngap-cpp-sdk-closeout.md tools/ngap-sdk/verification-summary.json

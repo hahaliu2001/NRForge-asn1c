@@ -1,0 +1,95 @@
+name: NGAP installed SDK consumer
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [vlm_master, feature/ngap-cpp-aper-first-message]
+    paths:
+      - 'cmake/**'
+      - 'libaper/**'
+      - 'libngap/**'
+      - 'libasn1typed/**'
+      - 'tools/ngap-dispatch/**'
+      - 'tools/ngap-sdk/**'
+      - 'tools/ngap-sdk-consumer/**'
+      - 'tools/n11-envelope-qualification/source-manifest.json'
+      - 'tools/full-pdu-qualification/accepted-profile.json'
+      - 'tools/unified-ngap-qualification/accepted-profile.json'
+      - '.github/workflows/ngap-sdk.yml'
+  pull_request:
+    paths:
+      - 'cmake/**'
+      - 'libaper/**'
+      - 'libngap/**'
+      - 'libasn1typed/**'
+      - 'tools/ngap-dispatch/**'
+      - 'tools/ngap-sdk/**'
+      - 'tools/ngap-sdk-consumer/**'
+      - 'tools/n11-envelope-qualification/source-manifest.json'
+      - 'tools/full-pdu-qualification/accepted-profile.json'
+      - 'tools/unified-ngap-qualification/accepted-profile.json'
+      - '.github/workflows/ngap-sdk.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ngap-sdk-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  installed-consumer:
+    runs-on: ubuntu-latest
+    timeout-minutes: 70
+    steps:
+      - uses: actions/checkout@v5
+      - name: Require read access to the private frozen schema repository
+        env:
+          SCHEMA_READ_TOKEN: ${{ secrets.NRFORGE_SCHEMA_READ_TOKEN }}
+        run: |
+          test -n "$SCHEMA_READ_TOKEN" || { echo 'Set NRFORGE_SCHEMA_READ_TOKEN with contents:read for hahaliu2001/NRForge-RAN'; exit 1; }
+      - name: Checkout exact frozen ASN.1 authority
+        uses: actions/checkout@v5
+        with:
+          repository: hahaliu2001/NRForge-RAN
+          ref: d6e514a33ec3695925c24aa292900514b371b074
+          path: frozen-schema
+          token: ${{ secrets.NRFORGE_SCHEMA_READ_TOKEN }}
+      - name: Install build and independent reference dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq autoconf automake libtool bison flex cmake
+          python3 -m pip install pycrate==0.7.11
+      - name: Build owned generator in dependency order
+        run: |
+          autoreconf -iv
+          ./configure
+          for library in libasn1common libasn1parser libasn1fix libasn1print libasn1typed; do
+            make -C "$library" -j2
+          done
+          make -C tools asn1typed_ngap_dispatch
+      - name: Build and install complete SDK
+        run: |
+          python3 tools/ngap-sdk/build.py --repo "$GITHUB_WORKSPACE" \
+            --asn1-root "$GITHUB_WORKSPACE/frozen-schema" \
+            --work "$RUNNER_TEMP/sdk-work" --prefix "$RUNNER_TEMP/sdk-install" --jobs 1
+      - name: Reproduce independently constructed consumer
+        run: |
+          python3 tools/ngap-sdk-consumer/prepare.py \
+            --generated-root "$RUNNER_TEMP/sdk-work/generated" \
+            --asn1-root "$GITHUB_WORKSPACE/frozen-schema" --work "$RUNNER_TEMP/sdk-native"
+          git diff --exit-code -- tools/ngap-sdk-consumer/ng_setup.cpp tools/ngap-sdk-consumer/native-fixtures.json
+      - name: Relocated installation consumer and mismatch negatives
+        run: |
+          python3 tools/ngap-sdk-consumer/verify.py --prefix "$RUNNER_TEMP/sdk-install" \
+            --work "$RUNNER_TEMP/sdk-consumer" --output "$RUNNER_TEMP/sdk-consumer-summary.json"
+      - name: Preserve SDK evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ngap-sdk-evidence
+          path: |
+            ${{ runner.temp }}/sdk-work/*.log
+            ${{ runner.temp }}/sdk-work/build-summary.json
+            ${{ runner.temp }}/sdk-consumer-summary.json
+            ${{ runner.temp }}/sdk-consumer/*.log
