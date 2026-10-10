@@ -34,3 +34,15 @@ EXTRA_DIST += \
 	n10-body-qualification/README.md \
 	n10-body-qualification/accepted-profile.json \
 	n10-body-qualification/qualification-summary.json
+
+EXTRA_DIST += \
+	n11-envelope-qualification/adapter.hpp \
+	n11-envelope-qualification/driver.cpp \
+	n11-envelope-qualification/qualify.py \
+	n11-envelope-qualification/body_cases.py \
+	n11-envelope-qualification/native_reference.py \
+	n11-envelope-qualification/requirements.txt \
+	n11-envelope-qualification/source-manifest.json \
+	n11-envelope-qualification/README.md \
+	n11-envelope-qualification/accepted-profile.json \
+	n11-envelope-qualification/qualification-summary.json

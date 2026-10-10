@@ -1,0 +1,36 @@
+{
+  "authority_commit": "d6e514a33ec3695925c24aa292900514b371b074",
+  "release": "TS38.413 V18.10.0",
+  "modules": [
+    {
+      "path": "ng/asn1/NGAP-CommonDataTypes.asn",
+      "git_blob": "acaba01d1fad8d656ae8f568bf951de3b67278ac",
+      "sha256": "774d888f3f63ff33508c1f5f7ca9a3f1a0a5ee5e102decb3ffed99700df5f7c1"
+    },
+    {
+      "path": "ng/asn1/NGAP-Constants.asn",
+      "git_blob": "ba80f8fd34d41c48087417dc702622abff4bbaaf",
+      "sha256": "492d40aad525d645a90cdfe2b644066007cc5ac81f6e527df9efa30bf6c8ebb8"
+    },
+    {
+      "path": "ng/asn1/NGAP-IEs.asn",
+      "git_blob": "a8974dd27e5c7f37bf439990fb39da397ec97044",
+      "sha256": "ae4edee7e7d69ac6db94e44f5e716445990ecf5943edbc9a0f328ed210c25831"
+    },
+    {
+      "path": "ng/asn1/NGAP-Containers.asn",
+      "git_blob": "978bbf5864787b87eefcfbf26c84d471de330eb5",
+      "sha256": "3165b49eb2476b0d85ad261e983e1eb29cecb32c075f9bf81546cfe7a08a2bcb"
+    },
+    {
+      "path": "ng/asn1/NGAP-PDU-Contents.asn",
+      "git_blob": "fb48dd32c66479cf539c7e1d9676c5a90919b996",
+      "sha256": "93baf5a65b4e3971839c82ef87467fffaf1a5f1dd9c159c297f6ce779e1acfd0"
+    },
+    {
+      "path": "ng/asn1/NGAP-PDU-Descriptions.asn",
+      "git_blob": "aad6567aad39cebe0591c9a16b7c25bc012d1a45",
+      "sha256": "6fc4e2326ea449942195742efc0325a4181a94aadee99da8f1e2d76fe59dfa6d"
+    }
+  ]
+}
