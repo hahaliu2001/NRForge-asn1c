@@ -765,4 +765,79 @@ Result<void> BitWriter::reject_sequence_extension_data() {
     return fail({ErrorCode::constraint_violation, cursor_bit_});
 }
 
+// The determinant is a constrained whole-number offset, not a general
+// unconstrained/fragmented length. Fixed lengths still consume element budget.
+Result<std::size_t> BitReader::read_bounded_collection_length(std::size_t lower,
+                                                             std::size_t upper) {
+    auto live = validate_live();
+    if(!live) return Result<std::size_t>::failure(live.error());
+    const auto start = cursor_bit_;
+    auto reject = [&](ErrorCode code, std::size_t offset) {
+        return Result<std::size_t>::failure(fail({code, offset}).error());
+    };
+    if(lower > upper || upper > 65535) return reject(ErrorCode::invalid_argument, start);
+    const auto range = static_cast<std::uint64_t>(upper - lower) + 1;
+    unsigned width = 0;
+    if(range >= 257) width = 16;
+    else if(range == 256) width = 8;
+    else for(auto remaining = range - 1; remaining; remaining >>= 1) ++width;
+    const auto padding = range >= 256 ? (8 - start % 8) % 8 : 0;
+    const auto total = padding + width;
+    auto ready = preflight(total, start);
+    if(!ready) return Result<std::size_t>::failure(ready.error());
+    for(std::size_t i = 0; i < padding; ++i)
+        if(get_bit(input_, start + i)) return reject(ErrorCode::nonzero_padding, start + i);
+    std::uint64_t offset = 0;
+    for(unsigned i = 0; i < width; ++i)
+        offset = (offset << 1) | get_bit(input_, start + padding + i);
+    if(offset >= range) return reject(ErrorCode::constraint_violation, start);
+    const auto count = lower + static_cast<std::size_t>(offset);
+    std::size_t elements = 0;
+    if(!checked_add_size(context_->collection_elements_, count, elements) ||
+       elements > context_->limits_.max_collection_elements)
+        return reject(ErrorCode::resource_limit, start);
+    cursor_bit_ = start + total;
+    context_->wire_bits_ += total;
+    context_->collection_elements_ = elements;
+    return Result<std::size_t>::success(count);
+}
+
+Result<void> BitWriter::write_bounded_collection_length(std::uint64_t count,
+                                                       std::size_t lower,
+                                                       std::size_t upper) {
+    auto live = validate_live();
+    if(!live) return live;
+    const auto start = cursor_bit_;
+    if(lower > upper || upper > 65535) return fail({ErrorCode::invalid_argument, start});
+    if(count < lower || count > upper) return fail({ErrorCode::constraint_violation, start});
+    std::size_t elements = 0;
+    if(!checked_add_size(context_->collection_elements_, static_cast<std::size_t>(count), elements) ||
+       elements > context_->limits_.max_collection_elements)
+        return fail({ErrorCode::resource_limit, start});
+    const auto range = static_cast<std::uint64_t>(upper - lower) + 1;
+    unsigned width = 0;
+    if(range >= 257) width = 16;
+    else if(range == 256) width = 8;
+    else for(auto remaining = range - 1; remaining; remaining >>= 1) ++width;
+    const auto padding = range >= 256 ? (8 - start % 8) % 8 : 0;
+    const auto total = padding + width;
+    std::size_t end = 0;
+    if(!checked_add_size(start, total, end)) return fail({ErrorCode::resource_limit, start});
+    auto ready = preflight(total, end, start);
+    if(!ready) return ready;
+    std::size_t octets = 0;
+    (void)checked_bits_to_octets(end, octets);
+    auto grown = grow_to(octets, start);
+    if(!grown) return grown;
+    for(std::size_t i = 0; i < padding; ++i) set_bit(output_, start + i, false);
+    const auto offset = count - lower;
+    for(unsigned i = 0; i < width; ++i)
+        set_bit(output_, start + padding + i, ((offset >> (width - i - 1)) & 1u) != 0);
+    cursor_bit_ = end;
+    context_->wire_bits_ += total;
+    context_->logical_output_octets_ = octets;
+    context_->collection_elements_ = elements;
+    return Result<void>::success();
+}
+
 } // namespace nrforge::aper

@@ -151,3 +151,5 @@ asn1c/tmp/
 /libaper/check_aper_extensions
 
 /libasn1typed/check_asn1typed_sequence_extension_render
+
+/libaper/check_aper_collections

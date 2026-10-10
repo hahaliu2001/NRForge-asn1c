@@ -85,6 +85,7 @@ struct Limits {
     std::size_t max_extension_bitmap_bits = 1024;
     std::size_t max_retained_unknown_payload_octets = 1u << 20;
     std::size_t max_retained_unknown_records = 1024;
+    std::size_t max_collection_elements = 65536;
 };
 
 struct SequenceExtensionBitmap {
@@ -97,6 +98,7 @@ public:
     explicit DecodeContext(Limits limits = {}) noexcept : limits_(limits) {}
     const Limits& limits() const noexcept { return limits_; }
     std::size_t wire_bits() const noexcept { return wire_bits_; }
+    std::size_t collection_elements() const noexcept { return collection_elements_; }
     std::size_t extension_bitmap_bits() const noexcept { return extension_bitmap_bits_; }
     std::size_t retained_unknown_payload_octets() const noexcept { return retained_unknown_payload_octets_; }
     std::size_t retained_unknown_records() const noexcept { return retained_unknown_records_; }
@@ -109,6 +111,7 @@ private:
     friend class BitReader;
     Limits limits_;
     std::size_t wire_bits_ = 0;
+    std::size_t collection_elements_ = 0;
     std::size_t extension_bitmap_bits_ = 0;
     std::size_t retained_unknown_payload_octets_ = 0;
     std::size_t retained_unknown_records_ = 0;
@@ -123,6 +126,7 @@ public:
     explicit EncodeContext(Limits limits = {}) noexcept : limits_(limits) {}
     const Limits& limits() const noexcept { return limits_; }
     std::size_t wire_bits() const noexcept { return wire_bits_; }
+    std::size_t collection_elements() const noexcept { return collection_elements_; }
     std::size_t logical_output_octets() const noexcept { return logical_output_octets_; }
     bool failed() const noexcept { return failed_; }
     bool finished() const noexcept { return finished_; }
@@ -133,6 +137,7 @@ private:
     friend class BitWriter;
     Limits limits_;
     std::size_t wire_bits_ = 0;
+    std::size_t collection_elements_ = 0;
     std::size_t logical_output_octets_ = 0;
     bool failed_ = false;
     bool finished_ = false;
@@ -168,6 +173,8 @@ public:
     Result<std::uint64_t> read_constrained_uint(unsigned root_bits);
     // root_count 1..255; flags, length, alignment and index are atomic (N2).
     Result<EnumeratedIndex> read_enumerated(unsigned root_count, bool extensible);
+    // N8: non-extensible SIZE 0<=lower<=upper<=65535; atomic count and charge.
+    Result<std::size_t> read_bounded_collection_length(std::size_t lower, std::size_t upper);
     // N7-P2: owned, atomic extension framing; no inner payload interpretation.
     Result<SequenceExtensionBitmap> read_sequence_extension_bitmap();
     Result<std::vector<std::byte>> read_open_type_owned();
@@ -201,6 +208,7 @@ public:
     Result<void> write_constrained_uint(std::uint64_t value, unsigned root_bits);
     // root_count 1..255; extension indexes require extensible=true (N2).
     Result<void> write_enumerated(EnumeratedIndex value, unsigned root_count, bool extensible);
+    Result<void> write_bounded_collection_length(std::uint64_t count, std::size_t lower, std::size_t upper);
     Result<void> reject_sequence_extension_data();
     Result<CompleteEncoding> finish();
     std::size_t cursor_bit() const noexcept { return cursor_bit_; }
@@ -229,6 +237,9 @@ public:
     }
     Result<EnumeratedIndex> read_enumerated(unsigned root_count, bool extensible) {
         return reader_.read_enumerated(root_count, extensible);
+    }
+    Result<std::size_t> read_bounded_collection_length(std::size_t lower, std::size_t upper) {
+        return reader_.read_bounded_collection_length(lower, upper);
     }
     // Generated helper failures preserve sticky state and lifecycle semantics.
     Result<void> record_failure(Error error) {
@@ -259,6 +270,9 @@ public:
     }
     Result<void> write_enumerated(EnumeratedIndex value, unsigned root_count, bool extensible) {
         return writer_.write_enumerated(value, root_count, extensible);
+    }
+    Result<void> write_bounded_collection_length(std::uint64_t count, std::size_t lower, std::size_t upper) {
+        return writer_.write_bounded_collection_length(count, lower, upper);
     }
     Result<void> reject_sequence_extension_data() { return writer_.reject_sequence_extension_data(); }
     std::size_t cursor_bit() const noexcept { return writer_.cursor_bit(); }
