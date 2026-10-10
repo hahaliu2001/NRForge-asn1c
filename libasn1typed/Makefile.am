@@ -2,7 +2,7 @@ AM_CFLAGS = @ADD_CFLAGS@
 AM_CPPFLAGS = -I$(top_srcdir)/libasn1common
 
 noinst_LTLIBRARIES = libasn1typed.la libasn1typed_extract.la
-libasn1typed_la_SOURCES = asn1typed.c asn1typed.h asn1typed_name.c asn1typed_name.h asn1typed_render_cpp_internal.h \
+libasn1typed_la_SOURCES = asn1typed.c asn1typed.h asn1typed_envelope.c asn1typed_envelope.h asn1typed_name.c asn1typed_name.h asn1typed_render_cpp_internal.h \
 	asn1typed_render_cpp.c asn1typed_render_cpp_slice.c asn1typed_render_cpp_codec.c asn1typed_render_cpp_enum.c asn1typed_render_cpp_uint.c asn1typed_render_cpp_compound.c asn1typed_render_cpp_ioc.c asn1typed_render_cpp_ioc_internal.h asn1typed_render_cpp.h
 libasn1typed_extract_la_SOURCES = asn1typed_extract.c asn1typed_extract.h
 libasn1typed_extract_la_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/libasn1parser -I$(top_srcdir)/libasn1fix
@@ -13,7 +13,12 @@ libasn1typed_extract_la_LIBADD = \
 	$(top_builddir)/libasn1common/libasn1common.la
 
 check_PROGRAMS = check_asn1typed_ioc_cpp check_asn1typed check_asn1typed_extract check_asn1typed_name check_asn1typed_render_cpp check_asn1typed_owned_slice check_asn1typed_codec_render check_asn1typed_codec_rejections
+check_PROGRAMS += check_asn1typed_envelope
+check_asn1typed_envelope_SOURCES = check_asn1typed_envelope.c check_envelope_alloc_core.c check_envelope_alloc_evidence.c check_envelope_alloc_extract.c asn1typed_name.c
+check_asn1typed_envelope_CPPFLAGS = $(AM_CPPFLAGS) -DHAVE_CONFIG_H -I$(top_srcdir) -I$(top_srcdir)/libasn1parser -I$(top_srcdir)/libasn1fix -DNDEBUG -DENVELOPE_EVIDENCE_FIXTURE=\"$(abs_srcdir)/fixtures/envelope-evidence-n11.asn1\"
+check_asn1typed_envelope_LDADD = $(top_builddir)/libasn1fix/libasn1fix.la $(top_builddir)/libasn1parser/libasn1parser.la $(top_builddir)/libasn1common/libasn1common.la
 TESTS = check_asn1typed_ioc_cpp.sh check_asn1typed check_asn1typed_extract check_asn1typed_name check_asn1typed_render_cpp.sh check_asn1typed_owned_slice.sh check_asn1typed_codec.sh check_asn1typed_codec_variants.sh check_asn1typed_codec_rejections
+TESTS += check_asn1typed_envelope
 AM_TESTS_ENVIRONMENT = CXX="$(CXX)"; export CXX;
 check_asn1typed_render_cpp_SOURCES = check_asn1typed_render_cpp.c
 check_asn1typed_render_cpp_LDADD = libasn1typed.la
@@ -57,6 +62,7 @@ check_asn1typed_enum_evidence_SOURCES = check_asn1typed_enum_evidence.c
 check_asn1typed_enum_evidence_CPPFLAGS = $(check_asn1typed_extract_CPPFLAGS) -DENUM_FIXTURE=\"$(abs_srcdir)/fixtures/enumerated-evidence-n3.asn1\"
 check_asn1typed_enum_evidence_LDADD = $(check_asn1typed_extract_LDADD)
 EXTRA_DIST += fixtures/enumerated-evidence-n3.asn1
+EXTRA_DIST += fixtures/envelope-evidence-n11.asn1
 check_asn1typed_enum_evidence_LDFLAGS = -Wl,--wrap=malloc -Wl,--wrap=calloc -Wl,--wrap=realloc
 
 check_PROGRAMS += check_asn1typed_enum_render

@@ -1,0 +1,80 @@
+EnvelopeBodies DEFINITIONS AUTOMATIC TAGS ::= BEGIN
+TargetBody ::= SEQUENCE { flag BOOLEAN }
+OtherBody ::= BOOLEAN
+OutcomeBody ::= INTEGER (0..255)
+END
+EnvelopeEvidence DEFINITIONS EXPLICIT TAGS ::= BEGIN
+IMPORTS TargetBody, OtherBody, OutcomeBody FROM EnvelopeBodies;
+ProcedureCode ::= INTEGER (0..255)
+Criticality ::= ENUMERATED { reject, ignore, notify }
+id-Other ProcedureCode ::= 9
+id-Target ProcedureCode ::= 73
+id-Last ProcedureCode ::= 2
+ENVELOPE-PROCEDURE ::= CLASS {
+  &InitiatingMessage,
+  &SuccessfulOutcome OPTIONAL,
+  &UnsuccessfulOutcome OPTIONAL,
+  &procedureCode ProcedureCode UNIQUE,
+  &criticality Criticality DEFAULT ignore
+} WITH SYNTAX {
+  INITIATING MESSAGE &InitiatingMessage
+  [SUCCESSFUL OUTCOME &SuccessfulOutcome]
+  [UNSUCCESSFUL OUTCOME &UnsuccessfulOutcome]
+  PROCEDURE CODE &procedureCode
+  [CRITICALITY &criticality]
+}
+EnvelopeRowsA ENVELOPE-PROCEDURE ::= {
+  { INITIATING MESSAGE OtherBody PROCEDURE CODE id-Other } |
+  { INITIATING MESSAGE TargetBody SUCCESSFUL OUTCOME OutcomeBody PROCEDURE CODE id-Target CRITICALITY reject }
+}
+EnvelopeRowsB ENVELOPE-PROCEDURE ::= {
+  { INITIATING MESSAGE OtherBody SUCCESSFUL OUTCOME OutcomeBody
+    UNSUCCESSFUL OUTCOME OutcomeBody PROCEDURE CODE id-Last CRITICALITY notify }
+}
+EnvelopeRowsAAlias ENVELOPE-PROCEDURE ::= { EnvelopeRowsA }
+EnvelopeRowsBAlias ENVELOPE-PROCEDURE ::= { EnvelopeRowsB }
+EnvelopeRows ENVELOPE-PROCEDURE ::= { EnvelopeRowsAAlias | EnvelopeRowsBAlias, ... }
+ClosedRows ENVELOPE-PROCEDURE ::= { EnvelopeRowsAAlias | EnvelopeRowsBAlias }
+BeginFrame ::= SEQUENCE {
+  number ENVELOPE-PROCEDURE.&procedureCode({EnvelopeRows}),
+  receivedPolicy ENVELOPE-PROCEDURE.&criticality({EnvelopeRows}{@number}),
+  content ENVELOPE-PROCEDURE.&InitiatingMessage({EnvelopeRows}{@number})
+}
+SuccessFrame ::= SEQUENCE {
+  number ENVELOPE-PROCEDURE.&procedureCode({EnvelopeRows}),
+  receivedPolicy ENVELOPE-PROCEDURE.&criticality({EnvelopeRows}{@number}),
+  content ENVELOPE-PROCEDURE.&SuccessfulOutcome({EnvelopeRows}{@number})
+}
+FailureFrame ::= SEQUENCE {
+  number ENVELOPE-PROCEDURE.&procedureCode({EnvelopeRows}),
+  receivedPolicy ENVELOPE-PROCEDURE.&criticality({EnvelopeRows}{@number}),
+  content ENVELOPE-PROCEDURE.&UnsuccessfulOutcome({EnvelopeRows}{@number})
+}
+Envelope ::= CHOICE {
+  completed [9] SuccessFrame,
+  started [5] BeginFrame,
+  failed [2] FailureFrame,
+  ...
+}
+ClosedBeginFrame ::= SEQUENCE {
+  number ENVELOPE-PROCEDURE.&procedureCode({ClosedRows}),
+  receivedPolicy ENVELOPE-PROCEDURE.&criticality({ClosedRows}{@number}),
+  content ENVELOPE-PROCEDURE.&InitiatingMessage({ClosedRows}{@number})
+}
+ClosedSuccessFrame ::= SEQUENCE {
+  number ENVELOPE-PROCEDURE.&procedureCode({ClosedRows}),
+  receivedPolicy ENVELOPE-PROCEDURE.&criticality({ClosedRows}{@number}),
+  content ENVELOPE-PROCEDURE.&SuccessfulOutcome({ClosedRows}{@number})
+}
+ClosedFailureFrame ::= SEQUENCE {
+  number ENVELOPE-PROCEDURE.&procedureCode({ClosedRows}),
+  receivedPolicy ENVELOPE-PROCEDURE.&criticality({ClosedRows}{@number}),
+  content ENVELOPE-PROCEDURE.&UnsuccessfulOutcome({ClosedRows}{@number})
+}
+ClosedEnvelope ::= CHOICE {
+  completed [9] ClosedSuccessFrame,
+  started [5] ClosedBeginFrame,
+  failed [2] ClosedFailureFrame,
+  ...
+}
+END

@@ -2399,3 +2399,287 @@ fail:
 	if(error && size && !error[0]) set_error(error, size, "out of memory owning physical IOC message graph");
 	asn1typed_module_clear(&pending); return -1;
 }
+
+/* N11 is deliberately separate from physical IE registries. These references
+ * identify the complete source table; only the chosen body is materialized by
+ * the unchanged physical-message extractor. Source views below are borrowed
+ * only until the envelope construction operations deep-copy them. */
+static int
+envelope_source_ref(asn1typed_type_ref_t *ref, asn1p_expr_t *decl) {
+    if(!decl || !decl->Identifier || !decl->module || !decl->module->ModuleName
+        || decl->lhs_params || decl->rhs_pspecs) return -1;
+    memset(ref, 0, sizeof(*ref)); ref->kind = ASN1TYPED_REF_NAMED;
+    ref->module = decl->module->ModuleName; ref->source_name = decl->Identifier;
+    return 0;
+}
+static int
+envelope_root_source(asn1p_t *tree, asn1p_expr_t *alternative, size_t ordinal,
+        asn1typed_envelope_root_t *root, asn1p_expr_t **class_out, asn1p_expr_t **set_out) {
+    static const char *const payload_names[] = {"&InitiatingMessage", "&SuccessfulOutcome", "&UnsuccessfulOutcome"};
+    asn1p_expr_t *sequence, *body, *member, *class_expr = NULL, *set = NULL;
+    size_t field = 0, role;
+    memset(root, 0, sizeof(*root));
+    if(!alternative->Identifier || alternative->expr_type != A1TC_REFERENCE || !alternative->reference
+        || alternative->marker.flags != EM_NOMARK || alternative->marker.default_value || alternative->constraints || alternative->combined_constraints
+        || alternative->lhs_params || alternative->rhs_pspecs) return -1;
+    sequence = ioc_resolve(tree, alternative, alternative->reference);
+    body = terminal_type(sequence);
+    if(!sequence || sequence->meta_type != AMT_TYPE || !body || body->expr_type != ASN_CONSTR_SEQUENCE
+        || sequence->constraints || sequence->combined_constraints || envelope_source_ref(&root->sequence, sequence)) return -1;
+    root->source_name = alternative->Identifier; root->source_ordinal = ordinal;
+    root->effective_tag_class = owned_tag_class(alternative->tag.tag_class);
+    if(alternative->tag.tag_value < 0 || alternative->tag.tag_value > INTMAX_MAX) return -1;
+    root->effective_tag_number = (intmax_t)alternative->tag.tag_value;
+    TQ_FOR(member, &body->members, next) {
+        const asn1p_constraint_t *relation = ioc_relation(member), *setting;
+        asn1p_expr_t *member_class, *member_set;
+        asn1p_ref_t prefix;
+        const char *name;
+        if(field >= 3 || !member->Identifier || member->expr_type != A1TC_REFERENCE || member->marker.flags != EM_NOMARK || member->marker.default_value
+            || member->rhs_pspecs || member->lhs_params || !member->reference || member->reference->comp_count != 2
+            || !member->reference->components || !member->reference->components[0].name
+            || !(name = member->reference->components[1].name) || name[0] != '&'
+            || !relation || relation->el_count != (field == 0 ? 1u : 2u)) return -1;
+        if(field == 0 ? strcmp(name, "&procedureCode") : field == 1 ? strcmp(name, "&criticality") : 0) return -1;
+        if(field == 2) {
+            for(role = 0; role < 3; ++role) if(!strcmp(name, payload_names[role])) break;
+            if(role == 3) return -1;
+            root->role = (asn1typed_envelope_role_e)role;
+        }
+        prefix = *member->reference; prefix.comp_count = 1; prefix.ref_expr = NULL;
+        member_class = ioc_resolve(tree, member, &prefix);
+        setting = relation->elements[0];
+        if(!setting || setting->type != ACT_EL_VALUE || setting->el_count || !setting->value) return -1;
+        member_set = ioc_resolve(tree, member, ioc_set_reference(setting->value));
+        if(!member_class || !member_set || (field && (member_class != class_expr || member_set != set))) return -1;
+        class_expr = member_class; set = member_set;
+        root->field_names[field] = member->Identifier; root->class_field_names[field] = (char *)name + 1;
+        root->role_ordinals[field] = field;
+        if(field) {
+            root->selectors[field - 1] = component_selector(relation);
+            if(!root->selectors[field - 1] || strcmp(root->selectors[field - 1], root->field_names[0])) return -1;
+        }
+        ++field;
+    }
+    if(field != 3 || envelope_source_ref(&root->procedure_class, class_expr) || envelope_source_ref(&root->object_set, set)) return -1;
+    root->field_count = field; root->evidence = ASN1TYPED_WIRE_EVIDENCE_RESOLVED;
+    *class_out = class_expr; *set_out = set; return 0;
+}
+static int
+envelope_criticality_value(const asn1typed_envelope_header_t *header, const char *name, unsigned *value) {
+    size_t i;
+    if(!name) return -1;
+    for(i = 0; i < 3; ++i) if(!strcmp(name, header->criticalities[i].source_name)) {
+        *value = (unsigned)header->criticalities[i].per_index; return 0;
+    }
+    return -1;
+}
+static int
+envelope_class_source(asn1p_t *tree, asn1p_expr_t *class_expr,
+        asn1typed_envelope_header_t *header, asn1typed_type_t *criticality, char *error, size_t size) {
+    asn1p_expr_t *member, *procedure = NULL, *crit = NULL;
+    asn1p_value_t *default_value = NULL;
+    unsigned seen = 0;
+    size_t i;
+    asn1typed_integer_value_range_t range = {0};
+    asn1typed_integer_value_range_t class_range = {0};
+    if(!class_expr || class_expr->expr_type != A1TC_CLASSDEF || class_expr->constraints || class_expr->combined_constraints) return -1;
+    TQ_FOR(member, &class_expr->members, next) {
+        const char *name = member->Identifier;
+        unsigned bit;
+        asn1p_expr_t *type;
+        if(!name || name[0] != '&' || member->meta_type != AMT_OBJECTFIELD || member->constraints
+            || member->combined_constraints || member->rhs_pspecs || member->lhs_params) return -1;
+        if(!strcmp(name, "&InitiatingMessage") || !strcmp(name, "&SuccessfulOutcome") || !strcmp(name, "&UnsuccessfulOutcome")) {
+            i = !strcmp(name, "&InitiatingMessage") ? 0u : !strcmp(name, "&SuccessfulOutcome") ? 1u : 2u;
+            bit = 1u << i;
+            if(member->expr_type != A1TC_CLASSFIELD_TFS || member->unique || member->marker.default_value
+                || member->marker.flags != (i == 0 ? EM_NOMARK : EM_OPTIONAL)) return -1;
+            header->payload_optional[i] = i != 0;
+        } else if(!strcmp(name, "&procedureCode") || !strcmp(name, "&criticality")) {
+            int is_code = !strcmp(name, "&procedureCode");
+            bit = is_code ? 8u : 16u;
+            type = TQ_FIRST(&member->members);
+            if(member->expr_type != A1TC_CLASSFIELD_FTVFS || !type || TQ_NEXT(type, next)
+                || type->expr_type != A1TC_REFERENCE || !type->reference || type->constraints
+                || member->unique != is_code || member->marker.flags != (is_code ? EM_NOMARK : EM_DEFAULT)
+                || (is_code ? member->marker.default_value != NULL : member->marker.default_value == NULL)) return -1;
+            if(type->combined_constraints) {
+                if(!is_code || extract_integer_value_range(type->combined_constraints, &class_range)
+                    || !class_range.has_value_range || class_range.tail || class_range.tail_count) {
+                    free(class_range.tail); return -1;
+                }
+            }
+            type = ioc_resolve(tree, member, type->reference);
+            if(!type || type->meta_type != AMT_TYPE) return -1;
+            if(is_code) procedure = type;
+            else { crit = type; default_value = member->marker.default_value; }
+        } else return -1;
+        if(seen & bit) return -1;
+        seen |= bit;
+    }
+    if(seen != 31 || envelope_source_ref(&header->procedure_type, procedure) || envelope_source_ref(&header->criticality_type, crit)
+        || primitive_from_expr(terminal_type(procedure)) != ASN1TYPED_PRIMITIVE_INTEGER
+        || extract_integer_value_range(procedure->combined_constraints ? procedure->combined_constraints : procedure->constraints, &range)) return -1;
+    if(!range.has_value_range || range.tail || range.tail_count) { free(range.tail); return -1; }
+    if(class_range.has_value_range && (class_range.lower_bound != range.lower_bound || class_range.upper_bound != range.upper_bound
+        || class_range.is_extensible != range.is_extensible)) return -1;
+    header->procedure_lower_bound = range.lower_bound; header->procedure_upper_bound = range.upper_bound;
+    header->procedure_is_extensible = range.is_extensible;
+    if(kind_of_type(terminal_type(crit)) != ASN1TYPED_TYPE_ENUMERATED) return -1;
+    criticality->kind = ASN1TYPED_TYPE_ENUMERATED;
+    if(populate_type(tree, criticality, crit, "<envelope evidence>", error, size)
+        || criticality->enum_item_count != 3 || !criticality->has_valid_per_enumeration_mapping) return -1;
+    header->criticality_is_extensible = criticality->is_extensible;
+    for(i = 0; i < 3; ++i) {
+        header->criticalities[i].source_name = criticality->enum_items[i].source_name;
+        header->criticalities[i].source_ordinal = i;
+        header->criticalities[i].assigned_number = criticality->enum_items[i].assigned_number;
+        header->criticalities[i].per_index = criticality->enum_items[i].per_enumeration_index;
+    }
+    if(default_value->type == ATV_INTEGER) {
+        if(default_value->value.v_integer < 0 || default_value->value.v_integer > 2) return -1;
+        header->class_default_criticality = (unsigned)default_value->value.v_integer;
+    } else if(default_value->type == ATV_REFERENCED) {
+        asn1p_ref_t *ref = default_value->value.reference;
+        if(!ref || ref->comp_count != 1 || !ref->components
+            || envelope_criticality_value(header, ref->components[0].name, &header->class_default_criticality)) return -1;
+    } else return -1;
+    header->has_class_default = 1; return 0;
+}
+static int
+envelope_table_row(asn1p_t *tree, const asn1typed_envelope_header_t *header,
+        asn1p_ioc_row_t *source, asn1typed_envelope_row_t *row) {
+    static const char *const names[5] = {"&InitiatingMessage", "&SuccessfulOutcome", "&UnsuccessfulOutcome", "&procedureCode", "&criticality"};
+    asn1p_expr_t *cells[5] = {NULL, NULL, NULL, NULL, NULL};
+    unsigned seen = 0;
+    size_t i, role;
+    const char *symbol;
+    memset(row, 0, sizeof(*row));
+    if(!source || source->columns != 5 || !source->column) return -1;
+    for(i = 0; i < 5; ++i) {
+        const char *name;
+        if(!source->column[i].field || !(name = source->column[i].field->Identifier)) return -1;
+        for(role = 0; role < 5; ++role) if(!strcmp(name, names[role])) break;
+        if(role == 5 || (seen & (1u << role))) return -1;
+        seen |= 1u << role; cells[role] = source->column[i].value;
+    }
+    if(ioc_id_identity(tree, cells[3], &symbol, &row->has_numeric_code, &row->numeric_code) || !row->has_numeric_code) return -1;
+    row->symbolic_code = (char *)symbol;
+    if(cells[4]) {
+        if(envelope_criticality_value(header, ioc_criticality_identity(cells[4]), &row->expected_criticality)) return -1;
+        /* The fixed parser assigns non-null table cells only from parsed
+         * explicit settings; omitted OPTIONAL/DEFAULT cells stay NULL. */
+        row->default_provenance = ASN1TYPED_ENVELOPE_DEFAULT_EXPLICIT;
+    } else {
+        if(!header->has_class_default) return -1;
+        row->expected_criticality = header->class_default_criticality;
+        row->default_provenance = ASN1TYPED_ENVELOPE_DEFAULT_CLASS;
+    }
+    for(i = 0; i < 3; ++i) if(cells[i]) {
+        asn1p_expr_t *payload;
+        if((cells[i]->meta_type != AMT_TYPE && cells[i]->meta_type != AMT_TYPEREF) || cells[i]->expr_type != A1TC_REFERENCE
+            || !cells[i]->reference || cells[i]->constraints || cells[i]->rhs_pspecs) return -1;
+        payload = ioc_resolve(tree, cells[i], cells[i]->reference);
+        if(!payload || payload->meta_type != AMT_TYPE || envelope_source_ref(&row->payloads[i], payload)) return -1;
+        row->payload_present[i] = 1;
+    }
+    return row->payload_present[0] ? 0 : -1;
+}
+/* Constraint pullup appends referenced object tables but does not publish the
+ * outer declaration's extension marker on that table. Recover only the exact
+ * supported source-set boundary, never an arbitrary descendant ellipsis. */
+static int
+envelope_closed_set_shape(const asn1p_constraint_t *ct, unsigned depth) {
+    unsigned i;
+    if(!ct || depth > 64 || ct->presence != ACPRES_DEFAULT || ct->range_start || ct->range_stop) return -1;
+    if(ct->type == ACT_CA_UNI || ct->type == ACT_CA_SET || ct->type == ACT_CA_CSV) {
+        if(!ct->el_count || !ct->elements || ct->value || ct->containedSubtype
+            || (ct->type == ACT_CA_CSV && ct->el_count != 1)) return -1;
+        for(i = 0; i < ct->el_count; ++i) if(envelope_closed_set_shape(ct->elements[i], depth + 1)) return -1;
+        return 0;
+    }
+    if(ct->el_count || ct->elements || (ct->value && ct->containedSubtype)) return -1;
+    if(ct->type == ACT_EL_VALUE)
+        return ct->value && !ct->containedSubtype && (ct->value->type == ATV_UNPARSED || ct->value->type == ATV_REFERENCED) ? 0 : -1;
+    if(ct->type == ACT_EL_TYPE) {
+        /* Pullup may clear the already-resolved contained subtype. The fixed
+         * object table and class association are validated independently. */
+        if(ct->value) return -1;
+        return !ct->containedSubtype || ioc_set_reference(ct->containedSubtype) ? 0 : -1;
+    }
+    return -1;
+}
+static int
+envelope_set_boundary(asn1p_expr_t *set, int *extensible) {
+    const asn1p_constraint_t *ct = set->constraints, *marker;
+    if(!ct) return -1;
+    if(ct->type == ACT_CA_CSV && ct->el_count == 2) {
+        if(ct->el_count != 2 || !ct->elements || ct->presence != ACPRES_DEFAULT || ct->value || ct->containedSubtype || ct->range_start || ct->range_stop
+            || envelope_closed_set_shape(ct->elements[0], 0) || !(marker = ct->elements[1])
+            || marker->type != ACT_EL_EXT || marker->presence != ACPRES_DEFAULT || marker->el_count || marker->elements || marker->value || marker->containedSubtype
+            || marker->range_start || marker->range_stop) return -1;
+        *extensible = 1; return 0;
+    }
+    if(envelope_closed_set_shape(ct, 0) || set->ioc_table->extensible) return -1;
+    *extensible = 0; return 0;
+}
+int
+asn1typed_extract_target_envelope(asn1p_t *tree, const char *pdu_module, const char *pdu_name,
+        const char *body_module, const char *body_name, asn1typed_target_envelope_t *out, char *error, size_t size) {
+    asn1typed_target_envelope_t pending = {0};
+    asn1typed_envelope_header_t header = {0};
+    asn1typed_envelope_root_t roots[3];
+    asn1typed_type_ref_t target = {0};
+    asn1typed_type_t criticality = {0};
+    asn1p_expr_t *pdu, *pdu_body, *body, *member, *class_expr = NULL, *set = NULL;
+    const char *stage = "PDU identity/CHOICE structure";
+    size_t count = 0, i;
+    int extension_seen = 0;
+    if(error && size) error[0] = 0;
+    if(out) memset(out, 0, sizeof(*out));
+    if(!tree || !pdu_module || !pdu_name || !body_module || !body_name || !out) goto fail;
+    pdu = physical_named_declaration(tree, pdu_module, pdu_name);
+    body = physical_named_declaration(tree, body_module, body_name);
+    pdu_body = terminal_type(pdu);
+    if(!pdu || !pdu_body || pdu->meta_type != AMT_TYPE || pdu_body->expr_type != ASN_CONSTR_CHOICE
+        || pdu->constraints || pdu->combined_constraints || !body || body->meta_type != AMT_TYPE
+        || kind_of_type(terminal_type(body)) != ASN1TYPED_TYPE_SEQUENCE
+        || envelope_source_ref(&header.pdu, pdu) || envelope_source_ref(&target, body)) goto fail;
+    stage = "root physical class/selector evidence";
+    TQ_FOR(member, &pdu_body->members, next) {
+        asn1p_expr_t *root_class, *root_set;
+        if(member->expr_type == A1TC_EXTENSIBLE) {
+            if(extension_seen) goto fail;
+            extension_seen = 1; continue;
+        }
+        if(extension_seen || count >= 3 || envelope_root_source(tree, member, count, &roots[count], &root_class, &root_set)) goto fail;
+        if(count && (root_class != class_expr || root_set != set)) goto fail;
+        class_expr = root_class; set = root_set; ++count;
+    }
+    if(count != 3 || !extension_seen || !set || !set->ioc_table || !set->ioc_table->rows || !set->ioc_table->row
+        || ioc_resolve(tree, set, set->reference) != class_expr
+        || envelope_source_ref(&header.procedure_class, class_expr) || envelope_source_ref(&header.object_set, set)) goto fail;
+    header.declared_root_count = count; header.choice_is_extensible = 1;
+    header.declared_row_count = set->ioc_table->rows;
+    if(envelope_set_boundary(set, &header.object_set_is_extensible)) goto fail;
+    stage = "class OPTIONAL/DEFAULT and scalar source evidence";
+    if(envelope_class_source(tree, class_expr, &header, &criticality, error, size)) goto fail;
+    header.evidence = ASN1TYPED_WIRE_EVIDENCE_RESOLVED;
+    if(asn1typed_target_envelope_set_header(&pending, &header) || asn1typed_target_envelope_set_target(&pending, &target)) goto fail;
+    for(i = 0; i < 3; ++i) {
+        roots[i].procedure_type = header.procedure_type; roots[i].criticality_type = header.criticality_type;
+        if(asn1typed_target_envelope_add_root(&pending, &roots[i])) goto fail;
+    }
+    stage = "complete procedure table row evidence";
+    for(i = 0; i < set->ioc_table->rows; ++i) {
+        asn1typed_envelope_row_t row;
+        if(envelope_table_row(tree, &header, set->ioc_table->row[i], &row) || asn1typed_target_envelope_add_row(&pending, &row)) goto fail;
+    }
+    stage = "finalized target-envelope evidence";
+    if(asn1typed_target_envelope_finalize(&pending, error, size) != ASN1TYPED_WIRE_FINALIZE_OK) goto fail;
+    asn1typed_type_clear(&criticality); *out = pending; return 0;
+fail:
+    if(error && size && !error[0]) set_error(error, size, "unsupported/unavailable target-envelope %s or allocation failure", stage);
+    asn1typed_type_clear(&criticality); asn1typed_target_envelope_clear(&pending); return -1;
+}

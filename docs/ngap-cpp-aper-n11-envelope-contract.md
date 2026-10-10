@@ -110,6 +110,13 @@ typed-body wrapper with a mismatched code also fails; no rewriting or default
 fabrication is permitted. Unknown scalar enums inside the typed body retain N10
 re-encoding semantics.
 
+Procedure membership still respects the owned object-set boundary: a listed but
+unmaterialized procedure can be retained; an unlisted code can be retained only
+when the set is extensible. A closed synthetic set must reject an unlisted code.
+The actual NGAP procedure set is extensible. The scoped physical root shape is
+procedure-code, criticality, payload in ordinals 0, 1, 2; a different physical
+field order is rejected at evidence validation rather than silently reordered.
+
 Existing runtime operations suffice: extensible enumerated selector for outer
 CHOICE, constrained unsigned procedure code, generated criticality helper,
 known-open transactions, and owned opaque open reads. Mapping supplies root
