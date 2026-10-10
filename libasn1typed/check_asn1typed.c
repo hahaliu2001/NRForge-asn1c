@@ -189,9 +189,10 @@ check_choice_alternative_size_api(void) {
 	asn1typed_type_ref_t integer = {0};
 	asn1typed_size_constraint_t size = {1, 22, 32, 0};
 	asn1typed_size_constraint_t invalid = {0, 22, 32, 0};
-	asn1typed_integer_value_range_t value_range = {1, 1, 10, 1, NULL, 0};
+	asn1typed_integer_value_range_t value_range = {1, 1, 10, 1, NULL, 0, NULL, 0};
 	asn1typed_integer_value_range_t invalid_range = {0};
 	asn1typed_integer_interval_t tail[] = {{20, 30}};
+	asn1typed_integer_interval_t additions[] = {{40, 40}, {45, 45}};
 	assert(asn1typed_module_init(&module, "ChoiceFixture", "choice.asn", 1) == 0);
 	assert(asn1typed_module_add_type(&module, "C", ASN1TYPED_TYPE_CHOICE,
 		"choice.asn", 2, &choice) == 0);
@@ -222,8 +223,12 @@ check_choice_alternative_size_api(void) {
 			ASN1TYPED_TYPE_CHOICE, "choice.asn", 8, &integer_choice) == 0);
 		value_range.tail = tail;
 		value_range.tail_count = 1;
+		value_range.extension_additions = additions; value_range.extension_addition_count = 2;
 		assert(asn1typed_type_add_choice_alternative(integer_choice, "ranged",
 			&integer, NULL, &value_range, "choice.asn", 9) == 0);
+		additions[0].upper_bound = 41;
+		assert(integer_choice->alternatives[0].value_range.extension_additions != additions);
+		assert(integer_choice->alternatives[0].value_range.extension_additions[0].upper_bound == 40);
 		tail[0].upper_bound = 31;
 		value_range.upper_bound = 11;
 		assert(integer_choice->alternatives[0].value_range.upper_bound == 10);

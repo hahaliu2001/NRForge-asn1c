@@ -66,6 +66,12 @@ int main(int argc, char **argv) {
     tree = asn1p_parse_file(argv[1], A1P_NOFLAGS);
     REQUIRE(tree && asn1f_process(tree, A1F_NOFLAGS, NULL) >= 0);
     REQUIRE(asn1typed_extract_module(tree, argv[2], &module, diagnostic, sizeof(diagnostic)) == 0);
+    { const asn1typed_integer_value_range_t *r = &find(&module, "SRBID")->value_range;
+      REQUIRE(r->is_extensible && r->lower_bound == 0 && r->upper_bound == 3);
+      REQUIRE(r->extension_addition_count == 1 && r->extension_additions[0].lower_bound == 4 && r->extension_additions[0].upper_bound == 5);
+      r = &find(&module, "SparseAddition")->value_range;
+      REQUIRE(r->extension_addition_count == 2 && r->extension_additions[0].upper_bound == 4 && r->extension_additions[1].lower_bound == 7);
+    }
     asn1p_delete(tree);
     owned_types = module.types; owned_count = module.type_count; owned_tail = find(&module, "Gap")->value_range.tail;
     for(i = 0; i < 3; ++i) {
@@ -92,6 +98,15 @@ int main(int argc, char **argv) {
         REQUIRE(point > 0 && point < 30000);
         REQUIRE(renderers[i](&module, argv[3], NULL, diagnostic, sizeof(diagnostic)) == -1);
         REQUIRE(diagnostic[0]);
+    }
+    {
+        asn1typed_type_t *type = find(&module, "SRBID");
+        asn1typed_integer_value_range_t save = type->value_range;
+        asn1typed_integer_interval_t malformed = {8, 7};
+        type->value_range.extension_additions = NULL; negative(&module, argv[3], NULL); type->value_range = save;
+        type->value_range.extension_addition_count = 0; negative(&module, argv[3], NULL); type->value_range = save;
+        type->value_range.is_extensible = 0; negative(&module, argv[3], NULL); type->value_range = save;
+        type->value_range.extension_additions = &malformed; negative(&module, argv[3], NULL); type->value_range = save;
     }
     negative(NULL, argv[3], NULL);
     negative(&module, NULL, NULL);

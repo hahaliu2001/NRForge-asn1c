@@ -148,22 +148,13 @@ check_integer_value_range(void) {
 	asn1typed_module_clear(&ir);
 
 	{
-		const char *unsupported[] = { additions };
-		const char *names[] = { "IntegerRangeAddition" };
-		size_t i;
-		for(i = 0; i < sizeof(unsupported) / sizeof(unsupported[0]); i++) {
-			tree = asn1p_parse_buffer(unsupported[i], -1, "integer-range-unsupported.asn",
-				1, A1P_NOFLAGS);
-			assert(tree && asn1f_process(tree, A1F_NOFLAGS, NULL) >= 0);
-			assert(asn1typed_extract_module(tree, names[i], &ir,
-				error, sizeof(error)) == -1);
-			assert(error[0] != '\0');
-			assert_ir_cleared(&ir);
-			asn1typed_module_clear(&ir);
-			asn1p_delete(tree);
-		}
-	}
-
+        tree = asn1p_parse_buffer(additions, -1, "integer-range-additions.asn", 1, A1P_NOFLAGS);
+        assert(tree && asn1f_process(tree, A1F_NOFLAGS, NULL) >= 0);
+        assert(asn1typed_extract_module(tree, "IntegerRangeAddition", &ir, error, sizeof(error)) == 0);
+        bounded = find_type(&ir, "Bad");
+        assert(bounded && bounded->value_range.is_extensible && bounded->value_range.extension_addition_count == 1);
+        asn1typed_module_clear(&ir); asn1p_delete(tree);
+    }
 	tree = asn1p_parse_buffer(inline_range, -1, "inline-integer-range.asn",
 		1, A1P_NOFLAGS);
 	assert(tree && asn1f_process(tree, A1F_NOFLAGS, NULL) >= 0);
@@ -1503,28 +1494,6 @@ expect_bad_parameterized_actual(int failure_kind) {
 }
 
 static void
-expect_rejected_parameterized_shape(const char *bad_name,
-		const char *other_name, const char *expected_error) {
-	asn1p_t *tree = asn1p_parse_file(T5_FIXTURE, A1P_NOFLAGS);
-	asn1p_expr_t *bad, *other;
-	asn1typed_module_t ir;
-	char error[256];
-	assert(tree && asn1f_process(tree, A1F_NOFLAGS, NULL) >= 0);
-	bad = fixture_declaration(tree, bad_name);
-	other = fixture_declaration(tree, other_name);
-	assert(bad && other);
-	hide_bound_body_templates(tree);
-	other->meta_type = AMT_VALUE;
-	assert(asn1typed_extract_module(tree, "ParameterizedReferenceB7A", &ir,
-		error, sizeof(error)) != 0);
-	assert(error[0] && strstr(error, expected_error));
-	assert(ir.source_name == NULL && ir.types == NULL && ir.type_count == 0);
-	asn1typed_module_clear(&ir);
-	asn1typed_module_clear(&ir);
-	asn1p_delete(tree);
-}
-
-static void
 check_parameterized_sequence_field(void) {
 	asn1p_t *tree = asn1p_parse_file(T5_FIXTURE, A1P_NOFLAGS);
 	asn1typed_module_t ir;
@@ -1532,7 +1501,6 @@ check_parameterized_sequence_field(void) {
 	char error[256];
 	assert(tree && asn1f_process(tree, A1F_NOFLAGS, NULL) >= 0);
 	hide_bound_body_templates(tree);
-	fixture_declaration(tree, "BadSequenceOf")->meta_type = AMT_VALUE;
 	fixture_declaration(tree, "B7A-Field")->meta_type = AMT_VALUE;
 	fixture_declaration(tree, "B7A-Container")->meta_type = AMT_VALUE;
 	fixture_declaration(tree, "RootMessage")->meta_type = AMT_VALUE;
@@ -1556,6 +1524,10 @@ check_parameterized_sequence_field(void) {
 	assert(other && !asn1typed_type_ref_equal(&type->fields[0].type,
 		&other->fields[0].type));
 	assert(find_type(&ir, "OrdinaryUse")->alternatives[0].type_ref.actual_count == 0);
+    type = find_type(&ir, "BadSequenceOf");
+    assert(type && type->kind == ASN1TYPED_TYPE_SEQUENCE_OF);
+    assert(type->element_type.actual_count == 1);
+    assert(!strcmp(type->element_type.actuals[0].source_name, "SetA"));
 	asn1typed_module_clear(&ir);
 }
 
@@ -1899,8 +1871,6 @@ main(void) {
 	expect_bad_parameterized_actual(0); /* unresolved object set */
 	expect_bad_parameterized_actual(1); /* resolves to a type, not a set */
 	expect_bad_parameterized_actual(2); /* unsupported setting representation */
-	expect_rejected_parameterized_shape("BadSequenceOf", "SequenceUse",
-		"parameterized SEQUENCE OF element reference");
 	check_parameterized_closure_rejected();
 	check_sequence_extensibility();
 	expect_bad_sequence_marker_shape(1);

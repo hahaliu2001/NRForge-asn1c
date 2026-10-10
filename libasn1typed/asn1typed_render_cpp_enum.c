@@ -53,13 +53,13 @@ supported_shape(const asn1typed_type_t *t) {
 		t->primitive_kind == ASN1TYPED_PRIMITIVE_INVALID &&
 		!t->fields && !t->field_count && !t->field_capacity &&
 		!t->alternatives && !t->alternative_count && !t->alternative_capacity &&
-		!t->has_valid_per_root_mapping && empty_ref(&t->element_type) &&
+		!t->has_valid_per_root_mapping && !t->choice_root_only_extension_owned && empty_ref(&t->element_type) &&
 		empty_ref(&t->ioc_container) && !t->has_ioc_table && !t->ioc_object_set_is_extensible &&
 		!t->size_constraint.has_size_constraint && !t->size_constraint.is_extensible &&
 		!t->size_constraint.lower_bound && !t->size_constraint.upper_bound && !t->size_constraint.has_extension_addition && !t->size_constraint.extension_lower_bound && !t->size_constraint.extension_upper_bound &&
 		!t->value_range.has_value_range && !t->value_range.is_extensible &&
 		!t->value_range.lower_bound && !t->value_range.upper_bound &&
-		!t->value_range.tail && !t->value_range.tail_count;
+		!t->value_range.tail && !t->value_range.tail_count && !t->value_range.extension_additions && !t->value_range.extension_addition_count;
 }
 static void
 clear_plan(struct enum_type_plan *p, const asn1typed_module_t *m) {

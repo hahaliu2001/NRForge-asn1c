@@ -36,7 +36,35 @@ struct Model {
         else { unsigned maxbytes=(width+7)/8,bytes=1; for(auto n=offset>>8;n;n>>=8) ++bytes; width=0; for(auto n=maxbytes-1;n;n>>=1) ++width; number(bytes-1,width); align(); number(offset,bytes*8); }
     }
 };
+static_assert(d::RootAndAddition_aper::root_intervals[1].lower == 10);
+static_assert(d::RootAndAddition_aper::known_extension_intervals[1].lower == 15);
 void graphs() {
+    for(std::int64_t value: {0,4095,4096,2000000,2000001,-1}) {
+        Model m; m.integer(value,0,4095); m.align();
+        auto encoded=d::encode_max_data_burst_volume(value); REQUIRE(encoded && encoded.value().octets==m.bytes);
+        auto decoded=d::decode_max_data_burst_volume(m.bytes); REQUIRE(decoded && decoded.value()==value);
+    }
+    for(std::int64_t value: {0,255,256,262,263,-1}) {
+        Model m; m.integer(value,0,255); m.align();
+        auto encoded=d::encode_prach_config(d::PrachConfig{value}); REQUIRE(encoded && encoded.value().octets==m.bytes);
+        auto decoded=d::decode_prach_config(m.bytes); REQUIRE(decoded && decoded.value().prach_config_index==value);
+    }
+    for(std::int64_t value: {0,3,10,12,15,16,-1}) {
+        auto encoded=d::encode_root_and_addition(value); REQUIRE(encoded);
+        auto decoded=d::decode_root_and_addition(encoded.value().octets); REQUIRE(decoded && decoded.value()==value);
+    }
+    REQUIRE(!d::encode_root_and_addition(4));
+    // Known additions and future unknown extensions all use signed extension layout.
+    for(auto value:std::array<std::int64_t,8>{0,3,4,5,6,7,-1,128}) {
+        Model m; m.integer(value,0,3); auto end=m.n; m.align();
+        auto encoded=d::encode_srbid(value); REQUIRE(encoded && encoded.value().octets==m.bytes && encoded.value().last_field_end_bit==end);
+        auto decoded=d::decode_srbid(m.bytes); REQUIRE(decoded && decoded.value()==value);
+        auto inline_encoded=d::encode_inline_addition(d::InlineAddition{value}); REQUIRE(inline_encoded && inline_encoded.value().octets==m.bytes);
+        auto inline_back=d::decode_inline_addition(m.bytes); REQUIRE(inline_back && inline_back.value().value==value);
+        auto single=d::encode_single_addition(value); REQUIRE(single && single.value().octets==m.bytes);
+        auto sparse=d::encode_sparse_addition(value); REQUIRE(sparse && sparse.value().octets==m.bytes);
+        auto back=d::decode_sparse_addition(m.bytes); REQUIRE(back && back.value()==value);
+    }
     for(auto value:std::array<std::int64_t,7>{1,30,40,180,181,-129,182}) {
         Model m; m.integer(value,1,181); const auto end=m.n; m.align();
         auto output=d::encode_gap(value); REQUIRE(output && output.value().octets==m.bytes && output.value().last_field_end_bit==end);

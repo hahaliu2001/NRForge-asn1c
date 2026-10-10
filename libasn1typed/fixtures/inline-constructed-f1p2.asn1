@@ -1,0 +1,29 @@
+InlineConstructed DEFINITIONS AUTOMATIC TAGS ::= BEGIN
+Root ::= SEQUENCE {
+    first SEQUENCE { value BOOLEAN, nested CHOICE { left SEQUENCE { bit BOOLEAN }, right BOOLEAN } },
+    second SEQUENCE { value BOOLEAN },
+    items SEQUENCE (SIZE (1..2)) OF SEQUENCE { bit BOOLEAN },
+    selected CHOICE { one SEQUENCE { bit BOOLEAN }, two BOOLEAN }
+}
+Extended ::= CHOICE { first BOOLEAN, second BOOLEAN, ... }
+END
+
+InlineCollection DEFINITIONS AUTOMATIC TAGS ::= BEGIN
+Identifier ::= INTEGER (0..65535)
+Policy ::= ENUMERATED { reject, ignore, notify }
+Requirement ::= ENUMERATED { mandatory, optional, conditional }
+FLAG-IES ::= CLASS { &id Identifier UNIQUE, &criticality Policy, &Value, &presence Requirement }
+WITH SYNTAX { ID &id CRITICALITY &criticality TYPE &Value PRESENCE &presence }
+Entry { FLAG-IES : Rows } ::= SEQUENCE {
+ id FLAG-IES.&id({Rows}), criticality FLAG-IES.&criticality({Rows}{@id}), value FLAG-IES.&Value({Rows}{@id})
+}
+Container { FLAG-IES : Rows } ::= SEQUENCE (SIZE (0..65535)) OF Entry {{Rows}}
+id-Flag Identifier ::= 1
+id-Nested Identifier ::= 2
+id-Enhanced Identifier ::= 3
+FlagRows FLAG-IES ::= { { ID id-Flag CRITICALITY reject TYPE BOOLEAN PRESENCE mandatory } }
+NamedList ::= SEQUENCE (SIZE (1..2)) OF Entry {{FlagRows}}
+NestedRows FLAG-IES ::= { { ID id-Nested CRITICALITY reject TYPE NamedList PRESENCE mandatory } |
+ { ID id-Enhanced CRITICALITY reject TYPE OCTET STRING (SIZE(3)) PRESENCE optional } }
+Message ::= SEQUENCE { entries Container {{NestedRows}} }
+END

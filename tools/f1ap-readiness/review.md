@@ -14,3 +14,6 @@ An independent review agent performed read-only source/tool/report checks and di
 Root agent validation: full 158-message scan; strict compilation of all 98 generated bodies; source guard/deterministic inventory tests; byte-identical old/current-default NGAP probe outputs for NGSetupRequest/Response/Failure; `make -C tools check` 1/1 PASS; whitespace checks. Existing Automake subdir-objects warnings were observed during regeneration and are not introduced by this change.
 
 No clang++, sanitizer sweep, runtime vectors, independent wire qualification or benchmark was run for this milestone. Review did not repeat the entire scan. Optional future guard hardening: explicit total procedure-union/code-uniqueness assertions. Frozen source hashes already constrain the scanned inputs; the current source inventory was independently reconciled.
+
+
+Subsequent shared implementation is independently reviewed in [F1-P2 review](review-f1-p2.md). The historical F1-P1 verdict and report above remain unchanged.

@@ -53,7 +53,7 @@ supported_metadata(const asn1typed_type_t *t) {
 		!t->fields && !t->field_count && !t->field_capacity &&
 		!t->alternatives && !t->alternative_count && !t->alternative_capacity &&
 		!t->enum_items && !t->enum_item_count && !t->enum_item_capacity &&
-		!t->has_valid_per_root_mapping && !t->has_valid_per_enumeration_mapping &&
+		!t->has_valid_per_root_mapping && !t->choice_root_only_extension_owned && !t->has_valid_per_enumeration_mapping &&
 		empty_ref(&t->element_type) && empty_ref(&t->ioc_container) &&
 		!t->has_ioc_table && !t->ioc_object_set_is_extensible && !t->is_extensible &&
 		!t->size_constraint.has_size_constraint && !t->size_constraint.is_extensible &&
@@ -96,7 +96,7 @@ preflight(const asn1typed_module_t *m, const char *ns,
 		if(!t->identity.module || strcmp(t->identity.module, m->source_name) ||
 			!t->identity.source_name || !t->identity.source_name[0]) FAIL("invalid uint type identity");
 		if(range->has_value_range != 1 || range->lower_bound != 0 || range->is_extensible ||
-			range->tail || range->tail_count) FAIL("unsupported uint constraint: requires one non-extensible zero-based root range");
+			range->tail || range->tail_count || range->extension_additions || range->extension_addition_count) FAIL("unsupported uint constraint: requires one non-extensible zero-based root range");
 		if(range->upper_bound == 255) p[i].bits = 8;
 		else if(range->upper_bound == 65535) p[i].bits = 16;
 		else if(range->upper_bound == INT64_C(4294967295)) p[i].bits = 32;

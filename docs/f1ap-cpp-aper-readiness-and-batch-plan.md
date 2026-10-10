@@ -56,3 +56,25 @@ Owner's autonomous execution preference applies: internal implementation/review/
 - No runtime byte tests, external differential, performance benchmark, SDK packaging qualification or sanitizer sweep was performed in F1-P1.
 
 Reproduction commands and evidence interpretation: `tools/f1ap-readiness/README.md`. Independent review and final local verification are recorded in `tools/f1ap-readiness/review.md`.
+
+
+## F1-P2 completion (2026-10-10)
+
+F1-P2 shared body capability work is complete. The stable-source scan now passes
+physical extraction, all BODY generation families and strict C++20 syntax
+compilation for all 158 outcomes, with no first-failure clusters. Newly exposed
+shared dependencies were resolved as constrained selected primitives,
+root-only extensible CHOICE and large bounded collections in addition to the
+four initial groups. No per-message codec implementation or frozen schema edit
+was introduced.
+
+NGAP retains 131/131 extraction/generation/strict compilation PASS, 14-message
+baseline raw output and 42 generated headers are byte-identical, and 53/53
+functional tests pass. Complete-PDU F1AP wire qualification remains NOT_RUN;
+all 158 target envelope extractions still fail at the F1-P3 framing boundary.
+
+Current evidence: [F1-P2 closeout](f1ap-cpp-aper-shared-body-closeout.md),
+`tools/f1ap-readiness/readiness-f1-p2.json`, and the separate NGAP regression
+reports. The historical F1-P1 report above remains unchanged. Next: **F1-P3**,
+complete F1AP-PDU integration; then F1-P4 batch wire qualification, F1-P5 C++ SDK
+and F1-P6 Python SDK. E1AP and RRC follow F1AP.

@@ -294,8 +294,9 @@ INTEGER named-number behavior is not expanded by this rule.
     `is_extensible` true.
 -   **Supported boundary:** One bounded inclusive range representable in
     `intmax_t`, followed immediately by exactly one extension marker:
-    `INTEGER (a..b, ...)`.
--   **Fail-closed boundary:** Extension additions after the marker, multiple
+    `INTEGER (a..b, ...)`. F1-P2 additionally owns bounded explicit
+    extension ranges/unions separately; see the F1-P2 entry below.
+-   **Fail-closed boundary:** Unsupported extension addition shapes, multiple
     or malformed markers, intersections, MIN/MAX, arbitrary Generic
     Constraint AST forms, and unrepresentable bounds. Disjoint root unions
     are accepted only within the separate bounded permitted-value-set rule
@@ -321,7 +322,7 @@ INTEGER named-number behavior is not expanded by this rule.
     bounded permitted-set semantic, not generic constraint AST ownership.
 -   **Fail-closed boundary:** Standalone single values; MIN/MAX; intersections;
     EXCEPT; unsupported nested compounds; marker inside the union, before the
-    root, multiple or malformed markers, additions after the marker;
+    root, multiple or malformed markers, unsupported additions after the marker;
     unrepresentable or non-integer terms; and arbitrary Generic Constraint
     AST forms.
 -   **Evidence:** Synthetic fixture `libasn1typed/fixtures/integer-permitted-set-t8.asn1`
@@ -860,3 +861,18 @@ The Owned IR OCTET/opaque-Contents rules above are retained. N14 adds vector<byt
 ## N15 owned BIT STRING and effective SIZE lowering
 
 New opt-in `asn1typed_render_cpp_owned_bit_*` types/mapping/codec supports owned runtime BitString values with explicit bit counts, fixed/non-extensible bounded SIZE0..65535, and unfragmented unconstrained values up to16383 bits. Effective BIT/OCTET field and CHOICE SIZE retains named identity and uses separately generated site-specific framing. Physical IOC accepts plain anonymous BIT and supported named BIT references. Named-bit lists, anonymous constrained IOC payloads, extensible SIZE, unrepresented known SIZE additions and fragmentation fail closed; no semantic is reduced to a weaker range. Existing N14 outputs remain unchanged. N15 primitive reference evidence and63/131 BODY compile readiness do not qualify additional complete NGAP messages. See `ngap-cpp-aper-n15-bit-contract-and-closeout.md` and `tools/n15-bit-qualification/`.
+
+
+## F1-P2 shared body semantics
+
+These shared capabilities extend the earlier bounded entries; they do not introduce per-message codecs or change the frozen ASN.1 sources.
+
+- **Parameterized collection elements:** A named SEQUENCE OF may own a complete parameterized element reference, including the accepted object-set actual kind/module/name. Physical dependency closure reuses existing bound specialization materialization and IOC selector/registry binding. Unsupported actuals, ambiguous specializations and unsupported collection/element semantics still fail closed.
+- **Inline constructed lifting:** SEQUENCE fields, CHOICE alternatives and SEQUENCE OF elements may lift supported inline SEQUENCE, SEQUENCE OF and CHOICE bodies into module-qualified owned types. Internal `$inline$` keys encode the declaration/member path (including collection element steps); `$` is unavailable in ASN.1 source identifiers. Nested bodies retain presence, SIZE, source location and original CHOICE tag evidence without modifying the Parser/Fixer tree. Ordinary module extraction closes anonymous dependencies, and physical IOC extraction closes their payload dependencies through the existing worklist. The internal keys are compiler identities, not new schema declarations. SET/SET OF, DEFAULT and constraints outside the supported constructed-body contracts remain rejected.
+- **Known INTEGER extension additions:** `asn1typed_integer_value_range_t` owns a separate canonical `extension_additions` interval array and count. Bounded explicit ranges or unions after one extension marker retain their own exact intervals; root membership and PER-visible root bounds remain separate. Overlapping/adjacent intervals within each set normalize, while sparse gaps remain intact. Deep copy, cleanup and renderer preflight include the new metadata. Generated mappings expose known extension intervals. The existing extensible INTEGER runtime remains unchanged: known additions and future unknown values outside the root use signed unconstrained extension encoding within the existing int64 domain. Known additions do not close the extension domain or admit forbidden gaps inside the root hull.
+
+- **Constrained selected IOC primitives:** Physical Value/Extension rows may lift supported anonymous constrained primitive payloads into an owned type keyed by object-set module/name and numeric IE ID. Named primitive/SIZE/domain renderers then retain the complete constraints; the earlier opaque OCTET STRING CONTAINING path remains unchanged. This covers the fixed SIZE(3) OCTET payload in `RRC-Version-ExtIEs`; constructed or parameterized selected payloads outside the accepted model remain rejected.
+- **Root-only extensible CHOICE:** A single terminal marker after the root alternatives owns `choice_root_only_extension_owned` evidence. Root tag/PER ordering remains validated; encoding writes the zero extension bit before the existing root selector. An incoming true extension bit returns sticky `constraint_violation` before root dispatch. Known additions, malformed marker placement and manually fabricated incomplete evidence remain rejected. This is root-value support, not unknown-extension ownership or complete value-space qualification.
+- **Large bounded collections:** Non-extensible SEQUENCE OF bounds retain any nonnegative range representable in size_t. When the upper bound is at least 65536, existing APER segment determinants interleave with element payloads; each fragment has at most 65536 elements and an exact-fragment ending emits a final zero determinant. Full schema bounds and aggregate runtime budgets are checked, with budget refusal before reserve/allocation. Historical types with upper bounds at most 65536 preserve generated output. No huge maximum-sized allocation is required to qualify the accepted finite boundary tests.
+
+Focused tests inspect owned data after Parser/Fixer destruction, exercise nested constructed graphs and collection bindings, and compare extensible INTEGER bytes against an independent bit model. Real-message evidence and exact regression results are recorded in the F1-P2 closeout and batch report. Body extraction, generation and strict compilation are distinct readiness gates; F1-P2 does not qualify complete F1AP-PDU framing or independent wire interoperability.

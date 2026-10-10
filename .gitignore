@@ -199,3 +199,5 @@ asn1c/tmp/
 /python/build/
 /python/dist/
 /python/**/__pycache__/
+
+/libasn1typed/check_asn1typed_inline_constructed

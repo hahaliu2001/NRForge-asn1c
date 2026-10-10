@@ -92,6 +92,9 @@ typedef struct asn1typed_integer_value_range_s {
 	int is_extensible;
 	asn1typed_integer_interval_t *tail;
 	size_t tail_count;
+	/* Known extension additions; open extension values remain representable. */
+	asn1typed_integer_interval_t *extension_additions;
+	size_t extension_addition_count;
 } asn1typed_integer_value_range_t;
 
 typedef enum asn1typed_ref_kind_e {
@@ -245,6 +248,8 @@ struct asn1typed_type_s {
 	size_t alternative_capacity;
 	/* Set only after every root alternative is resolved and validated. */
 	int has_valid_per_root_mapping;
+	/* Extraction owns a terminal CHOICE marker; known additions remain rejected. */
+	int choice_root_only_extension_owned;
 };
 
 /* N9 opt-in physical IOC tables. Zero-initialized evidence is unavailable. */

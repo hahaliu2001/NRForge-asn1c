@@ -1,0 +1,81 @@
+{
+  "scope": "NGAP14 baseline exact generated artifact regression; 131 intermediate-to-final diagnostic comparison, not baseline wire replay",
+  "baseline14_json_equal": true,
+  "baseline14_headers_compared": 42,
+  "baseline14_different_headers": [],
+  "ngap131_intermediate_headers_compared": 393,
+  "ngap131_intermediate_different_headers": [
+    "091_mapping.hpp",
+    "114_mapping.hpp",
+    "042_mapping.hpp",
+    "102_mapping.hpp",
+    "029_mapping.hpp",
+    "106_mapping.hpp",
+    "082_mapping.hpp",
+    "028_mapping.hpp",
+    "038_mapping.hpp",
+    "069_mapping.hpp",
+    "108_mapping.hpp",
+    "111_mapping.hpp",
+    "027_mapping.hpp",
+    "124_mapping.hpp",
+    "071_mapping.hpp",
+    "018_mapping.hpp",
+    "099_mapping.hpp",
+    "125_mapping.hpp",
+    "123_mapping.hpp",
+    "025_mapping.hpp"
+  ],
+  "not_wire_qualification": true,
+  "ngap131_intermediate_nonwhitespace_different_headers": [],
+  "baseline_probe_sha256": "a1e3fbe31b4d0f3936f4f85f3ce8b4f0d3933cbc73cf2decb243bae6046162c4",
+  "final_probe_result_sha256": "a1e3fbe31b4d0f3936f4f85f3ce8b4f0d3933cbc73cf2decb243bae6046162c4",
+  "final_binary_sha256": "203becefcea98a384d6534d8a2092beaad3d6de6d8e1ecc871d9e6083f1b58b2",
+  "final_ngap_readiness": {
+    "messages": 131,
+    "summary": {
+      "physical": {
+        "PASS": 131
+      },
+      "body_generation": {
+        "PASS": 131
+      },
+      "strict_compile": {
+        "PASS": 131
+      }
+    },
+    "report_sha256": "d5cf7f26fd72eb8563fd78990ce84a5744b9a0b07f93183385dbca8739519fbf",
+    "source_tool_stability_guards": "PASS"
+  },
+  "test_suites": [
+    {
+      "suite": "libasn1typed",
+      "pass": 41,
+      "fail": 0,
+      "skip": 0,
+      "log_sha256": "ce8d1a4eca8fb1fbfad9eabce8632adb8fe613afd21a8a0138067d55ca3b33bc"
+    },
+    {
+      "suite": "libaper",
+      "pass": 10,
+      "fail": 0,
+      "skip": 0,
+      "log_sha256": "0d75e375d425f757d674caa0573e0a9294ab46b841625efe35f79579f3591daa"
+    },
+    {
+      "suite": "libngap",
+      "pass": 1,
+      "fail": 0,
+      "skip": 0,
+      "log_sha256": "783fac26d11dbe9d054344be1ea5370a0e63b4a4ed8aa553e8b8f30906ea30ea"
+    },
+    {
+      "suite": "tools",
+      "pass": 1,
+      "fail": 0,
+      "skip": 0,
+      "log_sha256": "9760226bf287e0545ec73a99b3295d31303d6fb8247df6b81099a660b1f6f2dd"
+    }
+  ],
+  "qualification_limit": "Readiness and functional regression only; no new F1AP or NGAP wire qualification, no full3432 native campaign replay. NGAP14 exactbaseline artifacts and393 intermediate-to-final token equality support generation nonregression."
+}

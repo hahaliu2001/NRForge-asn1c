@@ -74,7 +74,22 @@ int main(void) {
     asn1typed_module_t m={0}, plain={0}; long point;
     REQUIRE(t && asn1f_process(t,A1F_NOFLAGS,NULL)>=0);
     { int rc=extract(t,"Message",&m); if(rc) fprintf(stderr,"positive: %s\n",diagnostic); REQUIRE(rc==0); asn1typed_module_clear(&m); }
-    rejects(t,"BadMessage"); rejects(t,"SizedMessage"); malformed(t);
+    REQUIRE(extract(t,"BadMessage",&m)==0);
+    { const asn1typed_integer_value_range_t *r = &find(&m,"BadAddition")->fields[0].value_range;
+      REQUIRE(r->extension_addition_count==1 && r->extension_additions[0].lower_bound==256 && r->extension_additions[0].upper_bound==300);
+    }
+    asn1typed_module_clear(&m);
+    REQUIRE(extract(t,"SizedMessage",&m)==0);
+    {
+        const asn1typed_type_ref_t *ref = &m.ioc_registries[0].rows[0].payload_type;
+        asn1typed_type_t *payload;
+        REQUIRE(ref->kind==ASN1TYPED_REF_NAMED && ref->source_name);
+        payload=find(&m,ref->source_name);
+        REQUIRE(payload->kind==ASN1TYPED_TYPE_PRIMITIVE && payload->primitive_kind==ASN1TYPED_PRIMITIVE_INTEGER);
+        interval(&payload->value_range,2,7,0);
+        REQUIRE(!payload->value_range.extension_additions && !payload->value_range.extension_addition_count);
+    }
+    asn1typed_module_clear(&m); malformed(t);
     /* Historical physical evidence can own an unconstrained builtin INTEGER;
      * the unchanged IOC generator whitelist still refuses its wire codec. */
     REQUIRE(extract(t,"PlainMessage",&plain)==0);

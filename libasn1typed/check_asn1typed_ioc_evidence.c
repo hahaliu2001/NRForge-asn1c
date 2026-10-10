@@ -302,7 +302,7 @@ static void physical_owned(asn1typed_module_t *m, const char *message, const cha
 }
 static void real_extraction(void) {
     asn1p_t *tree = asn1p_parse_file(IOC_EVIDENCE_FIXTURE, A1P_NOFLAGS);
-    asn1typed_module_t outputs[5] = {{0}}, legacy = {0};
+    asn1typed_module_t outputs[5] = {{0}}, legacy = {0}, inline_graph = {0};
     const char *messages[] = {"DispatchMessage", "EmptyMessage", "ExtensionMessage", "EmptyExtensionMessage", "FourRoleMessage"};
     const char *roots[] = {"entries", "items", "additions", "additions", "additions"};
     const char *sets[] = {"SourceRows", "EmptyRows", "ExtensionRows", "EmptyExtensionRows", "FourRoleRows"};
@@ -317,7 +317,7 @@ static void real_extraction(void) {
     REQUIRE(asn1typed_extract_message(tree, "IOCEvidence", "DispatchMessage", &legacy, diagnostic, sizeof(diagnostic)) == 0);
     REQUIRE(legacy.types[0].field_count == 3 && legacy.ioc_registry_count == 0);
     REQUIRE(legacy.types[0].fields[0].ioc.numeric_id == 91 && legacy.types[0].fields[1].ioc.numeric_id == 7 && legacy.types[0].fields[2].ioc.numeric_id == 42);
-    message_bad(tree, "InlineMessage");
+    REQUIRE(asn1typed_extract_physical_message(tree, "IOCEvidence", "InlineMessage", &inline_graph, diagnostic, sizeof(diagnostic)) == 0);
     message_bad(tree, "Identifier");
     message_bad(NULL, "DispatchMessage");
     fixed_tree_rejections(tree);
@@ -333,6 +333,18 @@ static void real_extraction(void) {
     }
     REQUIRE(point > 0 && point < 30000);
     asn1p_delete(tree);
+    {
+        const asn1typed_type_ref_t *ref = &inline_graph.ioc_registries[0].rows[0].payload_type;
+        size_t index;
+        REQUIRE(ref->kind == ASN1TYPED_REF_NAMED);
+        for(index = 0; index < inline_graph.type_count; ++index)
+            if(!strcmp(inline_graph.types[index].identity.source_name, ref->source_name)) break;
+        REQUIRE(index < inline_graph.type_count);
+        REQUIRE(inline_graph.types[index].primitive_kind == ASN1TYPED_PRIMITIVE_INTEGER);
+        REQUIRE(inline_graph.types[index].value_range.has_value_range &&
+            inline_graph.types[index].value_range.lower_bound == 0 && inline_graph.types[index].value_range.upper_bound == 3);
+        asn1typed_module_clear(&inline_graph);
+    }
     for(i = 0; i < 5; ++i) {
         physical_owned(&outputs[i], messages[i], roots[i], sets[i], i < 2 ? "Value" : "Extension", i == 0 ? 3 : (i == 2 || i == 4) ? 1 : 0, i == 0);
         asn1typed_module_clear(&outputs[i]);

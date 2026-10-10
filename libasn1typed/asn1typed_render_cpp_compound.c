@@ -49,7 +49,7 @@ empty_size(const asn1typed_size_constraint_t *s) {
 }
 static int
 empty_range(const asn1typed_integer_value_range_t *r) {
-	return !r->has_value_range && !r->is_extensible && !r->lower_bound && !r->upper_bound && !r->tail && !r->tail_count;
+	return !r->has_value_range && !r->is_extensible && !r->lower_bound && !r->upper_bound && !r->tail && !r->tail_count && !r->extension_additions && !r->extension_addition_count;
 }
 static int
 storage(size_t count, size_t capacity, const void *pointer) {
@@ -77,9 +77,9 @@ shape(const asn1typed_type_t *t, int extensions, int collections, int octets, in
 		t->has_ioc_table || t->ioc_object_set_is_extensible) return 0;
 	if(t->kind != ASN1TYPED_TYPE_ENUMERATED && (t->enum_items || t->enum_item_count || t->enum_item_capacity || t->has_valid_per_enumeration_mapping)) return 0;
 	if(t->kind != ASN1TYPED_TYPE_SEQUENCE && (t->fields || t->field_count || t->field_capacity)) return 0;
-	if(t->kind != ASN1TYPED_TYPE_CHOICE && (t->alternatives || t->alternative_count || t->alternative_capacity || t->has_valid_per_root_mapping)) return 0;
+	if(t->kind != ASN1TYPED_TYPE_CHOICE && (t->alternatives || t->alternative_count || t->alternative_capacity || t->has_valid_per_root_mapping || t->choice_root_only_extension_owned)) return 0;
 	if(t->kind != ASN1TYPED_TYPE_PRIMITIVE && t->primitive_kind != ASN1TYPED_PRIMITIVE_INVALID) return 0;
-	if(t->kind != ASN1TYPED_TYPE_ENUMERATED && t->is_extensible && !(extensions && t->kind == ASN1TYPED_TYPE_SEQUENCE)) return 0;
+	if(t->kind != ASN1TYPED_TYPE_ENUMERATED && t->is_extensible && !(extensions && (t->kind == ASN1TYPED_TYPE_SEQUENCE || (t->kind == ASN1TYPED_TYPE_CHOICE && t->choice_root_only_extension_owned == 1)))) return 0;
 	if(!(t->kind == ASN1TYPED_TYPE_PRIMITIVE && t->primitive_kind == ASN1TYPED_PRIMITIVE_INTEGER) && !empty_range(&t->value_range)) return 0;
 	if(characters && t->kind == ASN1TYPED_TYPE_PRIMITIVE && character_kind(t->primitive_kind))
         return empty_ref(&t->element_type) && !t->size_constraint.has_extension_addition && (empty_size(&t->size_constraint) || (t->size_constraint.has_size_constraint == 1 &&
@@ -92,7 +92,7 @@ shape(const asn1typed_type_t *t, int extensions, int collections, int octets, in
 	if(t->kind == ASN1TYPED_TYPE_ENUMERATED) return storage(t->enum_item_count, t->enum_item_capacity, t->enum_items);
 	if(t->kind == ASN1TYPED_TYPE_CHOICE) return t->alternative_count >= 1 && t->alternative_count <= 255 && storage(t->alternative_count, t->alternative_capacity, t->alternatives);
 	if(t->kind == ASN1TYPED_TYPE_SEQUENCE) return storage(t->field_count, t->field_capacity, t->fields);
-	if(collections && t->kind == ASN1TYPED_TYPE_SEQUENCE_OF) return t->size_constraint.has_size_constraint == 1 && !t->size_constraint.is_extensible && t->size_constraint.lower_bound >= 0 && t->size_constraint.upper_bound >= t->size_constraint.lower_bound && t->size_constraint.upper_bound <= 65536;
+	if(collections && t->kind == ASN1TYPED_TYPE_SEQUENCE_OF) return t->size_constraint.has_size_constraint == 1 && !t->size_constraint.is_extensible && t->size_constraint.lower_bound >= 0 && t->size_constraint.upper_bound >= t->size_constraint.lower_bound && (uintmax_t)t->size_constraint.upper_bound <= SIZE_MAX;
 	return 0;
 }
 static int
@@ -186,7 +186,7 @@ static int
 legacy_uint(const asn1typed_type_t *t) {
     const asn1typed_integer_value_range_t *r = &t->value_range;
     return t->kind == ASN1TYPED_TYPE_PRIMITIVE && t->primitive_kind == ASN1TYPED_PRIMITIVE_INTEGER &&
-        r->has_value_range == 1 && !r->lower_bound && !r->is_extensible && !r->tail && !r->tail_count &&
+        r->has_value_range == 1 && !r->lower_bound && !r->is_extensible && !r->tail && !r->tail_count && !r->extension_additions && !r->extension_addition_count &&
         (r->upper_bound == 255 || r->upper_bound == 65535 || r->upper_bound == INT64_C(4294967295) || r->upper_bound == INT64_C(1099511627775));
 }
 typedef int (*renderer)(const asn1typed_module_t *, const char *, char **, char *, size_t);
@@ -352,7 +352,10 @@ preflight(const asn1typed_module_t *m, const char *ns, struct plan *p, char *why
                 char ordinal[3 * sizeof(size_t) + 32], *local;
                 if(!p->values || site_range->has_value_range != 1 || (site_range->is_extensible && p->values < 2) ||
                    (site_range->is_extensible != 0 && site_range->is_extensible != 1) ||
-                   (p->values < 2 && (site_range->tail || site_range->tail_count)) ||
+                   (p->values < 2 && (site_range->tail || site_range->tail_count || site_range->extension_additions || site_range->extension_addition_count)) ||
+                   (!!site_range->extension_additions != !!site_range->extension_addition_count) ||
+                   (site_range->extension_addition_count && !site_range->is_extensible) ||
+                   site_range->extension_addition_count > SIZE_MAX / sizeof(*site_range->extension_additions) ||
                    (!!site_range->tail != !!site_range->tail_count) || site_range->tail_count > SIZE_MAX / sizeof(*site_range->tail) ||
                    site_range->lower_bound > site_range->upper_bound ||
                    site_range->lower_bound < INT64_MIN || site_range->upper_bound > INT64_MAX ||
@@ -363,11 +366,17 @@ preflight(const asn1typed_module_t *m, const char *ns, struct plan *p, char *why
                     if(target == i || m->types[target].kind != ASN1TYPED_TYPE_PRIMITIVE || m->types[target].primitive_kind != ASN1TYPED_PRIMITIVE_INTEGER)
                         FAIL("INTEGER interval use-site requires INTEGER reference");
                     decl_range = &m->types[target].value_range;
-                    if(decl_range->has_value_range != 1 || decl_range->is_extensible || decl_range->tail || decl_range->tail_count ||
+                    if(decl_range->has_value_range != 1 || decl_range->is_extensible || decl_range->tail || decl_range->tail_count || decl_range->extension_additions || decl_range->extension_addition_count ||
                        site_range->lower_bound < decl_range->lower_bound || site_range->upper_bound > decl_range->upper_bound)
                         FAIL("INTEGER use-site interval is not a subset of named declaration");
                 } else if(ref->primitive_kind != ASN1TYPED_PRIMITIVE_INTEGER) FAIL("INTEGER interval use-site requires INTEGER primitive");
                 {
+                    size_t z;
+                    for(z = 0; z < site_range->extension_addition_count; ++z) {
+                        const asn1typed_integer_interval_t *a = &site_range->extension_additions[z];
+                        if(a->lower_bound < INT64_MIN || a->upper_bound > INT64_MAX || a->lower_bound > a->upper_bound ||
+                            (z && (site_range->extension_additions[z-1].upper_bound == INTMAX_MAX || a->lower_bound <= site_range->extension_additions[z-1].upper_bound + 1))) FAIL("invalid INTEGER use-site known additions");
+                    }
                     intmax_t previous = site_range->upper_bound;
                     size_t n;
                     for(n = 0; n < site_range->tail_count; ++n) {
@@ -535,7 +544,7 @@ emit_mapping(struct compound_buf *b, const asn1typed_type_t *t, const struct typ
 		return format(b, "struct %s { using value_type = %s; static constexpr bool canonical_ber_content = true; static constexpr bool octet_aligned = true; };\n", p->mapping, p->qualified_type);
 	if(t->kind == ASN1TYPED_TYPE_PRIMITIVE)
 		return format(b, "struct %s : %s { using value_type = %s; };\n", p->mapping, t->primitive_kind == ASN1TYPED_PRIMITIVE_NULL ? all->null_mapping : all->boolean_mapping, p->qualified_type);
-	if(format(b, "struct %s {\n    using value_type = %s;\n    static constexpr bool extensible = %s;\n", p->mapping, p->qualified_type, p->extension_member ? "true" : "false")) return -1;
+	if(format(b, "struct %s {\n    using value_type = %s;\n    static constexpr bool extensible = %s;\n", p->mapping, p->qualified_type, (p->extension_member || (t->kind == ASN1TYPED_TYPE_CHOICE && t->is_extensible)) ? "true" : "false")) return -1;
 	if(t->kind == ASN1TYPED_TYPE_SEQUENCE_OF) {
         if(t->size_constraint.upper_bound >= 65536)
             return format(b, "    using element_type = %s;\n    using element_payload_mapping = %s;\n    static constexpr ::std::size_t lower_bound = %" PRIuMAX ";\n    static constexpr ::std::size_t upper_bound = %" PRIuMAX ";\n    static constexpr bool fragmented_supported = true;\n    static constexpr bool length_align_to_octet = true;\n    static constexpr auto elements_member = &%s::elements;\n};\n", p->members[0].type,p->members[0].mapping,(uintmax_t)t->size_constraint.lower_bound,(uintmax_t)t->size_constraint.upper_bound,p->qualified_type);
@@ -605,10 +614,11 @@ emit_codec(struct compound_buf *b, const asn1typed_type_t *t, const struct type_
         } else if(format(b, "    return %s(f, v);\n", all->boolean_put)) return -1;
 	} else if(t->kind == ASN1TYPED_TYPE_SEQUENCE_OF) {
         if(t->size_constraint.upper_bound >= 65536) {
-            if(format(b, "    const auto count = v.elements.size();\n    if(count < %s::lower_bound || count > %s::upper_bound) return f.record_failure({::nrforge::aper::ErrorCode::constraint_violation,f.cursor_bit()});\n    ::std::size_t position = 0;\n    bool more;\n    do {\n        const auto remaining = count-position;\n        more = remaining >= 16384;\n        const auto chunk = more ? (remaining/16384)*16384 : remaining;\n        auto length = f.write_collection_segment(chunk,more); if(!length) return length;\n        for(::std::size_t i=0;i<chunk;++i) { auto element = %s(f,v.elements[position+i]); if(!element) return element; }\n        position += chunk;\n    } while(more);\n    return ::nrforge::aper::Result<void>::success();\n",p->qualified_mapping,p->qualified_mapping,p->members[0].put)) return -1;
+            if(format(b, "    const auto count = v.elements.size();\n    if(count < %s::lower_bound || count > %s::upper_bound) return f.record_failure({::nrforge::aper::ErrorCode::constraint_violation,f.cursor_bit()});\n    ::std::size_t position = 0;\n    bool more;\n    do {\n        const auto remaining = count-position;\n        more = remaining >= 16384;\n        const auto chunk = more ? %s : remaining;\n        auto length = f.write_collection_segment(chunk,more); if(!length) return length;\n        for(::std::size_t i=0;i<chunk;++i) { auto element = %s(f,v.elements[position+i]); if(!element) return element; }\n        position += chunk;\n    } while(more);\n    return ::nrforge::aper::Result<void>::success();\n",p->qualified_mapping,p->qualified_mapping,t->size_constraint.upper_bound > 65536 ? "(remaining >= 65536 ? 65536 : (remaining/16384)*16384)" : "(remaining/16384)*16384",p->members[0].put)) return -1;
         } else
 		if(format(b, "    const auto count = v.elements.size();\n    auto length = f.write_bounded_collection_length(count > 65535 ? ::std::numeric_limits<::std::uint64_t>::max() : static_cast<::std::uint64_t>(count), %s::lower_bound, %s::upper_bound);\n    if(!length) return length;\n    for(::std::size_t i = 0; i < count; ++i) { auto element = %s(f, v.elements[i]); if(!element) return element; }\n    return ::nrforge::aper::Result<void>::success();\n", p->qualified_mapping, p->qualified_mapping, p->members[0].put)) return -1;
 	} else if(t->kind == ASN1TYPED_TYPE_CHOICE) {
+        if(t->is_extensible && append(b, "    { auto extension = f.write_bit(false); if(!extension) return extension; }\n")) return -1;
 		if(format(b, "    if(v.valueless_by_exception() || v.index() >= %s::root_count) return f.write_enumerated({false, static_cast<::std::uint64_t>(%s::root_count)}, static_cast<unsigned>(%s::root_count), false);\n    const auto ordinal = v.index();\n    auto selector = f.write_enumerated({false, static_cast<::std::uint64_t>(%s::storage_ordinal_to_per_index[ordinal])}, static_cast<unsigned>(%s::root_count), false);\n    if(!selector) return selector;\n", p->qualified_mapping, p->qualified_mapping, p->qualified_mapping, p->qualified_mapping, p->qualified_mapping)) return -1;
 		for(j = 0; j < p->member_count; ++j)
 			if(format(b, "    if(ordinal == %zu) return %s(f, ::std::get<%s>(v).value);\n", j, p->members[j].put, p->members[j].qualified_wrapper)) return -1;
@@ -650,6 +660,7 @@ emit_codec(struct compound_buf *b, const asn1typed_type_t *t, const struct type_
 			format(b, "    %s value{};\n    if(length.value() > value.elements.max_size()) {\n        auto error = f.record_failure({::nrforge::aper::ErrorCode::resource_limit, f.cursor_bit()});\n        return ::nrforge::aper::Result<%s>::failure(error.error());\n    }\n    value.elements.reserve(length.value());\n    for(::std::size_t i = 0; i < length.value(); ++i) {\n        auto element = %s(f);\n        ", p->qualified_type, p->qualified_type, p->members[0].get) || failure(b, p->qualified_type, "element") ||
 			format(b, "        value.elements.push_back(::std::move(element).value());\n    }\n    return ::nrforge::aper::Result<%s>::success(::std::move(value));\n", p->qualified_type)) return -1;
 	} else if(t->kind == ASN1TYPED_TYPE_CHOICE) {
+        if(t->is_extensible && format(b, "    { auto extension = f.read_bit(); if(!extension) return ::nrforge::aper::Result<%s>::failure(extension.error()); if(extension.value()) { auto e = f.record_failure({::nrforge::aper::ErrorCode::constraint_violation,f.cursor_bit()}); return ::nrforge::aper::Result<%s>::failure(e.error()); } }\n", p->qualified_type, p->qualified_type)) return -1;
 		if(format(b, "    auto selector = f.read_enumerated(static_cast<unsigned>(%s::root_count), false);\n    ", p->qualified_mapping) || failure(b, p->qualified_type, "selector") ||
 			format(b, "    const auto ordinal = %s::per_index_to_storage_ordinal[static_cast<::std::size_t>(selector.value().index)];\n", p->qualified_mapping)) return -1;
 		for(j = 0; j < p->member_count; ++j) {
@@ -739,22 +750,35 @@ emit_member_values(struct compound_buf *b, const struct type_plan *p, int mode) 
         if(!mp->value_name || mode == 0) continue;
         bound_literal(lower, sizeof(lower), mp->range.lower_bound, mp->value_signed);
         bound_literal(upper, sizeof(upper), mp->range.tail_count ? mp->range.tail[mp->range.tail_count - 1].upper_bound : mp->range.upper_bound, mp->value_signed);
-        if(mode == 1 && mp->range.tail_count) {
-            size_t n;
-            char lo[96], hi[96];
-            if(format(b, "struct %s { using value_type = %s; static constexpr value_type lower_bound = %s; static constexpr value_type upper_bound = %s; static constexpr bool extensible = %s;\n    static constexpr ::nrforge::aper::IntegerInterval root_intervals[%zu] = {", mp->value_name, mp->type, lower, upper, mp->range.is_extensible ? "true" : "false", mp->range.tail_count + 1)) return -1;
-            bound_literal(hi, sizeof(hi), mp->range.upper_bound, 1);
-            if(format(b, "{%s, %s}", lower, hi)) return -1;
-            for(n = 0; n < mp->range.tail_count; ++n) {
-                bound_literal(lo, sizeof(lo), mp->range.tail[n].lower_bound, 1);
-                bound_literal(hi, sizeof(hi), mp->range.tail[n].upper_bound, 1);
-                if(format(b, ", {%s, %s}", lo, hi)) return -1;
-            }
-            if(append(b, "}; };\n")) return -1;
+        if(mode == 1 && !mp->range.tail_count && !mp->range.extension_addition_count) {
+            if(format(b, "struct %s { using value_type = %s; static constexpr value_type lower_bound = %s; static constexpr value_type upper_bound = %s; static constexpr bool extensible = %s; };\n", mp->value_name, mp->type, lower, upper, mp->range.is_extensible ? "true" : "false")) return -1;
             continue;
         }
         if(mode == 1) {
-            if(format(b, "struct %s { using value_type = %s; static constexpr value_type lower_bound = %s; static constexpr value_type upper_bound = %s; static constexpr bool extensible = %s; };\n", mp->value_name, mp->type, lower, upper, mp->range.is_extensible ? "true" : "false")) return -1;
+            size_t n; char lo[96], hi[96];
+            if(format(b, "struct %s { using value_type = %s; static constexpr value_type lower_bound = %s; static constexpr value_type upper_bound = %s; static constexpr bool extensible = %s;\n", mp->value_name, mp->type, lower, upper, mp->range.is_extensible ? "true" : "false")) return -1;
+            if(mp->range.tail_count) {
+                if(format(b, "    static constexpr ::nrforge::aper::IntegerInterval root_intervals[%zu] = {", mp->range.tail_count + 1)) return -1;
+                bound_literal(hi, sizeof(hi), mp->range.upper_bound, 1);
+                if(format(b, "{%s, %s}", lower, hi)) return -1;
+                for(n = 0; n < mp->range.tail_count; ++n) {
+                    bound_literal(lo, sizeof(lo), mp->range.tail[n].lower_bound, 1);
+                    bound_literal(hi, sizeof(hi), mp->range.tail[n].upper_bound, 1);
+                    if(format(b, ", {%s, %s}", lo, hi)) return -1;
+                }
+                if(!mp->range.extension_addition_count) { if(append(b, "}; };\n")) return -1; continue; }
+                if(append(b, "};\n")) return -1;
+            }
+            if(mp->range.extension_addition_count) {
+                if(format(b, "    static constexpr ::nrforge::aper::IntegerInterval known_extension_intervals[%zu] = {", mp->range.extension_addition_count)) return -1;
+                for(n = 0; n < mp->range.extension_addition_count; ++n) {
+                    bound_literal(lo, sizeof(lo), mp->range.extension_additions[n].lower_bound, 1);
+                    bound_literal(hi, sizeof(hi), mp->range.extension_additions[n].upper_bound, 1);
+                    if(format(b, "%s{%s, %s}", n ? ", " : "", lo, hi)) return -1;
+                }
+                if(append(b, "};\n")) return -1;
+            }
+            if(append(b, "};\n")) return -1;
             continue;
         }
         suffix = mp->range.is_extensible ? "extensible_int" : mp->value_signed ? "bounded_int" : "bounded_uint";

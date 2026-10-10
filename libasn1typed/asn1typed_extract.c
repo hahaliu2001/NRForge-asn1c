@@ -388,6 +388,33 @@ extract_integer_value_range(const asn1p_constraint_t *constraint,
 		!constraint->elements || constraint->el_size < constraint->el_count ||
 		!(list = constraint->elements[0]) ||
 		!integer_constraint_node_empty(constraint)) return -1;
+	/* Retain explicit known additions separately from the PER-visible root. */
+	if(list->type == ACT_CA_CSV && list->el_count == 3) {
+		asn1p_constraint_t root_set = *constraint, root_list = *list, addition_set = *constraint, single = {0};
+		asn1p_constraint_t *root_child = &root_list, *addition_child;
+		asn1typed_integer_value_range_t addition = {0};
+		if(!list->elements || list->el_size < 3 || !integer_constraint_node_empty(list) ||
+			!(addition_child = list->elements[2])) return -1;
+        if(addition_child->type == ACT_EL_VALUE && !addition_child->el_count && integer_constraint_leaf(addition_child) &&
+            !addition_child->range_start && !addition_child->range_stop && !addition_child->containedSubtype) {
+            single = *addition_child; single.type = ACT_EL_RANGE;
+            single.range_start = single.range_stop = single.value; single.value = NULL; addition_child = &single;
+        }
+		root_list.el_count = 2; root_set.elements = &root_child;
+		addition_set.elements = &addition_child;
+		if(extract_integer_value_range(&root_set, &pending) ||
+			extract_integer_value_range(&addition_set, &addition) ||
+			!addition.has_value_range || addition.is_extensible) {
+			free(pending.tail); free(pending.extension_additions); free(addition.tail); free(addition.extension_additions); return -1;
+		}
+		pending.extension_addition_count = addition.tail_count + 1;
+		pending.extension_additions = malloc(pending.extension_addition_count * sizeof(*pending.extension_additions));
+		if(!pending.extension_additions) { free(pending.tail); free(pending.extension_additions); free(addition.tail); free(addition.extension_additions); return -1; }
+		pending.extension_additions[0].lower_bound = addition.lower_bound;
+		pending.extension_additions[0].upper_bound = addition.upper_bound;
+		if(addition.tail_count) memcpy(pending.extension_additions + 1, addition.tail, addition.tail_count * sizeof(*addition.tail));
+		free(addition.tail); *out = pending; return 0;
+	}
 	root = list;
 	if(list->type == ACT_CA_CSV) {
 		if(list->el_count != 2 || !list->elements ||
@@ -592,7 +619,7 @@ extract_effective_use_integer(const asn1p_constraint_t *c,
 		wrapper.el_count = 1; wrapper.elements = &child;
 		if(extract_integer_value_range(&wrapper, &part) || !part.has_value_range ||
 			part.is_extensible || part.tail || part.tail_count) {
-			free(part.tail); return -1;
+			free(part.tail); free(part.extension_additions); return -1;
 		}
 		if(i == 0) *out = part;
 		else {
@@ -622,14 +649,16 @@ extract_integer_use_range(asn1p_expr_t *expr,
 			effective.upper_bound > declared.upper_bound) goto bad;
 	} else {
 		if(effective.lower_bound != declared.lower_bound || effective.upper_bound != declared.upper_bound ||
-			effective.is_extensible != declared.is_extensible || effective.tail_count != declared.tail_count) goto bad;
+			effective.is_extensible != declared.is_extensible || effective.tail_count != declared.tail_count || effective.extension_addition_count != declared.extension_addition_count) goto bad;
+        for(i = 0; i < declared.extension_addition_count; ++i)
+            if(effective.extension_additions[i].lower_bound != declared.extension_additions[i].lower_bound || effective.extension_additions[i].upper_bound != declared.extension_additions[i].upper_bound) goto bad;
 		for(i = 0; i < declared.tail_count; ++i)
 			if(effective.tail[i].lower_bound != declared.tail[i].lower_bound ||
 				effective.tail[i].upper_bound != declared.tail[i].upper_bound) goto bad;
 	}
-	free(declared.tail); *out = effective; return 0;
+	free(declared.tail); free(declared.extension_additions); *out = effective; return 0;
 bad:
-	free(declared.tail); free(effective.tail); return -1;
+	free(declared.tail); free(declared.extension_additions); free(effective.tail); free(effective.extension_additions); return -1;
 }
 
 static int
@@ -649,6 +678,32 @@ put_ref(asn1typed_type_ref_t *ref, asn1p_expr_t *expr) {
 				target->Identifier);
 	}
 	return -1;
+}
+
+/* Anonymous constructed bodies receive collision-free owned source keys. '$'
+ * cannot occur in an ASN.1 identifier; the path remains parser-independent. */
+static int inline_constructed(const asn1p_expr_t *e) {
+    return e && (e->expr_type == ASN_CONSTR_SEQUENCE ||
+        e->expr_type == ASN_CONSTR_SEQUENCE_OF || e->expr_type == ASN_CONSTR_CHOICE);
+}
+static int inline_constructed_constraints_owned(const asn1p_expr_t *e) {
+    return e && !e->rhs_pspecs && !e->lhs_params &&
+        (e->expr_type == ASN_CONSTR_SEQUENCE_OF || (!e->constraints && !e->combined_constraints));
+}
+static int put_inline_constructed_ref(asn1typed_type_ref_t *ref,
+        const asn1typed_type_t *owner, const char *member) {
+    const char *name = owner->identity.source_name;
+    char *key;
+    size_t n;
+    int rc;
+    if(!name || !owner->identity.module || !member) return -1;
+    n = strlen(name) + strlen(member) + 10;
+    key = malloc(n);
+    if(!key) return -1;
+    snprintf(key, n, "%s%s$%s", strncmp(name, "$inline$", 8) ? "$inline$" : "", name, member);
+    rc = asn1typed_type_ref_init(ref, owner->identity.module, key);
+    free(key);
+    return rc;
 }
 
 static int put_parameterized_object_set_ref(asn1p_t *tree,
@@ -739,15 +794,16 @@ add_field(asn1p_t *tree, asn1typed_type_t *type, asn1p_expr_t *field,
 	}
 	presence = (marker_flags & EM_OPTIONAL) == EM_OPTIONAL ?
 		ASN1TYPED_PRESENCE_OPTIONAL : ASN1TYPED_PRESENCE_MANDATORY;
-	if(field->expr_type == ASN_CONSTR_SEQUENCE ||
-		field->expr_type == ASN_CONSTR_SEQUENCE_OF ||
-		field->expr_type == ASN_CONSTR_CHOICE ||
-		field->expr_type == ASN_CONSTR_SET ||
-		field->expr_type == ASN_CONSTR_SET_OF) {
-		set_error(error, error_size, "%s.%s: inline constructed field is unsupported",
-			module, field->Identifier);
-		return -1;
-	}
+    if(inline_constructed(field)) {
+        asn1typed_type_ref_t ref = {0};
+        int rc;
+        if(!inline_constructed_constraints_owned(field) || put_inline_constructed_ref(&ref, type, field->Identifier)) {
+            set_error(error, error_size, "%s.%s: unsupported inline constructed constraints or allocation failure", module, field->Identifier); return -1;
+        }
+        rc = asn1typed_type_add_field_ref(type, field->Identifier, &ref, presence, file, field->_lineno);
+        asn1typed_type_ref_clear(&ref);
+        return rc;
+    }
 	if(field->constraints || (field->expr_type != A1TC_REFERENCE &&
 		(primitive_accepts_exact_size(primitive_from_expr(field)) ||
 		 primitive_from_expr(field) == ASN1TYPED_PRIMITIVE_INTEGER) && field->combined_constraints)) {
@@ -819,12 +875,12 @@ add_field(asn1p_t *tree, asn1typed_type_t *type, asn1p_expr_t *field,
 			put_parameterized_object_set_ref(tree, &ref, field,
 				error, error_size) : put_ref(&ref, field)) {
 			if(field->rhs_pspecs) {
-				free(field_value_range.tail);
+				free(field_value_range.tail); free(field_value_range.extension_additions);
 				return -1;
 			}
 			set_error(error, error_size, "%s.%s: unsupported field type at line %d",
 				module, field->Identifier, field->_lineno);
-			free(field_value_range.tail);
+			free(field_value_range.tail); free(field_value_range.extension_additions);
 			return -1;
 		}
 		if(field->rhs_pspecs) {
@@ -842,12 +898,12 @@ add_field(asn1p_t *tree, asn1typed_type_t *type, asn1p_expr_t *field,
 			type->fields[type->field_count - 1].size_constraint = field_size;
 		if(!result && owns_inline_integer_range) {
 			type->fields[type->field_count - 1].value_range = field_value_range;
-			field_value_range.tail = NULL;
+			field_value_range.tail = NULL; field_value_range.extension_additions = NULL;
 		}
 		if(result) {
 			set_error(error, error_size, "%s.%s: out of memory extracting field",
 				module, field->Identifier);
-			free(field_value_range.tail);
+			free(field_value_range.tail); free(field_value_range.extension_additions);
 			return -1;
 		}
 	}
@@ -952,34 +1008,24 @@ populate_type(asn1p_t *tree, asn1typed_type_t *out, asn1p_expr_t *decl,
 				decl->Identifier);
 			return -1;
 		}
-		if(member->rhs_pspecs) {
-			set_error(error, error_size,
-				"%s: parameterized SEQUENCE OF element reference is unsupported",
-				decl->Identifier);
-			return -1;
-		}
-		if(reject_unowned_inline_constraint(member, decl->module->ModuleName,
-				decl->Identifier, error, error_size)) return -1;
-		{
-			asn1typed_type_ref_t ref;
-			int rc;
-			memset(&ref, 0, sizeof(ref));
-			if(put_ref(&ref, member)) {
-				set_error(error, error_size, "%s: unsupported SEQUENCE OF element type",
-					decl->Identifier);
-				return -1;
-			}
-			if(ref.kind == ASN1TYPED_REF_PRIMITIVE)
-				rc = asn1typed_type_set_element_primitive(out, ref.primitive_kind);
-			else
-				rc = asn1typed_type_set_element_type(out, ref.module, ref.source_name);
-			asn1typed_type_ref_clear(&ref);
-			if(rc) {
-				set_error(error, error_size, "%s: out of memory storing element type",
-					decl->Identifier);
-				return -1;
-			}
-		}
+        {
+            asn1typed_type_ref_t ref = {0};
+            int rc;
+            if(inline_constructed(member)) {
+                if(!inline_constructed_constraints_owned(member)) { set_error(error, error_size, "%s: unsupported inline constructed element constraints", decl->Identifier); return -1; }
+                rc = put_inline_constructed_ref(&ref, out, "@element");
+            } else if(member->rhs_pspecs) {
+                rc = put_parameterized_object_set_ref(tree, &ref, member, error, error_size);
+            } else {
+                if(reject_unowned_inline_constraint(member, decl->module->ModuleName,
+                        decl->Identifier, error, error_size)) return -1;
+                rc = put_ref(&ref, member);
+            }
+            if(rc) { if(error && error_size && !error[0]) set_error(error, error_size, "%s: unsupported collection reference or allocation failure", decl->Identifier); return -1; }
+            /* Transfer the complete reference, including object-set actuals. */
+            asn1typed_type_ref_clear(&out->element_type);
+            out->element_type = ref;
+        }
 		return 0;
 	case ASN1TYPED_TYPE_ENUMERATED:
 		return populate_enumerated_items(out, body, file, error, error_size,
@@ -987,29 +1033,32 @@ populate_type(asn1p_t *tree, asn1typed_type_t *out, asn1p_expr_t *decl,
 	case ASN1TYPED_TYPE_CHOICE:
 		{
 			asn1typed_wire_finalize_result_e finalize_result;
-			TQ_FOR(member, &body->members, next) {
-				if(member->expr_type == A1TC_EXTENSIBLE) {
-					set_error(error, error_size,
-						"%s: CHOICE extension marker/additions are unsupported",
-						decl->Identifier);
-					return -1;
-				}
-			}
+            TQ_FOR(member, &body->members, next) {
+                if(member->expr_type == A1TC_EXTENSIBLE) {
+                    if(TQ_NEXT(member, next) || out->choice_root_only_extension_owned) {
+                        set_error(error, error_size, "%s: CHOICE extension marker/additions are unsupported", decl->Identifier);
+                        return -1;
+                    }
+                    out->is_extensible = 1;
+                    out->choice_root_only_extension_owned = 1;
+                }
+            }
 		TQ_FOR(member, &body->members, next) {
 			asn1typed_type_ref_t ref;
 			asn1typed_size_constraint_t alternative_size = {0};
 			asn1typed_integer_value_range_t alternative_value_range = {0};
 			const asn1typed_size_constraint_t *size_ptr = NULL;
 			const asn1typed_integer_value_range_t *value_range_ptr = NULL;
+            if(member->expr_type == A1TC_EXTENSIBLE) continue;
 			if(!member->Identifier) {
 				set_error(error, error_size,
 					"%s: unnamed CHOICE alternative at line %d",
 					decl->Identifier, member->_lineno);
 				return -1;
 			}
-			if(member->constraints || (member->expr_type != A1TC_REFERENCE &&
+			if(!inline_constructed(member) && (member->constraints || (member->expr_type != A1TC_REFERENCE &&
 				(primitive_accepts_exact_size(primitive_from_expr(member)) ||
-				 primitive_from_expr(member) == ASN1TYPED_PRIMITIVE_INTEGER) && member->combined_constraints)) {
+				 primitive_from_expr(member) == ASN1TYPED_PRIMITIVE_INTEGER) && member->combined_constraints))) {
 				asn1typed_primitive_kind_e primitive = primitive_from_expr(member);
 				if(primitive == ASN1TYPED_PRIMITIVE_INVALID && member->expr_type == A1TC_REFERENCE)
 					primitive = primitive_from_expr(terminal_type(member));
@@ -1046,6 +1095,7 @@ populate_type(asn1p_t *tree, asn1typed_type_t *out, asn1p_expr_t *decl,
 				}
 			}
 			memset(&ref, 0, sizeof(ref));
+            if(inline_constructed(member) && !inline_constructed_constraints_owned(member)) { set_error(error, error_size, "%s.%s: unsupported inline constructed constraints", decl->Identifier, member->Identifier); return -1; }
             if(member->meta_type == AMT_TYPE && member->expr_type == ASN_BASIC_ENUMERATED) {
                 asn1typed_type_t enum_body = {0}; int rc;
                 enum_body.kind = ASN1TYPED_TYPE_ENUMERATED;
@@ -1055,23 +1105,23 @@ populate_type(asn1p_t *tree, asn1typed_type_t *out, asn1p_expr_t *decl,
                 asn1typed_type_clear(&enum_body);
                 if(rc) { set_error(error, error_size, "%s.%s: could not store inline ENUMERATED alternative", decl->Identifier, member->Identifier); return -1; }
             } else {
-			if(member->rhs_pspecs ?
-				put_parameterized_object_set_ref(tree, &ref,
-					member, error, error_size) : put_ref(&ref, member)) {
+			if(inline_constructed(member) ? put_inline_constructed_ref(&ref, out, member->Identifier) :
+                (member->rhs_pspecs ? put_parameterized_object_set_ref(tree, &ref,
+                    member, error, error_size) : put_ref(&ref, member))) {
 				if(member->rhs_pspecs) {
-					free(alternative_value_range.tail);
+					free(alternative_value_range.tail); free(alternative_value_range.extension_additions);
 					return -1;
 				}
 				set_error(error, error_size,
 					"%s.%s: unsupported or unresolved CHOICE alternative type at line %d",
 					decl->Identifier, member->Identifier, member->_lineno);
-				free(alternative_value_range.tail);
+				free(alternative_value_range.tail); free(alternative_value_range.extension_additions);
 				return -1;
 			}
 			if(asn1typed_type_add_choice_alternative(out, member->Identifier,
 					&ref, size_ptr, value_range_ptr, file, member->_lineno)) {
 				asn1typed_type_ref_clear(&ref);
-				free(alternative_value_range.tail);
+				free(alternative_value_range.tail); free(alternative_value_range.extension_additions);
 				set_error(error, error_size,
 					"%s.%s: could not store CHOICE alternative",
 					decl->Identifier, member->Identifier);
@@ -1089,7 +1139,7 @@ populate_type(asn1p_t *tree, asn1typed_type_t *out, asn1p_expr_t *decl,
 						out, alternative_index, tag_class,
 						(intmax_t)member->tag.tag_value)) {
 						asn1typed_type_ref_clear(&ref);
-						free(alternative_value_range.tail);
+						free(alternative_value_range.tail); free(alternative_value_range.extension_additions);
 						set_error(error, error_size,
 							"%s.%s: could not store CHOICE tag evidence",
 							decl->Identifier, member->Identifier);
@@ -1101,7 +1151,7 @@ populate_type(asn1p_t *tree, asn1typed_type_t *out, asn1p_expr_t *decl,
 				}
 			}
 			asn1typed_type_ref_clear(&ref);
-			free(alternative_value_range.tail);
+			free(alternative_value_range.tail); free(alternative_value_range.extension_additions);
 		}
 		if(!out->alternative_count) {
 			set_error(error, error_size, "%s: empty CHOICE is unsupported",
@@ -1126,6 +1176,8 @@ populate_type(asn1p_t *tree, asn1typed_type_t *out, asn1p_expr_t *decl,
 		return -1;
 	}
 }
+
+static int close_inline_dependencies(asn1p_t *, asn1typed_module_t *, char *, size_t);
 
 int
 asn1typed_extract_module(asn1p_t *tree, const char *module_name,
@@ -1178,6 +1230,7 @@ asn1typed_extract_module(asn1p_t *tree, const char *module_name,
 		}
 		if(populate_type(tree, type, decl, file, error, error_size)) goto fail;
 	}
+	if(close_inline_dependencies(tree, out, error, error_size)) goto fail;
 	return 0;
 fail:
 	asn1typed_module_clear(out);
@@ -1208,6 +1261,38 @@ named_declaration(asn1p_module_t *module, const char *name) {
 	TQ_FOR(decl, &module->members, next)
 		if(decl->Identifier && !strcmp(decl->Identifier, name)) return decl;
 	return NULL;
+}
+
+/* Resolve an anonymous path without modifying the frozen Parser/Fixer tree. */
+static asn1p_expr_t *inline_declaration(asn1p_module_t *module, const char *name) {
+    asn1p_expr_t *node = NULL, *member;
+    char *part;
+    char *path, *token;
+    if(strncmp(name, "$inline$", 8)) return NULL;
+    path = strdup(name + 8);
+    if(!path) return NULL;
+    part = path;
+    while(part && *part) {
+        char *next;
+        token = part;
+        next = strchr(token, '$');
+        if(next) *next++ = 0;
+        if(!node) node = named_declaration(module, token);
+        else {
+            asn1p_expr_t *body = terminal_type(node);
+            node = NULL;
+            if(body) {
+                if(!strcmp(token, "@element") && body->expr_type == ASN_CONSTR_SEQUENCE_OF)
+                    node = TQ_FIRST(&body->members);
+                else TQ_FOR(member, &body->members, next)
+                    if(member->Identifier && !strcmp(member->Identifier, token)) { node = member; break; }
+            }
+        }
+        if(!node) break;
+        part = next;
+    }
+    free(path);
+    return node;
 }
 
 /* The fixed parameter and table-constraint representations both contain a
@@ -1847,7 +1932,7 @@ static int private_class_key(const asn1p_expr_t *field) {
     if(!key || key->expr_type != ASN_CONSTR_CHOICE || !(a = TQ_FIRST(&key->members)) || !(b = TQ_NEXT(a, next)) || TQ_NEXT(b, next)) return 0;
     if(primitive_from_expr(terminal_type(a)) != ASN1TYPED_PRIMITIVE_INTEGER || primitive_from_expr(terminal_type(b)) != ASN1TYPED_PRIMITIVE_OBJECT_IDENTIFIER) return 0;
     ok = !extract_integer_value_range(a->combined_constraints ? a->combined_constraints : a->constraints, &range) && range.has_value_range && !range.is_extensible && !range.tail_count && range.lower_bound == 0 && range.upper_bound == 65535;
-    free(range.tail);
+    free(range.tail); free(range.extension_additions);
     return ok;
 }
 
@@ -2246,7 +2331,7 @@ add_ioc_dependency(asn1p_t *tree, asn1typed_module_t *out,
 		set_error(error, error_size, "IOC dependency module '%s' not found", ref->module);
 		return -1;
 	}
-	decl = named_declaration(source, ref->source_name);
+	decl = strncmp(ref->source_name, "$inline$", 8) ? named_declaration(source, ref->source_name) : inline_declaration(source, ref->source_name);
 	if(!decl || decl->meta_type != AMT_TYPE || decl->lhs_params || decl->rhs_pspecs ||
 		(kind = kind_of_type(terminal_type(decl))) == (asn1typed_type_kind_e)-1) {
 		set_error(error, error_size, "unresolved or unsupported IOC dependency '%s.%s'",
@@ -2254,12 +2339,38 @@ add_ioc_dependency(asn1p_t *tree, asn1typed_module_t *out,
 		return -1;
 	}
 	file = source->source_file_name ? source->source_file_name : out->location.file;
-	if(asn1typed_module_add_type_identity(out, ref->module, decl->Identifier, kind, file,
+	if(asn1typed_module_add_type_identity(out, ref->module, ref->source_name, kind, file,
 			decl->_lineno > 0 ? (unsigned)decl->_lineno : 0, &type)) {
 		set_error(error, error_size, "out of memory storing IOC dependency");
 		return -1;
 	}
 	return populate_type(tree, type, decl, file, error, error_size);
+}
+
+static int close_inline_dependencies(asn1p_t *tree, asn1typed_module_t *out,
+        char *error, size_t size) {
+    size_t i, j;
+    for(i = 0; i < out->type_count; ++i) {
+        size_t count = out->types[i].field_count + out->types[i].alternative_count +
+            (out->types[i].kind == ASN1TYPED_TYPE_SEQUENCE_OF ? 1 : 0);
+        for(j = 0; j < count; ++j) {
+            asn1typed_type_t *t = &out->types[i];
+            const asn1typed_type_ref_t *ref;
+            asn1typed_type_ref_t copy = {0};
+            if(j < t->field_count) ref = &t->fields[j].type;
+            else if(j < t->field_count + t->alternative_count)
+                ref = &t->alternatives[j - t->field_count].type_ref;
+            else ref = &t->element_type;
+            if(ref->kind != ASN1TYPED_REF_NAMED || !ref->source_name ||
+                    strncmp(ref->source_name, "$inline$", 8)) continue;
+            if(asn1typed_type_ref_copy(&copy, ref)) { set_error(error, size, "out of memory copying inline dependency"); return -1; }
+            if(add_ioc_dependency(tree, out, &copy, error, size)) {
+                asn1typed_type_ref_clear(&copy); return -1;
+            }
+            asn1typed_type_ref_clear(&copy);
+        }
+    }
+    return 0;
 }
 
 int
@@ -2437,7 +2548,7 @@ physical_ioc_cells(asn1p_ioc_row_t *row, const char *selected, int has_presence,
 	return cells[0] && cells[1] && cells[2] && (!has_presence || cells[3]) ? 0 : -1;
 }
 static int
-physical_registry_row(asn1p_t *tree, asn1typed_ioc_registry_t *registry,
+physical_registry_row(asn1p_t *tree, asn1typed_module_t *out, asn1typed_ioc_registry_t *registry,
 		asn1p_ioc_row_t *source, int has_presence, char *error, size_t size) {
 	asn1p_expr_t *cells[4] = {NULL, NULL, NULL, NULL};
 	asn1p_expr_t value;
@@ -2464,29 +2575,52 @@ physical_registry_row(asn1p_t *tree, asn1typed_ioc_registry_t *registry,
 		else if(name && !strcmp(name, "conditional")) row.presence = ASN1TYPED_PRESENCE_CONDITIONAL;
 		else goto malformed;
 	}
-	if(cells[1]->constraints ||
-		(cells[1]->expr_type != A1TC_REFERENCE && cells[1]->combined_constraints)) {
-		/* Selected anonymous payloads have no SIZE/range ownership slot.
-		 * The existing Contents-only compatibility rule needs no new slot:
-		 * it owns the outer OCTET STRING and deliberately does not traverse
-		 * the contained type. Named references retain their declaration's
-		 * constraints through ordinary dependency closure instead. */
-		if(cells[1]->meta_type != AMT_TYPE ||
-			cells[1]->expr_type != ASN_BASIC_OCTET_STRING || cells[1]->rhs_pspecs ||
-			!is_opaque_contents_constraint(cells[1]->constraints) ||
-			(cells[1]->combined_constraints &&
-			 !is_opaque_contents_constraint(cells[1]->combined_constraints))) {
-			set_error(error, size, "%s.%s: inline constrained type is unsupported",
-				registry->object_set_source_name, registry->selected_class_field_source_name);
-			free(row.symbolic_id); return -1;
-		}
-	}
+    if(cells[1]->meta_type != AMT_TYPE && cells[1]->meta_type != AMT_TYPEREF) goto malformed;
+    if((cells[1]->constraints ||
+            (cells[1]->expr_type != A1TC_REFERENCE && cells[1]->combined_constraints)) &&
+            !(cells[1]->meta_type == AMT_TYPE && cells[1]->expr_type == ASN_BASIC_OCTET_STRING &&
+                !cells[1]->rhs_pspecs && is_opaque_contents_constraint(cells[1]->constraints) &&
+                (!cells[1]->combined_constraints || is_opaque_contents_constraint(cells[1]->combined_constraints)))) {
+        asn1typed_primitive_kind_e primitive = primitive_from_expr(terminal_type(cells[1]));
+        asn1typed_size_constraint_t checked_size = {0};
+        asn1typed_integer_value_range_t checked_range = {0};
+        int valid = primitive_accepts_exact_size(primitive) ?
+            !extract_octet_bit_use_size(cells[1], &checked_size) :
+            primitive == ASN1TYPED_PRIMITIVE_INTEGER ?
+            !extract_integer_use_range(cells[1], &checked_range) : 0;
+        free(checked_range.tail); free(checked_range.extension_additions);
+        if(!valid) {
+            set_error(error, size, "%s.%s: unsupported constrained IOC payload evidence", registry->object_set_source_name, registry->selected_class_field_source_name);
+            free(row.symbolic_id); return -1;
+        }
+        asn1typed_type_t *owned;
+        asn1typed_type_kind_e kind = kind_of_type(terminal_type(cells[1]));
+        size_t key_size = strlen(registry->object_set_source_name) + 64;
+        char *key = malloc(key_size);
+        const char *file = cells[1]->module && cells[1]->module->source_file_name ? cells[1]->module->source_file_name : out->location.file;
+        if(!key) { set_error(error, size, "out of memory naming constrained IOC payload"); free(row.symbolic_id); return -1; }
+        snprintf(key, key_size, "$inline$@payload$%s$Id%" PRIuMAX, registry->object_set_source_name, (uintmax_t)row.numeric_id);
+        value = *cells[1];
+        value.Identifier = key;
+        if(value.rhs_pspecs || value.lhs_params || kind != ASN1TYPED_TYPE_PRIMITIVE ||
+                asn1typed_module_add_type_identity(out, registry->object_set_module, key, kind, file,
+                    value._lineno > 0 ? (unsigned)value._lineno : 0, &owned) ||
+                populate_type(tree, owned, &value, file, error, size) ||
+                asn1typed_type_ref_init(&row.payload_type, registry->object_set_module, key)) {
+            free(key); free(row.symbolic_id);
+            if(error && size && !error[0]) set_error(error, size, "unsupported constrained IOC payload ownership");
+            return -1;
+        }
+        free(key);
+        goto add_row;
+    }
 	value = *cells[1];
 	if(value.meta_type != AMT_TYPE && value.meta_type != AMT_TYPEREF) goto malformed;
 	if(value.expr_type == A1TC_REFERENCE && value.reference) {
 		reference = *value.reference; reference.ref_expr = ioc_resolve(tree, cells[1], value.reference); value.reference = &reference;
 	}
 	if(value.rhs_pspecs || kind_of_type(terminal_type(&value)) == (asn1typed_type_kind_e)-1 || put_ref(&row.payload_type, &value)) goto malformed;
+add_row:
 	if(asn1typed_ioc_registry_add_row(registry, &row)) {
 		free(row.symbolic_id); asn1typed_type_ref_clear(&row.payload_type); set_error(error, size, "out of memory owning physical IOC dispatch row"); return -1;
 	}
@@ -2533,7 +2667,7 @@ physical_register_binding(asn1p_t *tree, asn1typed_module_t *out, size_t index, 
 	if(ordinal != 3 || asn1typed_module_add_ioc_registry(out, class_expr->module->ModuleName, class_expr->Identifier, set->module->ModuleName, set->Identifier, selected, &registry_index)) goto malformed;
 	if(out->ioc_registries[registry_index].evidence == ASN1TYPED_WIRE_EVIDENCE_UNAVAILABLE) {
 		for(j = 0; j < set->ioc_table->rows; ++j)
-			if(physical_registry_row(tree, &out->ioc_registries[registry_index], set->ioc_table->row[j], has_presence, error, size)) return -1;
+			if(physical_registry_row(tree, out, &out->ioc_registries[registry_index], set->ioc_table->row[j], has_presence, error, size)) return -1;
 		if(asn1typed_ioc_registry_set_evidence(&out->ioc_registries[registry_index], set->ioc_table->rows, !!set->ioc_table->extensible) ||
 			asn1typed_ioc_registry_finalize(&out->ioc_registries[registry_index], error, size) != ASN1TYPED_WIRE_FINALIZE_OK) return -1;
 	}
@@ -2735,8 +2869,8 @@ envelope_class_source(asn1p_t *tree, asn1p_expr_t *class_expr,
                 || (is_code ? member->marker.default_value != NULL : member->marker.default_value == NULL)) return -1;
             if(type->combined_constraints) {
                 if(!is_code || extract_integer_value_range(type->combined_constraints, &class_range)
-                    || !class_range.has_value_range || class_range.tail || class_range.tail_count) {
-                    free(class_range.tail); return -1;
+                    || !class_range.has_value_range || class_range.tail || class_range.tail_count || class_range.extension_additions || class_range.extension_addition_count) {
+                    free(class_range.tail); free(class_range.extension_additions); return -1;
                 }
             }
             type = ioc_resolve(tree, member, type->reference);
@@ -2750,7 +2884,7 @@ envelope_class_source(asn1p_t *tree, asn1p_expr_t *class_expr,
     if(seen != 31 || envelope_source_ref(&header->procedure_type, procedure) || envelope_source_ref(&header->criticality_type, crit)
         || primitive_from_expr(terminal_type(procedure)) != ASN1TYPED_PRIMITIVE_INTEGER
         || extract_integer_value_range(procedure->combined_constraints ? procedure->combined_constraints : procedure->constraints, &range)) return -1;
-    if(!range.has_value_range || range.tail || range.tail_count) { free(range.tail); return -1; }
+    if(!range.has_value_range || range.tail || range.tail_count || range.extension_additions || range.extension_addition_count) { free(range.tail); free(range.extension_additions); return -1; }
     if(class_range.has_value_range && (class_range.lower_bound != range.lower_bound || class_range.upper_bound != range.upper_bound
         || class_range.is_extensible != range.is_extensible)) return -1;
     header->procedure_lower_bound = range.lower_bound; header->procedure_upper_bound = range.upper_bound;

@@ -22,10 +22,10 @@ static asn1typed_type_t *find(asn1typed_module_t*m,const char*n){size_t i;for(i=
 static void size_ok(const asn1typed_size_constraint_t*s,int lo,int hi,int ext){REQUIRE(s->has_size_constraint&&s->lower_bound==lo&&s->upper_bound==hi&&s->is_extensible==ext);}
 static asn1p_expr_t *field(asn1p_t*t,const char*n){asn1p_module_t*m;asn1p_expr_t*e;TQ_FOR(m,&t->modules,mod_next)TQ_FOR(e,&m->members,next)if(e->Identifier&&!strcmp(e->Identifier,n))return TQ_FIRST(&e->members);REQUIRE(0);return NULL;}
 int main(void){
- asn1p_t*t=asn1p_parse_file(BIT_USE_SIZE_FIXTURE,A1P_NOFLAGS);asn1typed_module_t m={0};long point;
+ asn1p_t*t=asn1p_parse_file(BIT_USE_SIZE_FIXTURE,A1P_NOFLAGS);asn1typed_module_t m={0}, constrained={0};long point;
  REQUIRE(t&&asn1f_process(t,A1F_NOFLAGS,NULL)>=0);
  {int rc=extract(t,"Message",&m);if(rc)fprintf(stderr,"positive extraction: %s\n",diagnostic);REQUIRE(rc==0);asn1typed_module_clear(&m);}
- rejects(t,"BadMessage");rejects(t,"SetMessage");{ asn1typed_module_t addition={0}; REQUIRE(extract(t,"AdditionMessage",&addition)==0); asn1typed_type_t *a=find(&addition,"BadAddition"); REQUIRE(a && a->fields[0].size_constraint.is_extensible && a->fields[0].size_constraint.has_extension_addition); asn1typed_module_clear(&addition); }rejects(t,"NamedMessage");
+ REQUIRE(extract(t,"BadMessage",&constrained)==0);rejects(t,"SetMessage");{ asn1typed_module_t addition={0}; REQUIRE(extract(t,"AdditionMessage",&addition)==0); asn1typed_type_t *a=find(&addition,"BadAddition"); REQUIRE(a && a->fields[0].size_constraint.is_extensible && a->fields[0].size_constraint.has_extension_addition); asn1typed_module_clear(&addition); }rejects(t,"NamedMessage");
  {asn1p_expr_t*f=field(t,"S"),*bad=field(t,"BadSet");asn1p_constraint_t*save=f->combined_constraints;
   f->combined_constraints=bad->constraints;rejects(t,"Message");f->combined_constraints=save;
   save=f->constraints;f->constraints=NULL;rejects(t,"Message");f->constraints=save;
@@ -40,6 +40,13 @@ int main(void){
  }
  for(point=0;point<20000;++point){int rc;countdown=point;rc=extract(t,"Message",&m);countdown=-1;if(!rc)break;REQUIRE(!m.types&&!m.source_name&&!m.bound_instances&&!m.ioc_registries);asn1typed_module_clear(&m);}
  REQUIRE(point>0&&point<20000);asn1p_delete(t);
+ { const asn1typed_type_ref_t *r=&constrained.ioc_registries[0].rows[0].payload_type;
+   REQUIRE(r->kind==ASN1TYPED_REF_NAMED && !strcmp(r->source_name,"$inline$@payload$BadRows$Id7"));
+   asn1typed_type_t *owned=find(&constrained,r->source_name);
+   REQUIRE(owned->primitive_kind==ASN1TYPED_PRIMITIVE_BIT_STRING);
+   size_ok(&owned->size_constraint,3,3,0);
+   asn1typed_module_clear(&constrained);
+ }
  {asn1typed_type_t*s=find(&m,"S"),*c=find(&m,"C");
  size_ok(&s->fields[0].size_constraint,3,17,0);size_ok(&s->fields[1].size_constraint,8,16,0);size_ok(&s->fields[2].size_constraint,2,3,0);size_ok(&s->fields[3].size_constraint,8,8,1);
  REQUIRE(s->fields[1].type.kind==ASN1TYPED_REF_NAMED&&!strcmp(s->fields[1].type.source_name,"Bits"));

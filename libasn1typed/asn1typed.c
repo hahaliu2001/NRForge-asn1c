@@ -44,7 +44,7 @@ asn1typed_inline_enum_body_valid(const asn1typed_type_t *body) {
 		body->primitive_kind != ASN1TYPED_PRIMITIVE_INVALID ||
 		body->size_constraint.has_size_constraint || body->size_constraint.is_extensible || body->size_constraint.lower_bound || body->size_constraint.upper_bound || body->size_constraint.has_extension_addition || body->size_constraint.extension_lower_bound || body->size_constraint.extension_upper_bound ||
 		body->value_range.has_value_range || body->value_range.tail ||
-		body->value_range.tail_count || body->location.file ||
+		body->value_range.tail_count || body->value_range.extension_additions || body->value_range.extension_addition_count || body->location.file ||
 		body->fields || body->field_count || body->field_capacity ||
 		body->alternatives || body->alternative_count ||
 		body->alternative_capacity || body->element_type.module ||
@@ -131,7 +131,7 @@ asn1typed_field_clear(asn1typed_field_t *field) {
 	}
 	if(field->has_class_field_relation)
 		asn1typed_class_field_relation_clear(&field->class_field_relation);
-	free(field->value_range.tail);
+	free(field->value_range.tail); free(field->value_range.extension_additions);
 	asn1typed_source_location_clear(&field->location);
 	memset(field, 0, sizeof(*field));
 }
@@ -145,11 +145,20 @@ asn1typed_integer_value_range_copy(asn1typed_integer_value_range_t *target,
 		(source->is_extensible != 0 && source->is_extensible != 1) ||
 		(source->has_value_range && source->lower_bound > source->upper_bound) ||
 		(!source->has_value_range && (source->lower_bound || source->upper_bound ||
-		 source->is_extensible || source->tail || source->tail_count)) ||
+		 source->is_extensible || source->tail || source->tail_count || source->extension_additions || source->extension_addition_count)) ||
 		(source->tail_count && !source->tail) ||
 		(!source->tail_count && source->tail) ||
 		(source->tail_count && !source->has_value_range) ||
-		source->tail_count > SIZE_MAX / sizeof(*source->tail)) return -1;
+		source->tail_count > SIZE_MAX / sizeof(*source->tail) ||
+        (!!source->extension_additions != !!source->extension_addition_count) ||
+        (source->extension_addition_count && (!source->has_value_range || !source->is_extensible)) ||
+        source->extension_addition_count > SIZE_MAX / sizeof(*source->extension_additions)) return -1;
+    for(i = 0; i < source->extension_addition_count; ++i) {
+        const asn1typed_integer_interval_t *a = &source->extension_additions[i];
+        if(a->lower_bound > a->upper_bound || (i &&
+            (source->extension_additions[i-1].upper_bound == INTMAX_MAX ||
+             a->lower_bound <= source->extension_additions[i-1].upper_bound + 1))) return -1;
+    }
 	for(i = 0; i < source->tail_count; ++i) {
 		const asn1typed_integer_interval_t *interval = &source->tail[i];
 		intmax_t previous_upper = i ? source->tail[i - 1].upper_bound :
@@ -161,6 +170,7 @@ asn1typed_integer_value_range_copy(asn1typed_integer_value_range_t *target,
 	}
 	*target = *source;
 	target->tail = NULL;
+	target->extension_additions = NULL;
 	if(source->tail_count) {
 		target->tail = (asn1typed_integer_interval_t *)malloc(
 			source->tail_count * sizeof(*source->tail));
@@ -170,6 +180,11 @@ asn1typed_integer_value_range_copy(asn1typed_integer_value_range_t *target,
 		}
 		memcpy(target->tail, source->tail,
 			source->tail_count * sizeof(*source->tail));
+	}
+	if(source->extension_addition_count) {
+		target->extension_additions = malloc(source->extension_addition_count * sizeof(*source->extension_additions));
+		if(!target->extension_additions) { free(target->tail); memset(target, 0, sizeof(*target)); return -1; }
+		memcpy(target->extension_additions, source->extension_additions, source->extension_addition_count * sizeof(*source->extension_additions));
 	}
 	return 0;
 }
@@ -430,7 +445,7 @@ asn1typed_type_clear(asn1typed_type_t *type) {
 		asn1typed_source_location_clear(&type->enum_items[i].location);
 	}
 	free(type->enum_items);
-	free(type->value_range.tail);
+	free(type->value_range.tail); free(type->value_range.extension_additions);
 	for(i = 0; i < type->alternative_count; ++i) {
 		if(type->alternatives[i].inline_enumerated) {
             asn1typed_type_clear(type->alternatives[i].inline_enumerated);
@@ -438,7 +453,7 @@ asn1typed_type_clear(asn1typed_type_t *type) {
         }
 		free(type->alternatives[i].source_name);
 		asn1typed_type_ref_clear(&type->alternatives[i].type_ref);
-		free(type->alternatives[i].value_range.tail);
+		free(type->alternatives[i].value_range.tail); free(type->alternatives[i].value_range.extension_additions);
 		asn1typed_source_location_clear(&type->alternatives[i].location);
 	}
 	free(type->alternatives);
@@ -596,7 +611,7 @@ ioc_empty_size(const asn1typed_size_constraint_t *s) {
 }
 static int
 ioc_empty_range(const asn1typed_integer_value_range_t *r) {
-	return !r->has_value_range && !r->is_extensible && !r->lower_bound && !r->upper_bound && !r->tail && !r->tail_count;
+	return !r->has_value_range && !r->is_extensible && !r->lower_bound && !r->upper_bound && !r->tail && !r->tail_count && !r->extension_additions && !r->extension_addition_count;
 }
 static const asn1typed_type_t *
 ioc_named_type(const asn1typed_module_t *m, const asn1typed_type_ref_t *r) {
@@ -611,7 +626,7 @@ ioc_named_type(const asn1typed_module_t *m, const asn1typed_type_ref_t *r) {
 static int
 ioc_scalar_clean(const asn1typed_type_t *t) {
 	return t && !t->is_extensible && !t->fields && !t->field_count && !t->field_capacity &&
-		!t->alternatives && !t->alternative_count && !t->alternative_capacity && !t->has_valid_per_root_mapping &&
+		!t->alternatives && !t->alternative_count && !t->alternative_capacity && !t->has_valid_per_root_mapping && !t->choice_root_only_extension_owned &&
 		!t->has_ioc_table && !t->ioc_object_set_is_extensible && ioc_empty_ref(&t->element_type) && ioc_empty_ref(&t->ioc_container) &&
 		ioc_empty_size(&t->size_constraint) && t->sequence_extension_evidence == ASN1TYPED_WIRE_EVIDENCE_UNAVAILABLE &&
 		!t->sequence_root_field_count && !t->sequence_known_addition_count && !t->has_valid_sequence_extension_structure;
@@ -641,7 +656,7 @@ ioc_binding_check(const asn1typed_module_t *m, size_t index, int published, char
 	if(instance->body_materialized != 1 || body->kind != ASN1TYPED_TYPE_SEQUENCE || body->is_extensible ||
 		body->field_count != 3 || !ioc_storage_valid(body->field_count, body->field_capacity, body->fields) ||
 		!ioc_empty_size(&body->size_constraint) || !ioc_empty_range(&body->value_range) || !ioc_empty_ref(&body->element_type) || !ioc_empty_ref(&body->ioc_container) || body->has_ioc_table || body->ioc_object_set_is_extensible ||
-		body->primitive_kind != ASN1TYPED_PRIMITIVE_INVALID || body->enum_items || body->enum_item_count || body->enum_item_capacity || body->has_valid_per_enumeration_mapping || body->alternatives || body->alternative_count || body->alternative_capacity || body->has_valid_per_root_mapping ||
+		body->primitive_kind != ASN1TYPED_PRIMITIVE_INVALID || body->enum_items || body->enum_item_count || body->enum_item_capacity || body->has_valid_per_enumeration_mapping || body->alternatives || body->alternative_count || body->alternative_capacity || body->has_valid_per_root_mapping || body->choice_root_only_extension_owned ||
 		body->sequence_extension_evidence != ASN1TYPED_WIRE_EVIDENCE_UNAVAILABLE || body->sequence_root_field_count || body->sequence_known_addition_count || body->has_valid_sequence_extension_structure)
 		BIND_BAD("IOC binding unsupported physical field body");
 	if(instance->ioc_binding.id_field_ordinal != 0 || instance->ioc_binding.criticality_field_ordinal != 1 || instance->ioc_binding.value_field_ordinal != 2) BIND_BAD("IOC binding physical role ordinals invalid");
@@ -656,7 +671,7 @@ ioc_binding_check(const asn1typed_module_t *m, size_t index, int published, char
 		crit->type_semantics != ASN1TYPED_FIELD_FIXED_TYPE || !ioc_relation_matches(crit, r, "criticality", id->source_name) ||
 		value->type_semantics != ASN1TYPED_FIELD_CLASS_FIELD_SELECTED_TYPE || !ioc_empty_ref(&value->type) || !ioc_relation_matches(value, r, r->selected_class_field_source_name, id->source_name)) BIND_BAD("IOC binding selector/class role mismatch");
 	id_type = ioc_named_type(m, &id->type); criticality = ioc_named_type(m, &crit->type);
-	if(!ioc_scalar_clean(id_type) || id_type->kind != ASN1TYPED_TYPE_PRIMITIVE || id_type->primitive_kind != ASN1TYPED_PRIMITIVE_INTEGER || id_type->value_range.has_value_range != 1 || id_type->value_range.is_extensible || id_type->value_range.lower_bound != 0 || id_type->value_range.upper_bound != 65535 || id_type->value_range.tail || id_type->value_range.tail_count || id_type->enum_items || id_type->enum_item_count || id_type->enum_item_capacity || id_type->has_valid_per_enumeration_mapping) BIND_BAD("IOC binding identifier type/domain unsupported");
+	if(!ioc_scalar_clean(id_type) || id_type->kind != ASN1TYPED_TYPE_PRIMITIVE || id_type->primitive_kind != ASN1TYPED_PRIMITIVE_INTEGER || id_type->value_range.has_value_range != 1 || id_type->value_range.is_extensible || id_type->value_range.lower_bound != 0 || id_type->value_range.upper_bound != 65535 || id_type->value_range.tail || id_type->value_range.tail_count || id_type->value_range.extension_additions || id_type->value_range.extension_addition_count || id_type->enum_items || id_type->enum_item_count || id_type->enum_item_capacity || id_type->has_valid_per_enumeration_mapping) BIND_BAD("IOC binding identifier type/domain unsupported");
 	if(!ioc_scalar_clean(criticality) || criticality->kind != ASN1TYPED_TYPE_ENUMERATED || criticality->primitive_kind != ASN1TYPED_PRIMITIVE_INVALID || !ioc_empty_range(&criticality->value_range) || criticality->enum_item_count != 3 || asn1typed_enumerated_evidence_validate(criticality, error, size)) BIND_BAD("IOC binding criticality type evidence unsupported");
 	for(i = 0; i < 3; ++i) {
 		const asn1typed_enum_item_t *item = &criticality->enum_items[i];
@@ -727,7 +742,7 @@ asn1typed_bound_instance_empty_private_validate(const asn1typed_module_t *m,
         if(a->wire_evidence != ASN1TYPED_WIRE_EVIDENCE_RESOLVED || a->effective_tag_class != ASN1TYPED_TAG_CLASS_CONTEXT_SPECIFIC || a->effective_tag_number != (intmax_t)i || a->per_root_index != i ||
             a->type_ref.kind != ASN1TYPED_REF_PRIMITIVE || a->type_ref.module || a->type_ref.source_name || a->type_ref.actuals || a->type_ref.actual_count ||
             a->type_ref.primitive_kind != (i ? ASN1TYPED_PRIMITIVE_OBJECT_IDENTIFIER : ASN1TYPED_PRIMITIVE_INTEGER) || !ioc_empty_size(&a->size_constraint)) PRIVATE_BAD("empty-private key domain/tag order unsupported");
-        if(i ? !ioc_empty_range(&a->value_range) : (a->value_range.has_value_range != 1 || a->value_range.is_extensible || a->value_range.lower_bound || a->value_range.upper_bound != 65535 || a->value_range.tail || a->value_range.tail_count)) PRIVATE_BAD("empty-private local/OID key constraint unsupported");
+        if(i ? !ioc_empty_range(&a->value_range) : (a->value_range.has_value_range != 1 || a->value_range.is_extensible || a->value_range.lower_bound || a->value_range.upper_bound != 65535 || a->value_range.tail || a->value_range.tail_count || a->value_range.extension_additions || a->value_range.extension_addition_count)) PRIVATE_BAD("empty-private local/OID key constraint unsupported");
     }
     if(!ioc_scalar_clean(criticality) || criticality->kind != ASN1TYPED_TYPE_ENUMERATED || criticality->enum_item_count != 3 || asn1typed_enumerated_evidence_validate(criticality, error, size)) PRIVATE_BAD("empty-private criticality evidence unavailable");
     for(i = 0; i < 3; ++i) {
@@ -1063,7 +1078,7 @@ asn1typed_type_add_inline_enumerated_alternative(asn1typed_type_t *type,
        body->element_type.primitive_kind != ASN1TYPED_PRIMITIVE_INVALID ||
        body->ioc_container.kind != ASN1TYPED_REF_NAMED ||
        body->ioc_container.primitive_kind != ASN1TYPED_PRIMITIVE_INVALID ||
-       body->has_valid_per_root_mapping ||
+       body->has_valid_per_root_mapping || body->choice_root_only_extension_owned ||
        body->sequence_extension_evidence != ASN1TYPED_WIRE_EVIDENCE_UNAVAILABLE ||
        body->sequence_root_field_count || body->sequence_known_addition_count ||
        body->has_valid_sequence_extension_structure ||
@@ -1263,7 +1278,7 @@ asn1typed_type_add_choice_alternative(asn1typed_type_t *type,
 fail:
 	free(alternative.source_name);
 	asn1typed_type_ref_clear(&alternative.type_ref);
-	free(alternative.value_range.tail);
+	free(alternative.value_range.tail); free(alternative.value_range.extension_additions);
 	asn1typed_source_location_clear(&alternative.location);
 	return -1;
 }
@@ -1341,9 +1356,9 @@ choice_wire_evidence_check(const asn1typed_type_t *type,
 			"wire evidence requires a non-empty CHOICE");
 		return -1;
 	}
-	if(type->is_extensible) {
+	if((type->choice_root_only_extension_owned && (type->choice_root_only_extension_owned != 1 || type->is_extensible != 1)) || (type->is_extensible && type->choice_root_only_extension_owned != 1)) {
 		if(error && error_size) snprintf(error, error_size,
-			"extensible CHOICE wire mapping is unsupported");
+			"extensible CHOICE wire mapping lacks owned root-only marker");
 		return 1;
 	}
 	for(i = 0; i < type->alternative_count; ++i) {

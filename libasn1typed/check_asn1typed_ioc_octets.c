@@ -61,7 +61,7 @@ static void owned_ok(asn1typed_module_t *m, int extension) {
 static void rejects(asn1p_t *tree, const char *name) {
     asn1typed_module_t m = {0};
     REQUIRE(extract(tree, name, &m) == -1 && diagnostic[0]);
-    REQUIRE(strstr(diagnostic, "inline constrained type is unsupported"));
+    REQUIRE(strstr(diagnostic, "unsupported constrained IOC payload evidence"));
     REQUIRE(!m.types && !m.bound_instances && !m.ioc_registries && !m.source_name);
     asn1typed_module_clear(&m);
 }
@@ -96,11 +96,11 @@ static void fixed_residue_rejects(asn1p_t *tree) {
 }
 int main(void) {
     asn1p_t *tree = asn1p_parse_file(IOC_OCTETS_FIXTURE, A1P_NOFLAGS);
-    asn1typed_module_t main_graph = {0}, extension_graph = {0};
+    asn1typed_module_t main_graph = {0}, extension_graph = {0}, sized_graph = {0};
     const char *names[] = { "Message", "ExtensionMessage" };
     size_t n;
     REQUIRE(tree && asn1f_process(tree, A1F_NOFLAGS, NULL) >= 0);
-    rejects(tree, "SizedMessage");
+    REQUIRE(extract(tree, "SizedMessage", &sized_graph) == 0);
     rejects(tree, "CompoundMessage");
     fixed_residue_rejects(tree);
     for(n = 0; n < 2; ++n) {
@@ -119,6 +119,18 @@ int main(void) {
     REQUIRE(extract(tree, "Message", &main_graph) == 0);
     REQUIRE(extract(tree, "ExtensionMessage", &extension_graph) == 0);
     asn1p_delete(tree);
+    {
+        const asn1typed_type_ref_t *ref = &sized_graph.ioc_registries[0].rows[0].payload_type;
+        size_t i;
+        REQUIRE(ref->kind == ASN1TYPED_REF_NAMED);
+        for(i = 0; i < sized_graph.type_count; ++i)
+            if(!strcmp(sized_graph.types[i].identity.source_name, ref->source_name)) break;
+        REQUIRE(i < sized_graph.type_count);
+        REQUIRE(sized_graph.types[i].primitive_kind == ASN1TYPED_PRIMITIVE_OCTET_STRING);
+        REQUIRE(sized_graph.types[i].size_constraint.has_size_constraint &&
+            sized_graph.types[i].size_constraint.lower_bound == 3 && sized_graph.types[i].size_constraint.upper_bound == 3);
+        asn1typed_module_clear(&sized_graph);
+    }
     /* Containing type is deliberately unsupported: outer-octet ownership
      * must neither traverse it nor retain any Parser/Fixer pointer. */
     owned_ok(&main_graph, 0); owned_ok(&extension_graph, 1);

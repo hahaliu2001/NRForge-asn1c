@@ -27,3 +27,33 @@ probe MODULE_LIST ASN1_ROOT MESSAGE_LIST HEADER_DIR BODY_MODULE DESCRIPTION_MODU
 `readiness.json` records all 158 message results, exact first-failure clusters, source identities, compiler version/options and scan-input hashes. Large raw owned inventories, generated headers and compiler logs are in the work directory and can be reproduced from those inputs. Hashes identify the particular probe executable; rebuilding it may change that hash without changing semantics.
 
 Interpret each gate separately: parse/fix; physical extraction; three body-generation families; strict body compilation; envelope descriptor extraction. A successful envelope extraction does not imply that complete-PDU generation was attempted. Compilation does not test linkage, bytes, required IE policy, extension handling, unknown IEs, or interoperability. An earlier failure masks later dependencies. Cluster sizes describe observed affected messages, not predicted unlock counts. Ordinary type inventories exclude bound-instance internal bodies. No benchmark or external codec qualification is run.
+
+
+## F1-P2 shared body validation
+
+The historical F1-P1 report above is preserved. The F1-P2 stable-source scan is
+recorded separately in `readiness-f1-p2.json`; implementation scope and exact
+qualification boundaries are in
+[the shared body closeout](../../docs/f1ap-cpp-aper-shared-body-closeout.md).
+Reproduce against a probe rebuilt from the final revision, with a fresh work
+path and the unchanged frozen source root:
+
+```sh
+python tools/f1ap-readiness/scan.py \
+  --asn1-root /path/to/NRForge-RAN/src \
+  --probe /path/to/rebuilt/asn1typed_codec_coverage \
+  --work /tmp/new-f1ap-f1-p2-work \
+  --output /tmp/f1ap-f1-p2-readiness.json
+```
+
+This scan still separates physical extraction, BODY generation, strict syntax
+compilation, target-envelope evidence and wire qualification. Root-only
+extensible CHOICE payloads reject unknown extension selections explicitly;
+large schema bounds remain subject to the existing runtime collection budget.
+No scan status represents full F1AP-PDU interoperability. Independent review
+for this milestone is recorded in `review-f1-p2.md`.
+
+NGAP nonregression is recorded separately in `ngap-regression-f1-p2.json`
+(all 131 identities) and `ngap-artifact-regression-f1-p2.json` (14-message
+baseline exact output comparison and functional test fingerprints). These
+preserve earlier NGAP evidence files and do not replace accepted wire profiles.

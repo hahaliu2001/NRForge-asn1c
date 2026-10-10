@@ -256,3 +256,10 @@ check_asn1typed_fragment_bits_render_CPPFLAGS = $(check_asn1typed_extract_CPPFLA
 check_asn1typed_fragment_bits_render_LDADD = $(check_asn1typed_extract_LDADD)
 check_asn1typed_fragment_bits_render_LDFLAGS = -Wl,--wrap=malloc -Wl,--wrap=calloc -Wl,--wrap=realloc
 EXTRA_DIST += check_asn1typed_fragment_bits_generated.sh fixtures/fragment-bits-generation-batch.asn1
+
+check_PROGRAMS += check_asn1typed_inline_constructed
+check_asn1typed_inline_constructed_SOURCES = check_asn1typed_inline_constructed.c
+check_asn1typed_inline_constructed_CPPFLAGS = $(check_asn1typed_extract_CPPFLAGS)
+check_asn1typed_inline_constructed_LDADD = $(check_asn1typed_extract_LDADD)
+TESTS += check_asn1typed_inline_constructed.sh
+EXTRA_DIST += check_asn1typed_inline_constructed.sh check_asn1typed_inline_constructed.cpp fixtures/inline-constructed-f1p2.asn1

@@ -147,6 +147,27 @@ check_extension_choice_rejected_by_extractor(void) {
 }
 
 static void
+check_root_only_extension_owned(void) {
+    static const char schema[] = "RootExtension DEFINITIONS AUTOMATIC TAGS ::= BEGIN\n"
+        "Extended ::= CHOICE { first BOOLEAN, second BOOLEAN, ... }\nEND\n";
+    asn1typed_module_t ir = {0};
+    asn1p_t *tree = asn1p_parse_buffer(schema, -1, "root-extension.asn1", 1, A1P_NOFLAGS);
+    char error[256] = {0};
+    asn1typed_type_t *choice;
+    assert(tree && asn1f_process(tree, A1F_NOFLAGS, NULL) >= 0);
+    assert(asn1typed_extract_module(tree, "RootExtension", &ir, error, sizeof(error)) == 0);
+    asn1p_delete(tree);
+    choice = find_type(&ir, "Extended");
+    assert(choice && choice->is_extensible && choice->choice_root_only_extension_owned);
+    assert(choice->alternative_count == 2 && choice->has_valid_per_root_mapping);
+    assert(choice->alternatives[0].per_root_index == 0 && choice->alternatives[1].per_root_index == 1);
+    assert(asn1typed_choice_wire_evidence_validate(choice, error, sizeof(error)) == 0);
+    choice->choice_root_only_extension_owned = 0;
+    assert(asn1typed_choice_wire_evidence_validate(choice, error, sizeof(error)) != 0);
+    asn1typed_module_clear(&ir);
+}
+
+static void
 check_invalid_manual_evidence(void) {
 	asn1typed_module_t ir = {0};
 	asn1typed_type_t *choice;
@@ -232,5 +253,6 @@ check_asn1typed_choice_wire_evidence(void) {
 	check_explicit_tags_and_classes_after_tree_destroy();
 	check_partial_extraction_keeps_no_indexes();
 	check_extension_choice_rejected_by_extractor();
+    check_root_only_extension_owned();
 	check_invalid_manual_evidence();
 }

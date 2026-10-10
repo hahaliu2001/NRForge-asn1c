@@ -349,6 +349,30 @@ void fragments() {
         allocation_countdown=0; auto oom=c::decode_large(encoded.value().octets); allocation_countdown=-1;
         REQUIRE(!oom && oom.error().code==ErrorCode::allocation_failure);
     }
+    static_assert(c::Huge_aper::upper_bound == 67108864);
+    // Repeated 64K fragments and a nonzero tail, independent determinant model.
+    for(std::size_t count : {65537u,131072u}) {
+        c::Huge value; value.elements.resize(count,false);
+        std::vector<std::byte> model;
+        std::size_t remaining=count;
+        while(remaining >= 65536) {
+            model.push_back(std::byte{0xc4});
+            model.resize(model.size()+8192,std::byte{0});
+            remaining-=65536;
+        }
+        model.push_back(static_cast<std::byte>(remaining));
+        if(remaining) model.push_back(std::byte{0});
+        Limits large_limits; large_limits.max_collection_elements=count;
+        auto encoded=c::encode_huge(value,large_limits); REQUIRE(encoded && encoded.value().octets==model);
+        auto decoded=c::decode_huge(model,large_limits); REQUIRE(decoded && decoded.value().elements==value.elements);
+    }
+    Limits huge_limits; huge_limits.max_collection_elements=65535;
+    // A valid maximum fragment declaration is rejected by budget before reserve.
+    const auto declared=octets({0xc4});
+    allocation_countdown=0;
+    auto denied=c::decode_huge(declared,huge_limits);
+    allocation_countdown=-1;
+    REQUIRE(!denied && denied.error().code==ErrorCode::resource_limit);
     error(c::encode_large({}),ErrorCode::constraint_violation,0);
     auto invalid=c::decode_large(octets({0xc0})); REQUIRE(!invalid && invalid.error().code==ErrorCode::constraint_violation);
 }

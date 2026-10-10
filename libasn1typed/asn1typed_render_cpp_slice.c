@@ -66,8 +66,30 @@ int asn1typed_render_cpp_header_macro(const char *spelling) {
 	return cpp_header_macro(spelling);
 }
 char *asn1typed_render_cpp_final_name(const char *s, asn1typed_name_style_e style) {
-	char *p = NULL;
-	if(asn1typed_name_make(s, style, &p) != ASN1TYPED_NAME_OK) return NULL;
+    char *p = NULL, *synthetic = NULL;
+    if(s && !strncmp(s, "$inline$", 8)) {
+        size_t i, used = 7, length = strlen(s);
+        synthetic = malloc(length + 8);
+        if(!synthetic) return NULL;
+        memcpy(synthetic, "Inline-", 7);
+        for(i = 8; i < length; ++i) {
+            unsigned char c = (unsigned char)s[i];
+            if(c == '$') c = '-';
+            if(c == '@' && ((!strncmp(s + i, "@element", 8) && (!s[i + 8] || s[i + 8] == '$')) ||
+                    (!strncmp(s + i, "@payload", 8) && (!s[i + 8] || s[i + 8] == '$')))) continue;
+            if(!((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') ||
+                    (c >= '0' && c <= '9') || c == '-')) {
+                free(synthetic); return NULL;
+            }
+            synthetic[used++] = (char)c;
+        }
+        synthetic[used] = 0;
+        s = synthetic;
+    }
+    if(asn1typed_name_make(s, style, &p) != ASN1TYPED_NAME_OK) {
+        free(synthetic); return NULL;
+    }
+    free(synthetic);
 	size_t n = strlen(p);
 	if(cpp_keyword(p)) {
 		char *q = realloc(p, n + 2); if(!q) { free(p); return NULL; }
@@ -172,6 +194,7 @@ static int type_storage_valid(const asn1typed_type_t *t) {
 	int choice = t->kind == ASN1TYPED_TYPE_CHOICE;
 	int enumerated = t->kind == ASN1TYPED_TYPE_ENUMERATED;
 	int sequence_of = t->kind == ASN1TYPED_TYPE_SEQUENCE_OF;
+	if(t->choice_root_only_extension_owned && (!choice || t->is_extensible != 1 || t->choice_root_only_extension_owned != 1)) return 0;
 	if(t->kind < ASN1TYPED_TYPE_PRIMITIVE || t->kind > ASN1TYPED_TYPE_CHOICE ||
 		!storage_consistent(t->fields, t->field_count, t->field_capacity) ||
 		!storage_consistent(t->alternatives, t->alternative_count, t->alternative_capacity) ||
@@ -193,7 +216,7 @@ static int size_constraint_is_empty(const asn1typed_size_constraint_t *c) {
 }
 static int value_range_is_empty(const asn1typed_integer_value_range_t *r) {
 	return !r->has_value_range && r->lower_bound == 0 && r->upper_bound == 0 &&
-		!r->is_extensible && !r->tail && !r->tail_count;
+		!r->is_extensible && !r->tail && !r->tail_count && !r->extension_additions && !r->extension_addition_count;
 }
 static int fmt_i64(struct outbuf *b, intmax_t v) {
 	if(v == INT64_MIN) return put(b, "(-INT64_C(9223372036854775807) - INT64_C(1))");
@@ -267,7 +290,7 @@ int asn1typed_render_cpp_owned_slice(const asn1typed_module_t *m,
 				if(fmt(&b, "using %s = bool;\n\n", names[i])) goto oom;
 			} else if(t->primitive_kind == ASN1TYPED_PRIMITIVE_INTEGER) {
 				const asn1typed_integer_value_range_t *r = &t->value_range;
-				if(!r->has_value_range || r->is_extensible || r->tail || r->tail_count || r->lower_bound > r->upper_bound || !size_constraint_is_empty(&t->size_constraint)) { err = "INTEGER requires one complete non-extensible interval"; goto fail; }
+				if(!r->has_value_range || r->is_extensible || r->tail || r->tail_count || r->extension_additions || r->extension_addition_count || r->lower_bound > r->upper_bound || !size_constraint_is_empty(&t->size_constraint)) { err = "INTEGER requires one complete non-extensible interval"; goto fail; }
 				if(r->lower_bound < 0) {
 					if(r->lower_bound < INT64_MIN || r->upper_bound > INT64_MAX) { err = "INTEGER domain exceeds int64_t"; goto fail; }
 					if(fmt(&b, "using %s = std::int64_t;\nstruct %s_constraint {\n    static constexpr std::int64_t lower_bound = ", names[i], names[i]) || fmt_i64(&b, r->lower_bound) || put(&b, ";\n    static constexpr std::int64_t upper_bound = ") || fmt_i64(&b, r->upper_bound) || put(&b, ";\n};\n\n")) goto oom;
@@ -421,7 +444,7 @@ int asn1typed_render_cpp_owned_aper_mapping(const asn1typed_module_t *m,
 		if(t->is_extensible || t->has_ioc_table || t->ioc_object_set_is_extensible) { err = "extension or IOC semantics unsupported by owned APER mapping"; goto fail; }
 		if(t->kind == ASN1TYPED_TYPE_PRIMITIVE && t->primitive_kind == ASN1TYPED_PRIMITIVE_INTEGER) {
 			const asn1typed_integer_value_range_t *r = &t->value_range;
-			if(!r->has_value_range || r->is_extensible || r->tail || r->tail_count || r->lower_bound != 0 || r->upper_bound != 65535 || !size_constraint_is_empty(&t->size_constraint)) { err = "APER mapping supports only non-extensible INTEGER (0..65535)"; goto fail; }
+			if(!r->has_value_range || r->is_extensible || r->tail || r->tail_count || r->extension_additions || r->extension_addition_count || r->lower_bound != 0 || r->upper_bound != 65535 || !size_constraint_is_empty(&t->size_constraint)) { err = "APER mapping supports only non-extensible INTEGER (0..65535)"; goto fail; }
 			if(fmt(&b, "struct %s_aper {\n    static constexpr std::uint64_t lower_bound = 0;\n    static constexpr std::uint64_t upper_bound = 65535;\n    static constexpr std::uint8_t value_bit_width = 16;\n    static constexpr bool align_before_payload_to_octet = true;\n    static constexpr bool most_significant_octet_first = true;\n    static constexpr bool has_length_determinant = false;\n    static constexpr bool has_extension_bit = false;\n};\n\n", names[i])) goto oom;
 		} else if(t->kind == ASN1TYPED_TYPE_PRIMITIVE && t->primitive_kind == ASN1TYPED_PRIMITIVE_BOOLEAN) {
 			if(!value_range_is_empty(&t->value_range) || !size_constraint_is_empty(&t->size_constraint)) { err = "constraint on BOOLEAN unsupported by owned APER mapping"; goto fail; }

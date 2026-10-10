@@ -58,7 +58,7 @@ empty_size(const asn1typed_size_constraint_t *c) {
 static int
 empty_range(const asn1typed_integer_value_range_t *r) {
 	return !r->has_value_range && !r->lower_bound && !r->upper_bound &&
-		!r->is_extensible && !r->tail && !r->tail_count;
+		!r->is_extensible && !r->tail && !r->tail_count && !r->extension_additions && !r->extension_addition_count;
 }
 
 struct codec_plan {
@@ -215,7 +215,7 @@ emit_primitive(struct codec_buf *b, const asn1typed_type_t *t, const struct code
 	}
 	if(t->primitive_kind == ASN1TYPED_PRIMITIVE_INTEGER) {
 		const asn1typed_integer_value_range_t *r = &t->value_range;
-		if(!r->has_value_range || r->lower_bound != 0 || r->upper_bound != 65535 || r->is_extensible || r->tail || r->tail_count || !empty_size(&t->size_constraint)) return -2;
+		if(!r->has_value_range || r->lower_bound != 0 || r->upper_bound != 65535 || r->is_extensible || r->tail || r->tail_count || r->extension_additions || r->extension_addition_count || !empty_size(&t->size_constraint)) return -2;
 		return format(b, "inline ::nrforge::aper::Result<void> %s(::nrforge::aper::FieldWriter& f, %s v) { return f.write_aligned_u16_be(v); }\ninline ::nrforge::aper::Result<%s> %s(::nrforge::aper::FieldReader& f) { auto v = f.read_aligned_u16_be(); if(!v) return ::nrforge::aper::Result<%s>::failure(v.error()); return ::nrforge::aper::Result<%s>::success(v.value()); }\n", p->helpers[i], p->types[i], p->types[i], p->getters[i], p->types[i], p->types[i]);
 	}
 	return -2;

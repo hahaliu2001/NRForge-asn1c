@@ -58,7 +58,7 @@ supported_metadata(const asn1typed_type_t *t) {
 		!t->fields && !t->field_count && !t->field_capacity &&
 		!t->alternatives && !t->alternative_count && !t->alternative_capacity &&
 		!t->enum_items && !t->enum_item_count && !t->enum_item_capacity &&
-		!t->has_valid_per_root_mapping && !t->has_valid_per_enumeration_mapping &&
+		!t->has_valid_per_root_mapping && !t->choice_root_only_extension_owned && !t->has_valid_per_enumeration_mapping &&
 		t->sequence_extension_evidence == ASN1TYPED_WIRE_EVIDENCE_UNAVAILABLE &&
 		!t->sequence_root_field_count && !t->sequence_known_addition_count &&
 		!t->has_valid_sequence_extension_structure &&
@@ -128,6 +128,15 @@ preflight(const asn1typed_module_t *m, const char *ns,
                 FAIL("INTEGER root set is not finite canonical disjoint intervals");
             p[i].upper = (int64_t)a->upper_bound;
         }
+        if((!!range->extension_additions != !!range->extension_addition_count) ||
+            (range->extension_addition_count && !range->is_extensible) ||
+            range->extension_addition_count > SIZE_MAX / sizeof(*range->extension_additions)) FAIL("invalid INTEGER known extension evidence");
+        for(j = 0; j < range->extension_addition_count; ++j) {
+            const asn1typed_integer_interval_t *a = &range->extension_additions[j];
+            if(a->lower_bound < INT64_MIN || a->upper_bound > INT64_MAX || a->lower_bound > a->upper_bound ||
+                (j && (range->extension_additions[j-1].upper_bound == INTMAX_MAX || a->lower_bound <= range->extension_additions[j-1].upper_bound + 1)))
+                FAIL("INTEGER known additions are not canonical finite intervals");
+        }
         p[i].range = range; p[i].extensible = range->is_extensible;
         p[i].is_signed = p[i].lower < 0 || p[i].extensible || range->tail_count;
 		p[i].distance = (uint64_t)p[i].upper - (uint64_t)p[i].lower;
@@ -196,6 +205,16 @@ emit(struct integer_buf *b, const asn1typed_module_t *m,
                     integer_literal(lo, sizeof(lo), (int64_t)p[i].range->tail[j].lower_bound, 1);
                     integer_literal(hi, sizeof(hi), (int64_t)p[i].range->tail[j].upper_bound, 1);
                     if(format(b, ", {%s, %s}", lo, hi)) return -1;
+                }
+                if(append(b, "};\n")) return -1;
+            }
+            if(p[i].range->extension_addition_count) {
+                size_t j; char lo[96], hi[96];
+                if(format(b, "    // Known additions do not close the open extension domain.\n    static constexpr ::nrforge::aper::IntegerInterval known_extension_intervals[%zu] = {", p[i].range->extension_addition_count)) return -1;
+                for(j = 0; j < p[i].range->extension_addition_count; ++j) {
+                    integer_literal(lo, sizeof(lo), (int64_t)p[i].range->extension_additions[j].lower_bound, 1);
+                    integer_literal(hi, sizeof(hi), (int64_t)p[i].range->extension_additions[j].upper_bound, 1);
+                    if(format(b, "%s{%s, %s}", j ? ", " : "", lo, hi)) return -1;
                 }
                 if(append(b, "};\n")) return -1;
             }
