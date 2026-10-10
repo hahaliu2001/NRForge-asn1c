@@ -180,3 +180,13 @@ asn1c/tmp/
 
 /libasn1typed/check_asn1typed_shape_render
 /libasn1typed/check_asn1typed_shape_api
+
+/libasn1typed/check_asn1typed_character_render
+/libasn1typed/check_asn1typed_null_render
+/libaper/check_aper_ext_strings
+/libasn1typed/check_asn1typed_size_render
+/libaper/check_aper_extensible_integer
+/libasn1typed/check_asn1typed_domain_render
+/libasn1typed/check_asn1typed_private_render
+/libaper/check_aper_fragmented_bits
+/libasn1typed/check_asn1typed_fragment_bits_render

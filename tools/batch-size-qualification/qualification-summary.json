@@ -1,0 +1,60 @@
+{
+  "status": "PASS",
+  "source_sha256": {
+    "libaper/runtime.hpp": "34ceca5e464fc1c8f6e505cdd01ec00d22dd87d74d17abbb5660f605570162f1",
+    "libaper/runtime.cpp": "e6d162c031a4c8ba958e21460ffd5acf5ecf05d26232549da9933912e9259731",
+    "tools/batch-size-qualification/driver.cpp": "ae565e345c317f4d4ca690d17293825a2cb4b868070c9432e7fb03a0ed0c9bfd",
+    "tools/batch-size-qualification/qualify.py": "6dbe90ab046b154ae798a710a682f1b5eeea29e595dd4402dec28d2e681763f4"
+  },
+  "source_snapshot_verified_unchanged": true,
+  "compiler": "c++ (Ubuntu 13.3.0-6ubuntu2~24.04) 13.3.0",
+  "compiler_command": [
+    "c++"
+  ],
+  "compiler_flags": [
+    "-std=c++20",
+    "-Wall",
+    "-Wextra",
+    "-Werror",
+    "-pedantic-errors",
+    "-Wconversion",
+    "-Wsign-conversion"
+  ],
+  "compile_inputs": [
+    "libaper/runtime.cpp",
+    "tools/batch-size-qualification/driver.cpp"
+  ],
+  "include_directories": [
+    "libaper"
+  ],
+  "oracle": "asn1tools",
+  "oracle_version": "0.167.0",
+  "native_model_exact_cases": 256,
+  "runtime_encode_cases": 256,
+  "runtime_decode_cases": 256,
+  "native_decode_exact_wire_cases": 256,
+  "native_decode_empty_field_semantics_cases": 0,
+  "oracle_empty_substitution_difference": [],
+  "offsets": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7
+  ],
+  "profiles": [
+    "Address",
+    "Algorithms",
+    "Restriction",
+    "Medium"
+  ],
+  "schema_sha256": "636ea09b880f9d06736fb83d4e3308453ec12447b0716c0453b028427f008c2f",
+  "runtime_sha256": "e6d162c031a4c8ba958e21460ffd5acf5ecf05d26232549da9933912e9259731",
+  "oracle_limitations": [
+    "asn1tools0.167.0 actual BIT STRING extension encode/decode is unimplemented; native extension reference is explicit BOOLEAN selector + unconstrained BIT STRING surrogate; root cases also checked with original extensible schema"
+  ],
+  "scope": "Extensible BIT STRING root/extension framing, offsets0..7, extension length0..16383. Separate generated codec/model tests cover effective SIZE/addition evidence. No NGAP/PDU qualification."
+}

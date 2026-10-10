@@ -1,0 +1,348 @@
+{
+  "scope": "Six focused frozen physical graphs only; generation is not strict compilation or wire qualification. DownlinkNAS later missing reference remains.",
+  "frozen_ngap_ies_sha256": "ae4edee7e7d69ac6db94e44f5e716445990ecf5943edbc9a0f328ed210c25831",
+  "messages": [
+    {
+      "message": "HandoverRequired",
+      "physical_extraction_rc": 0,
+      "generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "extensible_use_sites": [
+        {
+          "module": "NGAP-IEs",
+          "owner": "TNGF-ID",
+          "component": "tNGF-ID",
+          "kind": "alternatives",
+          "size": {
+            "present": 1,
+            "lower": 32,
+            "upper": 32,
+            "extensible": 1
+          }
+        },
+        {
+          "module": "NGAP-IEs",
+          "owner": "TWIF-ID",
+          "component": "tWIF-ID",
+          "kind": "alternatives",
+          "size": {
+            "present": 1,
+            "lower": 32,
+            "upper": 32,
+            "extensible": 1
+          }
+        },
+        {
+          "module": "NGAP-IEs",
+          "owner": "W-AGF-ID",
+          "component": "w-AGF-ID",
+          "kind": "alternatives",
+          "size": {
+            "present": 1,
+            "lower": 16,
+            "upper": 16,
+            "extensible": 1
+          }
+        }
+      ]
+    },
+    {
+      "message": "PWSFailureIndication",
+      "physical_extraction_rc": 0,
+      "generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "extensible_use_sites": [
+        {
+          "module": "NGAP-IEs",
+          "owner": "TNGF-ID",
+          "component": "tNGF-ID",
+          "kind": "alternatives",
+          "size": {
+            "present": 1,
+            "lower": 32,
+            "upper": 32,
+            "extensible": 1
+          }
+        },
+        {
+          "module": "NGAP-IEs",
+          "owner": "TWIF-ID",
+          "component": "tWIF-ID",
+          "kind": "alternatives",
+          "size": {
+            "present": 1,
+            "lower": 32,
+            "upper": 32,
+            "extensible": 1
+          }
+        },
+        {
+          "module": "NGAP-IEs",
+          "owner": "W-AGF-ID",
+          "component": "w-AGF-ID",
+          "kind": "alternatives",
+          "size": {
+            "present": 1,
+            "lower": 16,
+            "upper": 16,
+            "extensible": 1
+          }
+        }
+      ]
+    },
+    {
+      "message": "PWSRestartIndication",
+      "physical_extraction_rc": 0,
+      "generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "extensible_use_sites": [
+        {
+          "module": "NGAP-IEs",
+          "owner": "TNGF-ID",
+          "component": "tNGF-ID",
+          "kind": "alternatives",
+          "size": {
+            "present": 1,
+            "lower": 32,
+            "upper": 32,
+            "extensible": 1
+          }
+        },
+        {
+          "module": "NGAP-IEs",
+          "owner": "TWIF-ID",
+          "component": "tWIF-ID",
+          "kind": "alternatives",
+          "size": {
+            "present": 1,
+            "lower": 32,
+            "upper": 32,
+            "extensible": 1
+          }
+        },
+        {
+          "module": "NGAP-IEs",
+          "owner": "W-AGF-ID",
+          "component": "w-AGF-ID",
+          "kind": "alternatives",
+          "size": {
+            "present": 1,
+            "lower": 16,
+            "upper": 16,
+            "extensible": 1
+          }
+        }
+      ]
+    },
+    {
+      "message": "UplinkRIMInformationTransfer",
+      "physical_extraction_rc": 0,
+      "generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "extensible_use_sites": [
+        {
+          "module": "NGAP-IEs",
+          "owner": "TNGF-ID",
+          "component": "tNGF-ID",
+          "kind": "alternatives",
+          "size": {
+            "present": 1,
+            "lower": 32,
+            "upper": 32,
+            "extensible": 1
+          }
+        },
+        {
+          "module": "NGAP-IEs",
+          "owner": "TWIF-ID",
+          "component": "tWIF-ID",
+          "kind": "alternatives",
+          "size": {
+            "present": 1,
+            "lower": 32,
+            "upper": 32,
+            "extensible": 1
+          }
+        },
+        {
+          "module": "NGAP-IEs",
+          "owner": "W-AGF-ID",
+          "component": "w-AGF-ID",
+          "kind": "alternatives",
+          "size": {
+            "present": 1,
+            "lower": 16,
+            "upper": 16,
+            "extensible": 1
+          }
+        }
+      ]
+    },
+    {
+      "message": "DownlinkRIMInformationTransfer",
+      "physical_extraction_rc": 0,
+      "generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "extensible_use_sites": [
+        {
+          "module": "NGAP-IEs",
+          "owner": "TNGF-ID",
+          "component": "tNGF-ID",
+          "kind": "alternatives",
+          "size": {
+            "present": 1,
+            "lower": 32,
+            "upper": 32,
+            "extensible": 1
+          }
+        },
+        {
+          "module": "NGAP-IEs",
+          "owner": "TWIF-ID",
+          "component": "tWIF-ID",
+          "kind": "alternatives",
+          "size": {
+            "present": 1,
+            "lower": 32,
+            "upper": 32,
+            "extensible": 1
+          }
+        },
+        {
+          "module": "NGAP-IEs",
+          "owner": "W-AGF-ID",
+          "component": "w-AGF-ID",
+          "kind": "alternatives",
+          "size": {
+            "present": 1,
+            "lower": 16,
+            "upper": 16,
+            "extensible": 1
+          }
+        }
+      ]
+    },
+    {
+      "message": "DownlinkNASTransport",
+      "physical_extraction_rc": 0,
+      "generation": [
+        {
+          "family": 0,
+          "rc": -1,
+          "diagnostic": "missing or unsupported physical graph reference"
+        },
+        {
+          "family": 1,
+          "rc": -1,
+          "diagnostic": "missing or unsupported physical graph reference"
+        },
+        {
+          "family": 2,
+          "rc": -1,
+          "diagnostic": "missing or unsupported physical graph reference"
+        }
+      ],
+      "extensible_use_sites": [
+        {
+          "module": "NGAP-IEs",
+          "owner": "ExtendedRATRestrictionInformation",
+          "component": "primaryRATRestriction",
+          "kind": "fields",
+          "size": {
+            "present": 1,
+            "lower": 8,
+            "upper": 8,
+            "extensible": 1
+          }
+        },
+        {
+          "module": "NGAP-IEs",
+          "owner": "ExtendedRATRestrictionInformation",
+          "component": "secondaryRATRestriction",
+          "kind": "fields",
+          "size": {
+            "present": 1,
+            "lower": 8,
+            "upper": 8,
+            "extensible": 1
+          }
+        }
+      ]
+    }
+  ]
+}

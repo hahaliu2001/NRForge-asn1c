@@ -213,3 +213,46 @@ check_asn1typed_shape_api_SOURCES = check_asn1typed_shape_api.cpp
 check_asn1typed_shape_api_CPPFLAGS = $(AM_CPPFLAGS)
 check_asn1typed_shape_api_LDADD = libasn1typed.la
 EXTRA_DIST += check_asn1typed_shape_generated.sh check_asn1typed_shape_generated.cpp fixtures/shape-generation-n17.asn1 fixtures/ioc-shapes-n17.asn1
+
+check_PROGRAMS += check_asn1typed_character_render
+TESTS += check_asn1typed_character_generated.sh
+check_asn1typed_character_render_SOURCES = check_asn1typed_character_render.c
+check_asn1typed_character_render_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/libasn1parser -I$(top_srcdir)/libasn1fix -DNDEBUG
+check_asn1typed_character_render_LDADD = $(check_asn1typed_extract_LDADD)
+EXTRA_DIST += check_asn1typed_character_generated.cpp check_asn1typed_character_generated.sh fixtures/characters-generation-batch.asn1 fixtures/ioc-characters-generation-batch.asn1
+check_PROGRAMS += check_asn1typed_null_render
+TESTS += check_asn1typed_null_generated.sh
+check_asn1typed_null_render_SOURCES = check_asn1typed_null_render.c
+check_asn1typed_null_render_CPPFLAGS = $(check_asn1typed_extract_CPPFLAGS) -DNDEBUG
+check_asn1typed_null_render_LDADD = $(check_asn1typed_extract_LDADD)
+check_asn1typed_null_render_LDFLAGS = -Wl,--wrap=malloc -Wl,--wrap=calloc -Wl,--wrap=realloc
+EXTRA_DIST += check_asn1typed_null_generated.sh check_asn1typed_null_generated.cpp fixtures/null-generation-batch.asn1 fixtures/ioc-null-batch.asn1
+check_PROGRAMS += check_asn1typed_size_render
+TESTS += check_asn1typed_size_generated.sh
+check_asn1typed_size_render_SOURCES = check_asn1typed_size_render.c
+check_asn1typed_size_render_CPPFLAGS = $(check_asn1typed_extract_CPPFLAGS) -DNDEBUG
+check_asn1typed_size_render_LDADD = $(check_asn1typed_extract_LDADD)
+check_asn1typed_size_render_LDFLAGS = -Wl,--wrap=malloc -Wl,--wrap=calloc -Wl,--wrap=realloc
+EXTRA_DIST += check_asn1typed_size_generated.sh fixtures/size-generation-batch.asn1
+check_PROGRAMS += check_asn1typed_domain_render
+TESTS += check_asn1typed_domain_generated.sh
+check_asn1typed_domain_render_SOURCES = check_asn1typed_domain_render.c
+check_asn1typed_domain_render_CPPFLAGS = $(check_asn1typed_extract_CPPFLAGS) -DNDEBUG
+check_asn1typed_domain_render_LDADD = $(check_asn1typed_extract_LDADD)
+check_asn1typed_domain_render_LDFLAGS = -Wl,--wrap=malloc -Wl,--wrap=calloc -Wl,--wrap=realloc
+EXTRA_DIST += check_asn1typed_domain_generated.sh check_asn1typed_domain_generated.cpp fixtures/extensible-integers-batch.asn1
+check_PROGRAMS += check_asn1typed_private_render
+TESTS += check_asn1typed_private_generated.sh
+check_asn1typed_private_render_SOURCES = check_asn1typed_private_render.c
+check_asn1typed_private_render_CPPFLAGS = $(check_asn1typed_extract_CPPFLAGS) -DNDEBUG
+check_asn1typed_private_render_LDADD = $(check_asn1typed_extract_LDADD)
+check_asn1typed_private_render_LDFLAGS = -Wl,--wrap=malloc -Wl,--wrap=calloc -Wl,--wrap=realloc
+EXTRA_DIST += check_asn1typed_private_generated.sh check_asn1typed_private_generated.cpp fixtures/private-generation-batch.asn1
+
+check_PROGRAMS += check_asn1typed_fragment_bits_render
+TESTS += check_asn1typed_fragment_bits_generated.sh
+check_asn1typed_fragment_bits_render_SOURCES = check_asn1typed_fragment_bits_render.c
+check_asn1typed_fragment_bits_render_CPPFLAGS = $(check_asn1typed_extract_CPPFLAGS) -DNDEBUG
+check_asn1typed_fragment_bits_render_LDADD = $(check_asn1typed_extract_LDADD)
+check_asn1typed_fragment_bits_render_LDFLAGS = -Wl,--wrap=malloc -Wl,--wrap=calloc -Wl,--wrap=realloc
+EXTRA_DIST += check_asn1typed_fragment_bits_generated.sh fixtures/fragment-bits-generation-batch.asn1

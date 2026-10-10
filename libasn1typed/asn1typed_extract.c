@@ -26,6 +26,7 @@ set_error(char *error, size_t size, const char *format, ...) {
 static asn1typed_primitive_kind_e
 primitive_from_name(const char *name) {
 	if(!name) return ASN1TYPED_PRIMITIVE_INVALID;
+	if(!strcmp(name, "NULL")) return ASN1TYPED_PRIMITIVE_NULL;
 	if(!strcmp(name, "BOOLEAN")) return ASN1TYPED_PRIMITIVE_BOOLEAN;
 	if(!strcmp(name, "INTEGER")) return ASN1TYPED_PRIMITIVE_INTEGER;
 	if(!strcmp(name, "UTF8String")) return ASN1TYPED_PRIMITIVE_UTF8_STRING;
@@ -39,6 +40,8 @@ static asn1typed_primitive_kind_e
 primitive_from_expr(const asn1p_expr_t *expr) {
 	if(!expr) return ASN1TYPED_PRIMITIVE_INVALID;
 	switch(expr->expr_type) {
+	case ASN_BASIC_NULL: return ASN1TYPED_PRIMITIVE_NULL;
+	case ASN_BASIC_OBJECT_IDENTIFIER: return ASN1TYPED_PRIMITIVE_OBJECT_IDENTIFIER;
 	case ASN_BASIC_BOOLEAN: return ASN1TYPED_PRIMITIVE_BOOLEAN;
 	case ASN_BASIC_INTEGER: return ASN1TYPED_PRIMITIVE_INTEGER;
 	case ASN_STRING_UTF8String: return ASN1TYPED_PRIMITIVE_UTF8_STRING;
@@ -140,6 +143,38 @@ extract_size_constraint(const asn1p_constraint_t *constraint,
 		!(set = size->elements[0]) || set->type != ACT_CA_SET ||
 		set->el_count != 1 || !set->elements || !(list = set->elements[0]))
 		return -1;
+	if(list->type == ACT_CA_CSV && list->el_count == 3 && list->elements &&
+		list->elements[0] && list->elements[1] && list->elements[2] &&
+		list->elements[1]->type == ACT_EL_EXT && !list->elements[1]->el_count &&
+		!list->elements[1]->elements && !list->elements[1]->value &&
+		!list->elements[1]->range_start && !list->elements[1]->range_stop &&
+		!list->elements[1]->containedSubtype) {
+		const asn1p_constraint_t *root = list->elements[0], *addition = list->elements[2];
+		intmax_t root_lower, root_upper, add_lower, add_upper;
+		if(root->el_count || root->elements || root->containedSubtype ||
+			addition->el_count || addition->elements || addition->containedSubtype ||
+			(root->type == ACT_EL_VALUE && (root->range_start || root->range_stop)) ||
+			(root->type == ACT_EL_RANGE && root->value) ||
+			(addition->type == ACT_EL_VALUE && (addition->range_start || addition->range_stop)) ||
+			(addition->type == ACT_EL_RANGE && addition->value)) return -1;
+		if(root->type == ACT_EL_VALUE && accept_exact_size) {
+			if(constraint_bound(root->value, &root_lower)) return -1;
+			root_upper = root_lower;
+		} else if(root->type == ACT_EL_RANGE) {
+			if(constraint_bound(root->range_start, &root_lower) || constraint_bound(root->range_stop, &root_upper)) return -1;
+		} else return -1;
+		if(addition->type == ACT_EL_VALUE) {
+			if(constraint_bound(addition->value, &add_lower)) return -1;
+			add_upper = add_lower;
+		} else if(addition->type == ACT_EL_RANGE) {
+			if(constraint_bound(addition->range_start, &add_lower) || constraint_bound(addition->range_stop, &add_upper)) return -1;
+		} else return -1;
+		if(root_lower < 0 || root_upper < root_lower || add_lower < 0 || add_upper < add_lower) return -1;
+		out->has_size_constraint = out->is_extensible = out->has_extension_addition = 1;
+		out->lower_bound = root_lower; out->upper_bound = root_upper;
+		out->extension_lower_bound = add_lower; out->extension_upper_bound = add_upper;
+		return 0;
+	}
 	if(list->type == ACT_EL_RANGE) {
 		range = list;
 	} else if(list->type == ACT_CA_CSV && list->elements &&
@@ -500,9 +535,23 @@ extract_effective_use_size(const asn1p_constraint_t *c,
 		asn1typed_size_constraint_t part = {0};
 		wrapper.el_count = 1; wrapper.elements = &child;
 		if(extract_size_constraint(&wrapper, &part, 1) ||
-			!part.has_size_constraint || part.is_extensible || part.lower_bound < 0) return -1;
+			!part.has_size_constraint || part.lower_bound < 0) return -1;
 		if(i == 0) *out = part;
 		else {
+			if(part.is_extensible || out->is_extensible) {
+				if(part.is_extensible && out->is_extensible) {
+					if(part.lower_bound != out->lower_bound || part.upper_bound != out->upper_bound ||
+						part.has_extension_addition != out->has_extension_addition ||
+						part.extension_lower_bound != out->extension_lower_bound || part.extension_upper_bound != out->extension_upper_bound) return -1;
+					continue;
+				}
+				/* Intersecting an open extension with a closed root-only SIZE:
+				 * accept only a closed subset of the other root. */
+				asn1typed_size_constraint_t closed = part.is_extensible ? *out : part;
+				asn1typed_size_constraint_t open = part.is_extensible ? part : *out;
+				if(closed.lower_bound < open.lower_bound || closed.upper_bound > open.upper_bound) return -1;
+				*out = closed; continue;
+			}
 			if(part.lower_bound > out->lower_bound) out->lower_bound = part.lower_bound;
 			if(part.upper_bound < out->upper_bound) out->upper_bound = part.upper_bound;
 		}
@@ -997,6 +1046,15 @@ populate_type(asn1p_t *tree, asn1typed_type_t *out, asn1p_expr_t *decl,
 				}
 			}
 			memset(&ref, 0, sizeof(ref));
+            if(member->meta_type == AMT_TYPE && member->expr_type == ASN_BASIC_ENUMERATED) {
+                asn1typed_type_t enum_body = {0}; int rc;
+                enum_body.kind = ASN1TYPED_TYPE_ENUMERATED;
+                if(member->rhs_pspecs || populate_enumerated_items(&enum_body, member, file,
+                       error, error_size, member->Identifier)) { asn1typed_type_clear(&enum_body); return -1; }
+                rc = asn1typed_type_add_inline_enumerated_alternative(out, member->Identifier, &enum_body, file, (unsigned)member->_lineno);
+                asn1typed_type_clear(&enum_body);
+                if(rc) { set_error(error, error_size, "%s.%s: could not store inline ENUMERATED alternative", decl->Identifier, member->Identifier); return -1; }
+            } else {
 			if(member->rhs_pspecs ?
 				put_parameterized_object_set_ref(tree, &ref,
 					member, error, error_size) : put_ref(&ref, member)) {
@@ -1019,6 +1077,7 @@ populate_type(asn1p_t *tree, asn1typed_type_t *out, asn1p_expr_t *decl,
 					decl->Identifier, member->Identifier);
 				return -1;
 			}
+            }
 			{
 				size_t alternative_index = out->alternative_count - 1;
 				asn1typed_tag_class_e tag_class =
@@ -1777,6 +1836,21 @@ component_selector(const asn1p_constraint_t *relation) {
 	return name + 1;
 }
 
+/* The empty-private contract is recognized by actual type semantics, never by
+ * a class or fixture name. The selector is a non-UNIQUE tagged CHOICE. */
+static int private_class_key(const asn1p_expr_t *field) {
+    asn1p_expr_t *key, *a, *b;
+    asn1typed_integer_value_range_t range = {0};
+    int ok;
+    if(!field || field->unique || field->expr_type != A1TC_CLASSFIELD_FTVFS) return 0;
+    key = terminal_type(TQ_FIRST(&field->members));
+    if(!key || key->expr_type != ASN_CONSTR_CHOICE || !(a = TQ_FIRST(&key->members)) || !(b = TQ_NEXT(a, next)) || TQ_NEXT(b, next)) return 0;
+    if(primitive_from_expr(terminal_type(a)) != ASN1TYPED_PRIMITIVE_INTEGER || primitive_from_expr(terminal_type(b)) != ASN1TYPED_PRIMITIVE_OBJECT_IDENTIFIER) return 0;
+    ok = !extract_integer_value_range(a->combined_constraints ? a->combined_constraints : a->constraints, &range) && range.has_value_range && !range.is_extensible && !range.tail_count && range.lower_bound == 0 && range.upper_bound == 65535;
+    free(range.tail);
+    return ok;
+}
+
 static int
 materialize_class_field(asn1p_t *tree, asn1p_expr_t *generic,
 		const asn1typed_type_ref_t *identity, asn1typed_type_t *body,
@@ -1844,7 +1918,7 @@ materialize_class_field(asn1p_t *tree, asn1p_expr_t *generic,
 		} else {
 			/* The studied fixed-type/no-selector shape is the UNIQUE class
 			 * field. Keep its ordinary type without relation metadata. */
-			if(!class_field->unique) goto malformed;
+			if(!class_field->unique && !private_class_key(class_field)) goto malformed;
 			rc = fixed_ref.kind == ASN1TYPED_REF_PRIMITIVE ?
 				asn1typed_type_add_primitive_field(body, member->Identifier,
 					fixed_ref.primitive_kind, presence, file, line) :
@@ -2282,6 +2356,7 @@ asn1typed_extract_message(asn1p_t *tree, const char *module_name,
 		}
 		if(out->types[i].kind == ASN1TYPED_TYPE_CHOICE) {
 			for(j = 0; j < out->types[i].alternative_count; ++j) {
+				if(out->types[i].alternatives[j].inline_enumerated) continue;
 				/* Adding a dependency may realloc the type array. */
 				asn1typed_type_ref_t ref =
 					out->types[i].alternatives[j].type_ref;
@@ -2324,7 +2399,7 @@ physical_class_shape(asn1p_expr_t *class_expr, const char **selected, int *has_p
 		++name;
 		if(!strcmp(name, "id")) {
 			bit = 1;
-			if(member->expr_type != A1TC_CLASSFIELD_FTVFS || !member->unique) return -1;
+			if(member->expr_type != A1TC_CLASSFIELD_FTVFS || (!member->unique && !private_class_key(member))) return -1;
 		} else if(!strcmp(name, "criticality")) {
 			bit = 2;
 			if(member->expr_type != A1TC_CLASSFIELD_FTVFS || member->unique) return -1;
@@ -2448,6 +2523,13 @@ physical_register_binding(asn1p_t *tree, asn1typed_module_t *out, size_t index, 
 		if(ioc_resolve(tree, member, &prefix) != class_expr) goto malformed;
 		++ordinal;
 	}
+    if(ordinal == 3 && set->ioc_table->rows == 0 && set->ioc_table->extensible) {
+        asn1p_expr_t *key_field = TQ_FIRST(&class_expr->members);
+        if(private_class_key(key_field)) {
+            if(asn1typed_bound_instance_set_empty_private_binding(out, index)) goto malformed;
+            return 0;
+        }
+    }
 	if(ordinal != 3 || asn1typed_module_add_ioc_registry(out, class_expr->module->ModuleName, class_expr->Identifier, set->module->ModuleName, set->Identifier, selected, &registry_index)) goto malformed;
 	if(out->ioc_registries[registry_index].evidence == ASN1TYPED_WIRE_EVIDENCE_UNAVAILABLE) {
 		for(j = 0; j < set->ioc_table->rows; ++j)
@@ -2477,6 +2559,7 @@ physical_close_type(asn1p_t *tree, asn1typed_module_t *out, size_t index, char *
 	}
 	for(j = 0; j < out->types[index].alternative_count; ++j) {
 		asn1typed_type_ref_t copy = {0};
+        if(out->types[index].alternatives[j].inline_enumerated) continue;
 		if(asn1typed_type_ref_copy(&copy, &out->types[index].alternatives[j].type_ref)) goto malformed;
 		if(add_ioc_dependency(tree, out, &copy, error, size)) { asn1typed_type_ref_clear(&copy); return -1; }
 		asn1typed_type_ref_clear(&copy);

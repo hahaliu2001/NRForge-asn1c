@@ -13,7 +13,8 @@ struct integer_type_plan {
 	unsigned bits;
 	uint64_t distance;
 	int64_t lower, upper;
-	int is_signed;
+	int is_signed, extensible;
+	const asn1typed_integer_value_range_t *range;
 	char lower_literal[96], upper_literal[96];
 };
 static int
@@ -64,7 +65,7 @@ supported_metadata(const asn1typed_type_t *t) {
 		empty_ref(&t->element_type) && empty_ref(&t->ioc_container) &&
 		!t->has_ioc_table && !t->ioc_object_set_is_extensible && !t->is_extensible &&
 		!t->size_constraint.has_size_constraint && !t->size_constraint.is_extensible &&
-		!t->size_constraint.lower_bound && !t->size_constraint.upper_bound;
+		!t->size_constraint.lower_bound && !t->size_constraint.upper_bound && !t->size_constraint.has_extension_addition && !t->size_constraint.extension_lower_bound && !t->size_constraint.extension_upper_bound;
 }
 static void
 clear_plan(struct integer_type_plan *p, const asn1typed_module_t *m) {
@@ -85,7 +86,7 @@ integer_literal(char *out, size_t size, int64_t value, int signed_type) {
 }
 static int
 preflight(const asn1typed_module_t *m, const char *ns,
-		struct integer_type_plan **out, char *why, size_t size) {
+		struct integer_type_plan **out, char *why, size_t size, int extended) {
 	struct integer_type_plan *p;
 	size_t i, j, k, q;
 #define FAIL(message) do { if(why && size) snprintf(why, size, "%s", message); goto fail; } while(0)
@@ -111,14 +112,24 @@ preflight(const asn1typed_module_t *m, const char *ns,
 		if(!supported_metadata(t)) FAIL("unsupported integer-only type metadata or kind");
 		if(!t->identity.module || strcmp(t->identity.module, m->source_name) ||
 			!t->identity.source_name || !t->identity.source_name[0]) FAIL("invalid integer type identity");
-		if(range->has_value_range != 1 || range->is_extensible ||
-			range->tail || range->tail_count || range->lower_bound > range->upper_bound)
+		if(range->has_value_range != 1 || (!extended && (range->is_extensible || range->tail || range->tail_count)) ||
+            (range->is_extensible != 0 && range->is_extensible != 1) ||
+            (!!range->tail != !!range->tail_count) || range->tail_count > SIZE_MAX / sizeof(*range->tail) ||
+            range->lower_bound > range->upper_bound)
 			FAIL("unsupported integer constraint: requires one finite non-extensible interval");
 		if(range->lower_bound < INT64_MIN || range->upper_bound > INT64_MAX)
 			FAIL("integer interval exceeds int64 evidence domain");
 		p[i].lower = (int64_t)range->lower_bound;
 		p[i].upper = (int64_t)range->upper_bound;
-		p[i].is_signed = p[i].lower < 0;
+        for(j = 0; j < range->tail_count; ++j) {
+            const asn1typed_integer_interval_t *a = &range->tail[j];
+            if(a->lower_bound < INT64_MIN || a->upper_bound > INT64_MAX || a->lower_bound > a->upper_bound ||
+                p[i].upper == INT64_MAX || a->lower_bound <= p[i].upper + INT64_C(1))
+                FAIL("INTEGER root set is not finite canonical disjoint intervals");
+            p[i].upper = (int64_t)a->upper_bound;
+        }
+        p[i].range = range; p[i].extensible = range->is_extensible;
+        p[i].is_signed = p[i].lower < 0 || p[i].extensible || range->tail_count;
 		p[i].distance = (uint64_t)p[i].upper - (uint64_t)p[i].lower;
 		{ uint64_t remaining = p[i].distance; while(remaining) { ++p[i].bits; remaining >>= 1; } }
 		integer_literal(p[i].lower_literal, sizeof(p[i].lower_literal), p[i].lower, p[i].is_signed);
@@ -172,10 +183,28 @@ emit(struct integer_buf *b, const asn1typed_module_t *m,
 				p[i].type, value_type, p[i].constraint, value_type, p[i].lower_literal,
 				value_type, p[i].upper_literal)) return -1;
 		} else if(mode == 1) {
-			if(format(b, "struct %s {\n    using value_type = %s;\n    static constexpr value_type lower_bound = %s;\n    static constexpr value_type upper_bound = %s;\n    // Offset/cardinality bit width; large-range wire payload is variable length.\n    static constexpr unsigned root_bits = %u;\n    static constexpr ::std::uint64_t cardinality_minus_one = UINT64_C(%" PRIu64 ");\n    static constexpr bool cardinality_is_full = %s;\n    static constexpr bool extensible = false;\n};\n",
+			if(format(b, "struct %s {\n    using value_type = %s;\n    static constexpr value_type lower_bound = %s;\n    static constexpr value_type upper_bound = %s;\n    // Offset/cardinality bit width; large-range wire payload is variable length.\n    static constexpr unsigned root_bits = %u;\n    static constexpr ::std::uint64_t cardinality_minus_one = UINT64_C(%" PRIu64 ");\n    static constexpr bool cardinality_is_full = %s;\n    static constexpr bool extensible = %s;\n",
 				p[i].mapping, p[i].qualified_type, p[i].lower_literal, p[i].upper_literal,
-				p[i].bits, p[i].distance, p[i].distance == UINT64_MAX ? "true" : "false")) return -1;
+				p[i].bits, p[i].distance, p[i].distance == UINT64_MAX ? "true" : "false", p[i].extensible ? "true" : "false")) return -1;
+            if(p[i].extensible || p[i].range->tail_count) {
+                size_t j;
+                char lo[96], hi[96];
+                if(format(b, "    // PER-visible hull differs from retained permitted root membership.\n    static constexpr ::nrforge::aper::IntegerInterval root_intervals[%zu] = {", p[i].range->tail_count + 1)) return -1;
+                integer_literal(hi, sizeof(hi), (int64_t)p[i].range->upper_bound, 1);
+                if(format(b, "{%s, %s}", p[i].lower_literal, hi)) return -1;
+                for(j = 0; j < p[i].range->tail_count; ++j) {
+                    integer_literal(lo, sizeof(lo), (int64_t)p[i].range->tail[j].lower_bound, 1);
+                    integer_literal(hi, sizeof(hi), (int64_t)p[i].range->tail[j].upper_bound, 1);
+                    if(format(b, ", {%s, %s}", lo, hi)) return -1;
+                }
+                if(append(b, "};\n")) return -1;
+            }
+            if(append(b, "};\n")) return -1;
 		} else {
+            if(p[i].extensible || p[i].range->tail_count) {
+                if(format(b, "inline ::nrforge::aper::Result<void> %s(::nrforge::aper::FieldWriter& f, const %s& v) {\n    return f.write_integer_set(v, %s::root_intervals, %s::extensible);\n}\ninline ::nrforge::aper::Result<%s> %s(::nrforge::aper::FieldReader& f) {\n    return f.read_integer_set(%s::root_intervals, %s::extensible);\n}\n", p[i].put, p[i].qualified_type, p[i].mapping, p[i].mapping, p[i].qualified_type, p[i].get, p[i].mapping, p[i].mapping)) return -1;
+                continue;
+            }
 			const char *suffix = p[i].is_signed ? "int" : "uint";
 			if(format(b, "inline ::nrforge::aper::Result<void> %s(::nrforge::aper::FieldWriter& f, const %s& v) {\n    return f.write_bounded_%s(v, %s::lower_bound, %s::upper_bound);\n}\ninline ::nrforge::aper::Result<%s> %s(::nrforge::aper::FieldReader& f) {\n    return f.read_bounded_%s(%s::lower_bound, %s::upper_bound);\n}\n",
 				p[i].put, p[i].qualified_type, suffix, p[i].mapping, p[i].mapping,
@@ -193,7 +222,7 @@ emit(struct integer_buf *b, const asn1typed_module_t *m,
 }
 static int
 render(const asn1typed_module_t *m, const char *ns, char **out,
-		char *diagnostic, size_t size, int mode) {
+		char *diagnostic, size_t size, int mode, int extended) {
 	struct integer_type_plan *p = NULL;
 	struct integer_buf b = {NULL, 0};
 	char why[512] = "invalid integer renderer arguments";
@@ -201,7 +230,7 @@ render(const asn1typed_module_t *m, const char *ns, char **out,
 	if(out) *out = NULL;
 	if(diagnostic && size) diagnostic[0] = 0;
 	if(!out) goto done;
-	if(preflight(m, ns, &p, why, sizeof(why))) goto done;
+	if(preflight(m, ns, &p, why, sizeof(why), extended)) goto done;
 	if(append(&b, mode == 2 ? "#include <span>\n#include <cstddef>\n" : "#include <cstdint>\n") ||
 		format(&b, "namespace %s {\n", ns) || emit(&b, m, p, mode) || append(&b, "} // namespace\n")) {
 		snprintf(why, sizeof(why), "out of memory emitting integer output"); goto done;
@@ -214,10 +243,22 @@ done:
 }
 int
 asn1typed_render_cpp_owned_integer_types(const asn1typed_module_t *m, const char *ns,
-		char **out, char *diagnostic, size_t size) { return render(m, ns, out, diagnostic, size, 0); }
+		char **out, char *diagnostic, size_t size) { return render(m, ns, out, diagnostic, size, 0, 0); }
 int
 asn1typed_render_cpp_owned_integer_mapping(const asn1typed_module_t *m, const char *ns,
-		char **out, char *diagnostic, size_t size) { return render(m, ns, out, diagnostic, size, 1); }
+		char **out, char *diagnostic, size_t size) { return render(m, ns, out, diagnostic, size, 1, 0); }
 int
 asn1typed_render_cpp_owned_integer_codec(const asn1typed_module_t *m, const char *ns,
-		char **out, char *diagnostic, size_t size) { return render(m, ns, out, diagnostic, size, 2); }
+		char **out, char *diagnostic, size_t size) { return render(m, ns, out, diagnostic, size, 2, 0); }
+
+int
+asn1typed_render_cpp_owned_integer_set_types(const asn1typed_module_t *m, const char *ns,
+        char **out, char *diagnostic, size_t size) { return render(m, ns, out, diagnostic, size, 0, 1); }
+
+int
+asn1typed_render_cpp_owned_integer_set_mapping(const asn1typed_module_t *m, const char *ns,
+        char **out, char *diagnostic, size_t size) { return render(m, ns, out, diagnostic, size, 1, 1); }
+
+int
+asn1typed_render_cpp_owned_integer_set_codec(const asn1typed_module_t *m, const char *ns,
+        char **out, char *diagnostic, size_t size) { return render(m, ns, out, diagnostic, size, 2, 1); }

@@ -22,4 +22,5 @@ PrefixWide ::= SEQUENCE { prefix Flag, values WideSixteen }
 ExtPair ::= SEQUENCE { value Word, ... }
 ExtPairs ::= SEQUENCE (SIZE (0..2)) OF ExtPair
 Envelope ::= SEQUENCE { prefix Flag, bits Bits, pairs Pairs OPTIONAL, nested Nested, ... }
+Large ::= SEQUENCE (SIZE (1..65536)) OF BOOLEAN
 END

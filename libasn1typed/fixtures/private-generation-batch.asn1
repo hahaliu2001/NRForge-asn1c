@@ -1,0 +1,16 @@
+PrivateKeys DEFINITIONS AUTOMATIC TAGS ::= BEGIN
+Selector ::= CHOICE { local INTEGER (0..65535), global OBJECT IDENTIFIER }
+Policy ::= ENUMERATED { reject, ignore, notify }
+Presence ::= ENUMERATED { optional, conditional, mandatory }
+PRIVATE-CLASS ::= CLASS {
+ &id Selector, &criticality Policy, &Value, &presence Presence
+} WITH SYNTAX { ID &id CRITICALITY &criticality TYPE &Value PRESENCE &presence }
+Entry { PRIVATE-CLASS : Rows } ::= SEQUENCE {
+ id PRIVATE-CLASS.&id({Rows}),
+ criticality PRIVATE-CLASS.&criticality({Rows}{@id}),
+ value PRIVATE-CLASS.&Value({Rows}{@id})
+}
+Container { PRIVATE-CLASS : Rows } ::= SEQUENCE (SIZE (1..65535)) OF Entry {{Rows}}
+Rows PRIVATE-CLASS ::= { ... }
+Message ::= SEQUENCE { entries Container {{Rows}}, ... }
+END

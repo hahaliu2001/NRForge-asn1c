@@ -1,0 +1,14 @@
+CharactersGeneration DEFINITIONS AUTOMATIC TAGS ::= BEGIN
+Name ::= PrintableString (SIZE(1..150,...))
+Visible ::= VisibleString (SIZE(1..150,...))
+Unicode ::= UTF8String (SIZE(1..150,...))
+FixedTwo ::= PrintableString (SIZE(2..2))
+VariableTwo ::= PrintableString (SIZE(1..2))
+Wide ::= PrintableString (SIZE(0..256))
+WideVisible ::= VisibleString (SIZE(0..256))
+ScalarOne ::= UTF8String (SIZE(1..1))
+Message ::= SEQUENCE { mark BOOLEAN, name Name, visible Visible OPTIONAL, unicode Unicode OPTIONAL }
+URI-address ::= VisibleString
+UnboundedPrintable ::= PrintableString
+UnboundedUnicode ::= UTF8String
+END

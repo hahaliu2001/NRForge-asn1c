@@ -10,8 +10,12 @@
 #include <utility>
 #include <variant>
 #include <vector>
+#include <string>
+#include <string_view>
 
 namespace nrforge::aper {
+
+enum class CharacterStringKind { printable, visible, utf8 };
 
 class FieldReader;
 class FieldWriter;
@@ -94,6 +98,10 @@ struct Limits {
     std::size_t max_known_open_staging_octets = 1u << 20;
     std::size_t max_known_open_depth = 16;
 };
+
+// A length segment precedes exactly count elements; a fragmented segment
+// MUST be followed (after its payload) by another determinant, including zero.
+struct CollectionLengthSegment { std::size_t count; bool fragmented; };
 
 struct SequenceExtensionBitmap {
     std::size_t bit_count;
@@ -178,6 +186,9 @@ struct CompleteEncoding {
     std::size_t octet_count = 0;
 };
 
+// Canonical ascending, disjoint and non-adjacent finite permitted root intervals.
+struct IntegerInterval { std::int64_t lower; std::int64_t upper; };
+
 class BitReader {
 public:
     static Result<BitReader> make(std::span<const std::byte> input, DecodeContext& context);
@@ -199,21 +210,37 @@ public:
     // domains are supported without computing an overflowing cardinality.
     Result<std::uint64_t> read_bounded_uint(std::uint64_t lower,std::uint64_t upper);
     Result<std::int64_t> read_bounded_int(std::int64_t lower,std::int64_t upper);
+    // N19: bare extensible finite root; flag, alignment and signed payload atomic.
+    Result<std::int64_t> read_extensible_int(std::int64_t lower,std::int64_t upper);
+    Result<std::int64_t> read_integer_set(std::span<const IntegerInterval> root, bool extensible);
     // root_count 1..255; flags, length, alignment and index are atomic (N2).
     Result<EnumeratedIndex> read_enumerated(unsigned root_count, bool extensible);
     // N8: non-extensible SIZE 0<=lower<=upper<=65535; atomic count and charge.
+    Result<CollectionLengthSegment> read_collection_segment();
     Result<std::size_t> read_bounded_collection_length(std::size_t lower, std::size_t upper);
-    // N14: non-extensible OCTET STRING. Unconstrained mode supports lengths
+    // N14: OCTET STRING; extensible=false retains the historical wire layout. Unconstrained mode supports lengths
     // through 16383; fragmented determinants are refused as resource_limit,
     // not a schema upper bound. Unconstrained mode requires lower=upper=0.
-    // Alignment, determinant, payload and owned allocation are atomic.
+    // Batch SIZE: extensible=true adds a root/extension bit; outside-root
+    // lengths use the unconstrained determinant and explicit 16383 ceiling.
+    // Selector, alignment, determinant, payload and allocation are atomic.
     Result<std::vector<std::byte>> read_octet_string_owned(std::size_t lower,
-        std::size_t upper, bool unconstrained = false);
+        std::size_t upper, bool unconstrained = false, bool extensible = false);
+    // Atomic APER OBJECT IDENTIFIER determinant, contents and canonical check.
+    Result<std::vector<std::byte>> read_object_identifier_owned();
     // N15: length units are bits. Fixed <=16 is unaligned; all other
     // payloads align before their first bit, never after their last bit.
     // Unconstrained mode requires lower=upper=0 and refuses fragmentation.
     Result<BitString> read_bit_string_owned(std::size_t lower,
-        std::size_t upper, bool unconstrained = false);
+        std::size_t upper, bool unconstrained = false, bool extensible = false);
+    // Printable/VisibleString: canonical ASCII repertoire, aligned 8-bit characters.
+    // UTF8String: strict scalar validation; SIZE counts scalars but is not PER-visible.
+    // Extensible SIZE is root/extension aware; lengths >=16384 are refused.
+    // Unconstrained mode requires lower=upper=0, extensible=false; no selector bit.
+    Result<std::string> read_character_string_owned(std::size_t lower,
+        std::size_t upper, bool extensible = false, CharacterStringKind kind = CharacterStringKind::printable, bool unconstrained = false);
+    // Opt-in bounded BIT SIZE with upper 65536..131072. Fragment units are bits.
+    Result<BitString> read_bit_string_owned_fragmented_size(std::size_t lower, std::size_t upper);
     // N7-P2: owned, atomic extension framing; no inner payload interpretation.
     Result<SequenceExtensionBitmap> read_sequence_extension_bitmap();
     Result<std::vector<std::byte>> read_open_type_owned();
@@ -256,13 +283,19 @@ public:
     Result<void> write_constrained_uint(std::uint64_t value, unsigned root_bits);
     Result<void> write_bounded_uint(std::uint64_t value,std::uint64_t lower,std::uint64_t upper);
     Result<void> write_bounded_int(std::int64_t value,std::int64_t lower,std::int64_t upper);
+    Result<void> write_extensible_int(std::int64_t value,std::int64_t lower,std::int64_t upper);
+    Result<void> write_integer_set(std::int64_t value,std::span<const IntegerInterval> root, bool extensible);
     // root_count 1..255; extension indexes require extensible=true (N2).
     Result<void> write_enumerated(EnumeratedIndex value, unsigned root_count, bool extensible);
+    Result<void> write_collection_segment(std::size_t count, bool fragmented);
     Result<void> write_bounded_collection_length(std::uint64_t count, std::size_t lower, std::size_t upper);
     Result<void> write_octet_string(std::span<const std::byte> value,
-        std::size_t lower, std::size_t upper, bool unconstrained = false);
+        std::size_t lower, std::size_t upper, bool unconstrained = false, bool extensible = false);
     Result<void> write_bit_string(const BitString& value,
-        std::size_t lower, std::size_t upper, bool unconstrained = false);
+        std::size_t lower, std::size_t upper, bool unconstrained = false, bool extensible = false);
+    Result<void> write_character_string(std::string_view value,
+        std::size_t lower, std::size_t upper, bool extensible = false, CharacterStringKind kind = CharacterStringKind::printable, bool unconstrained = false);
+    Result<void> write_bit_string_fragmented_size(const BitString& value, std::size_t lower, std::size_t upper);
     template<class EncodeFields>
     Result<void> write_known_open_type(EncodeFields&& encode_fields);
     Result<void> reject_sequence_extension_data();
@@ -302,30 +335,46 @@ public:
     Result<std::uint64_t> read_bounded_uint(std::uint64_t lower,std::uint64_t upper) {
         return reader_.read_bounded_uint(lower,upper);
     }
+    Result<std::int64_t> read_integer_set(std::span<const IntegerInterval> root,bool extensible) {
+        return reader_.read_integer_set(root,extensible);
+    }
+    Result<std::int64_t> read_extensible_int(std::int64_t lower,std::int64_t upper) {
+        return reader_.read_extensible_int(lower,upper);
+    }
     Result<std::int64_t> read_bounded_int(std::int64_t lower,std::int64_t upper) {
         return reader_.read_bounded_int(lower,upper);
     }
     Result<EnumeratedIndex> read_enumerated(unsigned root_count, bool extensible) {
         return reader_.read_enumerated(root_count, extensible);
     }
+    Result<CollectionLengthSegment> read_collection_segment() { return reader_.read_collection_segment(); }
     Result<std::size_t> read_bounded_collection_length(std::size_t lower, std::size_t upper) {
         return reader_.read_bounded_collection_length(lower, upper);
     }
     Result<std::vector<std::byte>> read_octet_string_owned(std::size_t lower,
-        std::size_t upper, bool unconstrained = false) {
-        return reader_.read_octet_string_owned(lower, upper, unconstrained);
+        std::size_t upper, bool unconstrained = false, bool extensible = false) {
+        return reader_.read_octet_string_owned(lower, upper, unconstrained, extensible);
     }
     Result<BitString> read_bit_string_owned(std::size_t lower,
-        std::size_t upper, bool unconstrained = false) {
-        return reader_.read_bit_string_owned(lower, upper, unconstrained);
+        std::size_t upper, bool unconstrained = false, bool extensible = false) {
+        return reader_.read_bit_string_owned(lower, upper, unconstrained, extensible);
+    }
+    Result<BitString> read_bit_string_owned_fragmented_size(std::size_t lower, std::size_t upper) {
+        return reader_.read_bit_string_owned_fragmented_size(lower, upper);
     }
     // Generated helper failures preserve sticky state and lifecycle semantics.
     Result<void> record_failure(Error error) {
         auto live = reader_.validate_live();
         return live ? reader_.fail(error) : live;
     }
+    Result<std::string> read_character_string_owned(std::size_t lower, std::size_t upper, bool extensible = false, CharacterStringKind kind = CharacterStringKind::printable, bool unconstrained = false) {
+        return reader_.read_character_string_owned(lower, upper, extensible, kind, unconstrained);
+    }
     Result<SequenceExtensionBitmap> read_sequence_extension_bitmap() {
         return reader_.read_sequence_extension_bitmap();
+    }
+    Result<std::vector<std::byte>> read_object_identifier_owned() {
+        return reader_.read_object_identifier_owned();
     }
     Result<std::vector<std::byte>> read_open_type_owned() { return reader_.read_open_type_owned(); }
     template<class T, class DecodeFields>
@@ -353,24 +402,37 @@ public:
     Result<void> write_bounded_uint(std::uint64_t value,std::uint64_t lower,std::uint64_t upper) {
         return writer_.write_bounded_uint(value,lower,upper);
     }
+    Result<void> write_integer_set(std::int64_t value,std::span<const IntegerInterval> root,bool extensible) {
+        return writer_.write_integer_set(value,root,extensible);
+    }
+    Result<void> write_extensible_int(std::int64_t value,std::int64_t lower,std::int64_t upper) {
+        return writer_.write_extensible_int(value,lower,upper);
+    }
     Result<void> write_bounded_int(std::int64_t value,std::int64_t lower,std::int64_t upper) {
         return writer_.write_bounded_int(value,lower,upper);
     }
     Result<void> write_enumerated(EnumeratedIndex value, unsigned root_count, bool extensible) {
         return writer_.write_enumerated(value, root_count, extensible);
     }
+    Result<void> write_collection_segment(std::size_t count, bool fragmented) { return writer_.write_collection_segment(count, fragmented); }
     Result<void> write_bounded_collection_length(std::uint64_t count, std::size_t lower, std::size_t upper) {
         return writer_.write_bounded_collection_length(count, lower, upper);
     }
     Result<void> write_octet_string(std::span<const std::byte> value,
-        std::size_t lower, std::size_t upper, bool unconstrained = false) {
-        return writer_.write_octet_string(value, lower, upper, unconstrained);
+        std::size_t lower, std::size_t upper, bool unconstrained = false, bool extensible = false) {
+        return writer_.write_octet_string(value, lower, upper, unconstrained, extensible);
     }
     Result<void> write_bit_string(const BitString& value,
-        std::size_t lower, std::size_t upper, bool unconstrained = false) {
-        return writer_.write_bit_string(value, lower, upper, unconstrained);
+        std::size_t lower, std::size_t upper, bool unconstrained = false, bool extensible = false) {
+        return writer_.write_bit_string(value, lower, upper, unconstrained, extensible);
+    }
+    Result<void> write_bit_string_fragmented_size(const BitString& value, std::size_t lower, std::size_t upper) {
+        return writer_.write_bit_string_fragmented_size(value, lower, upper);
     }
     Result<void> reject_sequence_extension_data() { return writer_.reject_sequence_extension_data(); }
+    Result<void> write_character_string(std::string_view value, std::size_t lower, std::size_t upper, bool extensible = false, CharacterStringKind kind = CharacterStringKind::printable, bool unconstrained = false) {
+        return writer_.write_character_string(value, lower, upper, extensible, kind, unconstrained);
+    }
     template<class EncodeFields>
     Result<void> write_known_open_type(EncodeFields&& encode_fields) {
         return writer_.write_known_open_type(std::forward<EncodeFields>(encode_fields));
@@ -383,6 +445,19 @@ public:
 private:
     BitWriter& writer_;
 };
+
+/* OBJECT IDENTIFIER values retain canonical BER content octets, allowing arcs
+ * larger than machine integers. The APER length budget remains shared. */
+struct ObjectIdentifierMapping {
+    using value_type = std::vector<std::byte>;
+    static constexpr bool canonical_ber_content = true;
+};
+struct OpaqueOpenTypeMapping { using value_type = std::vector<std::byte>; };
+Result<void> write_private_open_payload(FieldWriter&, std::span<const std::byte>);
+Result<std::vector<std::byte>> read_private_open_payload(FieldReader&);
+bool object_identifier_content_valid(std::span<const std::byte>) noexcept;
+Result<void> write_object_identifier(FieldWriter&, std::span<const std::byte>);
+Result<std::vector<std::byte>> read_object_identifier(FieldReader&);
 
 template<class T, class DecodeFields>
 Result<T> BitReader::read_known_open_type(DecodeFields&& decode_fields) {

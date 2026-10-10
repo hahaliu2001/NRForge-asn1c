@@ -63,3 +63,12 @@ EXTRA_DIST += n16-integer-qualification/README.md n16-integer-qualification/driv
 EXTRA_DIST += n17-shape-qualification/README.md n17-shape-qualification/driver.cpp n17-shape-qualification/qualify.py n17-shape-qualification/requirements.txt n17-shape-qualification/qualification-summary.json n17-shape-qualification/baseline-shapes.json n17-shape-qualification/readiness.json
 
 EXTRA_DIST += n18-integer-study/README.md n18-integer-study/probe.c n18-integer-study/inventory.py n18-integer-study/domain-inventory.json n18-integer-study/reference.py n18-integer-study/reference-summary.json n18-integer-study/requirements.txt
+
+EXTRA_DIST += fragmented-collection-qualification/compare.py fragmented-collection-qualification/results.json
+EXTRA_DIST += shared-character-qualification/README.md shared-character-qualification/qualify.py shared-character-qualification/requirements.txt shared-character-qualification/qualification-summary.json
+EXTRA_DIST += shared-null-qualification/verify.py shared-null-qualification/native-summary.json shared-null-qualification/physical-extraction.json
+EXTRA_DIST += batch-size-qualification/README.md batch-size-qualification/driver.cpp batch-size-qualification/qualify.py batch-size-qualification/requirements.txt batch-size-qualification/qualification-summary.json batch-size-qualification/frozen-use-sites.json
+EXTRA_DIST += shared-integer-qualification/qualify.py shared-integer-qualification/requirements.txt shared-integer-qualification/README.md shared-integer-qualification/summary.json
+EXTRA_DIST += private-key-qualification/qualify.py private-key-qualification/results.json private-key-qualification/requirements.txt private-key-qualification/README.md
+
+EXTRA_DIST += shared-capability-qualification/README.md shared-capability-qualification/verify.py shared-capability-qualification/readiness.json shared-capability-qualification/summary.json

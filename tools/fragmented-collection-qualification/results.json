@@ -1,0 +1,70 @@
+{
+  "source_sha256": {
+    "libaper/runtime.hpp": "34ceca5e464fc1c8f6e505cdd01ec00d22dd87d74d17abbb5660f605570162f1",
+    "libaper/runtime.cpp": "e6d162c031a4c8ba958e21460ffd5acf5ecf05d26232549da9933912e9259731",
+    "libasn1typed/asn1typed_render_cpp_compound.c": "6ba0a692ab09913a959a6b04f7ccd2b58a9af3380cb76936cda46f79331d80e9",
+    "libasn1typed/check_asn1typed_collection_generated.cpp": "f652f1a0152da14388a8e24df21152974a4cea3f5a763ccd83337493985ab06d",
+    "libasn1typed/fixtures/collection-generation-n8.asn1": "a7f8890fe3ae7ce9e0cd875a12a622763aa6fff70e7b764aa34f0c55f3d76fb2"
+  },
+  "reference": "asn1tools",
+  "version": "0.167.0",
+  "codec": "per",
+  "rows": [
+    {
+      "count": 1,
+      "octets": 2,
+      "sha256": "47dc540c94ceb704a23875c11273e16bb0b8a87aed84de911f2133568115f254",
+      "encode": "PASS",
+      "decode": "PASS"
+    },
+    {
+      "count": 127,
+      "octets": 17,
+      "sha256": "f7cf8d6e2454f861f43272457e8a84a95b93f2dd130ae065618263b0ed9a2851",
+      "encode": "PASS",
+      "decode": "PASS"
+    },
+    {
+      "count": 128,
+      "octets": 18,
+      "sha256": "a4f249551f5790497a1447fa0af6addba451851803352b91fdc32efd40ab20d2",
+      "encode": "PASS",
+      "decode": "PASS"
+    },
+    {
+      "count": 16383,
+      "octets": 2050,
+      "sha256": "ff273acbbbca3f982860c6fb6f677852ac2f19fc3c3ad367be342935edc4ee4d",
+      "encode": "PASS",
+      "decode": "PASS"
+    },
+    {
+      "count": 16384,
+      "octets": 2050,
+      "sha256": "996c9fcdd0249cc536a0e4f4e27bcf859dc72ee38e10d88bbb9c3dd1998ebf5a",
+      "encode": "PASS",
+      "decode": "PASS"
+    },
+    {
+      "count": 32768,
+      "octets": 4098,
+      "sha256": "26bf6cad1a3f0d1bb93f1999805b3a47d8d906f6e55f9a261f32b5cff6553e99",
+      "encode": "PASS",
+      "decode": "PASS"
+    },
+    {
+      "count": 65535,
+      "octets": 8195,
+      "sha256": "bbee08b3ef974824737cb2b2e99798a358bda7559ef392c9898688d4dbb5c15a",
+      "encode": "PASS",
+      "decode": "PASS"
+    },
+    {
+      "count": 65536,
+      "octets": 8194,
+      "sha256": "12d6ee88018f9321278e4ad5f82b8789d57fa2e9c40880013addaec7dae02b53",
+      "encode": "PASS",
+      "decode": "PASS"
+    }
+  ]
+}

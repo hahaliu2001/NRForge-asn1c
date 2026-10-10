@@ -1,0 +1,23 @@
+IOCCharacterPayloads DEFINITIONS AUTOMATIC TAGS ::= BEGIN
+Identifier ::= INTEGER (0..65535)
+Policy ::= ENUMERATED { reject, ignore, notify }
+Name ::= PrintableString (SIZE(1..150,...))
+Visible ::= VisibleString (SIZE(1..150,...))
+Unicode ::= UTF8String (SIZE(1..150,...))
+Payload ::= SEQUENCE { marker BOOLEAN, name Name, visible Visible OPTIONAL, unicode Unicode OPTIONAL }
+END
+IOCCharacterGeneration DEFINITIONS AUTOMATIC TAGS ::= BEGIN
+IMPORTS Identifier, Policy, Payload FROM IOCCharacterPayloads;
+Requirement ::= ENUMERATED { mandatory, optional, conditional }
+id-Payload Identifier ::= 91
+SHAPE-IES ::= CLASS { &id Identifier UNIQUE, &criticality Policy, &Value, &presence Requirement }
+WITH SYNTAX { ID &id CRITICALITY &criticality TYPE &Value PRESENCE &presence }
+ShapeEntry { SHAPE-IES : Rows } ::= SEQUENCE {
+ number SHAPE-IES.&id({Rows}),
+ policy SHAPE-IES.&criticality({Rows}{@number}),
+ content SHAPE-IES.&Value({Rows}{@number})
+}
+ShapeContainer { SHAPE-IES : Rows } ::= SEQUENCE (SIZE(0..65535)) OF ShapeEntry {{Rows}}
+Rows SHAPE-IES ::= { { ID id-Payload CRITICALITY reject TYPE Payload PRESENCE mandatory }, ... }
+Message ::= SEQUENCE { entries ShapeContainer {{Rows}} }
+END

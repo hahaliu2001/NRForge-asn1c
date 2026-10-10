@@ -58,7 +58,12 @@ typedef enum asn1typed_primitive_kind_e {
 	ASN1TYPED_PRIMITIVE_PRINTABLE_STRING,
 	ASN1TYPED_PRIMITIVE_VISIBLE_STRING,
 	ASN1TYPED_PRIMITIVE_OCTET_STRING,
-	ASN1TYPED_PRIMITIVE_BIT_STRING
+	ASN1TYPED_PRIMITIVE_BIT_STRING,
+	ASN1TYPED_PRIMITIVE_NULL, /* appended: existing primitive values stay stable */
+	/* Canonical BER content octets, lossless including arbitrary-size arcs. */
+	ASN1TYPED_PRIMITIVE_OBJECT_IDENTIFIER,
+	/* Opaque complete encoding selected by an unknown open-type key. */
+	ASN1TYPED_PRIMITIVE_OPEN_TYPE
 } asn1typed_primitive_kind_e;
 
 typedef struct asn1typed_size_constraint_s {
@@ -66,6 +71,11 @@ typedef struct asn1typed_size_constraint_s {
 	intmax_t lower_bound;
 	intmax_t upper_bound;
 	int is_extensible;
+	/* Bounded explicit SIZE extension addition, when present. Root wire
+	 * length still uses lower/upper; extension lengths use unconstrained PER. */
+	int has_extension_addition;
+	intmax_t extension_lower_bound;
+	intmax_t extension_upper_bound;
 } asn1typed_size_constraint_t;
 
 typedef struct asn1typed_integer_interval_s {
@@ -188,6 +198,8 @@ typedef struct asn1typed_enum_item_s {
 } asn1typed_enum_item_t;
 
 typedef struct asn1typed_choice_alternative_s {
+	/* Owned inline ENUMERATED payload; type_ref must be empty when present. */
+	asn1typed_type_t *inline_enumerated;
 	char *source_name;
 	asn1typed_type_ref_t type_ref;
 	asn1typed_size_constraint_t size_constraint;
@@ -273,6 +285,9 @@ typedef struct asn1typed_bound_instance_s {
 	asn1typed_type_t body;
 	int body_materialized;
 	asn1typed_ioc_binding_t ioc_binding;
+	/* Proven empty extensible non-UNIQUE private-key object set. */
+	int has_empty_private_binding;
+	asn1typed_type_actual_t empty_private_object_set;
 } asn1typed_bound_instance_t;
 
 typedef struct asn1typed_module_s {
@@ -299,6 +314,11 @@ int asn1typed_ioc_registry_set_unavailable(asn1typed_ioc_registry_t *);
 int asn1typed_ioc_registry_set_unsupported(asn1typed_ioc_registry_t *);
 asn1typed_wire_finalize_result_e asn1typed_ioc_registry_finalize(asn1typed_ioc_registry_t *, char *, size_t);
 int asn1typed_ioc_registry_validate(const asn1typed_ioc_registry_t *, char *, size_t);
+/* Only after source evidence establishes an empty extensible private object set.
+ * Setter owns the current actual identity transactionally; validation rejects
+ * stale identities, unavailable key order and unsupported key domains. */
+int asn1typed_bound_instance_set_empty_private_binding(asn1typed_module_t *, size_t);
+int asn1typed_bound_instance_empty_private_validate(const asn1typed_module_t *, size_t, char *, size_t);
 int asn1typed_bound_instance_set_ioc_binding(asn1typed_module_t *, size_t, size_t, size_t, size_t, size_t);
 asn1typed_wire_finalize_result_e asn1typed_bound_instance_ioc_binding_finalize(asn1typed_module_t *, size_t, char *, size_t);
 int asn1typed_bound_instance_ioc_binding_validate(const asn1typed_module_t *, size_t, char *, size_t);
@@ -387,6 +407,8 @@ int asn1typed_type_add_choice_alternative(asn1typed_type_t *type,
 		const asn1typed_size_constraint_t *size_constraint,
 		const asn1typed_integer_value_range_t *value_range,
 		const char *file, unsigned line);
+/* Deep-copies owned enum items/evidence; successful addition invalidates selector mapping. */
+int asn1typed_type_add_inline_enumerated_alternative(asn1typed_type_t *, const char *, const asn1typed_type_t *, const char *, unsigned);
 /* These CHOICE-scoped mutations invalidate the mapping and clear every
  * published alternative index. The public structs can still be modified
  * directly; callers must validate before using wire evidence. */

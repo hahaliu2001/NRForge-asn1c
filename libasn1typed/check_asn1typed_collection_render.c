@@ -107,7 +107,7 @@ int main(int argc, char **argv) {
         negative(&module, argv[3], NULL); *type = save;
         type->size_constraint.lower_bound = -1;
         negative(&module, argv[3], NULL); *type = save;
-        type->size_constraint.upper_bound = 65536;
+        type->size_constraint.upper_bound = 65537;
         negative(&module, argv[3], NULL); *type = save;
         type->size_constraint.lower_bound = 4;
         negative(&module, argv[3], NULL); *type = save;

@@ -66,6 +66,7 @@ struct node {
     const asn1typed_ioc_registry_t *registry;
     char *name;
     char **row_names;
+    int private_empty;
     asn1typed_type_t lowered;
 };
 static int storage(size_t n, size_t cap, const void *p) { return n <= cap && !!cap == !!p; }
@@ -104,7 +105,7 @@ static size_t find_ref(const asn1typed_module_t *m, const asn1typed_type_ref_t *
 static int reference(const asn1typed_module_t *m, const asn1typed_type_ref_t *r, const unsigned char *done) {
     size_t found;
     if(r->kind == ASN1TYPED_REF_PRIMITIVE)
-        return (r->primitive_kind == ASN1TYPED_PRIMITIVE_BOOLEAN || r->primitive_kind == ASN1TYPED_PRIMITIVE_OCTET_STRING || r->primitive_kind == ASN1TYPED_PRIMITIVE_BIT_STRING) && !r->module && !r->source_name && !r->actuals && !r->actual_count ? 1 : -1;
+        return (r->primitive_kind == ASN1TYPED_PRIMITIVE_NULL || r->primitive_kind == ASN1TYPED_PRIMITIVE_OBJECT_IDENTIFIER || r->primitive_kind == ASN1TYPED_PRIMITIVE_BOOLEAN || r->primitive_kind == ASN1TYPED_PRIMITIVE_OCTET_STRING || r->primitive_kind == ASN1TYPED_PRIMITIVE_BIT_STRING) && !r->module && !r->source_name && !r->actuals && !r->actual_count ? 1 : -1;
     found = find_ref(m, r);
     if(found == SIZE_MAX) return -1;
     return done ? !!done[found] : 1;
@@ -114,7 +115,7 @@ static int reference(const asn1typed_module_t *m, const asn1typed_type_ref_t *r,
 static int inline_integer(const asn1typed_type_ref_t *r, const asn1typed_integer_value_range_t *v) {
     return r->kind == ASN1TYPED_REF_PRIMITIVE && r->primitive_kind == ASN1TYPED_PRIMITIVE_INTEGER &&
         !r->module && !r->source_name && !r->actuals && !r->actual_count && v->has_value_range == 1 &&
-        !v->is_extensible && !v->tail && !v->tail_count && v->lower_bound <= v->upper_bound &&
+        (v->is_extensible == 0 || v->is_extensible == 1) && (!v->tail_count || v->tail) && v->lower_bound <= v->upper_bound &&
         v->lower_bound >= INT64_MIN && v->upper_bound <= INT64_MAX;
 }
 static int dependencies(const asn1typed_module_t *m, const struct node *n, const unsigned char *done) {
@@ -122,7 +123,9 @@ static int dependencies(const asn1typed_module_t *m, const struct node *n, const
     int r, ready = 1;
     const asn1typed_type_t *t = n->source;
 #define DEP(ref) do { r = reference(m, ref, done); if(r < 0) return -1; if(!r) ready = 0; } while(0)
-    if(n->registry) {
+    if(n->private_empty) {
+        DEP(&t->fields[0].type); DEP(&t->fields[1].type);
+    } else if(n->registry) {
         DEP(&t->fields[0].type); DEP(&t->fields[1].type);
         for(j = 0; j < n->registry->row_count; ++j) DEP(&n->registry->rows[j].payload_type);
     } else if(t->kind == ASN1TYPED_TYPE_SEQUENCE) {
@@ -153,7 +156,7 @@ static int render_ioc_raw(const asn1typed_module_t *m, const char *ns, char **ou
     if(out) *out = NULL;
     if(diagnostic && size) diagnostic[0] = 0;
 #define BAD(message) do { snprintf(why, sizeof(why), "%s", message); goto cleanup; } while(0)
-    if(!out || !m || !text(m->source_name) || !storage(m->type_count, m->type_capacity, m->types) || !m->type_count || !storage(m->bound_instance_count, m->bound_instance_capacity, m->bound_instances) || !storage(m->ioc_registry_count, m->ioc_registry_capacity, m->ioc_registries) || !m->bound_instance_count || !m->ioc_registry_count) goto cleanup;
+    if(!out || !m || !text(m->source_name) || !storage(m->type_count, m->type_capacity, m->types) || !m->type_count || !storage(m->bound_instance_count, m->bound_instance_capacity, m->bound_instances) || !storage(m->ioc_registry_count, m->ioc_registry_capacity, m->ioc_registries) || !m->bound_instance_count) goto cleanup;
     if(m->type_count > SIZE_MAX - m->bound_instance_count) BAD("IOC graph node count overflow");
     count = m->type_count + m->bound_instance_count;
     if(count > SIZE_MAX / sizeof(*nodes) || count > SIZE_MAX / sizeof(*entries) || count > SIZE_MAX / sizeof(*view.types)) BAD("IOC graph allocation size overflow");
@@ -182,10 +185,17 @@ static int render_ioc_raw(const asn1typed_module_t *m, const char *ns, char **ou
             const asn1typed_bound_instance_t *instance = &m->bound_instances[i - m->type_count];
             const asn1typed_type_ref_t *key = &instance->identity;
             n->source = &instance->body; n->bound_key = key;
+            if((instance->has_empty_private_binding != 0 && instance->has_empty_private_binding != 1) ||
+                (!instance->has_empty_private_binding && (instance->empty_private_object_set.module || instance->empty_private_object_set.source_name)) ||
+                (instance->has_empty_private_binding && n->source->kind != ASN1TYPED_TYPE_SEQUENCE)) BAD("inconsistent empty-private binding storage");
             if(instance->body_materialized != 1 || n->source->identity.module || n->source->identity.source_name || key->kind != ASN1TYPED_REF_NAMED || key->primitive_kind != ASN1TYPED_PRIMITIVE_INVALID || key->actual_count != 1 || !key->actuals || key->actuals[0].kind != ASN1TYPED_ACTUAL_OBJECT_SET_REFERENCE) BAD("unsupported IOC bound identity/body");
             if(add_name(&n->name, key->module) || add_name(&n->name, key->source_name) || add_name(&n->name, key->actuals[0].module) || add_name(&n->name, key->actuals[0].source_name)) BAD("invalid or unavailable bound IOC graph name");
             for(j = m->type_count; j < i; ++j) if(asn1typed_type_ref_equal(key, nodes[j].bound_key)) BAD("duplicate IOC bound identity");
-            if(n->source->kind == ASN1TYPED_TYPE_SEQUENCE) {
+            if(n->source->kind == ASN1TYPED_TYPE_SEQUENCE && instance->has_empty_private_binding == 1) {
+                if(asn1typed_bound_instance_empty_private_validate(m, i - m->type_count, why, sizeof(why))) goto cleanup;
+                if(n->source->field_count != 3 || n->source->fields[2].type_semantics != ASN1TYPED_FIELD_CLASS_FIELD_SELECTED_TYPE || n->source->fields[0].presence != ASN1TYPED_PRESENCE_MANDATORY || n->source->fields[1].presence != ASN1TYPED_PRESENCE_MANDATORY || n->source->fields[2].presence != ASN1TYPED_PRESENCE_MANDATORY) BAD("malformed empty-private binding");
+                n->private_empty = 1;
+            } else if(n->source->kind == ASN1TYPED_TYPE_SEQUENCE) {
                 if(asn1typed_bound_instance_ioc_binding_validate(m, i - m->type_count, why, sizeof(why))) goto cleanup;
                 n->registry = &m->ioc_registries[instance->ioc_binding.registry_index];
             } else if(n->source->kind == ASN1TYPED_TYPE_SEQUENCE_OF) {
@@ -243,7 +253,19 @@ static int render_ioc_raw(const asn1typed_module_t *m, const char *ns, char **ou
                 n->lowered.fields = (asn1typed_field_t *)malloc(allocation_count * sizeof(*n->lowered.fields));
                 if(!n->lowered.fields) BAD("out of memory planning physical fields");
                 memcpy(n->lowered.fields, n->source->fields, n->source->field_count * sizeof(*n->lowered.fields));
-                for(j = 0; j < n->source->field_count; ++j) translate(m, nodes, &n->lowered.fields[j].type);
+                for(j = 0; j < n->source->field_count; ++j)
+                    if(!n->private_empty || j != 2) translate(m, nodes, &n->lowered.fields[j].type);
+                if(n->private_empty) {
+                    asn1typed_field_t *payload = &n->lowered.fields[2];
+                    payload->type_semantics = ASN1TYPED_FIELD_FIXED_TYPE;
+                    memset(&payload->type, 0, sizeof(payload->type));
+                    payload->type.kind = ASN1TYPED_REF_PRIMITIVE;
+                    payload->type.primitive_kind = ASN1TYPED_PRIMITIVE_OPEN_TYPE;
+                    payload->has_class_field_relation = 0;
+                    memset(&payload->class_field_relation, 0, sizeof(payload->class_field_relation));
+                    n->lowered.fields[1].has_class_field_relation = 0;
+                    memset(&n->lowered.fields[1].class_field_relation, 0, sizeof(n->lowered.fields[1].class_field_relation));
+                }
             }
             if(n->source->alternative_count) {
                 n->lowered.alternatives = (asn1typed_choice_alternative_t *)malloc(n->source->alternative_count * sizeof(*n->lowered.alternatives));

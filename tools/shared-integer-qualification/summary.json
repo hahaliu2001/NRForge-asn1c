@@ -1,0 +1,90 @@
+{
+  "scope": "Actual generated signed extensible INTEGER codecs; not complete NGAP qualification",
+  "native": {
+    "name": "asn1tools",
+    "version": "0.167.0",
+    "codec": "per"
+  },
+  "total_cases": 768,
+  "root_cases": 280,
+  "extension_cases": 488,
+  "residues": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7
+  ],
+  "all_generated_encode_bytes_equal": true,
+  "all_generated_decode_values_equal": true,
+  "all_native_decode_fields_equal": true,
+  "profiles": [
+    [
+      5,
+      5
+    ],
+    [
+      0,
+      1
+    ],
+    [
+      0,
+      254
+    ],
+    [
+      1,
+      256
+    ],
+    [
+      -128,
+      128
+    ],
+    [
+      0,
+      65535
+    ],
+    [
+      0,
+      65536
+    ],
+    [
+      1,
+      40000000
+    ]
+  ],
+  "generated_header_sha256": {
+    "types.hpp": "cf0f05378b8d573ba9f5ce50b15d6778e5402a0759fe7d1150415417ce6e10e0",
+    "mapping.hpp": "4d2fd990b582fbf3537de915610da6fdd1522edd8a6fccd014a24c50dea16b3e",
+    "codec.hpp": "a99a7d4e0fc326163bd54acd794da33b5962fe516c52ec499f6909f92edeab14"
+  },
+  "source_sha256": {
+    "libaper/runtime.hpp": "34ceca5e464fc1c8f6e505cdd01ec00d22dd87d74d17abbb5660f605570162f1",
+    "libaper/runtime.cpp": "e6d162c031a4c8ba958e21460ffd5acf5ecf05d26232549da9933912e9259731",
+    "libasn1typed/asn1typed.h": "4d8b5299cd3d587f646fe1eee4121708888bb734e739b3d9c76f25ee15c488cd",
+    "libasn1typed/asn1typed.c": "75db0dac5d1978de4852e64ed351dfe4b931295d054d2f9e041f7af1996ced50",
+    "libasn1typed/asn1typed_extract.c": "21efec5f2585281a616523b99b8ef8706d1e20ddc256bad28c0091cfc57ae704",
+    "libasn1typed/asn1typed_render_cpp.h": "fec1c47b125ca738b8631e86d46b42f79b1d8db6b3830cf18001a00563fed9fe",
+    "libasn1typed/asn1typed_render_cpp_integer.c": "feb6d18a9d35dc52f91fcd9f2a6da847235f5565349c7b09b0dc997766668ad3",
+    "libasn1typed/asn1typed_render_cpp_compound.c": "6ba0a692ab09913a959a6b04f7ccd2b58a9af3380cb76936cda46f79331d80e9",
+    "libasn1typed/asn1typed_render_cpp_ioc.c": "a72f51c54f9f299cca7dc14de4c673fd915496f01c4394762b07b87c430ed0da",
+    "libasn1typed/asn1typed_render_cpp_inline_enum.c": "b10ac5e88ced8937685299c8cc80cbe8ab4cc53273d84893454872ce9430bda2",
+    "libasn1typed/asn1typed_render_cpp_enum.c": "b87574709e13f9661d330b2cef64d4068f851608208e1d9cbac96aab5b5283cf",
+    "libasn1typed/asn1typed_render_cpp_slice.c": "2b260b6db868494c4b0a3213a8fa59a109515dd8da5b08b00c07cbcbaaa8c6ce",
+    "libasn1typed/asn1typed_name.c": "3070d2bbdc67e719ab2c6a079a7c1116d3254215a00defa384e1f746d9c61039",
+    "libasn1typed/check_asn1typed_domain_render.c": "b84bf267e5d3b109cde13c4534e1ae795346ee91d535a07ec367ae153d5dfe0d",
+    "libasn1typed/check_asn1typed_domain_generated.cpp": "aba6fbc7470ead34543ed4f3700216036681d390fba2b0f638c68c65d6de1c74",
+    "libasn1typed/fixtures/extensible-integers-batch.asn1": "094843f087de393d679861d6f13859d598860b27fdc2adefbc2ae49a897270b2",
+    "tools/n18-integer-study/reference.py": "c41ffd91bfd5f62df8a7aba5a58b2c8ff883dee678a28612e0dd6b37fe10163b",
+    "tools/shared-integer-qualification/qualify.py": "b8d33bb645f369927e824f2aa50bcf278fd381cee82d21904b1a2e3913b055cb"
+  },
+  "limitations": [
+    "Contiguous domains only in native comparison; pinned native parser drops union tails",
+    "Discontinuous permitted roots use retained-set / hull-offset independent model and legacy constraint evidence",
+    "Hull-gap values excluded from bounded supported domain even with extensibility",
+    "Malformed input, atomicity, lifecycle and allocation coverage belongs to focused runtime tests",
+    "No complete-message/PDU interoperability or readiness claim"
+  ]
+}

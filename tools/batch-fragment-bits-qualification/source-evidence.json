@@ -1,0 +1,13 @@
+{
+  "frozen_source": "ng/asn1/NGAP-IEs.asn",
+  "sha256": "ae4edee7e7d69ac6db94e44f5e716445990ecf5943edbc9a0f328ed210c25831",
+  "type": "DRBStatusUL18",
+  "field": "receiveStatusOfUL-PDCP-SDUs",
+  "constraint": "BIT STRING (SIZE(1..131072)) OPTIONAL",
+  "line": 1707,
+  "newly_exposed_messages": [
+    "DownlinkRANStatusTransfer",
+    "UplinkRANStatusTransfer"
+  ],
+  "scope": "source evidence; aggregate root performs full physical/body scan"
+}

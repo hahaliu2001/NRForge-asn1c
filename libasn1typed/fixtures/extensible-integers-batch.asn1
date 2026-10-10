@@ -1,0 +1,14 @@
+IntegerDomains DEFINITIONS AUTOMATIC TAGS ::= BEGIN
+P0 ::= INTEGER (5..5, ...)
+P1 ::= INTEGER (0..1, ...)
+P2 ::= INTEGER (0..254, ...)
+P3 ::= INTEGER (1..256, ...)
+P4 ::= INTEGER (-128..128, ...)
+P5 ::= INTEGER (0..65535, ...)
+P6 ::= INTEGER (0..65536, ...)
+P7 ::= INTEGER (1..40000000, ...)
+Gap ::= INTEGER (1..30 | 40 | 50 | 60 | 80 | 100 | 120 | 150 | 180 | 181, ...)
+InlineGap ::= SEQUENCE { value INTEGER (1..30 | 40 | 181, ...) }
+Pick ::= CHOICE { precise INTEGER (1..40000000, ...), scaled INTEGER (32..47, ...) }
+Packet ::= SEQUENCE { period INTEGER (1..3600, ...), time INTEGER (0..86399, ...) OPTIONAL, selection Pick, gap Gap }
+END

@@ -201,6 +201,32 @@ int asn1typed_render_cpp_owned_shape_types(const asn1typed_module_t *, const cha
 int asn1typed_render_cpp_owned_shape_mapping(const asn1typed_module_t *, const char *, char **, char *, size_t);
 int asn1typed_render_cpp_owned_shape_codec(const asn1typed_module_t *, const char *, char **, char *, size_t);
 
+/* Opt-in Printable/Visible/UTF8String owned generation. Printable/Visible
+ * SIZE is PER-visible; UTF8 SIZE validates Unicode scalars only. Additional
+ * alphabet restrictions and fragmented extension payloads remain unsupported. */
+int asn1typed_render_cpp_owned_character_types(const asn1typed_module_t *, const char *, char **, char *, size_t);
+int asn1typed_render_cpp_owned_character_mapping(const asn1typed_module_t *, const char *, char **, char *, size_t);
+int asn1typed_render_cpp_owned_character_codec(const asn1typed_module_t *, const char *, char **, char *, size_t);
+/* Opt-in NULL support: std::monostate, zero payload bits. Complete empty
+ * encoding remains the runtime's single zero octet substitution. */
+int asn1typed_render_cpp_owned_null_types(const asn1typed_module_t *, const char *, char **, char *, size_t);
+int asn1typed_render_cpp_owned_null_mapping(const asn1typed_module_t *, const char *, char **, char *, size_t);
+int asn1typed_render_cpp_owned_null_codec(const asn1typed_module_t *, const char *, char **, char *, size_t);
+/* Opt-in extensible BIT/OCTET root SIZE + bounded effective use-site SIZE.
+ * Extension payload lengths >=16384 are explicit resource_limit refusals. */
+int asn1typed_render_cpp_owned_size_types(const asn1typed_module_t *, const char *, char **, char *, size_t);
+int asn1typed_render_cpp_owned_size_mapping(const asn1typed_module_t *, const char *, char **, char *, size_t);
+int asn1typed_render_cpp_owned_size_codec(const asn1typed_module_t *, const char *, char **, char *, size_t);
+
+
+/* Opt-in finite canonical INTEGER root set, with bare extensibility and int64 storage.
+ * Root hull gaps are rejected; root wire offsets are never dense ranks. */
+int asn1typed_render_cpp_owned_integer_set_types(const asn1typed_module_t *, const char *, char **, char *, size_t);
+int asn1typed_render_cpp_owned_integer_set_mapping(const asn1typed_module_t *, const char *, char **, char *, size_t);
+int asn1typed_render_cpp_owned_integer_set_codec(const asn1typed_module_t *, const char *, char **, char *, size_t);
+int asn1typed_render_cpp_owned_domain_types(const asn1typed_module_t *, const char *, char **, char *, size_t);
+int asn1typed_render_cpp_owned_domain_mapping(const asn1typed_module_t *, const char *, char **, char *, size_t);
+int asn1typed_render_cpp_owned_domain_codec(const asn1typed_module_t *, const char *, char **, char *, size_t);
 #ifdef __cplusplus
 }
 #endif

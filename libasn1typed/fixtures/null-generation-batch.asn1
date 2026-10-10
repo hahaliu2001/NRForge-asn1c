@@ -1,0 +1,10 @@
+NullGeneration DEFINITIONS AUTOMATIC TAGS ::= BEGIN
+Nothing ::= NULL
+Packet ::= SEQUENCE { first NULL, present NULL OPTIONAL, marker BOOLEAN }
+Select ::= CHOICE { truth [1] BOOLEAN, empty [0] NULL }
+Trigger ::= CHOICE { coded [1] ENUMERATED { high(9), low(-2), ..., future(20) }, empty [0] NULL }
+END
+NullRenamed DEFINITIONS AUTOMATIC TAGS ::= BEGIN
+VoidValue ::= NULL
+Envelope ::= SEQUENCE { item VoidValue, signal BOOLEAN }
+END

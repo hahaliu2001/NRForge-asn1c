@@ -189,7 +189,7 @@ static int ioc_metadata_is_empty(const asn1typed_ioc_metadata_t *ioc) {
 		ioc->criticality == ASN1TYPED_CRITICALITY_REJECT;
 }
 static int size_constraint_is_empty(const asn1typed_size_constraint_t *c) {
-	return !c->has_size_constraint && c->lower_bound == 0 && c->upper_bound == 0 && !c->is_extensible;
+	return !c->has_size_constraint && c->lower_bound == 0 && c->upper_bound == 0 && !c->is_extensible && !c->has_extension_addition && !c->extension_lower_bound && !c->extension_upper_bound;
 }
 static int value_range_is_empty(const asn1typed_integer_value_range_t *r) {
 	return !r->has_value_range && r->lower_bound == 0 && r->upper_bound == 0 &&
@@ -284,7 +284,7 @@ int asn1typed_render_cpp_owned_slice(const asn1typed_module_t *m,
 				size_t ri;
 				sp = ref_cpp(m, &t->alternatives[j].type_ref, names, &ri, &ref_error);
 				if(!sp) { err = ref_error ? ref_error : "unsupported CHOICE alternative reference"; goto fail; }
-				if(!size_constraint_is_empty(&t->alternatives[j].size_constraint) || !value_range_is_empty(&t->alternatives[j].value_range)) { err = "CHOICE alternative constraints unsupported"; goto fail; }
+				if(t->alternatives[j].inline_enumerated || !size_constraint_is_empty(&t->alternatives[j].size_constraint) || !value_range_is_empty(&t->alternatives[j].value_range)) { err = "CHOICE alternative constraints unsupported"; goto fail; }
 				if(!alt) { err = "unsafe CHOICE alternative name"; goto fail; }
 				if(t->alternatives[j].type_ref.kind == ASN1TYPED_REF_NAMED && ri >= i) { err = "forward CHOICE alternative reference unsupported"; goto fail; }
 				for(k = 0; k < j; ++k) {

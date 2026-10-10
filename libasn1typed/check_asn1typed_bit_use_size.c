@@ -25,7 +25,7 @@ int main(void){
  asn1p_t*t=asn1p_parse_file(BIT_USE_SIZE_FIXTURE,A1P_NOFLAGS);asn1typed_module_t m={0};long point;
  REQUIRE(t&&asn1f_process(t,A1F_NOFLAGS,NULL)>=0);
  {int rc=extract(t,"Message",&m);if(rc)fprintf(stderr,"positive extraction: %s\n",diagnostic);REQUIRE(rc==0);asn1typed_module_clear(&m);}
- rejects(t,"BadMessage");rejects(t,"SetMessage");rejects(t,"AdditionMessage");rejects(t,"NamedMessage");
+ rejects(t,"BadMessage");rejects(t,"SetMessage");{ asn1typed_module_t addition={0}; REQUIRE(extract(t,"AdditionMessage",&addition)==0); asn1typed_type_t *a=find(&addition,"BadAddition"); REQUIRE(a && a->fields[0].size_constraint.is_extensible && a->fields[0].size_constraint.has_extension_addition); asn1typed_module_clear(&addition); }rejects(t,"NamedMessage");
  {asn1p_expr_t*f=field(t,"S"),*bad=field(t,"BadSet");asn1p_constraint_t*save=f->combined_constraints;
   f->combined_constraints=bad->constraints;rejects(t,"Message");f->combined_constraints=save;
   save=f->constraints;f->constraints=NULL;rejects(t,"Message");f->constraints=save;

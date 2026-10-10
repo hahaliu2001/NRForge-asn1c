@@ -1,0 +1,9 @@
+SizeGeneration DEFINITIONS AUTOMATIC TAGS ::= BEGIN
+Wide ::= BIT STRING (SIZE (1..131072))
+Unbounded ::= BIT STRING
+Envelope ::= SEQUENCE {
+ named Wide,
+ inlineBits BIT STRING (SIZE (1..131072)),
+ useSite Unbounded (SIZE (1..131072))
+}
+END

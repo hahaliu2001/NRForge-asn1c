@@ -694,9 +694,13 @@ check_extensible_exact_size(void) {
 		A1P_NOFLAGS);
 	assert(tree && asn1f_process(tree, A1F_NOFLAGS, NULL) >= 0);
 	assert(asn1typed_extract_module(tree, "PostMarkerSize", &ir,
-		error, sizeof(error)) != 0);
-	assert_ir_cleared(&ir);
+		error, sizeof(error)) == 0);
 	asn1p_delete(tree);
+	type = find_type(&ir, "Bad");
+	assert(type && type->size_constraint.is_extensible && type->size_constraint.has_extension_addition);
+	assert(type->size_constraint.lower_bound == 8 && type->size_constraint.upper_bound == 8);
+	assert(type->size_constraint.extension_lower_bound == 10 && type->size_constraint.extension_upper_bound == 10);
+	asn1typed_module_clear(&ir);
 	puts("T9 extensible exact SIZE and fail-closed boundaries: PASS (parser tree destroyed)");
 }
 

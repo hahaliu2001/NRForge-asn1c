@@ -1,0 +1,175 @@
+{
+  "scope": "Seven previously NULL-blocked frozen NGAP messages; readiness only, not qualification",
+  "baseline": "c06613a7e9693e68d4ffbea011347fd0cb111fb7",
+  "parser_deleted_before_generation": true,
+  "source_authority": "TS 38.413 V18.10.0 frozen NGAP modules",
+  "messages": [
+    {
+      "message": "DownlinkRANConfigurationTransfer",
+      "physical_extraction_rc": 0,
+      "extraction_diagnostic": "",
+      "owned_types": 122,
+      "bound_instances": 135,
+      "registries": 79,
+      "generation": [
+        {
+          "family": 0,
+          "rc": -1,
+          "diagnostic": "missing or unsupported physical graph reference"
+        },
+        {
+          "family": 1,
+          "rc": -1,
+          "diagnostic": "missing or unsupported physical graph reference"
+        },
+        {
+          "family": 2,
+          "rc": -1,
+          "diagnostic": "missing or unsupported physical graph reference"
+        }
+      ]
+    },
+    {
+      "message": "HandoverRequest",
+      "physical_extraction_rc": -1,
+      "extraction_diagnostic": "NGAP-IEs.primaryRATRestriction: inline constrained type is unsupported",
+      "owned_types": 0,
+      "bound_instances": 0,
+      "registries": 0,
+      "generation": []
+    },
+    {
+      "message": "InitialContextSetupRequest",
+      "physical_extraction_rc": -1,
+      "extraction_diagnostic": "NGAP-IEs.primaryRATRestriction: inline constrained type is unsupported",
+      "owned_types": 0,
+      "bound_instances": 0,
+      "registries": 0,
+      "generation": []
+    },
+    {
+      "message": "PathSwitchRequestAcknowledge",
+      "physical_extraction_rc": 0,
+      "extraction_diagnostic": "",
+      "owned_types": 133,
+      "bound_instances": 101,
+      "registries": 52,
+      "generation": [
+        {
+          "family": 0,
+          "rc": -1,
+          "diagnostic": "missing or unsupported physical graph reference"
+        },
+        {
+          "family": 1,
+          "rc": -1,
+          "diagnostic": "missing or unsupported physical graph reference"
+        },
+        {
+          "family": 2,
+          "rc": -1,
+          "diagnostic": "missing or unsupported physical graph reference"
+        }
+      ]
+    },
+    {
+      "message": "TraceStart",
+      "physical_extraction_rc": 0,
+      "extraction_diagnostic": "",
+      "owned_types": 122,
+      "bound_instances": 96,
+      "registries": 52,
+      "generation": [
+        {
+          "family": 0,
+          "rc": -1,
+          "diagnostic": "unsupported compound type shape, storage or metadata: IocLowered.NGAP-IEs-TransportLayerAddress (kind=0 primitive=7 SIZE=1/1..160 extensible=1)"
+        },
+        {
+          "family": 1,
+          "rc": -1,
+          "diagnostic": "unsupported compound type shape, storage or metadata: IocLowered.NGAP-IEs-TransportLayerAddress (kind=0 primitive=7 SIZE=1/1..160 extensible=1)"
+        },
+        {
+          "family": 2,
+          "rc": -1,
+          "diagnostic": "unsupported compound type shape, storage or metadata: IocLowered.NGAP-IEs-TransportLayerAddress (kind=0 primitive=7 SIZE=1/1..160 extensible=1)"
+        }
+      ]
+    },
+    {
+      "message": "UEContextModificationRequest",
+      "physical_extraction_rc": 0,
+      "extraction_diagnostic": "",
+      "owned_types": 147,
+      "bound_instances": 115,
+      "registries": 60,
+      "generation": [
+        {
+          "family": 0,
+          "rc": -1,
+          "diagnostic": "missing or unsupported physical graph reference"
+        },
+        {
+          "family": 1,
+          "rc": -1,
+          "diagnostic": "missing or unsupported physical graph reference"
+        },
+        {
+          "family": 2,
+          "rc": -1,
+          "diagnostic": "missing or unsupported physical graph reference"
+        }
+      ]
+    },
+    {
+      "message": "UplinkRANConfigurationTransfer",
+      "physical_extraction_rc": 0,
+      "extraction_diagnostic": "",
+      "owned_types": 122,
+      "bound_instances": 135,
+      "registries": 79,
+      "generation": [
+        {
+          "family": 0,
+          "rc": -1,
+          "diagnostic": "missing or unsupported physical graph reference"
+        },
+        {
+          "family": 1,
+          "rc": -1,
+          "diagnostic": "missing or unsupported physical graph reference"
+        },
+        {
+          "family": 2,
+          "rc": -1,
+          "diagnostic": "missing or unsupported physical graph reference"
+        }
+      ]
+    }
+  ],
+  "limitations": [
+    "All seven advance past NULL and the related inline ENUMERATED CHOICE payload. Two next fail on extensible use-site SIZE.",
+    "Five successfully extracted graphs next fail on independent physical graph/compound capabilities; no new full-message codec success claimed.",
+    "This is frozen evidence before the subsequent NULL envelope-name-checker consistency fix; combined-batch rescan supersedes current source freshness."
+  ],
+  "input_sha256": {
+    "libasn1typed/asn1typed.h": "47c05382938d703fc2a88c79510a3decd5f45bdc926c4770be38c7d717147206",
+    "libasn1typed/asn1typed.c": "a9c0a79ec22551331a02c70c7594497d7a9c24be72b977d03eca8c31722d14cb",
+    "libasn1typed/asn1typed_extract.c": "8a5254d2397a8ef2ca7a810d9a82cbb27ba1b3086840573cdda9dc15bbd68b37",
+    "libasn1typed/asn1typed_render_cpp_ioc.c": "8d56e9da1be71e34425fcb55a3c4285782cfbf6d98e7e7b7cc928229f257a541",
+    "libasn1typed/asn1typed_render_cpp_compound.c": "2a18210254fd20ae36320cf74ae4a09c075ef4bd89d468cdaf94c0bf0768966b",
+    "libasn1typed/asn1typed_render_cpp_inline_enum.c": "edee3c6938aa3b08f507af28be3d9414623d38a7890bb04fe2dda85cdfba5792",
+    "libasn1typed/asn1typed_render_cpp_slice.c": "8bffb25bde4ab6958130db4ed9cacf3cd19fe6db0e2f969e2fdc6c78f6f3af6c",
+    "tools/asn1typed_codec_coverage.c": "f1f52280236bee217a2879375521643c48cd302109b1c12d1548aa9ba3d5a834"
+  },
+  "asn1_sha256": {
+    "NGAP-Containers.asn": "3165b49eb2476b0d85ad261e983e1eb29cecb32c075f9bf81546cfe7a08a2bcb",
+    "NGAP-Constants.asn": "492d40aad525d645a90cdfe2b644066007cc5ac81f6e527df9efa30bf6c8ebb8",
+    "NGAP-PDU-Contents.asn": "93baf5a65b4e3971839c82ef87467fffaf1a5f1dd9c159c297f6ce779e1acfd0",
+    "NGAP-PDU-Descriptions.asn": "6fc4e2326ea449942195742efc0325a4181a94aadee99da8f1e2d76fe59dfa6d",
+    "NGAP-IEs.asn": "ae4edee7e7d69ac6db94e44f5e716445990ecf5943edbc9a0f328ed210c25831",
+    "NGAP-CommonDataTypes.asn": "774d888f3f63ff33508c1f5f7ca9a3f1a0a5ee5e102decb3ffed99700df5f7c1"
+  },
+  "tested_capability_commit": "a405fdbb9389451364f1428978865d8f8778b40f"
+}

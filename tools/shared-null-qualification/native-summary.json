@@ -1,0 +1,133 @@
+{
+  "scope": "Focused NULL native/model support, not NGAP qualification",
+  "native_version": "0.167.0",
+  "canonical_native_schema": "NativeNull DEFINITIONS AUTOMATIC TAGS ::= BEGIN\n    Nothing ::= NULL\n    Packet ::= SEQUENCE { first NULL, present NULL OPTIONAL, marker BOOLEAN }\n    Select ::= CHOICE { empty [0] NULL, truth [1] BOOLEAN }\n    Envelope ::= SEQUENCE { item NULL, signal BOOLEAN }\n    Trigger ::= CHOICE { empty [0] NULL, coded [1] ENUMERATED { high(9), low(-2), ..., future(20) } }\n    END",
+  "limitations": [
+    "Native CHOICE oracle is canonical source-order equivalent, not reordered-tag parser evidence.",
+    "Native empty encoding substitution is normalized to the frozen complete boundary.",
+    "Physical IOC vector is independent hand-model evidence in the C++ check, not asn1tools IOC qualification."
+  ],
+  "cases": [
+    {
+      "type": "Nothing",
+      "value": null,
+      "native_hex": "",
+      "complete_hex": "00",
+      "decode_checked": true
+    },
+    {
+      "type": "Packet",
+      "value": {
+        "first": null,
+        "marker": false
+      },
+      "native_hex": "00",
+      "complete_hex": "00",
+      "decode_checked": true
+    },
+    {
+      "type": "Packet",
+      "value": {
+        "first": null,
+        "marker": true
+      },
+      "native_hex": "40",
+      "complete_hex": "40",
+      "decode_checked": true
+    },
+    {
+      "type": "Packet",
+      "value": {
+        "first": null,
+        "marker": false,
+        "present": null
+      },
+      "native_hex": "80",
+      "complete_hex": "80",
+      "decode_checked": true
+    },
+    {
+      "type": "Packet",
+      "value": {
+        "first": null,
+        "marker": true,
+        "present": null
+      },
+      "native_hex": "c0",
+      "complete_hex": "c0",
+      "decode_checked": true
+    },
+    {
+      "type": "Select",
+      "value": [
+        "empty",
+        null
+      ],
+      "native_hex": "00",
+      "complete_hex": "00",
+      "decode_checked": true
+    },
+    {
+      "type": "Select",
+      "value": [
+        "truth",
+        true
+      ],
+      "native_hex": "c0",
+      "complete_hex": "c0",
+      "decode_checked": true
+    },
+    {
+      "type": "Envelope",
+      "value": {
+        "item": null,
+        "signal": true
+      },
+      "native_hex": "80",
+      "complete_hex": "80",
+      "decode_checked": true
+    },
+    {
+      "type": "Trigger",
+      "value": [
+        "coded",
+        "high"
+      ],
+      "native_hex": "a0",
+      "complete_hex": "a0",
+      "decode_checked": true
+    },
+    {
+      "type": "Trigger",
+      "value": [
+        "coded",
+        "low"
+      ],
+      "native_hex": "80",
+      "complete_hex": "80",
+      "decode_checked": true
+    },
+    {
+      "type": "Trigger",
+      "value": [
+        "coded",
+        "future"
+      ],
+      "native_hex": "c000",
+      "complete_hex": "c000",
+      "decode_checked": true
+    }
+  ],
+  "input_sha256": {
+    "libasn1typed/asn1typed_render_cpp_inline_enum.c": "b10ac5e88ced8937685299c8cc80cbe8ab4cc53273d84893454872ce9430bda2",
+    "libasn1typed/asn1typed.h": "4d8b5299cd3d587f646fe1eee4121708888bb734e739b3d9c76f25ee15c488cd",
+    "libasn1typed/asn1typed.c": "75db0dac5d1978de4852e64ed351dfe4b931295d054d2f9e041f7af1996ced50",
+    "libasn1typed/asn1typed_extract.c": "21efec5f2585281a616523b99b8ef8706d1e20ddc256bad28c0091cfc57ae704",
+    "libasn1typed/asn1typed_render_cpp_compound.c": "6ba0a692ab09913a959a6b04f7ccd2b58a9af3380cb76936cda46f79331d80e9",
+    "libasn1typed/asn1typed_render_cpp_ioc.c": "a72f51c54f9f299cca7dc14de4c673fd915496f01c4394762b07b87c430ed0da",
+    "libasn1typed/check_asn1typed_null_render.c": "6dc051258ddd4ba58ff16e996562762ae367bba95b495549f36ce149d746d8ec",
+    "libasn1typed/check_asn1typed_null_generated.cpp": "5e699d31fb83c71986780c507ee94e942e5af1b95196201e538fb0dc109816ea",
+    "libasn1typed/fixtures/null-generation-batch.asn1": "2ba80ebf00fc8c03b10096bf7b019b204037256771931d23d06eb84220b3e5d6",
+    "libasn1typed/fixtures/ioc-null-batch.asn1": "b239c1a4a374a29d93d13c945520f49451addca7482bd9c33df12babc4ff5d49"
+  }
+}

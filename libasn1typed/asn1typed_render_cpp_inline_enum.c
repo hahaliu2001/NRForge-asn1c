@@ -22,7 +22,7 @@ static int field_ok(const asn1typed_field_t *f) {
         !r->class_module && !r->class_source_name && !r->class_field_source_name &&
         !r->actual_index && !r->has_selector && !r->selector_source_name &&
         !f->size_constraint.has_size_constraint && !f->size_constraint.lower_bound &&
-        !f->size_constraint.upper_bound && !f->size_constraint.is_extensible &&
+        !f->size_constraint.upper_bound && !f->size_constraint.is_extensible && !f->size_constraint.has_extension_addition && !f->size_constraint.extension_lower_bound && !f->size_constraint.extension_upper_bound &&
         !f->value_range.has_value_range && !f->value_range.lower_bound &&
         !f->value_range.upper_bound && !f->value_range.is_extensible &&
         !f->value_range.tail && !f->value_range.tail_count &&
@@ -44,6 +44,16 @@ static int count_body(const asn1typed_type_t *t, size_t *count, char *why, size_
         if(t->kind != ASN1TYPED_TYPE_SEQUENCE || !field_ok(&t->fields[j]) ||
             !body_ok(t->fields[j].inline_enumerated) ||
             asn1typed_enumerated_evidence_validate(t->fields[j].inline_enumerated,why,size)) return -1;
+        if(*count == SIZE_MAX) return -1;
+        ++*count;
+    }
+    if(!storage(t->alternative_count,t->alternative_capacity,t->alternatives,sizeof(*t->alternatives))) return -1;
+    for(j=0;j<t->alternative_count;++j) if(t->alternatives[j].inline_enumerated) {
+        const asn1typed_choice_alternative_t *a = &t->alternatives[j];
+        if(t->kind != ASN1TYPED_TYPE_CHOICE || !text(a->source_name) || !empty_ref(&a->type_ref) ||
+            a->size_constraint.has_size_constraint || a->size_constraint.is_extensible || a->size_constraint.lower_bound || a->size_constraint.upper_bound || a->size_constraint.has_extension_addition || a->size_constraint.extension_lower_bound || a->size_constraint.extension_upper_bound ||
+            a->value_range.has_value_range || a->value_range.is_extensible || a->value_range.lower_bound || a->value_range.upper_bound || a->value_range.tail || a->value_range.tail_count ||
+            !body_ok(a->inline_enumerated) || asn1typed_enumerated_evidence_validate(a->inline_enumerated,why,size)) return -1;
         if(*count == SIZE_MAX) return -1;
         ++*count;
     }
@@ -81,6 +91,12 @@ static char *synthetic_name(const asn1typed_type_identity_t *id,
 }
 static void clear_fields(asn1typed_type_t *copy,const asn1typed_type_t *original) {
     size_t j;
+    if(copy->alternatives != original->alternatives) {
+        if(copy->alternatives) for(j=0;j<original->alternative_count;++j)
+            if(original->alternatives[j].inline_enumerated && !copy->alternatives[j].inline_enumerated)
+                asn1typed_type_ref_clear(&copy->alternatives[j].type_ref);
+        free(copy->alternatives);
+    }
     if(copy->fields != original->fields) {
         if(copy->fields) for(j=0;j<original->field_count;++j)
             if(candidate(&original->fields[j]) && copy->fields[j].type_semantics == ASN1TYPED_FIELD_FIXED_TYPE)
@@ -102,11 +118,42 @@ void asn1typed_cpp_inline_enum_view_clear(struct asn1typed_cpp_inline_enum_view 
     }
     memset(v,0,sizeof(*v));
 }
+static int lower_alternatives(struct asn1typed_cpp_inline_enum_view *v,asn1typed_type_t *copy,
+    const asn1typed_type_t *original,const asn1typed_type_ref_t *bound,size_t *next,char *why,size_t size) {
+    size_t j,i; int needed=0;
+    for(j=0;j<original->alternative_count;++j) if(original->alternatives[j].inline_enumerated) needed=1;
+    if(!needed) return 0;
+    copy->alternatives=(asn1typed_choice_alternative_t*)malloc(original->alternative_count*sizeof(*copy->alternatives));
+    if(!copy->alternatives) return -1;
+    memcpy(copy->alternatives,original->alternatives,original->alternative_count*sizeof(*copy->alternatives));
+    copy->alternative_capacity=copy->alternative_count;
+    for(j=0;j<copy->alternative_count;++j) if(original->alternatives[j].inline_enumerated) {
+        asn1typed_choice_alternative_t *a=&copy->alternatives[j];
+        asn1typed_type_t *t=&v->storage.types[(*next)++];
+        char *module=bound?bound->module:original->identity.module;
+        asn1typed_module_t enum_view={0}; char *validation=NULL;
+        char *name=synthetic_name(&original->identity,bound,a->source_name);
+        if(!name || !text(module)) { free(name); return -1; }
+        for(i=0;i<v->storage.type_count;++i) {
+            const asn1typed_type_identity_t *id=&v->storage.types[i].identity;
+            if(text(id->module) && text(id->source_name) && !strcmp(id->module,module) && !strcmp(id->source_name,name)) {
+                free(name); if(why&&size) snprintf(why,size,"synthetic inline ENUMERATED source-key collision"); return -1;
+            }
+        }
+        *t=*a->inline_enumerated; t->identity.module=module; t->identity.source_name=name;
+        enum_view.source_name=module; enum_view.types=t; enum_view.type_count=enum_view.type_capacity=1;
+        if(asn1typed_render_cpp_owned_enum_types(&enum_view,"inline_enum_validation",&validation,why,size)) { free(validation); return -1; }
+        free(validation);
+        if(asn1typed_type_ref_init(&a->type_ref,module,name)) return -1;
+        a->inline_enumerated=NULL;
+    }
+    return 0;
+}
 static int lower_body(struct asn1typed_cpp_inline_enum_view *v,asn1typed_type_t *copy,
     const asn1typed_type_t *original,const asn1typed_type_ref_t *bound,size_t *next,char *why,size_t size) {
     size_t j,i; int needed=0;
     for(j=0;j<original->field_count;++j) if(candidate(&original->fields[j])) needed=1;
-    if(!needed) return 0;
+    if(!needed) return lower_alternatives(v,copy,original,bound,next,why,size);
     copy->fields=(asn1typed_field_t*)malloc(original->field_count*sizeof(*copy->fields));
     if(!copy->fields) return -1;
     memcpy(copy->fields,original->fields,original->field_count*sizeof(*copy->fields));
@@ -131,7 +178,7 @@ static int lower_body(struct asn1typed_cpp_inline_enum_view *v,asn1typed_type_t 
         if(asn1typed_type_ref_init(&f->type,module,name)) return -1;
         f->type_semantics=ASN1TYPED_FIELD_FIXED_TYPE; f->inline_enumerated=NULL;
     }
-    return 0;
+    return lower_alternatives(v,copy,original,bound,next,why,size);
 }
 int asn1typed_cpp_inline_enum_view_init(struct asn1typed_cpp_inline_enum_view *v,
     const asn1typed_module_t *m,char *why,size_t size) {

@@ -53,7 +53,7 @@ final_name(const char *source, asn1typed_name_style_e style, const char **error)
 
 static int
 empty_size(const asn1typed_size_constraint_t *c) {
-	return !c->has_size_constraint && !c->lower_bound && !c->upper_bound && !c->is_extensible;
+	return !c->has_size_constraint && !c->lower_bound && !c->upper_bound && !c->is_extensible && !c->has_extension_addition && !c->extension_lower_bound && !c->extension_upper_bound;
 }
 static int
 empty_range(const asn1typed_integer_value_range_t *r) {

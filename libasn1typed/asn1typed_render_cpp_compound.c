@@ -7,7 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-struct plan { struct type_plan *types; char *boolean_mapping, *boolean_put, *boolean_get, *octets_mapping, *octets_put, *octets_get; char *bits_mapping, *bits_put, *bits_get; int values, has_integers, bits, has_bits, octets, has_octets, extensions, has_extension_sequence, collections; const struct asn1typed_cpp_ioc_entry *ioc; const char *const *extra_names; size_t extra_count; };
+struct plan { struct type_plan *types; char *boolean_mapping, *boolean_put, *boolean_get, *octets_mapping, *octets_put, *octets_get; char *bits_mapping, *bits_put, *bits_get; int nulls, has_nulls; char *null_mapping, *null_put, *null_get; int extensible_sizes, characters, values, has_integers, bits, has_bits, octets, has_octets, extensions, has_extension_sequence, collections; const struct asn1typed_cpp_ioc_entry *ioc; const char *const *extra_names; size_t extra_count; };
 static int
 append(struct compound_buf *b, const char *text) {
 	size_t n = strlen(text);
@@ -45,7 +45,7 @@ empty_ref(const asn1typed_type_ref_t *r) {
 }
 static int
 empty_size(const asn1typed_size_constraint_t *s) {
-	return !s->has_size_constraint && !s->is_extensible && !s->lower_bound && !s->upper_bound;
+	return !s->has_size_constraint && !s->is_extensible && !s->lower_bound && !s->upper_bound && !s->has_extension_addition && !s->extension_lower_bound && !s->extension_upper_bound;
 }
 static int
 empty_range(const asn1typed_integer_value_range_t *r) {
@@ -55,9 +55,25 @@ static int
 storage(size_t count, size_t capacity, const void *pointer) {
 	return count <= capacity && !!capacity == !!pointer;
 }
+static int size_metadata_valid(const asn1typed_size_constraint_t *s) {
+    if(s->has_size_constraint != 0 && s->has_size_constraint != 1) return 0;
+    if(s->is_extensible != 0 && s->is_extensible != 1) return 0;
+    if(s->has_extension_addition != 0 && s->has_extension_addition != 1) return 0;
+    if(!s->has_extension_addition) return !s->extension_lower_bound && !s->extension_upper_bound;
+    return s->has_size_constraint && s->is_extensible && s->extension_lower_bound >= 0 && s->extension_upper_bound >= s->extension_lower_bound;
+}
 static int
-shape(const asn1typed_type_t *t, int extensions, int collections, int octets, int bits) {
-	if((!((collections && t->kind == ASN1TYPED_TYPE_SEQUENCE_OF) || ((octets || bits) && t->kind == ASN1TYPED_TYPE_PRIMITIVE && (t->primitive_kind == ASN1TYPED_PRIMITIVE_OCTET_STRING || (bits && t->primitive_kind == ASN1TYPED_PRIMITIVE_BIT_STRING)))) && (!empty_size(&t->size_constraint) || !empty_ref(&t->element_type))) || !empty_ref(&t->ioc_container) ||
+character_kind(asn1typed_primitive_kind_e kind) {
+    return kind == ASN1TYPED_PRIMITIVE_PRINTABLE_STRING || kind == ASN1TYPED_PRIMITIVE_VISIBLE_STRING || kind == ASN1TYPED_PRIMITIVE_UTF8_STRING;
+}
+static const char *
+character_spelling(asn1typed_primitive_kind_e kind) {
+    return kind == ASN1TYPED_PRIMITIVE_UTF8_STRING ? "utf8" : kind == ASN1TYPED_PRIMITIVE_VISIBLE_STRING ? "visible" : "printable";
+}
+static int
+shape(const asn1typed_type_t *t, int extensions, int collections, int octets, int bits, int characters, int nulls, int extensible_sizes) {
+    if(!size_metadata_valid(&t->size_constraint)) return 0;
+	if((!((collections && t->kind == ASN1TYPED_TYPE_SEQUENCE_OF) || ((octets || bits) && t->kind == ASN1TYPED_TYPE_PRIMITIVE && (t->primitive_kind == ASN1TYPED_PRIMITIVE_OCTET_STRING || (bits && t->primitive_kind == ASN1TYPED_PRIMITIVE_BIT_STRING) || (characters && character_kind(t->primitive_kind))))) && (!empty_size(&t->size_constraint) || !empty_ref(&t->element_type))) || !empty_ref(&t->ioc_container) ||
 		t->has_ioc_table || t->ioc_object_set_is_extensible) return 0;
 	if(t->kind != ASN1TYPED_TYPE_ENUMERATED && (t->enum_items || t->enum_item_count || t->enum_item_capacity || t->has_valid_per_enumeration_mapping)) return 0;
 	if(t->kind != ASN1TYPED_TYPE_SEQUENCE && (t->fields || t->field_count || t->field_capacity)) return 0;
@@ -65,14 +81,18 @@ shape(const asn1typed_type_t *t, int extensions, int collections, int octets, in
 	if(t->kind != ASN1TYPED_TYPE_PRIMITIVE && t->primitive_kind != ASN1TYPED_PRIMITIVE_INVALID) return 0;
 	if(t->kind != ASN1TYPED_TYPE_ENUMERATED && t->is_extensible && !(extensions && t->kind == ASN1TYPED_TYPE_SEQUENCE)) return 0;
 	if(!(t->kind == ASN1TYPED_TYPE_PRIMITIVE && t->primitive_kind == ASN1TYPED_PRIMITIVE_INTEGER) && !empty_range(&t->value_range)) return 0;
-	if(t->kind == ASN1TYPED_TYPE_PRIMITIVE) return t->primitive_kind == ASN1TYPED_PRIMITIVE_BOOLEAN || t->primitive_kind == ASN1TYPED_PRIMITIVE_INTEGER ||
+	if(characters && t->kind == ASN1TYPED_TYPE_PRIMITIVE && character_kind(t->primitive_kind))
+        return empty_ref(&t->element_type) && !t->size_constraint.has_extension_addition && (empty_size(&t->size_constraint) || (t->size_constraint.has_size_constraint == 1 &&
+            (t->size_constraint.is_extensible == 0 || t->size_constraint.is_extensible == 1) &&
+            t->size_constraint.lower_bound >= 0 && t->size_constraint.upper_bound >= t->size_constraint.lower_bound && t->size_constraint.upper_bound <= 65535));
+	if(t->kind == ASN1TYPED_TYPE_PRIMITIVE) return (octets && t->primitive_kind == ASN1TYPED_PRIMITIVE_OBJECT_IDENTIFIER && empty_size(&t->size_constraint)) || (nulls && t->primitive_kind == ASN1TYPED_PRIMITIVE_NULL) || t->primitive_kind == ASN1TYPED_PRIMITIVE_BOOLEAN || t->primitive_kind == ASN1TYPED_PRIMITIVE_INTEGER ||
         ((octets || bits) && (t->primitive_kind == ASN1TYPED_PRIMITIVE_OCTET_STRING || (bits && t->primitive_kind == ASN1TYPED_PRIMITIVE_BIT_STRING)) && empty_ref(&t->element_type) &&
-         (empty_size(&t->size_constraint) || (t->size_constraint.has_size_constraint == 1 && !t->size_constraint.is_extensible &&
-          t->size_constraint.lower_bound >= 0 && t->size_constraint.upper_bound >= t->size_constraint.lower_bound && t->size_constraint.upper_bound <= 65535)));
+         (empty_size(&t->size_constraint) || (t->size_constraint.has_size_constraint == 1 && (!t->size_constraint.is_extensible || extensible_sizes) &&
+          t->size_constraint.lower_bound >= 0 && t->size_constraint.upper_bound >= t->size_constraint.lower_bound && (t->size_constraint.upper_bound <= 65535 || (extensible_sizes && t->primitive_kind == ASN1TYPED_PRIMITIVE_BIT_STRING && !t->size_constraint.is_extensible && t->size_constraint.upper_bound <= 131072)))));
 	if(t->kind == ASN1TYPED_TYPE_ENUMERATED) return storage(t->enum_item_count, t->enum_item_capacity, t->enum_items);
 	if(t->kind == ASN1TYPED_TYPE_CHOICE) return t->alternative_count >= 1 && t->alternative_count <= 255 && storage(t->alternative_count, t->alternative_capacity, t->alternatives);
 	if(t->kind == ASN1TYPED_TYPE_SEQUENCE) return storage(t->field_count, t->field_capacity, t->fields);
-	if(collections && t->kind == ASN1TYPED_TYPE_SEQUENCE_OF) return t->size_constraint.has_size_constraint == 1 && !t->size_constraint.is_extensible && t->size_constraint.lower_bound >= 0 && t->size_constraint.upper_bound >= t->size_constraint.lower_bound && t->size_constraint.upper_bound <= 65535;
+	if(collections && t->kind == ASN1TYPED_TYPE_SEQUENCE_OF) return t->size_constraint.has_size_constraint == 1 && !t->size_constraint.is_extensible && t->size_constraint.lower_bound >= 0 && t->size_constraint.upper_bound >= t->size_constraint.lower_bound && t->size_constraint.upper_bound <= 65536;
 	return 0;
 }
 static int
@@ -99,6 +119,7 @@ clear(struct plan *p, const asn1typed_module_t *m) {
 		}
 		free(t->members);
 	}
+	free(p->null_mapping); free(p->null_put); free(p->null_get);
 	free(p->bits_mapping); free(p->bits_put); free(p->bits_get);
 	free(p->types); free(p->boolean_mapping); free(p->boolean_put); free(p->boolean_get); free(p->octets_mapping); free(p->octets_put); free(p->octets_get);
 	memset(p, 0, sizeof(*p));
@@ -118,6 +139,20 @@ resolve(const asn1typed_module_t *m, struct plan *p, size_t owner,
 	if(r->actuals || r->actual_count) return -1;
 	if(r->kind == ASN1TYPED_REF_PRIMITIVE) {
 		if(r->module || r->source_name) return -1;
+        if(p->octets && r->primitive_kind == ASN1TYPED_PRIMITIVE_OPEN_TYPE) {
+            member->type = "::std::vector<::std::byte>";
+            member->mapping = "::nrforge::aper::OpaqueOpenTypeMapping";
+            member->put = "::nrforge::aper::write_private_open_payload";
+            member->get = "::nrforge::aper::read_private_open_payload";
+            return 0;
+        }
+        if(p->octets && r->primitive_kind == ASN1TYPED_PRIMITIVE_OBJECT_IDENTIFIER) {
+            member->type = "::std::vector<::std::byte>";
+            member->mapping = "::nrforge::aper::ObjectIdentifierMapping";
+            member->put = "::nrforge::aper::write_object_identifier";
+            member->get = "::nrforge::aper::read_object_identifier";
+            return 0;
+        }
         if((p->octets || p->bits) && r->primitive_kind == ASN1TYPED_PRIMITIVE_OCTET_STRING) {
             p->has_octets = 1; member->type = "::std::vector<::std::byte>"; member->mapping = p->octets_mapping;
             member->put = p->octets_put; member->get = p->octets_get; return 0;
@@ -127,8 +162,12 @@ resolve(const asn1typed_module_t *m, struct plan *p, size_t owner,
             member->put = p->bits_put; member->get = p->bits_get; return 0;
         }
         if(p->values && r->primitive_kind == ASN1TYPED_PRIMITIVE_INTEGER && range && range->has_value_range == 1) {
-            member->type = range->lower_bound < 0 ? "::std::int64_t" : "::std::uint64_t";
+            member->type = range->lower_bound < 0 || (p->values > 1 && (range->is_extensible || range->tail_count)) ? "::std::int64_t" : "::std::uint64_t";
             return 0;
+        }
+        if(p->nulls && r->primitive_kind == ASN1TYPED_PRIMITIVE_NULL) {
+            p->has_nulls = 1; member->type = "::std::monostate"; member->mapping = p->null_mapping;
+            member->put = p->null_put; member->get = p->null_get; return 0;
         }
         if(r->primitive_kind != ASN1TYPED_PRIMITIVE_BOOLEAN) return -1;
 		member->type = "bool"; member->mapping = p->boolean_mapping;
@@ -154,6 +193,7 @@ typedef int (*renderer)(const asn1typed_module_t *, const char *, char **, char 
 static renderer
 delegate(const asn1typed_type_t *t, int mode, int values) {
 	if(t->kind == ASN1TYPED_TYPE_ENUMERATED) return mode == 0 ? asn1typed_render_cpp_owned_enum_types : mode == 1 ? asn1typed_render_cpp_owned_enum_mapping : asn1typed_render_cpp_owned_enum_codec;
+    if(values > 1 && (t->value_range.is_extensible || t->value_range.tail_count)) return mode == 0 ? asn1typed_render_cpp_owned_integer_set_types : mode == 1 ? asn1typed_render_cpp_owned_integer_set_mapping : asn1typed_render_cpp_owned_integer_set_codec;
     if(values && !legacy_uint(t)) return mode == 0 ? asn1typed_render_cpp_owned_integer_types : mode == 1 ? asn1typed_render_cpp_owned_integer_mapping : asn1typed_render_cpp_owned_integer_codec;
 	return mode == 0 ? asn1typed_render_cpp_owned_uint_types : mode == 1 ? asn1typed_render_cpp_owned_uint_mapping : asn1typed_render_cpp_owned_uint_codec;
 }
@@ -202,7 +242,14 @@ preflight(const asn1typed_module_t *m, const char *ns, struct plan *p, char *why
 	if(!asn1typed_render_cpp_safe_namespace(ns)) FAIL("invalid or unsafe compound namespace");
 	if(p->extensions && (!strcmp(ns, "nrforge::aper") || !strncmp(ns, "nrforge::aper::", sizeof("nrforge::aper::") - 1)))
 		FAIL("sequence extension namespace overlaps reserved runtime namespace nrforge::aper");
-	p->types = (struct type_plan *)calloc(m->type_count, sizeof(*p->types));
+	if(p->nulls) {
+        p->null_mapping = qualified(ns, "", "COMPOUND_NULL");
+        p->null_put = qualified(ns, "compound_codec::", "put_null");
+        p->null_get = qualified(ns, "compound_codec::", "get_null");
+        if(!p->null_mapping || !p->null_put || !p->null_get) FAIL("out of memory planning NULL helpers");
+        if(register_symbol("COMPOUND_NULL", &symbols, &symbol_count, why, size)) goto fail;
+    }
+    p->types = (struct type_plan *)calloc(m->type_count, sizeof(*p->types));
 	p->boolean_mapping = qualified(ns, "", "COMPOUND_BOOLEAN");
 	p->boolean_put = qualified(ns, "compound_codec::", "put_boolean");
 	p->boolean_get = qualified(ns, "compound_codec::", "get_boolean");
@@ -229,13 +276,14 @@ preflight(const asn1typed_module_t *m, const char *ns, struct plan *p, char *why
 			(t->kind == ASN1TYPED_TYPE_PRIMITIVE && t->primitive_kind == ASN1TYPED_PRIMITIVE_INTEGER) ? (p->values && !legacy_uint(t) ? "integer_codec::" : "uint_codec::") : "compound_codec::";
 		if(p->extensions && !(t->kind == ASN1TYPED_TYPE_SEQUENCE && t->is_extensible) &&
 			(t->sequence_extension_evidence != ASN1TYPED_WIRE_EVIDENCE_UNAVAILABLE || t->sequence_root_field_count || t->sequence_known_addition_count || t->has_valid_sequence_extension_structure)) FAIL("unexpected SEQUENCE extension structure metadata");
-		if(!shape(t, p->extensions, p->collections, p->octets, p->bits)) {
+		if(!shape(t, p->extensions, p->collections, p->octets, p->bits, p->characters, p->nulls, p->extensible_sizes)) {
             snprintf(why, size, "unsupported compound type shape, storage or metadata: %s.%s (kind=%u primitive=%u SIZE=%d/%" PRIdMAX "..%" PRIdMAX " extensible=%d)",
                 t->identity.module ? t->identity.module : "?", t->identity.source_name ? t->identity.source_name : "?",
                 (unsigned)t->kind, (unsigned)t->primitive_kind, t->size_constraint.has_size_constraint,
                 t->size_constraint.lower_bound, t->size_constraint.upper_bound, t->size_constraint.is_extensible);
             goto fail;
         }
+        if(t->kind == ASN1TYPED_TYPE_PRIMITIVE && t->primitive_kind == ASN1TYPED_PRIMITIVE_NULL) p->has_nulls = 1;
         if(t->kind == ASN1TYPED_TYPE_PRIMITIVE && t->primitive_kind == ASN1TYPED_PRIMITIVE_OCTET_STRING) p->has_octets = 1;
         if(t->kind == ASN1TYPED_TYPE_PRIMITIVE && t->primitive_kind == ASN1TYPED_PRIMITIVE_BIT_STRING) p->has_bits = 1;
 		if(!t->identity.module || strcmp(t->identity.module, m->source_name) || !t->identity.source_name || !t->identity.source_name[0]) FAIL("invalid compound type identity");
@@ -284,7 +332,7 @@ preflight(const asn1typed_module_t *m, const char *ns, struct plan *p, char *why
 			const char *source;
 			if(t->kind == ASN1TYPED_TYPE_CHOICE) {
 				const asn1typed_choice_alternative_t *a = &t->alternatives[j];
-				if((!p->bits && !empty_size(&a->size_constraint)) || (!p->values && !empty_range(&a->value_range))) FAIL("unsupported CHOICE alternative constraint metadata");
+				if(a->inline_enumerated || (!p->bits && !empty_size(&a->size_constraint)) || (!p->values && !empty_range(&a->value_range))) FAIL("unsupported CHOICE alternative constraint metadata");
 				ref = &a->type_ref; source = a->source_name; site_size = &a->size_constraint; site_range = &a->value_range;
 			} else if(t->kind == ASN1TYPED_TYPE_SEQUENCE_OF) {
 				ref = &t->element_type; source = "elements";
@@ -302,11 +350,15 @@ preflight(const asn1typed_module_t *m, const char *ns, struct plan *p, char *why
                 size_t target = 0;
                 const asn1typed_integer_value_range_t *decl_range = NULL;
                 char ordinal[3 * sizeof(size_t) + 32], *local;
-                if(!p->values || site_range->has_value_range != 1 || site_range->is_extensible ||
-                   site_range->tail || site_range->tail_count || site_range->lower_bound > site_range->upper_bound ||
+                if(!p->values || site_range->has_value_range != 1 || (site_range->is_extensible && p->values < 2) ||
+                   (site_range->is_extensible != 0 && site_range->is_extensible != 1) ||
+                   (p->values < 2 && (site_range->tail || site_range->tail_count)) ||
+                   (!!site_range->tail != !!site_range->tail_count) || site_range->tail_count > SIZE_MAX / sizeof(*site_range->tail) ||
+                   site_range->lower_bound > site_range->upper_bound ||
                    site_range->lower_bound < INT64_MIN || site_range->upper_bound > INT64_MAX ||
                    (site_size && !empty_size(site_size))) FAIL("unsupported INTEGER use-site interval metadata");
                 if(ref->kind == ASN1TYPED_REF_NAMED) {
+                    if(site_range->is_extensible || site_range->tail_count) FAIL("unsupported extensible/set INTEGER named use-site refinement");
                     for(target = 0; target < i; ++target) if(!strcmp(m->types[target].identity.source_name, ref->source_name)) break;
                     if(target == i || m->types[target].kind != ASN1TYPED_TYPE_PRIMITIVE || m->types[target].primitive_kind != ASN1TYPED_PRIMITIVE_INTEGER)
                         FAIL("INTEGER interval use-site requires INTEGER reference");
@@ -315,7 +367,17 @@ preflight(const asn1typed_module_t *m, const char *ns, struct plan *p, char *why
                        site_range->lower_bound < decl_range->lower_bound || site_range->upper_bound > decl_range->upper_bound)
                         FAIL("INTEGER use-site interval is not a subset of named declaration");
                 } else if(ref->primitive_kind != ASN1TYPED_PRIMITIVE_INTEGER) FAIL("INTEGER interval use-site requires INTEGER primitive");
-                mp->range = *site_range; mp->value_signed = (decl_range ? decl_range->lower_bound : site_range->lower_bound) < 0;
+                {
+                    intmax_t previous = site_range->upper_bound;
+                    size_t n;
+                    for(n = 0; n < site_range->tail_count; ++n) {
+                        const asn1typed_integer_interval_t *interval = &site_range->tail[n];
+                        if(interval->lower_bound < INT64_MIN || interval->upper_bound > INT64_MAX || interval->lower_bound > interval->upper_bound ||
+                            previous == INT64_MAX || interval->lower_bound <= previous + 1) FAIL("invalid canonical INTEGER use-site root set");
+                        previous = interval->upper_bound;
+                    }
+                }
+                mp->range = *site_range; mp->value_signed = site_range->is_extensible || site_range->tail_count || (decl_range ? decl_range->lower_bound : site_range->lower_bound) < 0;
                 snprintf(ordinal, sizeof(ordinal), "_member_%zu_value_aper", j);
                 mp->value_name = join("", tp->type, ordinal);
                 mp->value_mapping = mp->value_name ? qualified(ns, "", mp->value_name) : NULL;
@@ -335,8 +397,8 @@ preflight(const asn1typed_module_t *m, const char *ns, struct plan *p, char *why
                 asn1typed_primitive_kind_e kind = ref->primitive_kind;
                 const asn1typed_size_constraint_t *decl_size = NULL;
                 char ordinal[3 * sizeof(size_t) + 32], *local;
-                if(!p->bits || site_size->has_size_constraint != 1 || site_size->is_extensible ||
-                   site_size->lower_bound < 0 || site_size->upper_bound < site_size->lower_bound || site_size->upper_bound > 65535)
+                if(!size_metadata_valid(site_size) || !p->bits || site_size->has_size_constraint != 1 || (site_size->is_extensible && !p->extensible_sizes) ||
+                   site_size->lower_bound < 0 || site_size->upper_bound < site_size->lower_bound || site_size->upper_bound > (p->extensible_sizes ? 131072 : 65535))
                     FAIL("unsupported use-site SIZE metadata");
                 if(ref->kind == ASN1TYPED_REF_NAMED) {
                     for(target = 0; target < i; ++target) if(!strcmp(m->types[target].identity.source_name, ref->source_name)) break;
@@ -345,9 +407,16 @@ preflight(const asn1typed_module_t *m, const char *ns, struct plan *p, char *why
                 }
                 if(kind != ASN1TYPED_PRIMITIVE_BIT_STRING && kind != ASN1TYPED_PRIMITIVE_OCTET_STRING)
                     FAIL("SIZE use-site requires BIT/OCTET STRING");
+                if(site_size->upper_bound > 65535 && (kind != ASN1TYPED_PRIMITIVE_BIT_STRING || site_size->is_extensible))
+                    FAIL("wide SIZE requires nonextensible BIT STRING");
                 if(decl_size && decl_size->has_size_constraint &&
-                   (decl_size->is_extensible || site_size->lower_bound < decl_size->lower_bound || site_size->upper_bound > decl_size->upper_bound))
+                   ((decl_size->is_extensible != site_size->is_extensible && site_size->is_extensible) || site_size->lower_bound < decl_size->lower_bound || site_size->upper_bound > decl_size->upper_bound))
                     FAIL("use-site SIZE is not a subset of named declaration");
+                if(decl_size && decl_size->is_extensible && site_size->is_extensible &&
+                   (decl_size->lower_bound != site_size->lower_bound || decl_size->upper_bound != site_size->upper_bound ||
+                    decl_size->has_extension_addition != site_size->has_extension_addition ||
+                    decl_size->extension_lower_bound != site_size->extension_lower_bound || decl_size->extension_upper_bound != site_size->extension_upper_bound))
+                    FAIL("named extensible SIZE root/addition evidence differs from declaration");
                 mp->size = *site_size; mp->size_kind = kind;
                 snprintf(ordinal, sizeof(ordinal), "_member_%zu_size_aper", j);
                 local = join("", tp->type, ordinal);
@@ -421,7 +490,7 @@ static int
 emit_types(struct compound_buf *b, const asn1typed_type_t *t, const struct type_plan *p) {
 	size_t j;
 	if(t->kind == ASN1TYPED_TYPE_PRIMITIVE) return format(b, "using %s = %s;\n", p->type,
-        t->primitive_kind == ASN1TYPED_PRIMITIVE_OCTET_STRING ? "::std::vector<::std::byte>" : t->primitive_kind == ASN1TYPED_PRIMITIVE_BIT_STRING ? "::nrforge::aper::BitString" : "bool");
+        t->primitive_kind == ASN1TYPED_PRIMITIVE_NULL ? "::std::monostate" : character_kind(t->primitive_kind) ? "::std::string" : (t->primitive_kind == ASN1TYPED_PRIMITIVE_OCTET_STRING || t->primitive_kind == ASN1TYPED_PRIMITIVE_OBJECT_IDENTIFIER) ? "::std::vector<::std::byte>" : t->primitive_kind == ASN1TYPED_PRIMITIVE_BIT_STRING ? "::nrforge::aper::BitString" : "bool");
 	if(t->kind == ASN1TYPED_TYPE_SEQUENCE_OF) return format(b, "struct %s { ::std::vector<%s> elements{}; };\n", p->type, p->members[0].type);
 	if(t->kind == ASN1TYPED_TYPE_CHOICE) {
 		for(j = 0; j < p->member_count; ++j)
@@ -447,16 +516,29 @@ emit_boolean_mapping(struct compound_buf *b) {
 static int
 emit_mapping(struct compound_buf *b, const asn1typed_type_t *t, const struct type_plan *p, const struct plan *all) {
 	size_t j, k;
+    if(t->kind == ASN1TYPED_TYPE_PRIMITIVE && character_kind(t->primitive_kind)) {
+        if(!t->size_constraint.has_size_constraint && format(b, "// Unconstrained character SIZE: no extension selector; unfragmented determinant.\n")) return -1;
+        return format(b, "struct %s {\n    using value_type = %s;\n    static constexpr ::std::size_t lower_bound = %" PRIuMAX ";\n    static constexpr ::std::size_t upper_bound = %" PRIuMAX ";\n    static constexpr bool extensible = %s;\n%s    static constexpr unsigned bits_per_character = %u;\n    static constexpr bool ascii_codepoint_encoding = %s;\n    static constexpr bool size_constraint_per_visible = %s;\n    static constexpr bool fragmented_supported = false;\n};\n", p->mapping, p->qualified_type, (uintmax_t)t->size_constraint.lower_bound, (uintmax_t)t->size_constraint.upper_bound, t->size_constraint.is_extensible ? "true" : "false", t->size_constraint.has_size_constraint ? "" : "    static constexpr bool unconstrained = true;\n", t->primitive_kind == ASN1TYPED_PRIMITIVE_UTF8_STRING ? 0u : 8u, t->primitive_kind == ASN1TYPED_PRIMITIVE_UTF8_STRING ? "false" : "true", t->primitive_kind == ASN1TYPED_PRIMITIVE_UTF8_STRING || !t->size_constraint.has_size_constraint ? "false" : "true");
+    }
+	if(t->kind == ASN1TYPED_TYPE_PRIMITIVE && t->primitive_kind == ASN1TYPED_PRIMITIVE_BIT_STRING && t->size_constraint.upper_bound > 65535)
+        return format(b, "struct %s { using value_type = %s; static constexpr bool unconstrained = false; static constexpr ::std::size_t lower_bound = %" PRIuMAX "; static constexpr ::std::size_t upper_bound = %" PRIuMAX "; static constexpr bool fragmented_supported = true; static constexpr bool length_units_are_bits = true; };\n", p->mapping, p->qualified_type, (uintmax_t)t->size_constraint.lower_bound, (uintmax_t)t->size_constraint.upper_bound);
+	if(t->kind == ASN1TYPED_TYPE_PRIMITIVE && t->size_constraint.is_extensible &&
+		(t->primitive_kind == ASN1TYPED_PRIMITIVE_OCTET_STRING || t->primitive_kind == ASN1TYPED_PRIMITIVE_BIT_STRING))
+		return format(b, "struct %s { using value_type = %s; static constexpr bool unconstrained = false; static constexpr bool extensible = true; static constexpr ::std::size_t lower_bound = %" PRIuMAX "; static constexpr ::std::size_t upper_bound = %" PRIuMAX "; static constexpr bool fragmented_supported = false; static constexpr bool has_extension_addition = %s; static constexpr ::std::size_t extension_lower_bound = %" PRIuMAX "; static constexpr ::std::size_t extension_upper_bound = %" PRIuMAX "; };\n", p->mapping, p->qualified_type, (uintmax_t)t->size_constraint.lower_bound, (uintmax_t)t->size_constraint.upper_bound, t->size_constraint.has_extension_addition ? "true" : "false", (uintmax_t)t->size_constraint.extension_lower_bound, (uintmax_t)t->size_constraint.extension_upper_bound);
 	if(t->kind == ASN1TYPED_TYPE_PRIMITIVE && (t->primitive_kind == ASN1TYPED_PRIMITIVE_OCTET_STRING || t->primitive_kind == ASN1TYPED_PRIMITIVE_BIT_STRING))
         return format(b, "struct %s {\n    using value_type = %s;\n    static constexpr bool unconstrained = %s;\n    static constexpr ::std::size_t lower_bound = %" PRIuMAX ";\n    static constexpr ::std::size_t upper_bound = %" PRIuMAX ";\n    static constexpr bool payload_align_to_octet = %s;\n    static constexpr bool has_length_determinant = %s;\n    static constexpr bool fragmented_supported = false;\n};\n", p->mapping, p->qualified_type,
             t->size_constraint.has_size_constraint ? "false" : "true", (uintmax_t)t->size_constraint.lower_bound,
             (uintmax_t)t->size_constraint.upper_bound,
             t->size_constraint.has_size_constraint && t->size_constraint.lower_bound == t->size_constraint.upper_bound && t->size_constraint.upper_bound <= (t->primitive_kind == ASN1TYPED_PRIMITIVE_BIT_STRING ? 16 : 2) ? "false" : "true",
             t->size_constraint.has_size_constraint && t->size_constraint.lower_bound == t->size_constraint.upper_bound ? "false" : "true");
+	if(t->kind == ASN1TYPED_TYPE_PRIMITIVE && t->primitive_kind == ASN1TYPED_PRIMITIVE_OBJECT_IDENTIFIER)
+		return format(b, "struct %s { using value_type = %s; static constexpr bool canonical_ber_content = true; static constexpr bool octet_aligned = true; };\n", p->mapping, p->qualified_type);
 	if(t->kind == ASN1TYPED_TYPE_PRIMITIVE)
-		return format(b, "struct %s : %s { using value_type = %s; };\n", p->mapping, all->boolean_mapping, p->qualified_type);
+		return format(b, "struct %s : %s { using value_type = %s; };\n", p->mapping, t->primitive_kind == ASN1TYPED_PRIMITIVE_NULL ? all->null_mapping : all->boolean_mapping, p->qualified_type);
 	if(format(b, "struct %s {\n    using value_type = %s;\n    static constexpr bool extensible = %s;\n", p->mapping, p->qualified_type, p->extension_member ? "true" : "false")) return -1;
 	if(t->kind == ASN1TYPED_TYPE_SEQUENCE_OF) {
+        if(t->size_constraint.upper_bound >= 65536)
+            return format(b, "    using element_type = %s;\n    using element_payload_mapping = %s;\n    static constexpr ::std::size_t lower_bound = %" PRIuMAX ";\n    static constexpr ::std::size_t upper_bound = %" PRIuMAX ";\n    static constexpr bool fragmented_supported = true;\n    static constexpr bool length_align_to_octet = true;\n    static constexpr auto elements_member = &%s::elements;\n};\n", p->members[0].type,p->members[0].mapping,(uintmax_t)t->size_constraint.lower_bound,(uintmax_t)t->size_constraint.upper_bound,p->qualified_type);
 		uintmax_t cardinality = (uintmax_t)t->size_constraint.upper_bound - (uintmax_t)t->size_constraint.lower_bound + 1;
 		unsigned bits = 0;
 		uintmax_t n;
@@ -508,12 +590,23 @@ emit_codec(struct compound_buf *b, const asn1typed_type_t *t, const struct type_
 	size_t j;
 	if(format(b, "namespace compound_codec {\ninline ::nrforge::aper::Result<void> %s(::nrforge::aper::FieldWriter& f, const %s& v) {\n", p->put, p->qualified_type)) return -1;
 	if(t->kind == ASN1TYPED_TYPE_PRIMITIVE) {
-		if(t->primitive_kind == ASN1TYPED_PRIMITIVE_BIT_STRING) {
-            if(format(b, "    return f.write_bit_string(v, %s::lower_bound, %s::upper_bound, %s::unconstrained);\n", p->qualified_mapping, p->qualified_mapping, p->qualified_mapping)) return -1;
+        if(character_kind(t->primitive_kind)) {
+            if(format(b, "    return f.write_character_string(v, %s::lower_bound, %s::upper_bound, %s::extensible, ::nrforge::aper::CharacterStringKind::%s%s);\n", p->qualified_mapping, p->qualified_mapping, p->qualified_mapping, character_spelling(t->primitive_kind), t->size_constraint.has_size_constraint ? "" : ", true")) return -1;
+        } else if(t->primitive_kind == ASN1TYPED_PRIMITIVE_NULL) {
+            if(format(b, "    return %s(f, v);\n", all->null_put)) return -1;
+        } else if(t->primitive_kind == ASN1TYPED_PRIMITIVE_OBJECT_IDENTIFIER) {
+            if(append(b, "    return ::nrforge::aper::write_object_identifier(f, v);\n")) return -1;
+        } else if(t->primitive_kind == ASN1TYPED_PRIMITIVE_BIT_STRING) {
+            if(t->size_constraint.upper_bound > 65535) {
+                if(format(b, "    return f.write_bit_string_fragmented_size(v, %s::lower_bound, %s::upper_bound);\n", p->qualified_mapping, p->qualified_mapping)) return -1;
+            } else if(format(b, "    return f.write_bit_string(v, %s::lower_bound, %s::upper_bound, %s::unconstrained%s);\n", p->qualified_mapping, p->qualified_mapping, p->qualified_mapping, t->size_constraint.is_extensible ? ", true" : "")) return -1;
         } else if(t->primitive_kind == ASN1TYPED_PRIMITIVE_OCTET_STRING) {
-            if(format(b, "    return f.write_octet_string(v, %s::lower_bound, %s::upper_bound, %s::unconstrained);\n", p->qualified_mapping, p->qualified_mapping, p->qualified_mapping)) return -1;
+            if(format(b, "    return f.write_octet_string(v, %s::lower_bound, %s::upper_bound, %s::unconstrained%s);\n", p->qualified_mapping, p->qualified_mapping, p->qualified_mapping, t->size_constraint.is_extensible ? ", true" : "")) return -1;
         } else if(format(b, "    return %s(f, v);\n", all->boolean_put)) return -1;
 	} else if(t->kind == ASN1TYPED_TYPE_SEQUENCE_OF) {
+        if(t->size_constraint.upper_bound >= 65536) {
+            if(format(b, "    const auto count = v.elements.size();\n    if(count < %s::lower_bound || count > %s::upper_bound) return f.record_failure({::nrforge::aper::ErrorCode::constraint_violation,f.cursor_bit()});\n    ::std::size_t position = 0;\n    bool more;\n    do {\n        const auto remaining = count-position;\n        more = remaining >= 16384;\n        const auto chunk = more ? (remaining/16384)*16384 : remaining;\n        auto length = f.write_collection_segment(chunk,more); if(!length) return length;\n        for(::std::size_t i=0;i<chunk;++i) { auto element = %s(f,v.elements[position+i]); if(!element) return element; }\n        position += chunk;\n    } while(more);\n    return ::nrforge::aper::Result<void>::success();\n",p->qualified_mapping,p->qualified_mapping,p->members[0].put)) return -1;
+        } else
 		if(format(b, "    const auto count = v.elements.size();\n    auto length = f.write_bounded_collection_length(count > 65535 ? ::std::numeric_limits<::std::uint64_t>::max() : static_cast<::std::uint64_t>(count), %s::lower_bound, %s::upper_bound);\n    if(!length) return length;\n    for(::std::size_t i = 0; i < count; ++i) { auto element = %s(f, v.elements[i]); if(!element) return element; }\n    return ::nrforge::aper::Result<void>::success();\n", p->qualified_mapping, p->qualified_mapping, p->members[0].put)) return -1;
 	} else if(t->kind == ASN1TYPED_TYPE_CHOICE) {
 		if(format(b, "    if(v.valueless_by_exception() || v.index() >= %s::root_count) return f.write_enumerated({false, static_cast<::std::uint64_t>(%s::root_count)}, static_cast<unsigned>(%s::root_count), false);\n    const auto ordinal = v.index();\n    auto selector = f.write_enumerated({false, static_cast<::std::uint64_t>(%s::storage_ordinal_to_per_index[ordinal])}, static_cast<unsigned>(%s::root_count), false);\n    if(!selector) return selector;\n", p->qualified_mapping, p->qualified_mapping, p->qualified_mapping, p->qualified_mapping, p->qualified_mapping)) return -1;
@@ -536,12 +629,23 @@ emit_codec(struct compound_buf *b, const asn1typed_type_t *t, const struct type_
 	if(format(b, "}\ninline ::nrforge::aper::Result<%s> %s(::nrforge::aper::FieldReader& f) {\n", p->qualified_type, p->get)) return -1;
 	if(all->extensions && append(b, "    try {\n")) return -1;
 	if(t->kind == ASN1TYPED_TYPE_PRIMITIVE) {
-		if(t->primitive_kind == ASN1TYPED_PRIMITIVE_BIT_STRING) {
-            if(format(b, "    return f.read_bit_string_owned(%s::lower_bound, %s::upper_bound, %s::unconstrained);\n", p->qualified_mapping, p->qualified_mapping, p->qualified_mapping)) return -1;
+        if(character_kind(t->primitive_kind)) {
+            if(format(b, "    return f.read_character_string_owned(%s::lower_bound, %s::upper_bound, %s::extensible, ::nrforge::aper::CharacterStringKind::%s%s);\n", p->qualified_mapping, p->qualified_mapping, p->qualified_mapping, character_spelling(t->primitive_kind), t->size_constraint.has_size_constraint ? "" : ", true")) return -1;
+        } else if(t->primitive_kind == ASN1TYPED_PRIMITIVE_NULL) {
+            if(format(b, "    return %s(f);\n", all->null_get)) return -1;
+        } else if(t->primitive_kind == ASN1TYPED_PRIMITIVE_OBJECT_IDENTIFIER) {
+            if(append(b, "    return ::nrforge::aper::read_object_identifier(f);\n")) return -1;
+        } else if(t->primitive_kind == ASN1TYPED_PRIMITIVE_BIT_STRING) {
+            if(t->size_constraint.upper_bound > 65535) {
+                if(format(b, "    return f.read_bit_string_owned_fragmented_size(%s::lower_bound, %s::upper_bound);\n", p->qualified_mapping, p->qualified_mapping)) return -1;
+            } else if(format(b, "    return f.read_bit_string_owned(%s::lower_bound, %s::upper_bound, %s::unconstrained%s);\n", p->qualified_mapping, p->qualified_mapping, p->qualified_mapping, t->size_constraint.is_extensible ? ", true" : "")) return -1;
         } else if(t->primitive_kind == ASN1TYPED_PRIMITIVE_OCTET_STRING) {
-            if(format(b, "    return f.read_octet_string_owned(%s::lower_bound, %s::upper_bound, %s::unconstrained);\n", p->qualified_mapping, p->qualified_mapping, p->qualified_mapping)) return -1;
+            if(format(b, "    return f.read_octet_string_owned(%s::lower_bound, %s::upper_bound, %s::unconstrained%s);\n", p->qualified_mapping, p->qualified_mapping, p->qualified_mapping, t->size_constraint.is_extensible ? ", true" : "")) return -1;
         } else if(format(b, "    return %s(f);\n", all->boolean_get)) return -1;
 	} else if(t->kind == ASN1TYPED_TYPE_SEQUENCE_OF) {
+        if(t->size_constraint.upper_bound >= 65536) {
+            if(format(b, "    %s value{};\n    bool more;\n    do {\n        auto length = f.read_collection_segment();\n        if(!length) return ::nrforge::aper::Result<%s>::failure(length.error());\n        more = length.value().fragmented;\n        const auto count = length.value().count;\n        if(count > %s::upper_bound-value.elements.size()) { auto e=f.record_failure({::nrforge::aper::ErrorCode::constraint_violation,f.cursor_bit()}); return ::nrforge::aper::Result<%s>::failure(e.error()); }\n        if(count > value.elements.max_size()-value.elements.size()) { auto e=f.record_failure({::nrforge::aper::ErrorCode::resource_limit,f.cursor_bit()}); return ::nrforge::aper::Result<%s>::failure(e.error()); }\n        value.elements.reserve(value.elements.size()+count);\n        for(::std::size_t i=0;i<count;++i) { auto element=%s(f); if(!element) return ::nrforge::aper::Result<%s>::failure(element.error()); value.elements.push_back(::std::move(element).value()); }\n    } while(more);\n    if(value.elements.size() < %s::lower_bound) { auto e=f.record_failure({::nrforge::aper::ErrorCode::constraint_violation,f.cursor_bit()}); return ::nrforge::aper::Result<%s>::failure(e.error()); }\n    return ::nrforge::aper::Result<%s>::success(::std::move(value));\n",p->qualified_type,p->qualified_type,p->qualified_mapping,p->qualified_type,p->qualified_type,p->members[0].get,p->qualified_type,p->qualified_mapping,p->qualified_type,p->qualified_type)) return -1;
+        } else
 		if(format(b, "    auto length = f.read_bounded_collection_length(%s::lower_bound, %s::upper_bound);\n    ", p->qualified_mapping, p->qualified_mapping) || failure(b, p->qualified_type, "length") ||
 			format(b, "    %s value{};\n    if(length.value() > value.elements.max_size()) {\n        auto error = f.record_failure({::nrforge::aper::ErrorCode::resource_limit, f.cursor_bit()});\n        return ::nrforge::aper::Result<%s>::failure(error.error());\n    }\n    value.elements.reserve(length.value());\n    for(::std::size_t i = 0; i < length.value(); ++i) {\n        auto element = %s(f);\n        ", p->qualified_type, p->qualified_type, p->members[0].get) || failure(b, p->qualified_type, "element") ||
 			format(b, "        value.elements.push_back(::std::move(element).value());\n    }\n    return ::nrforge::aper::Result<%s>::success(::std::move(value));\n", p->qualified_type)) return -1;
@@ -601,12 +705,20 @@ emit_member_sizes(struct compound_buf *b, const struct type_plan *p, int mode) {
         const char *put, *get;
         if(!mp->size_name || mode == 0) continue;
         if(mode == 1) {
-            if(format(b, "struct %s { using value_type = %s; static constexpr bool unconstrained = false; static constexpr ::std::size_t lower_bound = %" PRIuMAX "; static constexpr ::std::size_t upper_bound = %" PRIuMAX "; static constexpr bool fragmented_supported = false; };\n", mp->size_name, mp->type, (uintmax_t)mp->size.lower_bound, (uintmax_t)mp->size.upper_bound)) return -1;
+            if(mp->size.upper_bound > 65535) {
+                if(format(b, "struct %s { using value_type = %s; static constexpr bool unconstrained = false; static constexpr ::std::size_t lower_bound = %" PRIuMAX "; static constexpr ::std::size_t upper_bound = %" PRIuMAX "; static constexpr bool fragmented_supported = true; static constexpr bool length_units_are_bits = true; };\n", mp->size_name, mp->type, (uintmax_t)mp->size.lower_bound, (uintmax_t)mp->size.upper_bound)) return -1;
+            } else if(mp->size.has_extension_addition) {
+                if(format(b, "struct %s { using value_type = %s; static constexpr bool unconstrained = false; static constexpr bool extensible = true; static constexpr ::std::size_t lower_bound = %" PRIuMAX "; static constexpr ::std::size_t upper_bound = %" PRIuMAX "; static constexpr bool fragmented_supported = false; static constexpr bool has_extension_addition = true; static constexpr ::std::size_t extension_lower_bound = %" PRIuMAX "; static constexpr ::std::size_t extension_upper_bound = %" PRIuMAX "; };\n",mp->size_name,mp->type,(uintmax_t)mp->size.lower_bound,(uintmax_t)mp->size.upper_bound,(uintmax_t)mp->size.extension_lower_bound,(uintmax_t)mp->size.extension_upper_bound)) return -1;
+            } else {
+            if(format(b, "struct %s { using value_type = %s; static constexpr bool unconstrained = false;%s static constexpr ::std::size_t lower_bound = %" PRIuMAX "; static constexpr ::std::size_t upper_bound = %" PRIuMAX "; static constexpr bool fragmented_supported = false; };\n", mp->size_name, mp->type, mp->size.is_extensible ? " static constexpr bool extensible = true;" : "", (uintmax_t)mp->size.lower_bound, (uintmax_t)mp->size.upper_bound)) return -1;
+            }
             continue;
         }
         operation = mp->size_kind == ASN1TYPED_PRIMITIVE_BIT_STRING ? "bit" : "octet";
         put = strrchr(mp->size_put, ':') + 1; get = strrchr(mp->size_get, ':') + 1;
-        if(format(b, "namespace compound_codec {\ninline ::nrforge::aper::Result<void> %s(::nrforge::aper::FieldWriter& f, const %s& v) { return f.write_%s_string(v, %s::lower_bound, %s::upper_bound, false); }\ninline ::nrforge::aper::Result<%s> %s(::nrforge::aper::FieldReader& f) { return f.read_%s_string_owned(%s::lower_bound, %s::upper_bound, false); }\n}\n", put, mp->type, operation, mp->size_mapping, mp->size_mapping, mp->type, get, operation, mp->size_mapping, mp->size_mapping)) return -1;
+        if(mp->size.upper_bound > 65535) {
+            if(format(b, "namespace compound_codec {\ninline ::nrforge::aper::Result<void> %s(::nrforge::aper::FieldWriter& f, const %s& v) { return f.write_bit_string_fragmented_size(v, %s::lower_bound, %s::upper_bound); }\ninline ::nrforge::aper::Result<%s> %s(::nrforge::aper::FieldReader& f) { return f.read_bit_string_owned_fragmented_size(%s::lower_bound, %s::upper_bound); }\n}\n", put, mp->type, mp->size_mapping, mp->size_mapping, mp->type, get, mp->size_mapping, mp->size_mapping)) return -1;
+        } else if(format(b, "namespace compound_codec {\ninline ::nrforge::aper::Result<void> %s(::nrforge::aper::FieldWriter& f, const %s& v) { return f.write_%s_string(v, %s::lower_bound, %s::upper_bound, false%s); }\ninline ::nrforge::aper::Result<%s> %s(::nrforge::aper::FieldReader& f) { return f.read_%s_string_owned(%s::lower_bound, %s::upper_bound, false%s); }\n}\n", put, mp->type, operation, mp->size_mapping, mp->size_mapping, mp->size.is_extensible ? ", true" : "", mp->type, get, operation, mp->size_mapping, mp->size_mapping, mp->size.is_extensible ? ", true" : "")) return -1;
     }
     return 0;
 }
@@ -626,14 +738,32 @@ emit_member_values(struct compound_buf *b, const struct type_plan *p, int mode) 
         const char *suffix, *put, *get;
         if(!mp->value_name || mode == 0) continue;
         bound_literal(lower, sizeof(lower), mp->range.lower_bound, mp->value_signed);
-        bound_literal(upper, sizeof(upper), mp->range.upper_bound, mp->value_signed);
-        if(mode == 1) {
-            if(format(b, "struct %s { using value_type = %s; static constexpr value_type lower_bound = %s; static constexpr value_type upper_bound = %s; static constexpr bool extensible = false; };\n", mp->value_name, mp->type, lower, upper)) return -1;
+        bound_literal(upper, sizeof(upper), mp->range.tail_count ? mp->range.tail[mp->range.tail_count - 1].upper_bound : mp->range.upper_bound, mp->value_signed);
+        if(mode == 1 && mp->range.tail_count) {
+            size_t n;
+            char lo[96], hi[96];
+            if(format(b, "struct %s { using value_type = %s; static constexpr value_type lower_bound = %s; static constexpr value_type upper_bound = %s; static constexpr bool extensible = %s;\n    static constexpr ::nrforge::aper::IntegerInterval root_intervals[%zu] = {", mp->value_name, mp->type, lower, upper, mp->range.is_extensible ? "true" : "false", mp->range.tail_count + 1)) return -1;
+            bound_literal(hi, sizeof(hi), mp->range.upper_bound, 1);
+            if(format(b, "{%s, %s}", lower, hi)) return -1;
+            for(n = 0; n < mp->range.tail_count; ++n) {
+                bound_literal(lo, sizeof(lo), mp->range.tail[n].lower_bound, 1);
+                bound_literal(hi, sizeof(hi), mp->range.tail[n].upper_bound, 1);
+                if(format(b, ", {%s, %s}", lo, hi)) return -1;
+            }
+            if(append(b, "}; };\n")) return -1;
             continue;
         }
-        suffix = mp->value_signed ? "int" : "uint";
+        if(mode == 1) {
+            if(format(b, "struct %s { using value_type = %s; static constexpr value_type lower_bound = %s; static constexpr value_type upper_bound = %s; static constexpr bool extensible = %s; };\n", mp->value_name, mp->type, lower, upper, mp->range.is_extensible ? "true" : "false")) return -1;
+            continue;
+        }
+        suffix = mp->range.is_extensible ? "extensible_int" : mp->value_signed ? "bounded_int" : "bounded_uint";
         put = strrchr(mp->value_put, ':') + 1; get = strrchr(mp->value_get, ':') + 1;
-        if(format(b, "namespace compound_codec {\ninline ::nrforge::aper::Result<void> %s(::nrforge::aper::FieldWriter& f, const %s& v) { return f.write_bounded_%s(v, %s::lower_bound, %s::upper_bound); }\ninline ::nrforge::aper::Result<%s> %s(::nrforge::aper::FieldReader& f) { return f.read_bounded_%s(%s::lower_bound, %s::upper_bound); }\n}\n", put, mp->type, suffix, mp->value_mapping, mp->value_mapping, mp->type, get, suffix, mp->value_mapping, mp->value_mapping)) return -1;
+        if(mp->range.tail_count) {
+            if(format(b, "namespace compound_codec {\ninline ::nrforge::aper::Result<void> %s(::nrforge::aper::FieldWriter& f, const %s& v) { return f.write_integer_set(v, %s::root_intervals, %s::extensible); }\ninline ::nrforge::aper::Result<%s> %s(::nrforge::aper::FieldReader& f) { return f.read_integer_set(%s::root_intervals, %s::extensible); }\n}\n", put, mp->type, mp->value_mapping, mp->value_mapping, mp->type, get, mp->value_mapping, mp->value_mapping)) return -1;
+            continue;
+        }
+        if(format(b, "namespace compound_codec {\ninline ::nrforge::aper::Result<void> %s(::nrforge::aper::FieldWriter& f, const %s& v) { return f.write_%s(v, %s::lower_bound, %s::upper_bound); }\ninline ::nrforge::aper::Result<%s> %s(::nrforge::aper::FieldReader& f) { return f.read_%s(%s::lower_bound, %s::upper_bound); }\n}\n", put, mp->type, suffix, mp->value_mapping, mp->value_mapping, mp->type, get, suffix, mp->value_mapping, mp->value_mapping)) return -1;
     }
     return 0;
 }
@@ -644,15 +774,27 @@ render(const asn1typed_module_t *m, const char *ns, char **out, char *diagnostic
 	char why[512] = "invalid compound renderer arguments";
 	size_t i;
 	int result = -1;
-	p.extensions = extensions; p.collections = collections; p.ioc = ioc; p.octets = octets || !!ioc; p.bits = bits || !!ioc; p.values = values || !!ioc;
+	p.extensions = extensions; p.collections = collections; p.ioc = ioc; p.octets = octets || !!ioc; p.bits = bits || !!ioc; p.values = values == 2 ? 2 : values ? 1 : ioc ? 2 : 0; p.characters = values == 8 || !!ioc; p.nulls = values == 4 || !!ioc; p.extensible_sizes = bits == 2 || !!ioc;
 	if(out) *out = NULL;
 	if(diagnostic && size) diagnostic[0] = 0;
 	if(!out || preflight(m, ns, &p, why, sizeof(why))) goto done;
 	if((collections || p.octets || p.bits) && append(&b, "#include <vector>\n")) goto oom;
+    for(i = 0; i < m->type_count; ++i) {
+        if(m->types[i].kind == ASN1TYPED_TYPE_PRIMITIVE && character_kind(m->types[i].primitive_kind)) {
+            if(append(&b, "#include <string>\n")) goto oom;
+            break;
+        }
+    }
 	if(p.has_extension_sequence && append(&b, "#include <sequence_extensions.hpp>\n")) goto oom;
 	if(extensions && mode == 2 && append(&b, "#include <new>\n#include <limits>\n#include <stdexcept>\n#include <utility>\n")) goto oom;
     if(append(&b, "#include <array>\n#include <cstddef>\n#include <cstdint>\n#include <optional>\n#include <span>\n#include <variant>\n") || format(&b, "namespace %s {\n", ns) ||
 		(mode == 1 && emit_boolean_mapping(&b)) || (mode == 2 && emit_boolean_helpers(&b)) || append(&b, "} // namespace\n")) goto oom;
+    if(p.has_nulls) {
+        if(format(&b, "namespace %s {\n", ns)) goto oom;
+        if(mode == 1 && append(&b, "struct COMPOUND_NULL { using value_type = ::std::monostate; static constexpr unsigned bit_count = 0; static constexpr bool align_before_payload_to_octet = false; };\n")) goto oom;
+        if(mode == 2 && append(&b, "namespace compound_codec {\ninline ::nrforge::aper::Result<void> put_null(::nrforge::aper::FieldWriter& f, ::std::monostate v) { (void)f; (void)v; return ::nrforge::aper::Result<void>::success(); }\ninline ::nrforge::aper::Result<::std::monostate> get_null(::nrforge::aper::FieldReader& f) { (void)f; return ::nrforge::aper::Result<::std::monostate>::success({}); }\n}\n")) goto oom;
+        if(append(&b, "}\n")) goto oom;
+    }
     if(p.has_bits) {
         if(format(&b, "namespace %s {\n", ns)) goto oom;
         if(mode == 1 && append(&b, "struct COMPOUND_BITS { using value_type = ::nrforge::aper::BitString; static constexpr bool unconstrained = true; static constexpr bool fragmented_supported = false; };\n")) goto oom;
@@ -679,7 +821,7 @@ render(const asn1typed_module_t *m, const char *ns, char **out, char *diagnostic
 oom:
 	snprintf(why, sizeof(why), "out of memory emitting compound output");
 done:
-	free(b.text); if(p.types || p.boolean_mapping || p.boolean_put || p.boolean_get) clear(&p, m);
+	free(b.text); if(p.types || p.boolean_mapping || p.boolean_put || p.boolean_get || p.null_mapping || p.null_put || p.null_get) clear(&p, m);
 	if(result && diagnostic && size) snprintf(diagnostic, size, "%s", why[0] ? why : "compound preflight allocation failure");
 	return result;
 }
@@ -717,15 +859,15 @@ int
 asn1typed_render_cpp_compound_ioc(const asn1typed_module_t *m, const char *ns,
         const struct asn1typed_cpp_ioc_entry *ioc, int mode,
         char **out, char *diagnostic, size_t size) {
-    return render(m, ns, out, diagnostic, size, mode, 1, 1, 1, 1, 1, ioc);
+    return render(m, ns, out, diagnostic, size, mode, 1, 1, 1, 1, 2, ioc);
 }
 int asn1typed_render_cpp_compound_ioc_check_names(const asn1typed_module_t *m, const char *ns,
         const struct asn1typed_cpp_ioc_entry *ioc, const char *const *names, size_t count, char *why, size_t size) {
     struct plan p = {0};
     int result;
-    p.extensions = p.collections = 1; p.ioc = ioc; p.octets = !!ioc; p.bits = !!ioc; p.values = !!ioc; p.extra_names = names; p.extra_count = count;
+    p.extensions = p.collections = 1; p.ioc = ioc; p.octets = !!ioc; p.bits = !!ioc; p.values = ioc ? 2 : 0; p.characters = p.nulls = p.extensible_sizes = !!ioc; p.extra_names = names; p.extra_count = count;
     result = preflight(m, ns, &p, why, size);
-    if(p.types || p.boolean_mapping || p.boolean_put || p.boolean_get) clear(&p, m);
+    if(p.types || p.boolean_mapping || p.boolean_put || p.boolean_get || p.null_mapping || p.null_put || p.null_get) clear(&p, m);
     return result;
 }
 
@@ -772,3 +914,51 @@ int
 asn1typed_render_cpp_owned_shape_mapping(const asn1typed_module_t *m, const char *ns, char **out, char *why, size_t size) { return render_shapes(m, ns, out, why, size, 1); }
 int
 asn1typed_render_cpp_owned_shape_codec(const asn1typed_module_t *m, const char *ns, char **out, char *why, size_t size) { return render_shapes(m, ns, out, why, size, 2); }
+
+int asn1typed_render_cpp_owned_character_types(const asn1typed_module_t *m, const char *ns, char **out, char *diagnostic, size_t size) { return render(m, ns, out, diagnostic, size, 0, 1, 1, 1, 1, 8, NULL); }
+int asn1typed_render_cpp_owned_character_mapping(const asn1typed_module_t *m, const char *ns, char **out, char *diagnostic, size_t size) { return render(m, ns, out, diagnostic, size, 1, 1, 1, 1, 1, 8, NULL); }
+int asn1typed_render_cpp_owned_character_codec(const asn1typed_module_t *m, const char *ns, char **out, char *diagnostic, size_t size) { return render(m, ns, out, diagnostic, size, 2, 1, 1, 1, 1, 8, NULL); }
+/* NULL is opt-in for ordinary output; physical IOC output enables it above. */
+static int render_null(const asn1typed_module_t *m, const char *ns, char **out, char *diag, size_t size, int mode) {
+    struct asn1typed_cpp_inline_enum_view view = {0};
+    char why[512]; int rc;
+    if(out) *out = NULL;
+    if(asn1typed_cpp_inline_enum_view_init(&view, m, why, sizeof(why))) { if(diag && size) snprintf(diag, size, "%s", why); return -1; }
+    rc = render(view.module, ns, out, diag, size, mode, 1, 1, 1, 1, 4, NULL);
+    asn1typed_cpp_inline_enum_view_clear(&view); return rc;
+}
+int asn1typed_render_cpp_owned_null_types(const asn1typed_module_t *m, const char *ns, char **out, char *diag, size_t size) { return render_null(m, ns, out, diag, size, 0); }
+int asn1typed_render_cpp_owned_null_mapping(const asn1typed_module_t *m, const char *ns, char **out, char *diag, size_t size) { return render_null(m, ns, out, diag, size, 1); }
+int asn1typed_render_cpp_owned_null_codec(const asn1typed_module_t *m, const char *ns, char **out, char *diag, size_t size) { return render_null(m, ns, out, diag, size, 2); }
+/* Batch SIZE capability: historical ordinary entry points remain bounded. */
+static int render_sizes(const asn1typed_module_t *m, const char *ns, char **out, char *why, size_t size, int mode) {
+    struct asn1typed_cpp_inline_enum_view view = {0}; int rc;
+    if(out) *out = NULL;
+    if(!out) { if(why && size) snprintf(why,size,"invalid SIZE renderer output argument"); return -1; }
+    if(asn1typed_cpp_inline_enum_view_init(&view,m,why,size)) return -1;
+    rc=render(view.module,ns,out,why,size,mode,1,1,1,2,1,NULL);
+    asn1typed_cpp_inline_enum_view_clear(&view); return rc;
+}
+int asn1typed_render_cpp_owned_size_types(const asn1typed_module_t *m,const char *ns,char **out,char *why,size_t size) { return render_sizes(m,ns,out,why,size,0); }
+int asn1typed_render_cpp_owned_size_mapping(const asn1typed_module_t *m,const char *ns,char **out,char *why,size_t size) { return render_sizes(m,ns,out,why,size,1); }
+int asn1typed_render_cpp_owned_size_codec(const asn1typed_module_t *m,const char *ns,char **out,char *why,size_t size) { return render_sizes(m,ns,out,why,size,2); }
+static int
+render_domains(const asn1typed_module_t *m, const char *ns, char **out, char *why, size_t size, int mode) {
+    struct asn1typed_cpp_inline_enum_view view = {0};
+    int rc;
+    if(out) *out = NULL;
+    if(!out) { if(why && size) snprintf(why, size, "invalid domain renderer output argument"); return -1; }
+    if(asn1typed_cpp_inline_enum_view_init(&view, m, why, size)) return -1;
+    rc = render(view.module, ns, out, why, size, mode, 1, 1, 1, 1, 2, NULL);
+    asn1typed_cpp_inline_enum_view_clear(&view);
+    return rc;
+}
+
+int
+asn1typed_render_cpp_owned_domain_types(const asn1typed_module_t *m, const char *ns, char **out, char *why, size_t size) { return render_domains(m, ns, out, why, size, 0); }
+
+int
+asn1typed_render_cpp_owned_domain_mapping(const asn1typed_module_t *m, const char *ns, char **out, char *why, size_t size) { return render_domains(m, ns, out, why, size, 1); }
+
+int
+asn1typed_render_cpp_owned_domain_codec(const asn1typed_module_t *m, const char *ns, char **out, char *why, size_t size) { return render_domains(m, ns, out, why, size, 2); }

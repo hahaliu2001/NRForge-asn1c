@@ -257,6 +257,40 @@ void lifecycle_and_wrappers() {
         (void)fields.write_bounded_collection_length(UINT64_MAX,0,65535);return Result<void>::success();
     });error(encoded_ignored,ErrorCode::constraint_violation,0);
 }
+void fragment_atomicity() {
+    for(unsigned residue=0;residue<8;++residue) {
+        EncodeContext output; BitWriter writer(output); prefix(writer,residue);
+        REQUIRE(writer.write_collection_segment(16384,true));
+        REQUIRE(output.collection_elements()==16384 && writer.cursor_bit()==(residue?16:8));
+        auto completed=writer.finish(); REQUIRE(completed);
+        auto wire=completed.value().octets;
+        DecodeContext input; auto made=BitReader::make(wire,input); REQUIRE(made);
+        auto reader=std::move(made).value(); prefix(reader,residue);
+        auto segment=reader.read_collection_segment(); REQUIRE(segment && segment.value().count==16384 && segment.value().fragmented);
+        if(residue) {
+            wire[0] |= std::byte{1};
+            DecodeContext rejected; auto make=BitReader::make(wire,rejected); auto bad=std::move(make).value(); prefix(bad,residue);
+            error(bad.read_collection_segment(),ErrorCode::nonzero_padding,7);
+            REQUIRE(bad.cursor_bit()==residue && rejected.collection_elements()==0 && rejected.wire_bits()==residue);
+            error(bad.read_bit(),ErrorCode::nonzero_padding,7);
+        }
+    }
+    for(auto wire : {std::vector<std::byte>{std::byte{0x80}},std::vector<std::byte>{}}) {
+        DecodeContext input; auto made=BitReader::make(wire,input); REQUIRE(made); auto reader=std::move(made).value();
+        error(reader.read_collection_segment(),ErrorCode::truncated_input,wire.size()*8);
+        REQUIRE(reader.cursor_bit()==0 && input.wire_bits()==0 && input.collection_elements()==0);
+    }
+    for(unsigned kind=0;kind<4;++kind) {
+        Limits limits; if(kind==0) limits.max_collection_elements=16383;
+        if(kind==1) limits.max_output_octets=0;
+        if(kind==2) limits.max_wire_bits=7;
+        EncodeContext context(limits); BitWriter writer(context);
+        if(kind==3) fail_next_allocation=true;
+        error(writer.write_collection_segment(16384,true),kind==3?ErrorCode::allocation_failure:ErrorCode::resource_limit,0);
+        REQUIRE(writer.cursor_bit()==0 && context.wire_bits()==0 && context.collection_elements()==0 && context.logical_output_octets()==0);
+    }
+}
+
 }
 void* operator new(std::size_t size) {
     if(fail_next_allocation) { fail_next_allocation=false;throw std::bad_alloc(); }
@@ -269,5 +303,5 @@ void operator delete[](void* pointer) noexcept { std::free(pointer); }
 void operator delete(void* pointer,std::size_t) noexcept { std::free(pointer); }
 void operator delete[](void* pointer,std::size_t) noexcept { std::free(pointer); }
 int main() {
-    vectors_and_budgets();invalid_and_priority();cumulative_fixed_and_allocation();lifecycle_and_wrappers();
+    fragment_atomicity();vectors_and_budgets();invalid_and_priority();cumulative_fixed_and_allocation();lifecycle_and_wrappers();
 }

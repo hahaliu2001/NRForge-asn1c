@@ -1,0 +1,34 @@
+{
+  "status": "PASS",
+  "reference": "asn1tools 0.167.0",
+  "vectors": 427,
+  "native_encode_decode_vectors": 415,
+  "known_multiplier_extension_model_only_vectors": 12,
+  "all_vectors_independent_cpp_bit_model": true,
+  "limitations": [
+    "asn1tools 0.167.0 known-multiplier SIZE extensions unsupported; extension values checked against independent bit model",
+    "Unfragmented UTF8 wire and known-multiplier extension lengths <16384 octets/characters; resource refusal at fragmentation determinant",
+    "Not complete NGAP-PDU qualification"
+  ],
+  "source_sha256": {
+    "libasn1typed/asn1typed.c": "75db0dac5d1978de4852e64ed351dfe4b931295d054d2f9e041f7af1996ced50",
+    "libasn1typed/asn1typed.h": "4d8b5299cd3d587f646fe1eee4121708888bb734e739b3d9c76f25ee15c488cd",
+    "libasn1typed/asn1typed_extract.c": "21efec5f2585281a616523b99b8ef8706d1e20ddc256bad28c0091cfc57ae704",
+    "libasn1typed/asn1typed_name.c": "3070d2bbdc67e719ab2c6a079a7c1116d3254215a00defa384e1f746d9c61039",
+    "libasn1typed/asn1typed_render_cpp_inline_enum.c": "b10ac5e88ced8937685299c8cc80cbe8ab4cc53273d84893454872ce9430bda2",
+    "libaper/runtime.hpp": "34ceca5e464fc1c8f6e505cdd01ec00d22dd87d74d17abbb5660f605570162f1",
+    "libaper/runtime.cpp": "e6d162c031a4c8ba958e21460ffd5acf5ecf05d26232549da9933912e9259731",
+    "libasn1typed/asn1typed_render_cpp_compound.c": "6ba0a692ab09913a959a6b04f7ccd2b58a9af3380cb76936cda46f79331d80e9",
+    "libasn1typed/asn1typed_render_cpp.h": "fec1c47b125ca738b8631e86d46b42f79b1d8db6b3830cf18001a00563fed9fe",
+    "libasn1typed/check_asn1typed_character_generated.cpp": "18ff96d60290afc6928a2650c43eb071ed0ee0f2035cfac0da5645ada4f5182d",
+    "libasn1typed/check_asn1typed_character_render.c": "69334acde32214bd31197a7811fc010c5ae442d5714b2a9b1f7da993084454cb",
+    "libasn1typed/fixtures/characters-generation-batch.asn1": "0b46e9502341a117bd390fb13cde7b6770f19db74d2511209a7f17c4ad1ce4c9",
+    "libasn1typed/fixtures/ioc-characters-generation-batch.asn1": "c9227d0cae230cf5884d4631698c21be515047ea36c010d8a285f685be402e26",
+    "tools/shared-character-qualification/qualify.py": "b1fd4f6761fc524b453311f74037d0dd25e613a3a9a7ec8b922e6a8c4b0a5459"
+  },
+  "generated_header_sha256": {
+    "types.hpp": "a0e086db15965a4b4483415625f0aab83c4449050c260b84f54174c3449a4f64",
+    "mapping.hpp": "516adeb674226c937cc3788017bebd1a5a90a724232212a6a52749aef79a7327",
+    "codec.hpp": "1a65a27a89ef107e8ea5fa208990e18640dc10fb401d63757b37101cc38bd334"
+  }
+}

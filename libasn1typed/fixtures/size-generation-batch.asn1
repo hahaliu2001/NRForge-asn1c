@@ -1,0 +1,14 @@
+SizeGeneration DEFINITIONS AUTOMATIC TAGS ::= BEGIN
+Number ::= INTEGER (0..65535)
+Address ::= BIT STRING (SIZE(1..160, ...))
+Algorithms ::= BIT STRING (SIZE(16, ...))
+Octets ::= OCTET STRING (SIZE(2..4, ...))
+Endpoint ::= CHOICE { tNGF-ID BIT STRING (SIZE(32, ...)), w-AGF-ID BIT STRING (SIZE(16, ...)) }
+Envelope ::= SEQUENCE {
+ address Address,
+ algorithms Algorithms,
+ primary BIT STRING (SIZE(8, ..., 16)),
+ fixed Address (SIZE(32)),
+ bytes Octets
+}
+END

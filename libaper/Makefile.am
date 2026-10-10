@@ -44,3 +44,20 @@ TESTS += check_aper_integer
 check_aper_integer_SOURCES = check_integer.cpp
 check_aper_integer_CPPFLAGS = -I$(srcdir) -DNDEBUG
 check_aper_integer_LDADD = libaper.la
+
+check_PROGRAMS += check_aper_ext_strings
+TESTS += check_aper_ext_strings
+check_aper_ext_strings_SOURCES = check_ext_strings.cpp
+check_aper_ext_strings_CPPFLAGS = -I$(srcdir) -DNDEBUG
+check_aper_ext_strings_LDADD = libaper.la
+check_PROGRAMS += check_aper_extensible_integer
+TESTS += check_aper_extensible_integer
+check_aper_extensible_integer_SOURCES = check_extensible_integer.cpp
+check_aper_extensible_integer_CPPFLAGS = -I$(srcdir) -DNDEBUG
+check_aper_extensible_integer_LDADD = libaper.la
+
+check_PROGRAMS += check_aper_fragmented_bits
+TESTS += check_aper_fragmented_bits
+check_aper_fragmented_bits_SOURCES = check_fragmented_bits.cpp
+check_aper_fragmented_bits_CPPFLAGS = -I$(srcdir) -DNDEBUG
+check_aper_fragmented_bits_LDADD = libaper.la

@@ -1,0 +1,28 @@
+{
+  "status": "PASS",
+  "native": "asn1tools==0.167.0 aligned PER",
+  "actual_schema": "BIT STRING(SIZE(0..131072)) and BIT STRING(SIZE(1..131072)), wrapped by 0..7 BOOLEAN prefix fields",
+  "vectors": 152,
+  "encode_decode_comparisons": 304,
+  "lengths": [
+    0,
+    1,
+    127,
+    128,
+    16383,
+    16384,
+    65535,
+    65536,
+    131071,
+    131072
+  ],
+  "fragment_length_units": "bits",
+  "extension_surrogate": false,
+  "scope": "bounded primitive differential, not full NGAP PDU qualification",
+  "sources": {
+    "libaper/runtime.hpp": "34ceca5e464fc1c8f6e505cdd01ec00d22dd87d74d17abbb5660f605570162f1",
+    "libaper/runtime.cpp": "e6d162c031a4c8ba958e21460ffd5acf5ecf05d26232549da9933912e9259731",
+    "tools/batch-fragment-bits-qualification/driver.cpp": "f7ad2eaefc3d35a9a71c67bf08a94fd51d4e0f784ebff2ea4c8be4439740fd84",
+    "tools/batch-fragment-bits-qualification/qualify.py": "92d15c0f09c3aaf6ecc2614e9ed5bf75fcd3500a8be35f905e4fa40fe00126e6"
+  }
+}

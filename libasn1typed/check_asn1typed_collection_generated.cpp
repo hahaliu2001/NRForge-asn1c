@@ -1,4 +1,6 @@
 #include <runtime.hpp>
+#include <fstream>
+#include <string>
 #include <sequence_extensions.hpp>
 #include "types.hpp"
 #include "mapping.hpp"
@@ -311,6 +313,45 @@ void allocation_and_ownership() {
     copy.elements[0].sequence_extensions = {};
     REQUIRE(c::encode_ext_pairs(copy).value().octets == octets({0x40, 0x07}));
 }
+void fragments() {
+    static_assert(c::Large_aper::fragmented_supported);
+    for(std::size_t count : {1u,127u,128u,16383u,16384u,32768u,65535u,65536u}) {
+        c::Large value; value.elements.resize(count,false);
+        // Independent X.691 determinant/payload model, all BOOLEAN values zero.
+        std::vector<std::byte> model;
+        std::size_t remaining=count;
+        bool more;
+        do {
+            more=remaining >= 16384;
+            const auto chunk=more ? (remaining/16384)*16384 : remaining;
+            if(more) model.push_back(static_cast<std::byte>(0xc0u+chunk/16384));
+            else if(chunk < 128) model.push_back(static_cast<std::byte>(chunk));
+            else { model.push_back(static_cast<std::byte>(0x80u+(chunk>>8))); model.push_back(static_cast<std::byte>(chunk&255)); }
+            model.resize(model.size()+(chunk+7)/8,std::byte{0});
+            remaining-=chunk;
+        } while(more);
+        auto encoded=c::encode_large(value); REQUIRE(encoded && encoded.value().octets==model);
+        if(const auto directory=std::getenv("FRAGMENT_VECTOR_DIR")) {
+            std::ofstream output(::std::string(directory)+"/"+::std::to_string(count)+".bin",::std::ios::binary);
+            output.write(reinterpret_cast<const char*>(encoded.value().octets.data()),static_cast<::std::streamsize>(encoded.value().octets.size())); REQUIRE(output.good());
+        }
+        auto decoded=c::decode_large(model); REQUIRE(decoded && decoded.value().elements==value.elements);
+        if(count >= 16384 && count % 16384 == 0) {
+            REQUIRE(model.back()==std::byte{0});
+            model.pop_back(); auto bad=c::decode_large(model); REQUIRE(!bad && bad.error().code==ErrorCode::truncated_input);
+        }
+        Limits limits; limits.max_collection_elements=count-1;
+        auto bad=c::encode_large(value,limits); REQUIRE(!bad && bad.error().code==ErrorCode::resource_limit);
+        limits={}; limits.max_output_octets=encoded.value().octets.size()-1;
+        bad=c::encode_large(value,limits); REQUIRE(!bad && bad.error().code==ErrorCode::resource_limit);
+        limits={}; limits.max_wire_bits=encoded.value().complete_encoding_bits-1;
+        bad=c::encode_large(value,limits); REQUIRE(!bad && bad.error().code==ErrorCode::resource_limit);
+        allocation_countdown=0; auto oom=c::decode_large(encoded.value().octets); allocation_countdown=-1;
+        REQUIRE(!oom && oom.error().code==ErrorCode::allocation_failure);
+    }
+    error(c::encode_large({}),ErrorCode::constraint_violation,0);
+    auto invalid=c::decode_large(octets({0xc0})); REQUIRE(!invalid && invalid.error().code==ErrorCode::constraint_violation);
+}
 } // namespace
 void *operator new(std::size_t size) {
     if(allocation_countdown == 0) { allocation_countdown = -1; throw std::bad_alloc(); }
@@ -324,6 +365,6 @@ void operator delete[](void *pointer) noexcept { std::free(pointer); }
 void operator delete(void *pointer, std::size_t) noexcept { std::free(pointer); }
 void operator delete[](void *pointer, std::size_t) noexcept { std::free(pointer); }
 int main() {
-    vectors(); errors_and_budgets(); allocation_and_ownership();
+    vectors(); errors_and_budgets(); allocation_and_ownership(); fragments();
     std::puts("PASS N8 generated collections, count boundaries, owned values and shared budgets");
 }
