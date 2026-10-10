@@ -1,0 +1,20 @@
+IOCBits DEFINITIONS AUTOMATIC TAGS ::= BEGIN
+Identifier ::= INTEGER (0..65535)
+Policy ::= ENUMERATED { reject, ignore, notify }
+Requirement ::= ENUMERATED { mandatory, optional, conditional }
+NamedBits ::= BIT STRING (SIZE(3))
+id-Plain Identifier ::= 7
+id-Named Identifier ::= 42
+REGISTRY-CLASS ::= CLASS { &id Identifier UNIQUE, &criticality Policy, &Value, &presence Requirement }
+ WITH SYNTAX { ID &id CRITICALITY &criticality TYPE &Value PRESENCE &presence }
+Entry { REGISTRY-CLASS : Rows } ::= SEQUENCE {
+ number REGISTRY-CLASS.&id({Rows}),
+ policy REGISTRY-CLASS.&criticality({Rows}{@number}),
+ content REGISTRY-CLASS.&Value({Rows}{@number})
+}
+Container { REGISTRY-CLASS : Rows } ::= SEQUENCE (SIZE(0..65535)) OF Entry {{Rows}}
+Rows REGISTRY-CLASS ::= {
+ { ID id-Plain CRITICALITY reject TYPE BIT STRING PRESENCE mandatory } |
+ { ID id-Named CRITICALITY notify TYPE NamedBits PRESENCE optional }, ... }
+Message ::= SEQUENCE { entries Container {{Rows}}, ... }
+END

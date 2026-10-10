@@ -103,7 +103,7 @@ static size_t find_ref(const asn1typed_module_t *m, const asn1typed_type_ref_t *
 static int reference(const asn1typed_module_t *m, const asn1typed_type_ref_t *r, const unsigned char *done) {
     size_t found;
     if(r->kind == ASN1TYPED_REF_PRIMITIVE)
-        return (r->primitive_kind == ASN1TYPED_PRIMITIVE_BOOLEAN || r->primitive_kind == ASN1TYPED_PRIMITIVE_OCTET_STRING) && !r->module && !r->source_name && !r->actuals && !r->actual_count ? 1 : -1;
+        return (r->primitive_kind == ASN1TYPED_PRIMITIVE_BOOLEAN || r->primitive_kind == ASN1TYPED_PRIMITIVE_OCTET_STRING || r->primitive_kind == ASN1TYPED_PRIMITIVE_BIT_STRING) && !r->module && !r->source_name && !r->actuals && !r->actual_count ? 1 : -1;
     found = find_ref(m, r);
     if(found == SIZE_MAX) return -1;
     return done ? !!done[found] : 1;

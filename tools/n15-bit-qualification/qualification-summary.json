@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "source_sha256": {
+    "libaper/runtime.hpp": "288018fca335232fc702f4e47255d5a330042676250de6f83dd0c663da341b17",
+    "libaper/runtime.cpp": "285b8aa2c26bcd5b4de5c854412924ecf45fb937163f50b4ce8422f9a96b9e20",
+    "tools/n15-bit-qualification/driver.cpp": "08e3a47b44cb08c3ebe2d4739924f8f1a02617c04e17a80338feafa7d7d5269b",
+    "tools/n15-bit-qualification/qualify.py": "5a6987ae1ca99ccc56de09c9c2e37560e31e53a95a2ac0995aeed756776c8dbd"
+  },
+  "source_snapshot_verified_unchanged": true,
+  "compiler": "c++ (Ubuntu 13.3.0-6ubuntu2~24.04) 13.3.0",
+  "compiler_command": [
+    "c++"
+  ],
+  "compiler_flags": [
+    "-std=c++20",
+    "-Wall",
+    "-Wextra",
+    "-Werror",
+    "-pedantic-errors",
+    "-Wconversion",
+    "-Wsign-conversion"
+  ],
+  "compile_inputs": [
+    "libaper/runtime.cpp",
+    "tools/n15-bit-qualification/driver.cpp"
+  ],
+  "include_directories": [
+    "libaper"
+  ],
+  "oracle": "asn1tools",
+  "oracle_version": "0.167.0",
+  "native_model_exact_cases": 295,
+  "runtime_encode_cases": 296,
+  "runtime_decode_cases": 296,
+  "native_decode_exact_wire_cases": 295,
+  "native_decode_empty_field_semantics_cases": 1,
+  "oracle_empty_substitution_difference": [
+    {
+      "profile": "Fixed0",
+      "prefix": 0,
+      "native_hex": "",
+      "complete_hex": "00"
+    }
+  ],
+  "offsets": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7
+  ],
+  "profiles": [
+    "Fixed0",
+    "Fixed1",
+    "Fixed8",
+    "Fixed16",
+    "Fixed17",
+    "FixedWide",
+    "Small",
+    "Medium",
+    "Wide",
+    "Unbounded"
+  ],
+  "schema_sha256": "e5d83f925c1c9a4ce2140aa2d82ca281cb9d581c3eba17c6e77c3d68da62b00a",
+  "runtime_sha256": "285b8aa2c26bcd5b4de5c854412924ecf45fb937163f50b4ce8422f9a96b9e20",
+  "scope": "Unnamed-bit BIT STRING primitive runtime framing; unfragmented unconstrained <=16383 bits. No generated codec or NGAP/PDU qualification."
+}

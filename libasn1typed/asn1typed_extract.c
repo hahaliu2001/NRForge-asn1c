@@ -468,6 +468,66 @@ terminal_type(asn1p_expr_t *expr) {
 	return NULL;
 }
 
+/* A use-site keeps its named identity, but SIZE is effective at this site.
+ * Anonymous declarations cannot acquire otherwise unowned combined residue. */
+static int
+use_size_tree_clean(const asn1p_constraint_t *c, unsigned depth) {
+	unsigned i;
+	if(!c || depth > 32 || c->containedSubtype ||
+		(!c->el_count && c->elements) ||
+		(c->value && c->type != ACT_EL_VALUE) ||
+		((c->range_start || c->range_stop) && c->type != ACT_EL_RANGE) ||
+		(c->el_count && !c->elements)) return 0;
+	if((c->type == ACT_EL_VALUE || c->type == ACT_EL_RANGE || c->type == ACT_EL_EXT)
+		&& (c->el_count || c->elements)) return 0;
+	for(i = 0; i < c->el_count; ++i)
+		if(!use_size_tree_clean(c->elements[i], depth + 1)) return 0;
+	return 1;
+}
+static int
+extract_effective_use_size(const asn1p_constraint_t *c,
+		asn1typed_size_constraint_t *out, int named) {
+	unsigned i;
+	if(!use_size_tree_clean(c, 0)) return -1;
+	if(!named || c->type != ACT_CA_SET || c->el_count <= 1)
+		return extract_size_constraint(c, out, 1);
+	/* Fixer preserves inherited and use-site SIZE as sibling SET clauses.
+	 * Accept only the intersection of individually bounded nonextensible
+	 * SIZE clauses; this is not a generic constraint expression evaluator. */
+	for(i = 0; i < c->el_count; ++i) {
+		asn1p_constraint_t wrapper = *c;
+		asn1p_constraint_t *child = c->elements[i];
+		asn1typed_size_constraint_t part = {0};
+		wrapper.el_count = 1; wrapper.elements = &child;
+		if(extract_size_constraint(&wrapper, &part, 1) ||
+			!part.has_size_constraint || part.is_extensible || part.lower_bound < 0) return -1;
+		if(i == 0) *out = part;
+		else {
+			if(part.lower_bound > out->lower_bound) out->lower_bound = part.lower_bound;
+			if(part.upper_bound < out->upper_bound) out->upper_bound = part.upper_bound;
+		}
+	}
+	return out->lower_bound <= out->upper_bound ? 0 : -1;
+}
+static int
+extract_octet_bit_use_size(asn1p_expr_t *expr,
+		asn1typed_size_constraint_t *out) {
+	asn1typed_size_constraint_t declared = {0}, effective = {0};
+	int named = expr->expr_type == A1TC_REFERENCE;
+	if(!expr->constraints || extract_effective_use_size(expr->constraints, &declared, 0)
+		|| !declared.has_size_constraint) return -1;
+	effective = declared;
+	if(expr->combined_constraints &&
+		extract_effective_use_size(expr->combined_constraints, &effective, named)) return -1;
+	if(!effective.has_size_constraint || effective.lower_bound < declared.lower_bound
+		|| effective.upper_bound > declared.upper_bound
+		|| effective.is_extensible != declared.is_extensible) return -1;
+	if(!named && (effective.lower_bound != declared.lower_bound
+		|| effective.upper_bound != declared.upper_bound)) return -1;
+	*out = effective;
+	return 0;
+}
+
 static int
 put_ref(asn1typed_type_ref_t *ref, asn1p_expr_t *expr) {
 	asn1typed_primitive_kind_e primitive;
@@ -586,9 +646,13 @@ add_field(asn1p_t *tree, asn1typed_type_t *type, asn1p_expr_t *field,
 			module, field->Identifier);
 		return -1;
 	}
-	if(field->constraints) {
+	if(field->constraints || (field->expr_type != A1TC_REFERENCE &&
+		primitive_accepts_exact_size(primitive_from_expr(field)) && field->combined_constraints)) {
 		asn1typed_primitive_kind_e primitive = primitive_from_expr(field);
-		if(field->meta_type != AMT_TYPE || field->rhs_pspecs ||
+		if(primitive == ASN1TYPED_PRIMITIVE_INVALID && field->expr_type == A1TC_REFERENCE)
+			primitive = primitive_from_expr(terminal_type(field));
+		if((field->meta_type != AMT_TYPE &&
+			!(field->meta_type == AMT_TYPEREF && primitive_accepts_exact_size(primitive))) || field->rhs_pspecs ||
 			primitive == ASN1TYPED_PRIMITIVE_INVALID) {
 			if(reject_unowned_inline_constraint(field, module, field->Identifier,
 					error, error_size)) return -1;
@@ -599,6 +663,12 @@ add_field(asn1p_t *tree, asn1typed_type_t *type, asn1p_expr_t *field,
 			(!field->combined_constraints ||
 			 is_opaque_contents_constraint(field->combined_constraints))) {
 			/* Existing OCTET STRING field ownership is sufficient. */
+		} else if(primitive_accepts_exact_size(primitive)) {
+			if(extract_octet_bit_use_size(field, &field_size)) {
+				set_error(error, error_size, "%s.%s: inline constrained type is unsupported", module, field->Identifier);
+				return -1;
+			}
+			owns_inline_size = 1;
 		} else if(primitive == ASN1TYPED_PRIMITIVE_INTEGER) {
 			if(extract_integer_value_range(inline_constraint,
 					&field_value_range) || !field_value_range.has_value_range) {
@@ -834,15 +904,25 @@ populate_type(asn1p_t *tree, asn1typed_type_t *out, asn1p_expr_t *decl,
 					decl->Identifier, member->_lineno);
 				return -1;
 			}
-			if(member->constraints) {
+			if(member->constraints || (member->expr_type != A1TC_REFERENCE &&
+				primitive_accepts_exact_size(primitive_from_expr(member)) && member->combined_constraints)) {
 				asn1typed_primitive_kind_e primitive = primitive_from_expr(member);
-				if(member->meta_type != AMT_TYPE || member->rhs_pspecs ||
+				if(primitive == ASN1TYPED_PRIMITIVE_INVALID && member->expr_type == A1TC_REFERENCE)
+					primitive = primitive_from_expr(terminal_type(member));
+				if((member->meta_type != AMT_TYPE &&
+					!(member->meta_type == AMT_TYPEREF && primitive_accepts_exact_size(primitive))) || member->rhs_pspecs ||
 					primitive == ASN1TYPED_PRIMITIVE_INVALID) {
 					if(reject_unowned_inline_constraint(member, decl->Identifier,
 							member->Identifier, error, error_size)) return -1;
 					return -1;
 				}
-				if(primitive == ASN1TYPED_PRIMITIVE_INTEGER) {
+				if(primitive_accepts_exact_size(primitive)) {
+					if(extract_octet_bit_use_size(member, &alternative_size)) {
+						set_error(error, error_size, "%s.%s: inline constrained type is unsupported", decl->Identifier, member->Identifier);
+						return -1;
+					}
+					size_ptr = &alternative_size;
+				} else if(primitive == ASN1TYPED_PRIMITIVE_INTEGER) {
 					const asn1p_constraint_t *constraint =
 						member->combined_constraints ? member->combined_constraints :
 						member->constraints;

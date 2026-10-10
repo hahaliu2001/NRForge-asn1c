@@ -55,3 +55,5 @@ EXTRA_DIST += n12-codec-coverage/messages.txt n12-codec-coverage/run.py n12-code
 EXTRA_DIST += n13-full-codec-readiness/scan.py n13-full-codec-readiness/README.md n13-full-codec-readiness/readiness.json
 
 EXTRA_DIST += n14-octet-qualification/driver.cpp n14-octet-qualification/qualify.py n14-octet-qualification/requirements.txt n14-octet-qualification/README.md n14-octet-qualification/qualification-summary.json n14-octet-qualification/readiness.json
+
+EXTRA_DIST += n15-bit-qualification/README.md n15-bit-qualification/driver.cpp n15-bit-qualification/qualify.py n15-bit-qualification/requirements.txt n15-bit-qualification/qualification-summary.json n15-bit-qualification/readiness.json

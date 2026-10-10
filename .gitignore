@@ -167,3 +167,8 @@ asn1c/tmp/
 /libasn1typed/check_asn1typed_octet_render
 /libasn1typed/check_asn1typed_ioc_octets
 /libasn1typed/check_asn1typed_octet_api
+
+/libaper/check_aper_bits
+/libasn1typed/check_asn1typed_bit_render
+/libasn1typed/check_asn1typed_bit_api
+/libasn1typed/check_asn1typed_bit_use_size

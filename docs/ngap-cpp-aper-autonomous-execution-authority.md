@@ -22,3 +22,7 @@ Owner authorization: 2026-10-09 (America/Los_Angeles). N13 supersedes the propos
 ## N14 shared OCTET STRING capability extension
 
 Owner authorization: 2026-10-09 (America/Los_Angeles), “同意，做N14”. This selects the N13 recommended OCTET STRING/reference-lowering capability batch, including bounded contract study, implementation, focused correctness/independent reference checks, independent review/fix closure, full 131-message readiness rescan and routine commit/push. It authorizes no schema change, BIT STRING/NULL/private-IE architecture expansion, arbitrary constraint erasure, contained-protocol interpretation, performance benchmark or general NGAP interoperability claim. Complete-message qualification remains separate from primitive acceptance and BODY readiness. Stop after this shared-capability milestone; do not begin N15 automatically.
+
+## N15 selected capability milestone
+
+Owner authorization: 2026-10-09 (America/Los_Angeles), “做N15”. Implement bounded owned BIT STRING and effective use-site SIZE lowering for BIT/OCTET, focused tests and independent primitive references, independent review/fix closure, full131 readiness rescan, and routine commit/push. Preserve frozen schemas and old generated outputs. Named-bit lists, fragmented strings, extensible SIZE codecs, unrepresented SIZE additions, NULL/private-IE semantics and general NGAP wire qualification remain outside this milestone. Stop after N15.

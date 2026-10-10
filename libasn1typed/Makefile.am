@@ -164,3 +164,27 @@ TESTS += check_asn1typed_octet_api
 check_asn1typed_octet_api_SOURCES = check_asn1typed_octet_api.cpp
 check_asn1typed_octet_api_CPPFLAGS = $(AM_CPPFLAGS)
 check_asn1typed_octet_api_LDADD = libasn1typed.la
+
+check_PROGRAMS += check_asn1typed_bit_render
+TESTS += check_asn1typed_bit_generated.sh
+check_asn1typed_bit_render_SOURCES = check_asn1typed_bit_render.c
+check_asn1typed_bit_render_CPPFLAGS = $(check_asn1typed_extract_CPPFLAGS) -DNDEBUG
+check_asn1typed_bit_render_LDADD = $(check_asn1typed_extract_LDADD)
+check_asn1typed_bit_render_LDFLAGS = -Wl,--wrap=malloc -Wl,--wrap=calloc -Wl,--wrap=realloc
+EXTRA_DIST += check_asn1typed_bit_generated.sh check_asn1typed_bit_generated.cpp fixtures/bits-generation-n15.asn1
+
+check_PROGRAMS += check_asn1typed_bit_api
+TESTS += check_asn1typed_bit_api
+check_asn1typed_bit_api_SOURCES = check_asn1typed_bit_api.cpp
+check_asn1typed_bit_api_CPPFLAGS = $(AM_CPPFLAGS)
+check_asn1typed_bit_api_LDADD = libasn1typed.la
+
+check_PROGRAMS += check_asn1typed_bit_use_size
+TESTS += check_asn1typed_bit_use_size
+check_asn1typed_bit_use_size_SOURCES = check_asn1typed_bit_use_size.c check_ioc_alloc_core.c check_ioc_alloc_extract.c
+check_asn1typed_bit_use_size_CPPFLAGS = $(check_asn1typed_extract_CPPFLAGS) -DBIT_USE_SIZE_FIXTURE=\"$(abs_srcdir)/fixtures/bit-use-size-n15.asn1\" -DNDEBUG
+check_asn1typed_bit_use_size_LDADD = $(check_asn1typed_extract_LDADD)
+EXTRA_DIST += fixtures/bit-use-size-n15.asn1
+
+TESTS += check_asn1typed_ioc_bit_generated.sh
+EXTRA_DIST += check_asn1typed_ioc_bit_generated.sh check_asn1typed_ioc_bit_generated.cpp fixtures/ioc-bits-n15.asn1

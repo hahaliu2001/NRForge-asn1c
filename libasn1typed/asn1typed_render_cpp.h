@@ -169,6 +169,16 @@ int asn1typed_render_cpp_owned_octet_types(const asn1typed_module_t *, const cha
 int asn1typed_render_cpp_owned_octet_mapping(const asn1typed_module_t *, const char *, char **, char *, size_t);
 int asn1typed_render_cpp_owned_octet_codec(const asn1typed_module_t *, const char *, char **, char *, size_t);
 
+/* N15 opt-in BIT/OCTET STRING family. Named and use-site SIZE must be one
+ * non-extensible interval within 0..65535; effective use-site bounds cannot
+ * widen the named declaration. BIT values own canonical MSB-first octets and
+ * an explicit bit count (runtime BitString). Unconstrained values <=16383 bits;
+ * named-bit lists, fragmentation and extensible SIZE are unsupported.
+ * Include runtime.hpp, then types/mapping/codec from unchanged IR/namespace. */
+int asn1typed_render_cpp_owned_bit_types(const asn1typed_module_t *, const char *, char **, char *, size_t);
+int asn1typed_render_cpp_owned_bit_mapping(const asn1typed_module_t *, const char *, char **, char *, size_t);
+int asn1typed_render_cpp_owned_bit_codec(const asn1typed_module_t *, const char *, char **, char *, size_t);
+
 #ifdef __cplusplus
 }
 #endif

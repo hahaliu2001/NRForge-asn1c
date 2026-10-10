@@ -1,0 +1,42 @@
+BitUseSize DEFINITIONS AUTOMATIC TAGS ::= BEGIN
+Bits ::= BIT STRING (SIZE(0..32))
+Octets ::= OCTET STRING (SIZE(0..32))
+S ::= SEQUENCE {
+  direct BIT STRING (SIZE(3..17)),
+  named Bits (SIZE(8..16)),
+  octets Octets (SIZE(2..3)),
+  extended BIT STRING (SIZE(8,...))
+}
+C ::= CHOICE {
+  direct OCTET STRING (SIZE(1..2)),
+  named Bits (SIZE(4..9)),
+  extended OCTET STRING (SIZE(3,...))
+}
+BadSet ::= SEQUENCE { bits BIT STRING (SIZE(1 | 3)) }
+BadAddition ::= SEQUENCE { bits BIT STRING (SIZE(8,...,16)) }
+NamedBits ::= BIT STRING { named(0) } (SIZE(1))
+Identifier ::= INTEGER (0..65535)
+Policy ::= ENUMERATED { reject, ignore, notify }
+Requirement ::= ENUMERATED { mandatory, optional, conditional }
+REGISTRY-CLASS ::= CLASS { &id Identifier UNIQUE, &criticality Policy, &Value, &presence Requirement }
+ WITH SYNTAX { ID &id CRITICALITY &criticality TYPE &Value PRESENCE &presence }
+Entry { REGISTRY-CLASS : Rows } ::= SEQUENCE {
+ id REGISTRY-CLASS.&id({Rows}),
+ criticality REGISTRY-CLASS.&criticality({Rows}{@id}),
+ value REGISTRY-CLASS.&Value({Rows}{@id})
+}
+Container { REGISTRY-CLASS : Rows } ::= SEQUENCE (SIZE(0..65535)) OF Entry {{Rows}}
+Rows REGISTRY-CLASS ::= {
+ { ID 7 CRITICALITY reject TYPE BIT STRING PRESENCE mandatory } |
+ { ID 8 CRITICALITY ignore TYPE S PRESENCE optional } |
+ { ID 9 CRITICALITY notify TYPE C PRESENCE optional }, ... }
+BadRows REGISTRY-CLASS ::= { { ID 7 CRITICALITY reject TYPE BIT STRING (SIZE(3)) PRESENCE mandatory }, ... }
+Message ::= SEQUENCE { entries Container {{Rows}} }
+BadMessage ::= SEQUENCE { entries Container {{BadRows}} }
+SetRows REGISTRY-CLASS ::= { { ID 7 CRITICALITY reject TYPE BadSet PRESENCE mandatory }, ... }
+AdditionRows REGISTRY-CLASS ::= { { ID 7 CRITICALITY reject TYPE BadAddition PRESENCE mandatory }, ... }
+NamedRows REGISTRY-CLASS ::= { { ID 7 CRITICALITY reject TYPE NamedBits PRESENCE mandatory }, ... }
+SetMessage ::= SEQUENCE { entries Container {{SetRows}} }
+AdditionMessage ::= SEQUENCE { entries Container {{AdditionRows}} }
+NamedMessage ::= SEQUENCE { entries Container {{NamedRows}} }
+END

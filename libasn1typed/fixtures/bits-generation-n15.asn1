@@ -1,0 +1,22 @@
+BitsGeneration DEFINITIONS AUTOMATIC TAGS ::= BEGIN
+Zero ::= BIT STRING (SIZE (0))
+One ::= BIT STRING (SIZE (1))
+Sixteen ::= BIT STRING (SIZE (16))
+Seventeen ::= BIT STRING (SIZE (17))
+Small ::= BIT STRING (SIZE (1..20))
+Opaque ::= BIT STRING
+Octets ::= OCTET STRING
+Message ::= SEQUENCE {
+ lead BOOLEAN,
+ named Opaque (SIZE (1..20)),
+ inlineBits BIT STRING (SIZE (17)),
+ namedOctets Octets (SIZE (1..3)),
+ inlineOctets OCTET STRING (SIZE (2))
+}
+Pick ::= CHOICE { bits Opaque (SIZE (1..20)), octets Octets (SIZE (1..3)) }
+Declared ::= BIT STRING (SIZE (0..32))
+Base ::= BIT STRING (SIZE (8..32))
+Refined ::= SEQUENCE { narrow Base (SIZE (8..16)), wide Declared (SIZE (0..32)), optionalBits One OPTIONAL }
+RefinedPick ::= CHOICE { bits Declared (SIZE (8..16)), flag BOOLEAN }
+BitList ::= SEQUENCE (SIZE (0..3)) OF One
+END

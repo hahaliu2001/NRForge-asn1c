@@ -997,6 +997,101 @@ Result<void> BitWriter::write_octet_string(std::span<const std::byte> value,
     return Result<void>::success();
 }
 
+Result<BitString> BitReader::read_bit_string_owned(std::size_t lower,
+    std::size_t upper, bool unconstrained) {
+    auto live = validate_live();
+    if(!live) return Result<BitString>::failure(live.error());
+    const auto start = cursor_bit_;
+    auto reject = [&](ErrorCode code,std::size_t offset) {
+        return Result<BitString>::failure(fail({code,offset}).error());
+    };
+    if((unconstrained && (lower || upper)) || (!unconstrained && (lower > upper || upper > 65535)))
+        return reject(ErrorCode::invalid_argument,start);
+    const bool variable = unconstrained || lower != upper;
+    const auto range = unconstrained ? std::size_t{0} : upper - lower + 1;
+    const auto initial_padding = unconstrained || (!variable && upper > 16) ||
+        (variable && range >= 256) ? (8 - start % 8) % 8 : 0;
+    std::size_t position = 0;
+    if(!checked_add_size(start,initial_padding,position)) return reject(ErrorCode::resource_limit,start);
+    const auto width = variable ? (unconstrained ? 8u : octet_length_width(lower,upper)) : 0u;
+    auto available = [&](std::size_t bits) {
+        return position <= logical_bit_limit_ && bits <= logical_bit_limit_ - position;
+    };
+    if(!available(width)) return reject(ErrorCode::truncated_input,logical_bit_limit_);
+    std::size_t encoded_length = 0;
+    for(unsigned i=0;i<width;++i) encoded_length = (encoded_length << 1) | get_bit(input_,position+i);
+    position += width;
+    bool noncanonical = false;
+    if(unconstrained) {
+        if(encoded_length >= 192) return reject(ErrorCode::resource_limit,start);
+        if(encoded_length >= 128) {
+            if(!available(8)) return reject(ErrorCode::truncated_input,logical_bit_limit_);
+            encoded_length = (encoded_length & 63u) << 8;
+            for(unsigned i=0;i<8;++i) encoded_length |= static_cast<std::size_t>(get_bit(input_,position+i)) << (7-i);
+            position += 8;
+            noncanonical = encoded_length < 128;
+        }
+    } else if(variable && encoded_length >= range) return reject(ErrorCode::constraint_violation,start);
+    const auto count = unconstrained ? encoded_length : lower + encoded_length;
+    const auto payload_padding = variable ? (8 - position % 8) % 8 : 0;
+    std::size_t end = 0;
+    if(!checked_add_size(position,payload_padding,end) || !checked_add_size(end,count,end))
+        return reject(ErrorCode::resource_limit,start);
+    auto ready = preflight(end-start,start);
+    if(!ready) return Result<BitString>::failure(ready.error());
+    for(std::size_t i=0;i<initial_padding;++i)
+        if(get_bit(input_,start+i)) return reject(ErrorCode::nonzero_padding,start+i);
+    for(std::size_t i=0;i<payload_padding;++i)
+        if(get_bit(input_,position+i)) return reject(ErrorCode::nonzero_padding,position+i);
+    if(noncanonical) return reject(ErrorCode::constraint_violation,start);
+    BitString value;
+    std::size_t octets = 0; (void)checked_bits_to_octets(count,octets);
+    if(octets > value.octets.max_size()) return reject(ErrorCode::resource_limit,start);
+    try { value.octets.resize(octets,std::byte{0}); }
+    catch(const std::bad_alloc&) { return reject(ErrorCode::allocation_failure,start); }
+    catch(const std::length_error&) { return reject(ErrorCode::resource_limit,start); }
+    for(std::size_t i=0;i<count;++i) set_bit(value.octets,i,get_bit(input_,position+payload_padding+i)!=0);
+    value.bit_count=count; cursor_bit_=end; charge_wire(end-start);
+    return Result<BitString>::success(std::move(value));
+}
+
+Result<void> BitWriter::write_bit_string(const BitString& value,
+    std::size_t lower,std::size_t upper,bool unconstrained) {
+    auto live = validate_live();
+    if(!live) return live;
+    const auto start = cursor_bit_;
+    if((unconstrained && (lower || upper)) || (!unconstrained && (lower > upper || upper > 65535)))
+        return fail({ErrorCode::invalid_argument,start});
+    if(unconstrained && value.bit_count > 16383) return fail({ErrorCode::resource_limit,start});
+    if(!unconstrained && (value.bit_count < lower || value.bit_count > upper)) return fail({ErrorCode::constraint_violation,start});
+    std::size_t storage_octets=0; (void)checked_bits_to_octets(value.bit_count,storage_octets);
+    if(value.octets.size()!=storage_octets || (value.bit_count%8 &&
+       (std::to_integer<unsigned>(value.octets.back()) & ((1u << (8-value.bit_count%8))-1u))))
+        return fail({ErrorCode::constraint_violation,start});
+    const bool variable=unconstrained || lower!=upper;
+    const auto range=unconstrained ? std::size_t{0} : upper-lower+1;
+    const auto initial_padding=unconstrained || (!variable && upper>16) ||
+        (variable && range>=256) ? (8-start%8)%8 : 0;
+    const auto width=variable ? (unconstrained ? (value.bit_count<128?8u:16u) : octet_length_width(lower,upper)) : 0u;
+    std::size_t position=0,end=0;
+    if(!checked_add_size(start,initial_padding+width,position)) return fail({ErrorCode::resource_limit,start});
+    const auto payload_padding=variable ? (8-position%8)%8 : 0;
+    if(!checked_add_size(position,payload_padding,end) || !checked_add_size(end,value.bit_count,end))
+        return fail({ErrorCode::resource_limit,start});
+    auto ready=preflight(end-start,end,start);
+    if(!ready) return ready;
+    std::size_t octets=0; (void)checked_bits_to_octets(end,octets);
+    auto grown=grow_to(octets,start);
+    if(!grown) return grown;
+    for(std::size_t i=0;i<initial_padding;++i) set_bit(output_,start+i,false);
+    const auto determinant=unconstrained ? value.bit_count | (width==16?0x8000u:0u) : value.bit_count-lower;
+    for(unsigned i=0;i<width;++i) set_bit(output_,start+initial_padding+i,((determinant>>(width-i-1))&1u)!=0);
+    for(std::size_t i=0;i<payload_padding;++i) set_bit(output_,position+i,false);
+    for(std::size_t i=0;i<value.bit_count;++i) set_bit(output_,position+payload_padding+i,get_bit(value.octets,i)!=0);
+    cursor_bit_=end; charge_wire(end-start); publish_output(octets);
+    return Result<void>::success();
+}
+
 namespace {
 template<class Function> struct ScopeExit {
     Function function;

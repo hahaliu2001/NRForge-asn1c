@@ -3,7 +3,7 @@
 #include "asn1typed.h"
 /* Private emission plan; no synthetic IR escapes the renderer. */
 struct compound_buf { char *text; size_t length; };
-struct member_plan { char *name, *wrapper, *qualified_wrapper; const char *type, *mapping, *put, *get; };
+struct member_plan { char *name, *wrapper, *qualified_wrapper; const char *type, *mapping, *put, *get; char *size_name, *size_mapping, *size_put, *size_get; asn1typed_size_constraint_t size; asn1typed_primitive_kind_e size_kind; };
 struct type_plan {
     char *type, *qualified_type, *mapping, *qualified_mapping, *constraint;
     char *encode, *decode, *put, *get, *qualified_put, *qualified_get, *extension_member;

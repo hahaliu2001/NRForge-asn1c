@@ -100,6 +100,13 @@ struct SequenceExtensionBitmap {
     std::vector<std::byte> packed_bits;
 };
 
+// Owned MSB-first BIT STRING storage: exactly ceil(bit_count/8) octets,
+// with every unused low bit of the final storage octet zero.
+struct BitString {
+    std::vector<std::byte> octets;
+    std::size_t bit_count = 0;
+};
+
 class DecodeContext {
 public:
     explicit DecodeContext(Limits limits = {}) noexcept : limits_(limits) {}
@@ -198,6 +205,11 @@ public:
     // Alignment, determinant, payload and owned allocation are atomic.
     Result<std::vector<std::byte>> read_octet_string_owned(std::size_t lower,
         std::size_t upper, bool unconstrained = false);
+    // N15: length units are bits. Fixed <=16 is unaligned; all other
+    // payloads align before their first bit, never after their last bit.
+    // Unconstrained mode requires lower=upper=0 and refuses fragmentation.
+    Result<BitString> read_bit_string_owned(std::size_t lower,
+        std::size_t upper, bool unconstrained = false);
     // N7-P2: owned, atomic extension framing; no inner payload interpretation.
     Result<SequenceExtensionBitmap> read_sequence_extension_bitmap();
     Result<std::vector<std::byte>> read_open_type_owned();
@@ -242,6 +254,8 @@ public:
     Result<void> write_enumerated(EnumeratedIndex value, unsigned root_count, bool extensible);
     Result<void> write_bounded_collection_length(std::uint64_t count, std::size_t lower, std::size_t upper);
     Result<void> write_octet_string(std::span<const std::byte> value,
+        std::size_t lower, std::size_t upper, bool unconstrained = false);
+    Result<void> write_bit_string(const BitString& value,
         std::size_t lower, std::size_t upper, bool unconstrained = false);
     template<class EncodeFields>
     Result<void> write_known_open_type(EncodeFields&& encode_fields);
@@ -289,6 +303,10 @@ public:
         std::size_t upper, bool unconstrained = false) {
         return reader_.read_octet_string_owned(lower, upper, unconstrained);
     }
+    Result<BitString> read_bit_string_owned(std::size_t lower,
+        std::size_t upper, bool unconstrained = false) {
+        return reader_.read_bit_string_owned(lower, upper, unconstrained);
+    }
     // Generated helper failures preserve sticky state and lifecycle semantics.
     Result<void> record_failure(Error error) {
         auto live = reader_.validate_live();
@@ -329,6 +347,10 @@ public:
     Result<void> write_octet_string(std::span<const std::byte> value,
         std::size_t lower, std::size_t upper, bool unconstrained = false) {
         return writer_.write_octet_string(value, lower, upper, unconstrained);
+    }
+    Result<void> write_bit_string(const BitString& value,
+        std::size_t lower, std::size_t upper, bool unconstrained = false) {
+        return writer_.write_bit_string(value, lower, upper, unconstrained);
     }
     Result<void> reject_sequence_extension_data() { return writer_.reject_sequence_extension_data(); }
     template<class EncodeFields>
