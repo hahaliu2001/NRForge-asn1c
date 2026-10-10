@@ -19,4 +19,8 @@ int asn1typed_render_cpp_compound_ioc(const asn1typed_module_t *, const char *,
     const struct asn1typed_cpp_ioc_entry *, int, char **, char *, size_t);
 int asn1typed_render_cpp_ioc_emit(struct compound_buf *, const struct type_plan *,
     const struct asn1typed_cpp_ioc_entry *, int);
+int asn1typed_render_cpp_compound_ioc_check_names(const asn1typed_module_t *, const char *,
+    const struct asn1typed_cpp_ioc_entry *, const char *const *, size_t, char *, size_t);
+int asn1typed_render_cpp_ioc_check_names(const asn1typed_module_t *, const char *,
+    const char *const *, size_t, char *, size_t);
 #endif

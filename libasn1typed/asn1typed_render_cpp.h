@@ -2,6 +2,7 @@
 #define ASN1TYPED_RENDER_CPP_H
 
 #include "asn1typed.h"
+#include "asn1typed_envelope.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -151,6 +152,13 @@ int asn1typed_render_cpp_owned_ioc_mapping(const asn1typed_module_t *,
         const char *, char **, char *, size_t);
 int asn1typed_render_cpp_owned_ioc_codec(const asn1typed_module_t *,
         const char *, char **, char *, size_t);
+
+/* Separate bounded N11 envelope outputs; include after the unchanged N9
+ * body outputs from the same namespace/graph. Opaque reception is owned but
+ * receive-only. Every renderer validates evidence and shared final names. */
+int asn1typed_render_cpp_target_envelope_types(const asn1typed_module_t *, const asn1typed_target_envelope_t *, const char *, char **, char *, size_t);
+int asn1typed_render_cpp_target_envelope_mapping(const asn1typed_module_t *, const asn1typed_target_envelope_t *, const char *, char **, char *, size_t);
+int asn1typed_render_cpp_target_envelope_codec(const asn1typed_module_t *, const asn1typed_target_envelope_t *, const char *, char **, char *, size_t);
 
 #ifdef __cplusplus
 }

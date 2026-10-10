@@ -61,3 +61,24 @@ cmp "$tmp/physical_codec.hpp" "$tmp/deterministic_codec.hpp"
 if "$ioc_probe" --module-list "$tmp/physical.modules" --root-module IOCCppGeneration --message DispatchMessage --namespace class --output-prefix "$tmp/refused" >"$tmp/out"; then exit 1; fi
 grep -q '^GENERATION types FAIL$' "$tmp/out"
 test ! -e "$tmp/refused_types.hpp"
+# Envelope CLI guards run before parsing and cannot overwrite the body files.
+set +e
+"$ioc_probe" --module-list "$tmp/no-list" --root-module IOCCppGeneration --message DispatchMessage --output-prefix "$tmp/physical" --envelope-module Missing >"$tmp/out" 2>&1
+status=$?
+set -e
+test "$status" -eq 2
+grep -q '^Usage:' "$tmp/out"
+set +e
+"$ioc_probe" --module-list "$tmp/no-list" --root-module IOCCppGeneration --message DispatchMessage --output-prefix "$tmp/physical" --envelope-module Missing --envelope-type Missing --envelope-output-prefix "$tmp/physical" >"$tmp/out" 2>&1
+status=$?
+set -e
+test "$status" -eq 2
+cmp "$tmp/physical_types.hpp" "$tmp/deterministic_types.hpp"
+set +e
+"$ioc_probe" --module-list "$tmp/physical.modules" --root-module IOCCppGeneration --message DispatchMessage --output-prefix "$tmp/no-body" --envelope-module Missing --envelope-type Missing --envelope-output-prefix "$tmp/no-envelope" >"$tmp/out" 2>&1
+status=$?
+set -e
+test "$status" -eq 5
+grep -q '^ENVELOPE EXTRACT FAIL$' "$tmp/out"
+test ! -e "$tmp/no-body_types.hpp"
+test ! -e "$tmp/no-envelope_types.hpp"

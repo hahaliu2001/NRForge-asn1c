@@ -132,7 +132,7 @@ static void translate(const asn1typed_module_t *m, const struct node *nodes, asn
 }
 
 static int render_ioc(const asn1typed_module_t *m, const char *ns, char **out,
-        char *diagnostic, size_t size, int mode) {
+        char *diagnostic, size_t size, int mode, const char *const *names, size_t name_count) {
     struct node *nodes = NULL;
     asn1typed_module_t view;
     struct asn1typed_cpp_ioc_entry *entries = NULL;
@@ -252,7 +252,8 @@ static int render_ioc(const asn1typed_module_t *m, const char *ns, char **out,
         if(nodes[i].registry) { entries[k].registry = nodes[i].registry; entries[k].value_source_name = nodes[i].source->fields[2].source_name; }
     }
     view.source_name = (char *)"IocLowered"; view.type_count = view.type_capacity = count;
-    result = asn1typed_render_cpp_compound_ioc(&view, ns, entries, mode, out, why, sizeof(why));
+    result = mode == 3 ? asn1typed_render_cpp_compound_ioc_check_names(&view, ns, entries, names, name_count, why, sizeof(why))
+        : asn1typed_render_cpp_compound_ioc(&view, ns, entries, mode, out, why, sizeof(why));
 cleanup:
     if(nodes) for(i = 0; i < count; ++i) {
         if(nodes[i].row_names) for(j = 0; nodes[i].registry && j < nodes[i].registry->row_count; ++j) free(nodes[i].row_names[j]);
@@ -264,6 +265,10 @@ cleanup:
 #undef BAD
 }
 
-int asn1typed_render_cpp_owned_ioc_types(const asn1typed_module_t *m, const char *ns, char **out, char *why, size_t size) { return render_ioc(m, ns, out, why, size, 0); }
-int asn1typed_render_cpp_owned_ioc_mapping(const asn1typed_module_t *m, const char *ns, char **out, char *why, size_t size) { return render_ioc(m, ns, out, why, size, 1); }
-int asn1typed_render_cpp_owned_ioc_codec(const asn1typed_module_t *m, const char *ns, char **out, char *why, size_t size) { return render_ioc(m, ns, out, why, size, 2); }
+int asn1typed_render_cpp_owned_ioc_types(const asn1typed_module_t *m, const char *ns, char **out, char *why, size_t size) { return render_ioc(m, ns, out, why, size, 0, NULL, 0); }
+int asn1typed_render_cpp_owned_ioc_mapping(const asn1typed_module_t *m, const char *ns, char **out, char *why, size_t size) { return render_ioc(m, ns, out, why, size, 1, NULL, 0); }
+int asn1typed_render_cpp_owned_ioc_codec(const asn1typed_module_t *m, const char *ns, char **out, char *why, size_t size) { return render_ioc(m, ns, out, why, size, 2, NULL, 0); }
+int asn1typed_render_cpp_ioc_check_names(const asn1typed_module_t *m, const char *ns, const char *const *names, size_t count, char *why, size_t size) {
+    char *unused = NULL;
+    return render_ioc(m, ns, &unused, why, size, 3, names, count);
+}

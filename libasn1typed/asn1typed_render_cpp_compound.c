@@ -6,7 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-struct plan { struct type_plan *types; char *boolean_mapping, *boolean_put, *boolean_get; int extensions, has_extension_sequence, collections; const struct asn1typed_cpp_ioc_entry *ioc; };
+struct plan { struct type_plan *types; char *boolean_mapping, *boolean_put, *boolean_get; int extensions, has_extension_sequence, collections; const struct asn1typed_cpp_ioc_entry *ioc; const char *const *extra_names; size_t extra_count; };
 static int
 append(struct compound_buf *b, const char *text) {
 	size_t n = strlen(text);
@@ -286,6 +286,8 @@ preflight(const asn1typed_module_t *m, const char *ns, struct plan *p, char *why
 		}
 
 	}
+	for(i = 0; i < p->extra_count; ++i)
+		if(register_symbol(p->extra_names[i], &symbols, &symbol_count, why, size)) goto fail;
 	free(symbols);
 #undef FAIL
 	return 0;
@@ -455,7 +457,7 @@ emit_codec(struct compound_buf *b, const asn1typed_type_t *t, const struct type_
 }
 static int
 render(const asn1typed_module_t *m, const char *ns, char **out, char *diagnostic, size_t size, int mode, int extensions, int collections, const struct asn1typed_cpp_ioc_entry *ioc) {
-	struct plan p = {NULL, NULL, NULL, NULL, 0, 0, 0, NULL};
+	struct plan p = {0};
 	struct compound_buf b = {NULL, 0};
 	char why[512] = "invalid compound renderer arguments";
 	size_t i;
@@ -522,4 +524,13 @@ asn1typed_render_cpp_compound_ioc(const asn1typed_module_t *m, const char *ns,
         const struct asn1typed_cpp_ioc_entry *ioc, int mode,
         char **out, char *diagnostic, size_t size) {
     return render(m, ns, out, diagnostic, size, mode, 1, 1, ioc);
+}
+int asn1typed_render_cpp_compound_ioc_check_names(const asn1typed_module_t *m, const char *ns,
+        const struct asn1typed_cpp_ioc_entry *ioc, const char *const *names, size_t count, char *why, size_t size) {
+    struct plan p = {0};
+    int result;
+    p.extensions = p.collections = 1; p.ioc = ioc; p.extra_names = names; p.extra_count = count;
+    result = preflight(m, ns, &p, why, size);
+    if(p.types || p.boolean_mapping || p.boolean_put || p.boolean_get) clear(&p, m);
+    return result;
 }
