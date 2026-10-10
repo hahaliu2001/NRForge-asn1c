@@ -6,7 +6,7 @@
 #include "developer_tree.h"
 
 static void help(FILE *file) {
-    fprintf(file, "Usage: asn1typed_ioc_probe --module-list FILE [--asn1-root DIR] --root-module MODULE --message NAME --output-prefix PATH [--namespace NAME]\n"
+    fprintf(file, "Usage: asn1typed_ioc_probe --module-list FILE [--asn1-root DIR] --root-module MODULE --message NAME --output-prefix PATH [--namespace NAME] [--verify-determinism]\n"
         "Parse/fix a complete source set, extract physical IOC evidence, delete the Parser tree, and generate types/mapping/codec headers.\n"
         "Writes PATH_types.hpp, PATH_mapping.hpp and PATH_codec.hpp; the parent directory must exist.\n"
         "This is generation readiness, not message or envelope wire qualification.\n"
@@ -26,9 +26,10 @@ int main(int argc, char **argv) {
     asn1typed_module_t owned = {0};
     char error[1024], *outputs[3] = {NULL, NULL, NULL}, *path = NULL;
     size_t q, j, path_size;
-    int i, result = 0;
+    int i, result = 0, verify_determinism = 0;
     for(i = 1; i < argc; ++i) {
         if(!strcmp(argv[i], "--help")) { help(stdout); return 0; }
+        if(!strcmp(argv[i], "--verify-determinism")) { verify_determinism = 1; continue; }
         if(i + 1 >= argc) { help(stderr); return 2; }
         if(!strcmp(argv[i], "--module-list")) list = argv[++i];
         else if(!strcmp(argv[i], "--asn1-root")) root = argv[++i];
@@ -63,6 +64,19 @@ int main(int argc, char **argv) {
             printf("GENERATION %s FAIL\nDIAGNOSTIC %s\n", suffixes[q], error); result = 6; goto done;
         }
         printf("GENERATION %s PASS\n", suffixes[q]);
+        if(verify_determinism) {
+            char *again = NULL;
+            if(renderers[q](&owned, ns, &again, error, sizeof(error))) {
+                printf("DETERMINISM %s FAIL\nDIAGNOSTIC %s\n", suffixes[q], error);
+                free(again); result = 6; goto done;
+            }
+            if(strcmp(outputs[q], again)) {
+                printf("DETERMINISM %s FAIL\nDIAGNOSTIC generated output changed for unchanged owned graph\n", suffixes[q]);
+                free(again); result = 6; goto done;
+            }
+            free(again);
+            printf("DETERMINISM %s PASS\n", suffixes[q]);
+        }
     }
     if(strlen(prefix) > SIZE_MAX - 32) { result = 7; goto done; }
     path_size = strlen(prefix) + 32;

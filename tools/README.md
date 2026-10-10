@@ -29,6 +29,8 @@ indices are diagnostic views, not durable Typed identities.
 It deletes the Parser tree after extraction, reports owned registry summaries,
 then preflights all three output families before writing headers. The default
 namespace is `ioc_probe`; `--namespace` selects another validated namespace.
+Optional `--verify-determinism` renders each family twice from the same unchanged
+owned graph after tree deletion and refuses output if the complete text differs.
 
 ```sh
 tools/asn1typed_ioc_probe --asn1-root ../NRForge-RAN/src \
@@ -42,3 +44,9 @@ The output names are `command_types.hpp`, `command_mapping.hpp` and
 failure exits 6 without creating files; output I/O failure exits 7 and can leave
 earlier files. Existing output files are replaced. Success proves generation
 readiness only, not message-body or complete NGAP-PDU wire qualification.
+
+The [N10 body qualification runner](n10-body-qualification/README.md) consumes
+this probe with `--verify-determinism`, verifies the six frozen source identities,
+strict-compiles an ID-selected integration adapter, and compares the actual
+UEContextReleaseCommand body with a freshly compiled native reference. Its
+scope excludes the NGAP-PDU envelope.

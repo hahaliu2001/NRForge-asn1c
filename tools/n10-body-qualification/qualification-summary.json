@@ -1,0 +1,25 @@
+{
+  "pycrate_version": "0.7.11",
+  "frozen_modules_verified": 6,
+  "native_body_cases": 375,
+  "matched_checks": 757,
+  "operations": {
+    "native_decode": 375,
+    "native_encode": 231,
+    "opaque_encode_refusal": 144,
+    "receiver_literal": 1,
+    "receiver_literal_refusal": 1,
+    "receiver_literal_rejection": 5
+  },
+  "oracle_limitations": 26,
+  "byte_normalization": false,
+  "profile_verified": true,
+  "production_disagreements_unresolved": 0,
+  "integration_source_sha256": {
+    "driver.cpp": "011037e2b20ce8b1853af7d896c8005ec72dea0a25c370c347c931c86ef825e8",
+    "body_adapter.hpp": "5311a8a4b63eb8cc6312ec5aa3a8309134330fc7e69a71040c6f7f6da13e936a",
+    "libaper/runtime.cpp": "dee23c0adf164979761e7a5490ed6ca1bafaaa152f9df69e369cb7f0f3cee5c4",
+    "libaper/runtime.hpp": "1e35c09a08962d4ecc18e6fff51dee3df2fd9c34c4487a775577aedaed1c5cdf",
+    "libaper/sequence_extensions.hpp": "5447fdd559b2d1be8112161b4474810af619dd24f64678fc92d167bd36ef3db2"
+  }
+}

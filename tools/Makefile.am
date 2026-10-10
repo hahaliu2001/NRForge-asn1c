@@ -24,3 +24,13 @@ EXTRA_DIST += \
 	n9-ioc-qualification/README.md \
 	n9-ioc-qualification/accepted-profile.json \
 	n9-ioc-qualification/qualification-summary.json
+
+EXTRA_DIST += \
+	n10-body-qualification/body_adapter.hpp \
+	n10-body-qualification/driver.cpp \
+	n10-body-qualification/qualify.py \
+	n10-body-qualification/requirements.txt \
+	n10-body-qualification/source-manifest.json \
+	n10-body-qualification/README.md \
+	n10-body-qualification/accepted-profile.json \
+	n10-body-qualification/qualification-summary.json
