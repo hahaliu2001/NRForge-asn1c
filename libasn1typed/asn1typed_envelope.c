@@ -185,7 +185,6 @@ static int check(const asn1typed_target_envelope_t *d, int published, size_t ind
             if(other->effective_tag_class < r->effective_tag_class || (other->effective_tag_class == r->effective_tag_class && other->effective_tag_number < r->effective_tag_number)) ++indexes[i];
         }
         if(published && (r->has_per_root_index != 1 || r->per_root_index != indexes[i])) BAD("envelope root mapping stale");
-        if(r->role == ASN1TYPED_ENVELOPE_INITIATING) *target_root = i;
     }
     for(i = 0; i < d->row_count; ++i) {
         const asn1typed_envelope_row_t *r = &d->rows[i];
@@ -197,7 +196,11 @@ static int check(const asn1typed_target_envelope_t *d, int published, size_t ind
             if((r->payload_present[j] != 0 && r->payload_present[j] != 1) || (r->payload_present[j] ? !named(&r->payloads[j]) : !empty(&r->payloads[j]))) BAD("envelope procedure payload presence inconsistent");
         }
         for(j = 0; j < i; ++j) if(r->numeric_code == d->rows[j].numeric_code) BAD("envelope duplicate procedure code");
-        if(asn1typed_type_ref_equal(&r->payloads[0], &d->target_body)) { ++matches; *target_row = i; }
+        for(j = 0; j < 3; ++j) if(r->payload_present[j]
+            && asn1typed_type_ref_equal(&r->payloads[j], &d->target_body)) {
+            ++matches; *target_row = i;
+            for(k = 0; k < 3; ++k) if(d->roots[k].role == (asn1typed_envelope_role_e)j) *target_root = k;
+        }
     }
     if(matches != 1) BAD("envelope target association missing or ambiguous");
     if(published && (d->target_row_index != *target_row || d->target_root_ordinal != *target_root)) BAD("envelope target association stale");

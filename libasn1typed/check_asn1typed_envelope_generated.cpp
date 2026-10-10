@@ -11,6 +11,18 @@
 #include "upper_envelope_types.hpp"
 #include "upper_envelope_mapping.hpp"
 #include "upper_envelope_codec.hpp"
+#include "normal_success_body_types.hpp"
+#include "normal_success_body_mapping.hpp"
+#include "normal_success_body_codec.hpp"
+#include "normal_success_envelope_types.hpp"
+#include "normal_success_envelope_mapping.hpp"
+#include "normal_success_envelope_codec.hpp"
+#include "normal_failure_body_types.hpp"
+#include "normal_failure_body_mapping.hpp"
+#include "normal_failure_body_codec.hpp"
+#include "normal_failure_envelope_types.hpp"
+#include "normal_failure_envelope_mapping.hpp"
+#include "normal_failure_envelope_codec.hpp"
 #include <cstdio>
 #include <cstdlib>
 #include <type_traits>
@@ -36,10 +48,43 @@ template<class Mapping,class Encode,class Decode> static void check(Encode encod
     REQUIRE(owned_root.*Mapping::root_1_procedure_member == 73);
     REQUIRE(::std::get<typename Mapping::target_wrapper_type>(owned_root.*Mapping::root_1_value_member).value.entries.elements.empty());
 }
+template<class M, class Root, auto Code, auto Policy, auto Value, class Encode, class Decode>
+static void check_outcome(Encode encode, Decode decode, unsigned selector) {
+    Root root{};
+    root.*Code = M::target_code;
+    root.*Policy = typename M::criticality_type{M::criticality_type::Known::reject};
+    root.*Value = typename M::target_wrapper_type{};
+    typename M::value_type pdu{root};
+    const std::vector<std::byte> expected{std::byte{static_cast<unsigned char>(selector)},std::byte{0x49},std::byte{0},std::byte{3},std::byte{0},std::byte{0},std::byte{0}};
+    auto encoded = encode(pdu);
+    REQUIRE(encoded && encoded.value().octets == expected && encoded.value().octet_count == expected.size());
+    auto decoded = decode(expected); REQUIRE(decoded);
+    const auto& received = std::get<Root>(decoded.value().value);
+    REQUIRE(received.*Code == 73 && (received.*Policy).value == M::criticality_type::Known::reject);
+    REQUIRE(std::get<typename M::target_wrapper_type>(received.*Value).value.entries.elements.empty());
+    root.*Code = 72;
+    auto wrong_code = encode(typename M::value_type{root});
+    REQUIRE(!wrong_code && wrong_code.error().code == nrforge::aper::ErrorCode::constraint_violation && wrong_code.error().bit_offset == 0);
+    root.*Code = 73; root.*Value = typename M::opaque_type{};
+    auto opaque_target = encode(typename M::value_type{root});
+    REQUIRE(!opaque_target && opaque_target.error().code == nrforge::aper::ErrorCode::constraint_violation);
+    auto trailing = expected; trailing.push_back(std::byte{0});
+    auto rejected = decode(trailing); REQUIRE(!rejected && rejected.error().code == nrforge::aper::ErrorCode::trailing_data);
+}
+using Success = outcome::success::EnvelopeEvidenceEnvelope_aper;
+using Failure = outcome::failure::EnvelopeEvidenceEnvelope_aper;
+static_assert(Success::target_root_ordinal == 0 && Failure::target_root_ordinal == 2);
+static_assert(Success::source_ordinal_to_per_root_index[0] == 2 && Failure::source_ordinal_to_per_root_index[2] == 0);
 int main() {
     check<Normal>([](const auto& value) { return ::normal::nrforge::encode_envelope_evidence_envelope(value); },
                   [](const auto& bytes) { return ::normal::nrforge::decode_envelope_evidence_envelope(bytes); });
     check<Upper>([](const auto& value) { return ::upper::nrforge::encode_envelope_evidence_envelope(value); },
                  [](const auto& bytes) { return ::upper::nrforge::decode_envelope_evidence_envelope(bytes); });
+    check_outcome<Success,Success::wrapper_0,Success::root_0_procedure_member,Success::root_0_criticality_member,Success::root_0_value_member>(
+        [](const auto& v) { return outcome::success::encode_envelope_evidence_envelope(v); },
+        [](const auto& b) { return outcome::success::decode_envelope_evidence_envelope(b); }, 0x40);
+    check_outcome<Failure,Failure::wrapper_2,Failure::root_2_procedure_member,Failure::root_2_criticality_member,Failure::root_2_value_member>(
+        [](const auto& v) { return outcome::failure::encode_envelope_evidence_envelope(v); },
+        [](const auto& b) { return outcome::failure::decode_envelope_evidence_envelope(b); }, 0x00);
     ::std::puts("PASS metadata-derived synthetic envelope and component-separated acronym body identity");
 }

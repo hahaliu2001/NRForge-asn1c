@@ -67,6 +67,8 @@ typedef struct asn1typed_target_envelope_s {
     size_t row_count, row_capacity;
     asn1typed_type_ref_t target_body;
     int has_valid_envelope;
+    /* Unique payload identity across all procedure rows and all three roles.
+     * Root ordinal refers to source order, independently of role/PER order. */
     size_t target_row_index, target_root_ordinal;
 } asn1typed_target_envelope_t;
 

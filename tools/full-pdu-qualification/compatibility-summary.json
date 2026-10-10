@@ -1,0 +1,57 @@
+{
+  "byte_normalization": false,
+  "frozen_modules_verified": 6,
+  "generated_header_sha256": {
+    "body_codec.hpp": "23a3f03186e276bf3be1a4358ca79579b4e84fc90a863f5b0a762effa43600d4",
+    "body_mapping.hpp": "acecc3fadac84e2b98e11293207b7e6a3dcf5766355ef3a9865a9d30ba828c25",
+    "body_types.hpp": "5f8e9303a0087785422e7d2d7fdfc37d7061e567643f26065492571698f7c457",
+    "envelope_codec.hpp": "28e362a1ffcc3dc012626a5aabb67e410743f1679cd24910d1fad3fda70ab889",
+    "envelope_mapping.hpp": "5f3cf136b23c5713e401d413b691282991757001f5b5249d9e0e11476a06edc8",
+    "envelope_types.hpp": "f3ec8a6dbb72aa625c8a422a362eb49df755e966d2ae97651f8f112a817d0c19"
+  },
+  "inherited_fragment_oracle_limitations": 72,
+  "integration_source_sha256": {
+    "libaper/runtime.cpp": "e6d162c031a4c8ba958e21460ffd5acf5ecf05d26232549da9933912e9259731",
+    "libaper/runtime.hpp": "34ceca5e464fc1c8f6e505cdd01ec00d22dd87d74d17abbb5660f605570162f1",
+    "libaper/sequence_extensions.hpp": "5447fdd559b2d1be8112161b4474810af619dd24f64678fc92d167bd36ef3db2",
+    "tools/n10-body-qualification/body_adapter.hpp": "5311a8a4b63eb8cc6312ec5aa3a8309134330fc7e69a71040c6f7f6da13e936a",
+    "tools/n10-body-qualification/driver.cpp": "011037e2b20ce8b1853af7d896c8005ec72dea0a25c370c347c931c86ef825e8",
+    "tools/n11-envelope-qualification/adapter.hpp": "e0b76ecb712bd9b848e764cc325f6179102670b51bcf14ac78a0a4059e9e1c86",
+    "tools/n11-envelope-qualification/driver.cpp": "e23091e80091c806fb277cc7a55538422ecdc269b42952c5cc898dcae36bddff"
+  },
+  "intentional_opaque_framing_only_inputs": 72,
+  "matched_checks": 2652,
+  "native_case_counts": {
+    "opaque_raw_known_other": 72,
+    "opaque_raw_unregistered": 72,
+    "outer_choice_extension": 30,
+    "target_body": 1125,
+    "unsupported_native_schema_decodable": 12
+  },
+  "native_relation_counts": {
+    "opaque_raw_known_other:exception": 72,
+    "opaque_raw_unregistered:exact": 72,
+    "outer_choice_extension:exact": 30,
+    "target_body:exact": 1053,
+    "target_body:exception": 72,
+    "unsupported_native_schema_decodable:exact": 12
+  },
+  "operations": {
+    "generated_decode": 1311,
+    "generated_encode": 693,
+    "opaque_encode_refusal": 618,
+    "receiver_literal_decode": 1,
+    "receiver_literal_refusal": 1,
+    "receiver_literal_rejection": 28
+  },
+  "production_disagreements_unresolved": 0,
+  "profile_verified": true,
+  "pycrate_version": "0.7.11",
+  "qualification_source_sha256": {
+    "tools/n11-envelope-qualification/body_cases.py": "742674019b4d5e094bbf095668fce7bee044368585557f823e7d93a848a7e8a4",
+    "tools/n11-envelope-qualification/native_reference.py": "345d29e2aac48484c87c5bfe0c1bb4a6b7afda322c26e03b20121a15e7241c2d",
+    "tools/n11-envelope-qualification/qualify.py": "d9e5bb78feb399017d4ef28735b3922f3b7d5e92f35cb391d14754f680ca8f09",
+    "tools/n11-envelope-qualification/requirements.txt": "a637cda6c939c92df687f0eee4a59f827994ebfb5403e9248f1db585058d24d5",
+    "tools/n11-envelope-qualification/source-manifest.json": "f2075096bfc3c8c6a6641cc48b6ceb13f819cd18d4be721f0b475179f34088dc"
+  }
+}

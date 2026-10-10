@@ -190,3 +190,5 @@ asn1c/tmp/
 /libasn1typed/check_asn1typed_private_render
 /libaper/check_aper_fragmented_bits
 /libasn1typed/check_asn1typed_fragment_bits_render
+
+/tools/asn1typed_full_pdu_probe

@@ -142,7 +142,7 @@ check_asn1typed_envelope_render_SOURCES = check_asn1typed_envelope_render.c ../t
 check_asn1typed_envelope_render_CPPFLAGS = $(check_asn1typed_extract_CPPFLAGS) -DNDEBUG
 check_asn1typed_envelope_render_LDADD = $(check_asn1typed_extract_LDADD)
 check_asn1typed_envelope_render_LDFLAGS = -Wl,--wrap=malloc -Wl,--wrap=calloc -Wl,--wrap=realloc
-EXTRA_DIST += check_asn1typed_envelope_generated.sh check_asn1typed_envelope_generated.cpp
+EXTRA_DIST += check_asn1typed_envelope_generated.sh check_asn1typed_envelope_generated.cpp check_asn1typed_envelope_outcomes.cpp
 
 check_PROGRAMS += check_asn1typed_octet_render
 TESTS += check_asn1typed_octet_generated.sh

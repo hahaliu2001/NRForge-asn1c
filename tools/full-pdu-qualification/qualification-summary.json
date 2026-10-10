@@ -1,0 +1,117 @@
+{
+  "status": "PASS_REVIEWED_PROFILE",
+  "profile_sha256": "4f7a9ad81fc156ffbf0f84c842a67eeac7e1a6ed2684d1d29604ce3fc6f7113e",
+  "probe_sha256": "5580face6137cd2996408d3e28026c7bca6f677e4bb53bd100867a60529cc643",
+  "compiler": "g++ (Ubuntu 13.3.0-6ubuntu2~24.04) 13.3.0",
+  "strict_options": [
+    "-std=c++20",
+    "-Wall",
+    "-Wextra",
+    "-Werror",
+    "-pedantic-errors",
+    "-Wconversion",
+    "-Wsign-conversion",
+    "-DNDEBUG"
+  ],
+  "counts": {
+    "messages": 131,
+    "procedures": 81,
+    "roles": {
+      "INITIATING MESSAGE": 81,
+      "SUCCESSFUL OUTCOME": 32,
+      "UNSUCCESSFUL OUTCOME": 18
+    },
+    "complete_native_and_generated_semantic_cases": 3432,
+    "policy_profiles": {
+      "declared": 1144,
+      "received-criticality-variation": 2288
+    },
+    "physical_and_resource_checks": 7315
+  },
+  "unresolved_disagreements": 0,
+  "scope": "finite complete-PDU native reference acceptance profile, not exhaustive value-space or live vendor qualification",
+  "limitations": [
+    "Conditional/application requirements and contained NAS/RRC interpretation are outside scope.",
+    "Private empty object set uses explicit vendor-opaque content, not a known typed vendor row.",
+    "Root physical/resource matrix exercises one mandatory-minimum case per message; component tests cover deeper primitive cases.",
+    "Only native reference operations actually executed are counted; no normalization or oracle exception suppression."
+  ],
+  "execution_status": "MATCHED_CANDIDATE_REQUIRES_INDEPENDENT_REVIEW",
+  "acceptance_method": "Exact matched candidate independently reviewed and promoted without changing source or profile; not a second full campaign replay.",
+  "independent_review": {
+    "production_and_tooling": "PASS",
+    "final_evidence_reconciliation": "PASS",
+    "reviewers": [
+      "decision_review",
+      "batch_fragments"
+    ],
+    "source_inputs_verified": 47,
+    "generated_headers_verified": 786,
+    "translation_units_and_responses_verified": 131,
+    "stale_pass_and_source_mutation_guards": "PASS",
+    "targeted_mutations_detected": 4,
+    "scope": "Finite per-target complete-PDU profiles; no unresolved blocking findings."
+  },
+  "regression_checks": {
+    "typed_tests": {
+      "passed": 40,
+      "failed": 0
+    },
+    "runtime_tests": {
+      "passed": 10,
+      "failed": 0
+    },
+    "historical_n11": {
+      "matched_checks": 2652,
+      "profile_verified": true,
+      "inherited_fragment_oracle_limitations": 72,
+      "intentional_opaque_framing_only_inputs": 72,
+      "byte_normalization": false
+    }
+  },
+  "focused_sanitizer_checks": {
+    "asan_ubsan": "PASS",
+    "leak_detection": false,
+    "samples": [
+      {
+        "index": 0,
+        "message": "AMFConfigurationUpdate",
+        "status": "PASS",
+        "semantic_cases": 54,
+        "physical_checks": 36,
+        "response_sha256": "f1f0d886a5846543fae88aa7dee350d8902bd662955bc826ee84738f47e8ee73"
+      },
+      {
+        "index": 1,
+        "message": "AMFConfigurationUpdateAcknowledge",
+        "status": "PASS",
+        "semantic_cases": 24,
+        "physical_checks": 36,
+        "response_sha256": "ebb2e75d2c0fcd88e3cd6c9a02caaec47f4407de24b3378c3ae65bd4727a08fc"
+      },
+      {
+        "index": 2,
+        "message": "AMFConfigurationUpdateFailure",
+        "status": "PASS",
+        "semantic_cases": 18,
+        "physical_checks": 42,
+        "response_sha256": "0d2c0f96de48278f6729ef7f7971e3a0f5cbda281c7f7909ecdad902c25503c8"
+      },
+      {
+        "index": 82,
+        "message": "PrivateMessage",
+        "status": "PASS",
+        "semantic_cases": 12,
+        "physical_checks": 42,
+        "response_sha256": "4e14a2731dda8e46a3e510c4ac9be2ecac6ab0dec063b681b562bd98ac4a9480"
+      }
+    ],
+    "lsan_attempt": "UNAVAILABLE_PTRACE_FATAL_ERROR",
+    "lsan_diagnostic": "==5==LeakSanitizer has encountered a fatal error.\n==5==HINT: For debugging, try setting environment variable LSAN_OPTIONS=verbosity=1:log_threads=1\n==5==HINT: LeakSanitizer does not work under ptrace (strace, gdb, etc)\n"
+  },
+  "artifacts": {
+    "accepted_profile": "tools/full-pdu-qualification/accepted-profile.json",
+    "historical_compatibility": "tools/full-pdu-qualification/compatibility-summary.json"
+  },
+  "max_qualified_pdu_octets": 427
+}

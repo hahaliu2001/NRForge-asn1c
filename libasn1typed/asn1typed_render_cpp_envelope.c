@@ -104,7 +104,7 @@ static int types(struct compound_buf *b, const struct envelope_names *p, const a
     if(emit(b,"}; Known value{}; };\nstruct %s { ::std::vector<::std::byte> payload{}; };\nstruct %s { ::%s::%s value{}; };\nstruct %s { ::std::uint64_t index{}; ::std::vector<::std::byte> payload{}; };\n",p->opaque,p->target,ns,p->body,p->extension)) return -1;
     for(i = 0; i < 3; ++i) {
         if(emit(b,"struct %s { ::std::uint64_t %s{}; ::%s::%s %s{}; ",p->roots[i],p->fields[i][0],ns,p->criticality,p->fields[i][1])) return -1;
-        if(d->roots[i].role == ASN1TYPED_ENVELOPE_INITIATING) {
+        if(i == d->target_root_ordinal) {
             if(emit(b,"::std::variant<::%s::%s, ::%s::%s> %s{}; };\n",ns,p->opaque,ns,p->target,p->fields[i][2])) return -1;
         } else if(emit(b,"::%s::%s %s{}; };\n",ns,p->opaque,p->fields[i][2])) return -1;
     }
