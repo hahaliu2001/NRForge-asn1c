@@ -74,7 +74,10 @@ int main(int argc, char **argv) {
 	int (*render[])(const asn1typed_module_t *, const char *, char **, char *, size_t) = {
 		asn1typed_render_cpp_owned_ioc_types, asn1typed_render_cpp_owned_ioc_mapping, asn1typed_render_cpp_owned_ioc_codec
 	};
-	if(argc != 4 && argc != 5) { fprintf(stderr, "Usage: probe MODULE_LIST ASN1_ROOT MESSAGE_LIST [HEADER_DIR]\n"); return 2; }
+	if(argc != 4 && argc != 5 && argc != 8) { fprintf(stderr, "Usage: probe MODULE_LIST ASN1_ROOT MESSAGE_LIST [HEADER_DIR [BODY_MODULE DESCRIPTION_MODULE PDU_TYPE]]\n"); return 2; }
+	const char *body_module = argc == 8 ? argv[5] : "NGAP-PDU-Contents";
+	const char *description_module = argc == 8 ? argv[6] : "NGAP-PDU-Descriptions";
+	const char *pdu_type = argc == 8 ? argv[7] : "NGAP-PDU";
 	rows = calloc(MAX_MESSAGES, sizeof(*rows)); if(!rows) return 3;
 	file = fopen(argv[3], "r"); if(!file) { free(rows); return 2; }
 	while(fgets(line, sizeof(line), file)) {
@@ -92,10 +95,10 @@ int main(int argc, char **argv) {
 	if(!tree) { fprintf(stderr, "parse failed: %s\n", failed ? failed : "unknown"); free(rows); return 3; }
 	if(dev_tree_fix(tree) < 0) { asn1p_delete(tree); free(rows); return 4; }
 	for(i = 0; i < n; ++i) {
-		rows[i].extraction_rc = asn1typed_extract_physical_message(tree, "NGAP-PDU-Contents", rows[i].name,
+		rows[i].extraction_rc = asn1typed_extract_physical_message(tree, body_module, rows[i].name,
 			&rows[i].body, rows[i].extraction_error, sizeof(rows[i].extraction_error));
-		rows[i].envelope_rc = asn1typed_extract_target_envelope(tree, "NGAP-PDU-Descriptions", "NGAP-PDU",
-			"NGAP-PDU-Contents", rows[i].name, &rows[i].envelope, rows[i].envelope_error, sizeof(rows[i].envelope_error));
+		rows[i].envelope_rc = asn1typed_extract_target_envelope(tree, description_module, pdu_type,
+			body_module, rows[i].name, &rows[i].envelope, rows[i].envelope_error, sizeof(rows[i].envelope_error));
 	}
 	asn1p_delete(tree);
 	printf("{\"parse\":\"PASS\",\"fix\":\"PASS\",\"parser_deleted_before_generation\":true,\"messages\":[");
@@ -118,7 +121,7 @@ int main(int argc, char **argv) {
 			printf("{\"family\":%zu,\"rc\":%d,\"diagnostic\":", q, rc); string(diag); putchar('}');
 		}
 		printf("],\"inventory\":"); inventory(&r->body); putchar('}');
-		if(argc == 5 && generated) for(q = 0; q < 3; ++q) {
+		if(argc >= 5 && generated) for(q = 0; q < 3; ++q) {
 			static const char *const families[] = {"types", "mapping", "codec"};
 			char path[4096];
 			FILE *out;

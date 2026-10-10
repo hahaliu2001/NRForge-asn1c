@@ -79,3 +79,5 @@ EXTRA_DIST += shared-capability-qualification/README.md shared-capability-qualif
 noinst_PROGRAMS += asn1typed_ngap_dispatch
 asn1typed_ngap_dispatch_SOURCES = ngap-dispatch/generate.c $(tool_common)
 asn1typed_ngap_dispatch_LDADD = $(top_builddir)/libasn1typed/libasn1typed_extract.la $(top_builddir)/libasn1typed/libasn1typed.la $(common_libs)
+
+EXTRA_DIST += f1ap-readiness/scan.py f1ap-readiness/test_scan.py f1ap-readiness/README.md f1ap-readiness/source-manifest.json f1ap-readiness/f1ap-rel18.modules f1ap-readiness/readiness.json f1ap-readiness/review.md
