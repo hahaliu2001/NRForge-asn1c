@@ -1,0 +1,14 @@
+UEContextReleaseCommand
+UEContextReleaseComplete
+UEContextReleaseRequest
+DownlinkNASTransport
+UplinkNASTransport
+InitialUEMessage
+NGSetupRequest
+NGSetupResponse
+NGSetupFailure
+InitialContextSetupRequest
+InitialContextSetupResponse
+InitialContextSetupFailure
+PDUSessionResourceSetupRequest
+PDUSessionResourceSetupResponse

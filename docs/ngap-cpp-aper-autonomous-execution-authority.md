@@ -10,3 +10,7 @@ Keep tasks small and individually reviewable. Preserve committed compatibility a
 Escalate only a change to the target, a decision that breaks an established compatibility/support promise, an unresolved blocking finding, or destructive actions. Branch merges, deletions or force pushes are not implicit in routine implementation upload.
 
 Report completed work, concrete validation/review evidence and limitations. Record contract and implementation milestones in the repository. Stop at the current milestone for a clear progress report when appropriate, without requesting routine approval to continue.
+
+## N12 planning extension
+
+Owner authorization: 2026-10-09 (America/Los_Angeles), following completion of N11. The Owner accepted N12 — NGAP Tier-A Codec Coverage & Batch Plan and the stated autonomous review/commit/push workflow. This extension authorizes coverage inspection, reproducible read-only readiness tooling, a reviewed batch plan and its evidence on the current branch. It does not authorize production codec expansion to additional messages or claim their qualification; subsequent implementation milestones remain separately selected. Preserve the same frozen schema, compatibility, no-benchmark and non-destructive branch rules.
