@@ -34,3 +34,7 @@ Owner authorization: “做N16”. Implement single finite non-extensible INTEGE
 ## N17 selected capability milestone
 
 Owner authorization: “做N17”. Inspect remaining shared compound/reference failures and implement evidence-backed inline ENUMERATED field lowering, focused correctness/reference tests, independent review/fix closure, full131 readiness rescan and routine commit/push. Preserve frozen schemas and existing successful generated outputs. Character strings, extensible INTEGER/SIZE, fragmented collections, NULL/private-IE semantics and general NGAP wire qualification remain separately scoped. Stop after N17.
+
+## N18 selected study milestone
+
+Owner authorization: “做N18”, following the N17 recommendation. Study extensible INTEGER root/extension domains using the accepted 20 INTEGER and four reference first failures, actual owned/frozen evidence, normative rules and bounded independent model/native comparisons. Record a reviewed single-contiguous-root/int64 contract and implementation gates; use independent review/fix and routine commit/push. This milestone does not change production runtime/generation, schemas or readiness, and does not qualify new complete NGAP messages. Discontinuous roots/additions, arbitrary-precision integers and other capability clusters remain separately scoped. Stop after N18.

@@ -1,0 +1,1993 @@
+{
+  "scope": "N18 contract study only; exact N17 INTEGER and reference first-failure inventory",
+  "baseline_commit": "0bda141dea90f9df8baba0d6ecc64598c2330f00",
+  "source_authority": {
+    "authority_commit": "d6e514a33ec3695925c24aa292900514b371b074",
+    "release": "TS38.413 V18.10.0",
+    "modules": [
+      {
+        "path": "ng/asn1/NGAP-CommonDataTypes.asn",
+        "git_blob": "acaba01d1fad8d656ae8f568bf951de3b67278ac",
+        "sha256": "774d888f3f63ff33508c1f5f7ca9a3f1a0a5ee5e102decb3ffed99700df5f7c1",
+        "hash_verified": true
+      },
+      {
+        "path": "ng/asn1/NGAP-Constants.asn",
+        "git_blob": "ba80f8fd34d41c48087417dc702622abff4bbaaf",
+        "sha256": "492d40aad525d645a90cdfe2b644066007cc5ac81f6e527df9efa30bf6c8ebb8",
+        "hash_verified": true
+      },
+      {
+        "path": "ng/asn1/NGAP-IEs.asn",
+        "git_blob": "a8974dd27e5c7f37bf439990fb39da397ec97044",
+        "sha256": "ae4edee7e7d69ac6db94e44f5e716445990ecf5943edbc9a0f328ed210c25831",
+        "hash_verified": true
+      },
+      {
+        "path": "ng/asn1/NGAP-Containers.asn",
+        "git_blob": "978bbf5864787b87eefcfbf26c84d471de330eb5",
+        "sha256": "3165b49eb2476b0d85ad261e983e1eb29cecb32c075f9bf81546cfe7a08a2bcb",
+        "hash_verified": true
+      },
+      {
+        "path": "ng/asn1/NGAP-PDU-Contents.asn",
+        "git_blob": "fb48dd32c66479cf539c7e1d9676c5a90919b996",
+        "sha256": "93baf5a65b4e3971839c82ef87467fffaf1a5f1dd9c159c297f6ce779e1acfd0",
+        "hash_verified": true
+      },
+      {
+        "path": "ng/asn1/NGAP-PDU-Descriptions.asn",
+        "git_blob": "aad6567aad39cebe0591c9a16b7c25bc012d1a45",
+        "sha256": "6fc4e2326ea449942195742efc0325a4181a94aadee99da8f1e2d76fe59dfa6d",
+        "hash_verified": true
+      }
+    ]
+  },
+  "input_sha256": {
+    "tools/n17-shape-qualification/readiness.json": "01e23fd58513695f98905830ffb1caff4b6c4a4d26bfd047887d827e955dc5b2",
+    "tools/n18-integer-study/inventory.py": "f85c62110f612551c387105201a60b6392ddc0d9d03793560be22918d546129b",
+    "tools/n18-integer-study/probe.c": "c9714f831bebaa2834b15feaf59abf522ad8423c4fbe32879a15579d9a600b96",
+    "tools/qualification/ngap-rel18.modules": "1623b9ec62622d31785740a57a56a10d1687c20ae3787da80617c3b09dd8b597",
+    "libasn1typed/asn1typed.h": "6b655405f70ad470e57d329cfcfa52e12461561ea146ed2e7c94d92fb5ae0c00",
+    "libasn1typed/asn1typed.c": "f4b732d6db8286aa763673460ecf2aab63ea5438b23f0c778aa0cf61ba32af69",
+    "libasn1typed/asn1typed_extract.c": "3132231da679b6b78415741e9660118c07f6c24c79ed7275945308f5e5d8543e",
+    "libasn1typed/asn1typed_render_cpp_integer.c": "6395c336676484f03c6a18962eeedc47a831671c5dce033262258d01ef87d58c"
+  },
+  "extraction": {
+    "parse": "PASS",
+    "fix": "PASS",
+    "parser_deleted_before_inventory": true
+  },
+  "counts": {
+    "integer_first_failures": 20,
+    "reference_first_failures": 4,
+    "unique_domains": 20,
+    "by_location_and_shape": {
+      "named-type/finite-contiguous": 12,
+      "sequence-field/finite-contiguous": 4,
+      "named-type/finite-discontinuous": 2,
+      "choice-alternative/finite-contiguous": 2
+    }
+  },
+  "unique_domains": [
+    {
+      "identity": "NGAP-IEs.AlternativeQoSParaSetIndex",
+      "location": "named-type",
+      "root_intervals": [
+        [
+          1,
+          8
+        ]
+      ],
+      "is_extensible": true,
+      "interval_tail_count": 0,
+      "shape": "finite-contiguous",
+      "root_permitted_value_count": 8,
+      "source_declarations": [
+        {
+          "line": 448,
+          "text": "AlternativeQoSParaSetIndex ::= INTEGER (1..8, ...)"
+        }
+      ],
+      "owned_evidence": "present-after-parser-deletion",
+      "separately_represented_extension_additions": false
+    },
+    {
+      "identity": "NGAP-IEs.BitRate",
+      "location": "named-type",
+      "root_intervals": [
+        [
+          0,
+          4000000000000
+        ]
+      ],
+      "is_extensible": true,
+      "interval_tail_count": 0,
+      "shape": "finite-contiguous",
+      "root_permitted_value_count": 4000000000001,
+      "source_declarations": [
+        {
+          "line": 779,
+          "text": "BitRate\t::= INTEGER (0..4000000000000, ...)"
+        }
+      ],
+      "owned_evidence": "present-after-parser-deletion",
+      "separately_represented_extension_additions": false
+    },
+    {
+      "identity": "NGAP-IEs.CNsubgroupID",
+      "location": "named-type",
+      "root_intervals": [
+        [
+          0,
+          7
+        ]
+      ],
+      "is_extensible": true,
+      "interval_tail_count": 0,
+      "shape": "finite-contiguous",
+      "root_permitted_value_count": 8,
+      "source_declarations": [
+        {
+          "line": 1293,
+          "text": "CNsubgroupID ::= INTEGER (0..7, ...)"
+        }
+      ],
+      "owned_evidence": "present-after-parser-deletion",
+      "separately_represented_extension_additions": false
+    },
+    {
+      "identity": "NGAP-IEs.ClockAccuracy.clockAccuracyIndex",
+      "location": "choice-alternative",
+      "root_intervals": [
+        [
+          32,
+          47
+        ]
+      ],
+      "is_extensible": true,
+      "interval_tail_count": 0,
+      "shape": "finite-contiguous",
+      "root_permitted_value_count": 16,
+      "source_declarations": [
+        {
+          "line": 1230,
+          "text": "clockAccuracyIndex\t\tINTEGER (32..47, ...),"
+        }
+      ],
+      "owned_evidence": "present-after-parser-deletion",
+      "separately_represented_extension_additions": false
+    },
+    {
+      "identity": "NGAP-IEs.ClockAccuracy.clockAccuracyValue",
+      "location": "choice-alternative",
+      "root_intervals": [
+        [
+          1,
+          40000000
+        ]
+      ],
+      "is_extensible": true,
+      "interval_tail_count": 0,
+      "shape": "finite-contiguous",
+      "root_permitted_value_count": 40000000,
+      "source_declarations": [
+        {
+          "line": 1229,
+          "text": "clockAccuracyValue\t\tINTEGER (1..40000000, ...),"
+        }
+      ],
+      "owned_evidence": "present-after-parser-deletion",
+      "separately_represented_extension_additions": false
+    },
+    {
+      "identity": "NGAP-IEs.DRB-ID",
+      "location": "named-type",
+      "root_intervals": [
+        [
+          1,
+          32
+        ]
+      ],
+      "is_extensible": true,
+      "interval_tail_count": 0,
+      "shape": "finite-contiguous",
+      "root_permitted_value_count": 32,
+      "source_declarations": [
+        {
+          "line": 1637,
+          "text": "DRB-ID ::= INTEGER (1..32, ...)"
+        }
+      ],
+      "owned_evidence": "present-after-parser-deletion",
+      "separately_represented_extension_additions": false
+    },
+    {
+      "identity": "NGAP-IEs.ExpectedActivityPeriod",
+      "location": "named-type",
+      "root_intervals": [
+        [
+          1,
+          30
+        ],
+        [
+          40,
+          40
+        ],
+        [
+          50,
+          50
+        ],
+        [
+          60,
+          60
+        ],
+        [
+          80,
+          80
+        ],
+        [
+          100,
+          100
+        ],
+        [
+          120,
+          120
+        ],
+        [
+          150,
+          150
+        ],
+        [
+          180,
+          181
+        ]
+      ],
+      "is_extensible": true,
+      "interval_tail_count": 8,
+      "shape": "finite-discontinuous",
+      "root_permitted_value_count": 39,
+      "source_declarations": [
+        {
+          "line": 2100,
+          "text": "ExpectedActivityPeriod ::= INTEGER (1..30|40|50|60|80|100|120|150|180|181, ...)"
+        }
+      ],
+      "owned_evidence": "present-after-parser-deletion",
+      "separately_represented_extension_additions": false
+    },
+    {
+      "identity": "NGAP-IEs.ExpectedIdlePeriod",
+      "location": "named-type",
+      "root_intervals": [
+        [
+          1,
+          30
+        ],
+        [
+          40,
+          40
+        ],
+        [
+          50,
+          50
+        ],
+        [
+          60,
+          60
+        ],
+        [
+          80,
+          80
+        ],
+        [
+          100,
+          100
+        ],
+        [
+          120,
+          120
+        ],
+        [
+          150,
+          150
+        ],
+        [
+          180,
+          181
+        ]
+      ],
+      "is_extensible": true,
+      "interval_tail_count": 8,
+      "shape": "finite-discontinuous",
+      "root_permitted_value_count": 39,
+      "source_declarations": [
+        {
+          "line": 2107,
+          "text": "ExpectedIdlePeriod ::= INTEGER (1..30|40|50|60|80|100|120|150|180|181, ...)"
+        }
+      ],
+      "owned_evidence": "present-after-parser-deletion",
+      "separately_represented_extension_additions": false
+    },
+    {
+      "identity": "NGAP-IEs.FiveQI",
+      "location": "named-type",
+      "root_intervals": [
+        [
+          0,
+          255
+        ]
+      ],
+      "is_extensible": true,
+      "interval_tail_count": 0,
+      "shape": "finite-contiguous",
+      "root_permitted_value_count": 256,
+      "source_declarations": [
+        {
+          "line": 2378,
+          "text": "FiveQI ::= INTEGER (0..255, ...)"
+        }
+      ],
+      "owned_evidence": "present-after-parser-deletion",
+      "separately_represented_extension_additions": false
+    },
+    {
+      "identity": "NGAP-IEs.IntendedNumberOfPagingAttempts",
+      "location": "named-type",
+      "root_intervals": [
+        [
+          1,
+          16
+        ]
+      ],
+      "is_extensible": true,
+      "interval_tail_count": 0,
+      "shape": "finite-contiguous",
+      "root_permitted_value_count": 16,
+      "source_declarations": [
+        {
+          "line": 2805,
+          "text": "IntendedNumberOfPagingAttempts ::= INTEGER (1..16, ...)"
+        }
+      ],
+      "owned_evidence": "present-after-parser-deletion",
+      "separately_represented_extension_additions": false
+    },
+    {
+      "identity": "NGAP-IEs.LocationReportingReferenceID",
+      "location": "named-type",
+      "root_intervals": [
+        [
+          1,
+          64
+        ]
+      ],
+      "is_extensible": true,
+      "interval_tail_count": 0,
+      "shape": "finite-contiguous",
+      "root_permitted_value_count": 64,
+      "source_declarations": [
+        {
+          "line": 3398,
+          "text": "LocationReportingReferenceID ::= INTEGER (1..64, ...)"
+        }
+      ],
+      "owned_evidence": "present-after-parser-deletion",
+      "separately_represented_extension_additions": false
+    },
+    {
+      "identity": "NGAP-IEs.MBS-AreaSessionID",
+      "location": "named-type",
+      "root_intervals": [
+        [
+          0,
+          65535
+        ]
+      ],
+      "is_extensible": true,
+      "interval_tail_count": 0,
+      "shape": "finite-contiguous",
+      "root_permitted_value_count": 65536,
+      "source_declarations": [
+        {
+          "line": 3509,
+          "text": "MBS-AreaSessionID ::= INTEGER (0..65535, ...)"
+        }
+      ],
+      "owned_evidence": "present-after-parser-deletion",
+      "separately_represented_extension_additions": false
+    },
+    {
+      "identity": "NGAP-IEs.NB-IoT-UEPriority",
+      "location": "named-type",
+      "root_intervals": [
+        [
+          0,
+          255
+        ]
+      ],
+      "is_extensible": true,
+      "interval_tail_count": 0,
+      "shape": "finite-contiguous",
+      "root_permitted_value_count": 256,
+      "source_declarations": [
+        {
+          "line": 4313,
+          "text": "NB-IoT-UEPriority ::= INTEGER (0..255, ...)"
+        }
+      ],
+      "owned_evidence": "present-after-parser-deletion",
+      "separately_represented_extension_additions": false
+    },
+    {
+      "identity": "NGAP-IEs.PagingAttemptCount",
+      "location": "named-type",
+      "root_intervals": [
+        [
+          1,
+          16
+        ]
+      ],
+      "is_extensible": true,
+      "interval_tail_count": 0,
+      "shape": "finite-contiguous",
+      "root_permitted_value_count": 16,
+      "source_declarations": [
+        {
+          "line": 4717,
+          "text": "PagingAttemptCount ::= INTEGER (1..16, ...)"
+        }
+      ],
+      "owned_evidence": "present-after-parser-deletion",
+      "separately_represented_extension_additions": false
+    },
+    {
+      "identity": "NGAP-IEs.PagingPolicyDifferentiationItem.dl-DataSize",
+      "location": "sequence-field",
+      "root_intervals": [
+        [
+          0,
+          96000
+        ]
+      ],
+      "is_extensible": true,
+      "interval_tail_count": 0,
+      "shape": "finite-contiguous",
+      "root_permitted_value_count": 96001,
+      "source_declarations": [
+        {
+          "line": 4773,
+          "text": "dl-DataSize \t\t\t\t\t\tINTEGER (0..96000, ...)\t\t\t\tOPTIONAL,"
+        }
+      ],
+      "owned_evidence": "present-after-parser-deletion",
+      "separately_represented_extension_additions": false,
+      "presence": 1,
+      "type_semantics": 0
+    },
+    {
+      "identity": "NGAP-IEs.PagingPolicyIndicator",
+      "location": "named-type",
+      "root_intervals": [
+        [
+          0,
+          7
+        ]
+      ],
+      "is_extensible": true,
+      "interval_tail_count": 0,
+      "shape": "finite-contiguous",
+      "root_permitted_value_count": 8,
+      "source_declarations": [
+        {
+          "line": 4782,
+          "text": "PagingPolicyIndicator ::= INTEGER (0..7, ...)"
+        }
+      ],
+      "owned_evidence": "present-after-parser-deletion",
+      "separately_represented_extension_additions": false
+    },
+    {
+      "identity": "NGAP-IEs.QosFlowIdentifier",
+      "location": "named-type",
+      "root_intervals": [
+        [
+          0,
+          63
+        ]
+      ],
+      "is_extensible": true,
+      "interval_tail_count": 0,
+      "shape": "finite-contiguous",
+      "root_permitted_value_count": 64,
+      "source_declarations": [
+        {
+          "line": 5971,
+          "text": "QosFlowIdentifier ::= INTEGER (0..63, ...)"
+        }
+      ],
+      "owned_evidence": "present-after-parser-deletion",
+      "separately_represented_extension_additions": false
+    },
+    {
+      "identity": "NGAP-IEs.ScheduledCommunicationTime.timeofDayEnd",
+      "location": "sequence-field",
+      "root_intervals": [
+        [
+          0,
+          86399
+        ]
+      ],
+      "is_extensible": true,
+      "interval_tail_count": 0,
+      "shape": "finite-contiguous",
+      "root_permitted_value_count": 86400,
+      "source_declarations": [
+        {
+          "line": 6489,
+          "text": "timeofDayEnd\t\tINTEGER (0..86399, ...)\t\t\t\t\t\t\t\t\t\t\t\tOPTIONAL,"
+        }
+      ],
+      "owned_evidence": "present-after-parser-deletion",
+      "separately_represented_extension_additions": false,
+      "presence": 1,
+      "type_semantics": 0
+    },
+    {
+      "identity": "NGAP-IEs.ScheduledCommunicationTime.timeofDayStart",
+      "location": "sequence-field",
+      "root_intervals": [
+        [
+          0,
+          86399
+        ]
+      ],
+      "is_extensible": true,
+      "interval_tail_count": 0,
+      "shape": "finite-contiguous",
+      "root_permitted_value_count": 86400,
+      "source_declarations": [
+        {
+          "line": 6488,
+          "text": "timeofDayStart\t\tINTEGER (0..86399, ...)\t\t\t\t\t\t\t\t\t\t\t\tOPTIONAL,"
+        }
+      ],
+      "owned_evidence": "present-after-parser-deletion",
+      "separately_represented_extension_additions": false,
+      "presence": 1,
+      "type_semantics": 0
+    },
+    {
+      "identity": "NGAP-IEs.UE-DifferentiationInfo.periodicTime",
+      "location": "sequence-field",
+      "root_intervals": [
+        [
+          1,
+          3600
+        ]
+      ],
+      "is_extensible": true,
+      "interval_tail_count": 0,
+      "shape": "finite-contiguous",
+      "root_permitted_value_count": 3600,
+      "source_declarations": [
+        {
+          "line": 7602,
+          "text": "periodicTime\t\t\t\t\tINTEGER (1..3600, ...)\t\t\t\t\t\t\t\t\t\t\t\tOPTIONAL,"
+        }
+      ],
+      "owned_evidence": "present-after-parser-deletion",
+      "separately_represented_extension_additions": false,
+      "presence": 1,
+      "type_semantics": 0
+    }
+  ],
+  "messages": [
+    {
+      "message": "BroadcastSessionModificationRequest",
+      "role": "INITIATING MESSAGE",
+      "procedure_code": 66,
+      "first_failure_cluster": "integer-generation",
+      "first_failure_diagnostic": "unsupported integer constraint: requires one finite non-extensible interval",
+      "candidate_domains_in_owned_order": [
+        {
+          "identity": "NGAP-IEs.MBS-AreaSessionID",
+          "location": "named-type",
+          "owned_type_ordinal": 15,
+          "root_intervals": [
+            [
+              0,
+              65535
+            ]
+          ],
+          "is_extensible": true,
+          "interval_tail_count": 0,
+          "shape": "finite-contiguous",
+          "root_permitted_value_count": 65536,
+          "source_declarations": [
+            {
+              "line": 3509,
+              "text": "MBS-AreaSessionID ::= INTEGER (0..65535, ...)"
+            }
+          ],
+          "owned_evidence": "present-after-parser-deletion",
+          "separately_represented_extension_additions": false
+        }
+      ],
+      "first_extensible_named_domain_in_owned_order": "NGAP-IEs.MBS-AreaSessionID",
+      "unlock_prediction": null
+    },
+    {
+      "message": "BroadcastSessionSetupRequest",
+      "role": "INITIATING MESSAGE",
+      "procedure_code": 68,
+      "first_failure_cluster": "integer-generation",
+      "first_failure_diagnostic": "unsupported integer constraint: requires one finite non-extensible interval",
+      "candidate_domains_in_owned_order": [
+        {
+          "identity": "NGAP-IEs.MBS-AreaSessionID",
+          "location": "named-type",
+          "owned_type_ordinal": 19,
+          "root_intervals": [
+            [
+              0,
+              65535
+            ]
+          ],
+          "is_extensible": true,
+          "interval_tail_count": 0,
+          "shape": "finite-contiguous",
+          "root_permitted_value_count": 65536,
+          "source_declarations": [
+            {
+              "line": 3509,
+              "text": "MBS-AreaSessionID ::= INTEGER (0..65535, ...)"
+            }
+          ],
+          "owned_evidence": "present-after-parser-deletion",
+          "separately_represented_extension_additions": false
+        }
+      ],
+      "first_extensible_named_domain_in_owned_order": "NGAP-IEs.MBS-AreaSessionID",
+      "unlock_prediction": null
+    },
+    {
+      "message": "ConnectionEstablishmentIndication",
+      "role": "INITIATING MESSAGE",
+      "procedure_code": 65,
+      "first_failure_cluster": "physical-reference-generation",
+      "first_failure_diagnostic": "missing or unsupported physical graph reference",
+      "candidate_domains_in_owned_order": [
+        {
+          "identity": "NGAP-IEs.UE-DifferentiationInfo.periodicTime",
+          "location": "sequence-field",
+          "owned_type_ordinal": 9,
+          "root_intervals": [
+            [
+              1,
+              3600
+            ]
+          ],
+          "is_extensible": true,
+          "interval_tail_count": 0,
+          "shape": "finite-contiguous",
+          "root_permitted_value_count": 3600,
+          "source_declarations": [
+            {
+              "line": 7602,
+              "text": "periodicTime\t\t\t\t\tINTEGER (1..3600, ...)\t\t\t\t\t\t\t\t\t\t\t\tOPTIONAL,"
+            }
+          ],
+          "owned_evidence": "present-after-parser-deletion",
+          "separately_represented_extension_additions": false,
+          "presence": 1,
+          "type_semantics": 0
+        },
+        {
+          "identity": "NGAP-IEs.NB-IoT-UEPriority",
+          "location": "named-type",
+          "owned_type_ordinal": 11,
+          "root_intervals": [
+            [
+              0,
+              255
+            ]
+          ],
+          "is_extensible": true,
+          "interval_tail_count": 0,
+          "shape": "finite-contiguous",
+          "root_permitted_value_count": 256,
+          "source_declarations": [
+            {
+              "line": 4313,
+              "text": "NB-IoT-UEPriority ::= INTEGER (0..255, ...)"
+            }
+          ],
+          "owned_evidence": "present-after-parser-deletion",
+          "separately_represented_extension_additions": false
+        },
+        {
+          "identity": "NGAP-IEs.ScheduledCommunicationTime.timeofDayStart",
+          "location": "sequence-field",
+          "owned_type_ordinal": 23,
+          "root_intervals": [
+            [
+              0,
+              86399
+            ]
+          ],
+          "is_extensible": true,
+          "interval_tail_count": 0,
+          "shape": "finite-contiguous",
+          "root_permitted_value_count": 86400,
+          "source_declarations": [
+            {
+              "line": 6488,
+              "text": "timeofDayStart\t\tINTEGER (0..86399, ...)\t\t\t\t\t\t\t\t\t\t\t\tOPTIONAL,"
+            }
+          ],
+          "owned_evidence": "present-after-parser-deletion",
+          "separately_represented_extension_additions": false,
+          "presence": 1,
+          "type_semantics": 0
+        },
+        {
+          "identity": "NGAP-IEs.ScheduledCommunicationTime.timeofDayEnd",
+          "location": "sequence-field",
+          "owned_type_ordinal": 23,
+          "root_intervals": [
+            [
+              0,
+              86399
+            ]
+          ],
+          "is_extensible": true,
+          "interval_tail_count": 0,
+          "shape": "finite-contiguous",
+          "root_permitted_value_count": 86400,
+          "source_declarations": [
+            {
+              "line": 6489,
+              "text": "timeofDayEnd\t\tINTEGER (0..86399, ...)\t\t\t\t\t\t\t\t\t\t\t\tOPTIONAL,"
+            }
+          ],
+          "owned_evidence": "present-after-parser-deletion",
+          "separately_represented_extension_additions": false,
+          "presence": 1,
+          "type_semantics": 0
+        }
+      ],
+      "first_extensible_named_domain_in_owned_order": "NGAP-IEs.NB-IoT-UEPriority",
+      "unlock_prediction": null
+    },
+    {
+      "message": "DistributionSetupRequest",
+      "role": "INITIATING MESSAGE",
+      "procedure_code": 69,
+      "first_failure_cluster": "integer-generation",
+      "first_failure_diagnostic": "unsupported integer constraint: requires one finite non-extensible interval",
+      "candidate_domains_in_owned_order": [
+        {
+          "identity": "NGAP-IEs.MBS-AreaSessionID",
+          "location": "named-type",
+          "owned_type_ordinal": 4,
+          "root_intervals": [
+            [
+              0,
+              65535
+            ]
+          ],
+          "is_extensible": true,
+          "interval_tail_count": 0,
+          "shape": "finite-contiguous",
+          "root_permitted_value_count": 65536,
+          "source_declarations": [
+            {
+              "line": 3509,
+              "text": "MBS-AreaSessionID ::= INTEGER (0..65535, ...)"
+            }
+          ],
+          "owned_evidence": "present-after-parser-deletion",
+          "separately_represented_extension_additions": false
+        }
+      ],
+      "first_extensible_named_domain_in_owned_order": "NGAP-IEs.MBS-AreaSessionID",
+      "unlock_prediction": null
+    },
+    {
+      "message": "DistributionSetupResponse",
+      "role": "SUCCESSFUL OUTCOME",
+      "procedure_code": 69,
+      "first_failure_cluster": "integer-generation",
+      "first_failure_diagnostic": "unsupported integer constraint: requires one finite non-extensible interval",
+      "candidate_domains_in_owned_order": [
+        {
+          "identity": "NGAP-IEs.MBS-AreaSessionID",
+          "location": "named-type",
+          "owned_type_ordinal": 4,
+          "root_intervals": [
+            [
+              0,
+              65535
+            ]
+          ],
+          "is_extensible": true,
+          "interval_tail_count": 0,
+          "shape": "finite-contiguous",
+          "root_permitted_value_count": 65536,
+          "source_declarations": [
+            {
+              "line": 3509,
+              "text": "MBS-AreaSessionID ::= INTEGER (0..65535, ...)"
+            }
+          ],
+          "owned_evidence": "present-after-parser-deletion",
+          "separately_represented_extension_additions": false
+        }
+      ],
+      "first_extensible_named_domain_in_owned_order": "NGAP-IEs.MBS-AreaSessionID",
+      "unlock_prediction": null
+    },
+    {
+      "message": "DistributionSetupFailure",
+      "role": "UNSUCCESSFUL OUTCOME",
+      "procedure_code": 69,
+      "first_failure_cluster": "integer-generation",
+      "first_failure_diagnostic": "unsupported integer constraint: requires one finite non-extensible interval",
+      "candidate_domains_in_owned_order": [
+        {
+          "identity": "NGAP-IEs.MBS-AreaSessionID",
+          "location": "named-type",
+          "owned_type_ordinal": 4,
+          "root_intervals": [
+            [
+              0,
+              65535
+            ]
+          ],
+          "is_extensible": true,
+          "interval_tail_count": 0,
+          "shape": "finite-contiguous",
+          "root_permitted_value_count": 65536,
+          "source_declarations": [
+            {
+              "line": 3509,
+              "text": "MBS-AreaSessionID ::= INTEGER (0..65535, ...)"
+            }
+          ],
+          "owned_evidence": "present-after-parser-deletion",
+          "separately_represented_extension_additions": false
+        }
+      ],
+      "first_extensible_named_domain_in_owned_order": "NGAP-IEs.MBS-AreaSessionID",
+      "unlock_prediction": null
+    },
+    {
+      "message": "DistributionReleaseRequest",
+      "role": "INITIATING MESSAGE",
+      "procedure_code": 70,
+      "first_failure_cluster": "integer-generation",
+      "first_failure_diagnostic": "unsupported integer constraint: requires one finite non-extensible interval",
+      "candidate_domains_in_owned_order": [
+        {
+          "identity": "NGAP-IEs.MBS-AreaSessionID",
+          "location": "named-type",
+          "owned_type_ordinal": 4,
+          "root_intervals": [
+            [
+              0,
+              65535
+            ]
+          ],
+          "is_extensible": true,
+          "interval_tail_count": 0,
+          "shape": "finite-contiguous",
+          "root_permitted_value_count": 65536,
+          "source_declarations": [
+            {
+              "line": 3509,
+              "text": "MBS-AreaSessionID ::= INTEGER (0..65535, ...)"
+            }
+          ],
+          "owned_evidence": "present-after-parser-deletion",
+          "separately_represented_extension_additions": false
+        }
+      ],
+      "first_extensible_named_domain_in_owned_order": "NGAP-IEs.MBS-AreaSessionID",
+      "unlock_prediction": null
+    },
+    {
+      "message": "DistributionReleaseResponse",
+      "role": "SUCCESSFUL OUTCOME",
+      "procedure_code": 70,
+      "first_failure_cluster": "integer-generation",
+      "first_failure_diagnostic": "unsupported integer constraint: requires one finite non-extensible interval",
+      "candidate_domains_in_owned_order": [
+        {
+          "identity": "NGAP-IEs.MBS-AreaSessionID",
+          "location": "named-type",
+          "owned_type_ordinal": 4,
+          "root_intervals": [
+            [
+              0,
+              65535
+            ]
+          ],
+          "is_extensible": true,
+          "interval_tail_count": 0,
+          "shape": "finite-contiguous",
+          "root_permitted_value_count": 65536,
+          "source_declarations": [
+            {
+              "line": 3509,
+              "text": "MBS-AreaSessionID ::= INTEGER (0..65535, ...)"
+            }
+          ],
+          "owned_evidence": "present-after-parser-deletion",
+          "separately_represented_extension_additions": false
+        }
+      ],
+      "first_extensible_named_domain_in_owned_order": "NGAP-IEs.MBS-AreaSessionID",
+      "unlock_prediction": null
+    },
+    {
+      "message": "DownlinkRANEarlyStatusTransfer",
+      "role": "INITIATING MESSAGE",
+      "procedure_code": 63,
+      "first_failure_cluster": "integer-generation",
+      "first_failure_diagnostic": "unsupported integer constraint: requires one finite non-extensible interval",
+      "candidate_domains_in_owned_order": [
+        {
+          "identity": "NGAP-IEs.DRB-ID",
+          "location": "named-type",
+          "owned_type_ordinal": 11,
+          "root_intervals": [
+            [
+              1,
+              32
+            ]
+          ],
+          "is_extensible": true,
+          "interval_tail_count": 0,
+          "shape": "finite-contiguous",
+          "root_permitted_value_count": 32,
+          "source_declarations": [
+            {
+              "line": 1637,
+              "text": "DRB-ID ::= INTEGER (1..32, ...)"
+            }
+          ],
+          "owned_evidence": "present-after-parser-deletion",
+          "separately_represented_extension_additions": false
+        }
+      ],
+      "first_extensible_named_domain_in_owned_order": "NGAP-IEs.DRB-ID",
+      "unlock_prediction": null
+    },
+    {
+      "message": "DownlinkRANStatusTransfer",
+      "role": "INITIATING MESSAGE",
+      "procedure_code": 7,
+      "first_failure_cluster": "integer-generation",
+      "first_failure_diagnostic": "unsupported integer constraint: requires one finite non-extensible interval",
+      "candidate_domains_in_owned_order": [
+        {
+          "identity": "NGAP-IEs.DRB-ID",
+          "location": "named-type",
+          "owned_type_ordinal": 9,
+          "root_intervals": [
+            [
+              1,
+              32
+            ]
+          ],
+          "is_extensible": true,
+          "interval_tail_count": 0,
+          "shape": "finite-contiguous",
+          "root_permitted_value_count": 32,
+          "source_declarations": [
+            {
+              "line": 1637,
+              "text": "DRB-ID ::= INTEGER (1..32, ...)"
+            }
+          ],
+          "owned_evidence": "present-after-parser-deletion",
+          "separately_represented_extension_additions": false
+        },
+        {
+          "identity": "NGAP-IEs.QosFlowIdentifier",
+          "location": "named-type",
+          "owned_type_ordinal": 20,
+          "root_intervals": [
+            [
+              0,
+              63
+            ]
+          ],
+          "is_extensible": true,
+          "interval_tail_count": 0,
+          "shape": "finite-contiguous",
+          "root_permitted_value_count": 64,
+          "source_declarations": [
+            {
+              "line": 5971,
+              "text": "QosFlowIdentifier ::= INTEGER (0..63, ...)"
+            }
+          ],
+          "owned_evidence": "present-after-parser-deletion",
+          "separately_represented_extension_additions": false
+        },
+        {
+          "identity": "NGAP-IEs.AlternativeQoSParaSetIndex",
+          "location": "named-type",
+          "owned_type_ordinal": 21,
+          "root_intervals": [
+            [
+              1,
+              8
+            ]
+          ],
+          "is_extensible": true,
+          "interval_tail_count": 0,
+          "shape": "finite-contiguous",
+          "root_permitted_value_count": 8,
+          "source_declarations": [
+            {
+              "line": 448,
+              "text": "AlternativeQoSParaSetIndex ::= INTEGER (1..8, ...)"
+            }
+          ],
+          "owned_evidence": "present-after-parser-deletion",
+          "separately_represented_extension_additions": false
+        }
+      ],
+      "first_extensible_named_domain_in_owned_order": "NGAP-IEs.DRB-ID",
+      "unlock_prediction": null
+    },
+    {
+      "message": "LocationReport",
+      "role": "INITIATING MESSAGE",
+      "procedure_code": 18,
+      "first_failure_cluster": "integer-generation",
+      "first_failure_diagnostic": "unsupported integer constraint: requires one finite non-extensible interval",
+      "candidate_domains_in_owned_order": [
+        {
+          "identity": "NGAP-IEs.LocationReportingReferenceID",
+          "location": "named-type",
+          "owned_type_ordinal": 15,
+          "root_intervals": [
+            [
+              1,
+              64
+            ]
+          ],
+          "is_extensible": true,
+          "interval_tail_count": 0,
+          "shape": "finite-contiguous",
+          "root_permitted_value_count": 64,
+          "source_declarations": [
+            {
+              "line": 3398,
+              "text": "LocationReportingReferenceID ::= INTEGER (1..64, ...)"
+            }
+          ],
+          "owned_evidence": "present-after-parser-deletion",
+          "separately_represented_extension_additions": false
+        }
+      ],
+      "first_extensible_named_domain_in_owned_order": "NGAP-IEs.LocationReportingReferenceID",
+      "unlock_prediction": null
+    },
+    {
+      "message": "LocationReportingControl",
+      "role": "INITIATING MESSAGE",
+      "procedure_code": 16,
+      "first_failure_cluster": "integer-generation",
+      "first_failure_diagnostic": "unsupported integer constraint: requires one finite non-extensible interval",
+      "candidate_domains_in_owned_order": [
+        {
+          "identity": "NGAP-IEs.LocationReportingReferenceID",
+          "location": "named-type",
+          "owned_type_ordinal": 9,
+          "root_intervals": [
+            [
+              1,
+              64
+            ]
+          ],
+          "is_extensible": true,
+          "interval_tail_count": 0,
+          "shape": "finite-contiguous",
+          "root_permitted_value_count": 64,
+          "source_declarations": [
+            {
+              "line": 3398,
+              "text": "LocationReportingReferenceID ::= INTEGER (1..64, ...)"
+            }
+          ],
+          "owned_evidence": "present-after-parser-deletion",
+          "separately_represented_extension_additions": false
+        }
+      ],
+      "first_extensible_named_domain_in_owned_order": "NGAP-IEs.LocationReportingReferenceID",
+      "unlock_prediction": null
+    },
+    {
+      "message": "MulticastSessionUpdateRequest",
+      "role": "INITIATING MESSAGE",
+      "procedure_code": 73,
+      "first_failure_cluster": "integer-generation",
+      "first_failure_diagnostic": "unsupported integer constraint: requires one finite non-extensible interval",
+      "candidate_domains_in_owned_order": [
+        {
+          "identity": "NGAP-IEs.MBS-AreaSessionID",
+          "location": "named-type",
+          "owned_type_ordinal": 4,
+          "root_intervals": [
+            [
+              0,
+              65535
+            ]
+          ],
+          "is_extensible": true,
+          "interval_tail_count": 0,
+          "shape": "finite-contiguous",
+          "root_permitted_value_count": 65536,
+          "source_declarations": [
+            {
+              "line": 3509,
+              "text": "MBS-AreaSessionID ::= INTEGER (0..65535, ...)"
+            }
+          ],
+          "owned_evidence": "present-after-parser-deletion",
+          "separately_represented_extension_additions": false
+        }
+      ],
+      "first_extensible_named_domain_in_owned_order": "NGAP-IEs.MBS-AreaSessionID",
+      "unlock_prediction": null
+    },
+    {
+      "message": "MulticastSessionUpdateResponse",
+      "role": "SUCCESSFUL OUTCOME",
+      "procedure_code": 73,
+      "first_failure_cluster": "integer-generation",
+      "first_failure_diagnostic": "unsupported integer constraint: requires one finite non-extensible interval",
+      "candidate_domains_in_owned_order": [
+        {
+          "identity": "NGAP-IEs.MBS-AreaSessionID",
+          "location": "named-type",
+          "owned_type_ordinal": 4,
+          "root_intervals": [
+            [
+              0,
+              65535
+            ]
+          ],
+          "is_extensible": true,
+          "interval_tail_count": 0,
+          "shape": "finite-contiguous",
+          "root_permitted_value_count": 65536,
+          "source_declarations": [
+            {
+              "line": 3509,
+              "text": "MBS-AreaSessionID ::= INTEGER (0..65535, ...)"
+            }
+          ],
+          "owned_evidence": "present-after-parser-deletion",
+          "separately_represented_extension_additions": false
+        }
+      ],
+      "first_extensible_named_domain_in_owned_order": "NGAP-IEs.MBS-AreaSessionID",
+      "unlock_prediction": null
+    },
+    {
+      "message": "MulticastSessionUpdateFailure",
+      "role": "UNSUCCESSFUL OUTCOME",
+      "procedure_code": 73,
+      "first_failure_cluster": "integer-generation",
+      "first_failure_diagnostic": "unsupported integer constraint: requires one finite non-extensible interval",
+      "candidate_domains_in_owned_order": [
+        {
+          "identity": "NGAP-IEs.MBS-AreaSessionID",
+          "location": "named-type",
+          "owned_type_ordinal": 4,
+          "root_intervals": [
+            [
+              0,
+              65535
+            ]
+          ],
+          "is_extensible": true,
+          "interval_tail_count": 0,
+          "shape": "finite-contiguous",
+          "root_permitted_value_count": 65536,
+          "source_declarations": [
+            {
+              "line": 3509,
+              "text": "MBS-AreaSessionID ::= INTEGER (0..65535, ...)"
+            }
+          ],
+          "owned_evidence": "present-after-parser-deletion",
+          "separately_represented_extension_additions": false
+        }
+      ],
+      "first_extensible_named_domain_in_owned_order": "NGAP-IEs.MBS-AreaSessionID",
+      "unlock_prediction": null
+    },
+    {
+      "message": "MulticastGroupPaging",
+      "role": "INITIATING MESSAGE",
+      "procedure_code": 74,
+      "first_failure_cluster": "integer-generation",
+      "first_failure_diagnostic": "unsupported integer constraint: requires one finite non-extensible interval",
+      "candidate_domains_in_owned_order": [
+        {
+          "identity": "NGAP-IEs.MBS-AreaSessionID",
+          "location": "named-type",
+          "owned_type_ordinal": 19,
+          "root_intervals": [
+            [
+              0,
+              65535
+            ]
+          ],
+          "is_extensible": true,
+          "interval_tail_count": 0,
+          "shape": "finite-contiguous",
+          "root_permitted_value_count": 65536,
+          "source_declarations": [
+            {
+              "line": 3509,
+              "text": "MBS-AreaSessionID ::= INTEGER (0..65535, ...)"
+            }
+          ],
+          "owned_evidence": "present-after-parser-deletion",
+          "separately_represented_extension_additions": false
+        }
+      ],
+      "first_extensible_named_domain_in_owned_order": "NGAP-IEs.MBS-AreaSessionID",
+      "unlock_prediction": null
+    },
+    {
+      "message": "Paging",
+      "role": "INITIATING MESSAGE",
+      "procedure_code": 24,
+      "first_failure_cluster": "integer-generation",
+      "first_failure_diagnostic": "unsupported integer constraint: requires one finite non-extensible interval",
+      "candidate_domains_in_owned_order": [
+        {
+          "identity": "NGAP-IEs.CNsubgroupID",
+          "location": "named-type",
+          "owned_type_ordinal": 33,
+          "root_intervals": [
+            [
+              0,
+              7
+            ]
+          ],
+          "is_extensible": true,
+          "interval_tail_count": 0,
+          "shape": "finite-contiguous",
+          "root_permitted_value_count": 8,
+          "source_declarations": [
+            {
+              "line": 1293,
+              "text": "CNsubgroupID ::= INTEGER (0..7, ...)"
+            }
+          ],
+          "owned_evidence": "present-after-parser-deletion",
+          "separately_represented_extension_additions": false
+        },
+        {
+          "identity": "NGAP-IEs.PagingAttemptCount",
+          "location": "named-type",
+          "owned_type_ordinal": 39,
+          "root_intervals": [
+            [
+              1,
+              16
+            ]
+          ],
+          "is_extensible": true,
+          "interval_tail_count": 0,
+          "shape": "finite-contiguous",
+          "root_permitted_value_count": 16,
+          "source_declarations": [
+            {
+              "line": 4717,
+              "text": "PagingAttemptCount ::= INTEGER (1..16, ...)"
+            }
+          ],
+          "owned_evidence": "present-after-parser-deletion",
+          "separately_represented_extension_additions": false
+        },
+        {
+          "identity": "NGAP-IEs.IntendedNumberOfPagingAttempts",
+          "location": "named-type",
+          "owned_type_ordinal": 40,
+          "root_intervals": [
+            [
+              1,
+              16
+            ]
+          ],
+          "is_extensible": true,
+          "interval_tail_count": 0,
+          "shape": "finite-contiguous",
+          "root_permitted_value_count": 16,
+          "source_declarations": [
+            {
+              "line": 2805,
+              "text": "IntendedNumberOfPagingAttempts ::= INTEGER (1..16, ...)"
+            }
+          ],
+          "owned_evidence": "present-after-parser-deletion",
+          "separately_represented_extension_additions": false
+        }
+      ],
+      "first_extensible_named_domain_in_owned_order": "NGAP-IEs.CNsubgroupID",
+      "unlock_prediction": null
+    },
+    {
+      "message": "PDUSessionResourceModifyRequest",
+      "role": "INITIATING MESSAGE",
+      "procedure_code": 26,
+      "first_failure_cluster": "integer-generation",
+      "first_failure_diagnostic": "unsupported integer constraint: requires one finite non-extensible interval",
+      "candidate_domains_in_owned_order": [
+        {
+          "identity": "NGAP-IEs.ExpectedActivityPeriod",
+          "location": "named-type",
+          "owned_type_ordinal": 15,
+          "root_intervals": [
+            [
+              1,
+              30
+            ],
+            [
+              40,
+              40
+            ],
+            [
+              50,
+              50
+            ],
+            [
+              60,
+              60
+            ],
+            [
+              80,
+              80
+            ],
+            [
+              100,
+              100
+            ],
+            [
+              120,
+              120
+            ],
+            [
+              150,
+              150
+            ],
+            [
+              180,
+              181
+            ]
+          ],
+          "is_extensible": true,
+          "interval_tail_count": 8,
+          "shape": "finite-discontinuous",
+          "root_permitted_value_count": 39,
+          "source_declarations": [
+            {
+              "line": 2100,
+              "text": "ExpectedActivityPeriod ::= INTEGER (1..30|40|50|60|80|100|120|150|180|181, ...)"
+            }
+          ],
+          "owned_evidence": "present-after-parser-deletion",
+          "separately_represented_extension_additions": false
+        },
+        {
+          "identity": "NGAP-IEs.ExpectedIdlePeriod",
+          "location": "named-type",
+          "owned_type_ordinal": 16,
+          "root_intervals": [
+            [
+              1,
+              30
+            ],
+            [
+              40,
+              40
+            ],
+            [
+              50,
+              50
+            ],
+            [
+              60,
+              60
+            ],
+            [
+              80,
+              80
+            ],
+            [
+              100,
+              100
+            ],
+            [
+              120,
+              120
+            ],
+            [
+              150,
+              150
+            ],
+            [
+              180,
+              181
+            ]
+          ],
+          "is_extensible": true,
+          "interval_tail_count": 8,
+          "shape": "finite-discontinuous",
+          "root_permitted_value_count": 39,
+          "source_declarations": [
+            {
+              "line": 2107,
+              "text": "ExpectedIdlePeriod ::= INTEGER (1..30|40|50|60|80|100|120|150|180|181, ...)"
+            }
+          ],
+          "owned_evidence": "present-after-parser-deletion",
+          "separately_represented_extension_additions": false
+        }
+      ],
+      "first_extensible_named_domain_in_owned_order": "NGAP-IEs.ExpectedActivityPeriod",
+      "unlock_prediction": null
+    },
+    {
+      "message": "PDUSessionResourceSetupRequest",
+      "role": "INITIATING MESSAGE",
+      "procedure_code": 29,
+      "first_failure_cluster": "integer-generation",
+      "first_failure_diagnostic": "unsupported integer constraint: requires one finite non-extensible interval",
+      "candidate_domains_in_owned_order": [
+        {
+          "identity": "NGAP-IEs.BitRate",
+          "location": "named-type",
+          "owned_type_ordinal": 11,
+          "root_intervals": [
+            [
+              0,
+              4000000000000
+            ]
+          ],
+          "is_extensible": true,
+          "interval_tail_count": 0,
+          "shape": "finite-contiguous",
+          "root_permitted_value_count": 4000000000001,
+          "source_declarations": [
+            {
+              "line": 779,
+              "text": "BitRate\t::= INTEGER (0..4000000000000, ...)"
+            }
+          ],
+          "owned_evidence": "present-after-parser-deletion",
+          "separately_represented_extension_additions": false
+        },
+        {
+          "identity": "NGAP-IEs.ExpectedActivityPeriod",
+          "location": "named-type",
+          "owned_type_ordinal": 19,
+          "root_intervals": [
+            [
+              1,
+              30
+            ],
+            [
+              40,
+              40
+            ],
+            [
+              50,
+              50
+            ],
+            [
+              60,
+              60
+            ],
+            [
+              80,
+              80
+            ],
+            [
+              100,
+              100
+            ],
+            [
+              120,
+              120
+            ],
+            [
+              150,
+              150
+            ],
+            [
+              180,
+              181
+            ]
+          ],
+          "is_extensible": true,
+          "interval_tail_count": 8,
+          "shape": "finite-discontinuous",
+          "root_permitted_value_count": 39,
+          "source_declarations": [
+            {
+              "line": 2100,
+              "text": "ExpectedActivityPeriod ::= INTEGER (1..30|40|50|60|80|100|120|150|180|181, ...)"
+            }
+          ],
+          "owned_evidence": "present-after-parser-deletion",
+          "separately_represented_extension_additions": false
+        },
+        {
+          "identity": "NGAP-IEs.ExpectedIdlePeriod",
+          "location": "named-type",
+          "owned_type_ordinal": 20,
+          "root_intervals": [
+            [
+              1,
+              30
+            ],
+            [
+              40,
+              40
+            ],
+            [
+              50,
+              50
+            ],
+            [
+              60,
+              60
+            ],
+            [
+              80,
+              80
+            ],
+            [
+              100,
+              100
+            ],
+            [
+              120,
+              120
+            ],
+            [
+              150,
+              150
+            ],
+            [
+              180,
+              181
+            ]
+          ],
+          "is_extensible": true,
+          "interval_tail_count": 8,
+          "shape": "finite-discontinuous",
+          "root_permitted_value_count": 39,
+          "source_declarations": [
+            {
+              "line": 2107,
+              "text": "ExpectedIdlePeriod ::= INTEGER (1..30|40|50|60|80|100|120|150|180|181, ...)"
+            }
+          ],
+          "owned_evidence": "present-after-parser-deletion",
+          "separately_represented_extension_additions": false
+        }
+      ],
+      "first_extensible_named_domain_in_owned_order": "NGAP-IEs.BitRate",
+      "unlock_prediction": null
+    },
+    {
+      "message": "RANPagingRequest",
+      "role": "INITIATING MESSAGE",
+      "procedure_code": 79,
+      "first_failure_cluster": "physical-reference-generation",
+      "first_failure_diagnostic": "missing or unsupported physical graph reference",
+      "candidate_domains_in_owned_order": [
+        {
+          "identity": "NGAP-IEs.PagingPolicyDifferentiationItem.dl-DataSize",
+          "location": "sequence-field",
+          "owned_type_ordinal": 12,
+          "root_intervals": [
+            [
+              0,
+              96000
+            ]
+          ],
+          "is_extensible": true,
+          "interval_tail_count": 0,
+          "shape": "finite-contiguous",
+          "root_permitted_value_count": 96001,
+          "source_declarations": [
+            {
+              "line": 4773,
+              "text": "dl-DataSize \t\t\t\t\t\tINTEGER (0..96000, ...)\t\t\t\tOPTIONAL,"
+            }
+          ],
+          "owned_evidence": "present-after-parser-deletion",
+          "separately_represented_extension_additions": false,
+          "presence": 1,
+          "type_semantics": 0
+        },
+        {
+          "identity": "NGAP-IEs.QosFlowIdentifier",
+          "location": "named-type",
+          "owned_type_ordinal": 13,
+          "root_intervals": [
+            [
+              0,
+              63
+            ]
+          ],
+          "is_extensible": true,
+          "interval_tail_count": 0,
+          "shape": "finite-contiguous",
+          "root_permitted_value_count": 64,
+          "source_declarations": [
+            {
+              "line": 5971,
+              "text": "QosFlowIdentifier ::= INTEGER (0..63, ...)"
+            }
+          ],
+          "owned_evidence": "present-after-parser-deletion",
+          "separately_represented_extension_additions": false
+        },
+        {
+          "identity": "NGAP-IEs.PagingPolicyIndicator",
+          "location": "named-type",
+          "owned_type_ordinal": 14,
+          "root_intervals": [
+            [
+              0,
+              7
+            ]
+          ],
+          "is_extensible": true,
+          "interval_tail_count": 0,
+          "shape": "finite-contiguous",
+          "root_permitted_value_count": 8,
+          "source_declarations": [
+            {
+              "line": 4782,
+              "text": "PagingPolicyIndicator ::= INTEGER (0..7, ...)"
+            }
+          ],
+          "owned_evidence": "present-after-parser-deletion",
+          "separately_represented_extension_additions": false
+        },
+        {
+          "identity": "NGAP-IEs.FiveQI",
+          "location": "named-type",
+          "owned_type_ordinal": 16,
+          "root_intervals": [
+            [
+              0,
+              255
+            ]
+          ],
+          "is_extensible": true,
+          "interval_tail_count": 0,
+          "shape": "finite-contiguous",
+          "root_permitted_value_count": 256,
+          "source_declarations": [
+            {
+              "line": 2378,
+              "text": "FiveQI ::= INTEGER (0..255, ...)"
+            }
+          ],
+          "owned_evidence": "present-after-parser-deletion",
+          "separately_represented_extension_additions": false
+        }
+      ],
+      "first_extensible_named_domain_in_owned_order": "NGAP-IEs.QosFlowIdentifier",
+      "unlock_prediction": null
+    },
+    {
+      "message": "TimingSynchronisationStatusReport",
+      "role": "INITIATING MESSAGE",
+      "procedure_code": 77,
+      "first_failure_cluster": "physical-reference-generation",
+      "first_failure_diagnostic": "missing or unsupported physical graph reference",
+      "candidate_domains_in_owned_order": [
+        {
+          "identity": "NGAP-IEs.ClockAccuracy.clockAccuracyValue",
+          "location": "choice-alternative",
+          "owned_type_ordinal": 6,
+          "root_intervals": [
+            [
+              1,
+              40000000
+            ]
+          ],
+          "is_extensible": true,
+          "interval_tail_count": 0,
+          "shape": "finite-contiguous",
+          "root_permitted_value_count": 40000000,
+          "source_declarations": [
+            {
+              "line": 1229,
+              "text": "clockAccuracyValue\t\tINTEGER (1..40000000, ...),"
+            }
+          ],
+          "owned_evidence": "present-after-parser-deletion",
+          "separately_represented_extension_additions": false
+        },
+        {
+          "identity": "NGAP-IEs.ClockAccuracy.clockAccuracyIndex",
+          "location": "choice-alternative",
+          "owned_type_ordinal": 6,
+          "root_intervals": [
+            [
+              32,
+              47
+            ]
+          ],
+          "is_extensible": true,
+          "interval_tail_count": 0,
+          "shape": "finite-contiguous",
+          "root_permitted_value_count": 16,
+          "source_declarations": [
+            {
+              "line": 1230,
+              "text": "clockAccuracyIndex\t\tINTEGER (32..47, ...),"
+            }
+          ],
+          "owned_evidence": "present-after-parser-deletion",
+          "separately_represented_extension_additions": false
+        }
+      ],
+      "first_extensible_named_domain_in_owned_order": null,
+      "unlock_prediction": null
+    },
+    {
+      "message": "UEInformationTransfer",
+      "role": "INITIATING MESSAGE",
+      "procedure_code": 56,
+      "first_failure_cluster": "physical-reference-generation",
+      "first_failure_diagnostic": "missing or unsupported physical graph reference",
+      "candidate_domains_in_owned_order": [
+        {
+          "identity": "NGAP-IEs.NB-IoT-UEPriority",
+          "location": "named-type",
+          "owned_type_ordinal": 4,
+          "root_intervals": [
+            [
+              0,
+              255
+            ]
+          ],
+          "is_extensible": true,
+          "interval_tail_count": 0,
+          "shape": "finite-contiguous",
+          "root_permitted_value_count": 256,
+          "source_declarations": [
+            {
+              "line": 4313,
+              "text": "NB-IoT-UEPriority ::= INTEGER (0..255, ...)"
+            }
+          ],
+          "owned_evidence": "present-after-parser-deletion",
+          "separately_represented_extension_additions": false
+        },
+        {
+          "identity": "NGAP-IEs.UE-DifferentiationInfo.periodicTime",
+          "location": "sequence-field",
+          "owned_type_ordinal": 8,
+          "root_intervals": [
+            [
+              1,
+              3600
+            ]
+          ],
+          "is_extensible": true,
+          "interval_tail_count": 0,
+          "shape": "finite-contiguous",
+          "root_permitted_value_count": 3600,
+          "source_declarations": [
+            {
+              "line": 7602,
+              "text": "periodicTime\t\t\t\t\tINTEGER (1..3600, ...)\t\t\t\t\t\t\t\t\t\t\t\tOPTIONAL,"
+            }
+          ],
+          "owned_evidence": "present-after-parser-deletion",
+          "separately_represented_extension_additions": false,
+          "presence": 1,
+          "type_semantics": 0
+        },
+        {
+          "identity": "NGAP-IEs.ScheduledCommunicationTime.timeofDayStart",
+          "location": "sequence-field",
+          "owned_type_ordinal": 18,
+          "root_intervals": [
+            [
+              0,
+              86399
+            ]
+          ],
+          "is_extensible": true,
+          "interval_tail_count": 0,
+          "shape": "finite-contiguous",
+          "root_permitted_value_count": 86400,
+          "source_declarations": [
+            {
+              "line": 6488,
+              "text": "timeofDayStart\t\tINTEGER (0..86399, ...)\t\t\t\t\t\t\t\t\t\t\t\tOPTIONAL,"
+            }
+          ],
+          "owned_evidence": "present-after-parser-deletion",
+          "separately_represented_extension_additions": false,
+          "presence": 1,
+          "type_semantics": 0
+        },
+        {
+          "identity": "NGAP-IEs.ScheduledCommunicationTime.timeofDayEnd",
+          "location": "sequence-field",
+          "owned_type_ordinal": 18,
+          "root_intervals": [
+            [
+              0,
+              86399
+            ]
+          ],
+          "is_extensible": true,
+          "interval_tail_count": 0,
+          "shape": "finite-contiguous",
+          "root_permitted_value_count": 86400,
+          "source_declarations": [
+            {
+              "line": 6489,
+              "text": "timeofDayEnd\t\tINTEGER (0..86399, ...)\t\t\t\t\t\t\t\t\t\t\t\tOPTIONAL,"
+            }
+          ],
+          "owned_evidence": "present-after-parser-deletion",
+          "separately_represented_extension_additions": false,
+          "presence": 1,
+          "type_semantics": 0
+        }
+      ],
+      "first_extensible_named_domain_in_owned_order": "NGAP-IEs.NB-IoT-UEPriority",
+      "unlock_prediction": null
+    },
+    {
+      "message": "UplinkRANEarlyStatusTransfer",
+      "role": "INITIATING MESSAGE",
+      "procedure_code": 62,
+      "first_failure_cluster": "integer-generation",
+      "first_failure_diagnostic": "unsupported integer constraint: requires one finite non-extensible interval",
+      "candidate_domains_in_owned_order": [
+        {
+          "identity": "NGAP-IEs.DRB-ID",
+          "location": "named-type",
+          "owned_type_ordinal": 11,
+          "root_intervals": [
+            [
+              1,
+              32
+            ]
+          ],
+          "is_extensible": true,
+          "interval_tail_count": 0,
+          "shape": "finite-contiguous",
+          "root_permitted_value_count": 32,
+          "source_declarations": [
+            {
+              "line": 1637,
+              "text": "DRB-ID ::= INTEGER (1..32, ...)"
+            }
+          ],
+          "owned_evidence": "present-after-parser-deletion",
+          "separately_represented_extension_additions": false
+        }
+      ],
+      "first_extensible_named_domain_in_owned_order": "NGAP-IEs.DRB-ID",
+      "unlock_prediction": null
+    },
+    {
+      "message": "UplinkRANStatusTransfer",
+      "role": "INITIATING MESSAGE",
+      "procedure_code": 49,
+      "first_failure_cluster": "integer-generation",
+      "first_failure_diagnostic": "unsupported integer constraint: requires one finite non-extensible interval",
+      "candidate_domains_in_owned_order": [
+        {
+          "identity": "NGAP-IEs.DRB-ID",
+          "location": "named-type",
+          "owned_type_ordinal": 9,
+          "root_intervals": [
+            [
+              1,
+              32
+            ]
+          ],
+          "is_extensible": true,
+          "interval_tail_count": 0,
+          "shape": "finite-contiguous",
+          "root_permitted_value_count": 32,
+          "source_declarations": [
+            {
+              "line": 1637,
+              "text": "DRB-ID ::= INTEGER (1..32, ...)"
+            }
+          ],
+          "owned_evidence": "present-after-parser-deletion",
+          "separately_represented_extension_additions": false
+        },
+        {
+          "identity": "NGAP-IEs.QosFlowIdentifier",
+          "location": "named-type",
+          "owned_type_ordinal": 20,
+          "root_intervals": [
+            [
+              0,
+              63
+            ]
+          ],
+          "is_extensible": true,
+          "interval_tail_count": 0,
+          "shape": "finite-contiguous",
+          "root_permitted_value_count": 64,
+          "source_declarations": [
+            {
+              "line": 5971,
+              "text": "QosFlowIdentifier ::= INTEGER (0..63, ...)"
+            }
+          ],
+          "owned_evidence": "present-after-parser-deletion",
+          "separately_represented_extension_additions": false
+        },
+        {
+          "identity": "NGAP-IEs.AlternativeQoSParaSetIndex",
+          "location": "named-type",
+          "owned_type_ordinal": 21,
+          "root_intervals": [
+            [
+              1,
+              8
+            ]
+          ],
+          "is_extensible": true,
+          "interval_tail_count": 0,
+          "shape": "finite-contiguous",
+          "root_permitted_value_count": 8,
+          "source_declarations": [
+            {
+              "line": 448,
+              "text": "AlternativeQoSParaSetIndex ::= INTEGER (1..8, ...)"
+            }
+          ],
+          "owned_evidence": "present-after-parser-deletion",
+          "separately_represented_extension_additions": false
+        }
+      ],
+      "first_extensible_named_domain_in_owned_order": "NGAP-IEs.DRB-ID",
+      "unlock_prediction": null
+    }
+  ],
+  "limitations": [
+    "This is the selected 24 N17 first-failure clusters, not every INTEGER in all 131 messages.",
+    "Candidate order is Owned IR inventory order, not a proof of the internal lowering order.",
+    "Other later schema blockers remain masked; no message unlock count is predicted.",
+    "tail intervals are additional ROOT permitted intervals, not extension additions.",
+    "is_extensible records a marker; IR has no separately owned extension-addition INTEGER domain.",
+    "Explicit INTEGER extension additions are rejected: extractor accepts only root plus empty marker, not a separately specified addition.",
+    "Named serial use-site INTEGER intersections accept only non-extensible single finite interval constituents; extensible or tail refinements refuse.",
+    "No runtime or generator implementation, new strict compilation readiness, or wire qualification."
+  ]
+}

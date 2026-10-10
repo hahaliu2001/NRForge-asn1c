@@ -1,0 +1,1061 @@
+{
+  "scope": "Study-only native and independent bit model; not generated codec/runtime or NGAP qualification",
+  "baseline_commit": "0bda141dea90f9df8baba0d6ecc64598c2330f00",
+  "native": {
+    "name": "asn1tools",
+    "version": "0.167.0",
+    "codec": "per"
+  },
+  "total_cases": 768,
+  "extension_cases": 488,
+  "root_cases": 280,
+  "residue_bits": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7
+  ],
+  "all_encode_bytes_equal": true,
+  "all_native_decode_equal": true,
+  "profiles": [
+    {
+      "root": [
+        5,
+        5
+      ],
+      "root_cases": 8,
+      "extension_cases": 96
+    },
+    {
+      "root": [
+        0,
+        1
+      ],
+      "root_cases": 16,
+      "extension_cases": 80
+    },
+    {
+      "root": [
+        0,
+        254
+      ],
+      "root_cases": 32,
+      "extension_cases": 56
+    },
+    {
+      "root": [
+        1,
+        256
+      ],
+      "root_cases": 40,
+      "extension_cases": 56
+    },
+    {
+      "root": [
+        -128,
+        128
+      ],
+      "root_cases": 40,
+      "extension_cases": 48
+    },
+    {
+      "root": [
+        0,
+        65535
+      ],
+      "root_cases": 48,
+      "extension_cases": 48
+    },
+    {
+      "root": [
+        0,
+        65536
+      ],
+      "root_cases": 48,
+      "extension_cases": 48
+    },
+    {
+      "root": [
+        1,
+        40000000
+      ],
+      "root_cases": 48,
+      "extension_cases": 56
+    }
+  ],
+  "selected_vectors": [
+    {
+      "root": [
+        5,
+        5
+      ],
+      "value": -9223372036854775808,
+      "extension": true,
+      "initial_bits": 0,
+      "following_bit": true,
+      "field_end_bit": 81,
+      "complete_hex": "8008800000000000000080"
+    },
+    {
+      "root": [
+        5,
+        5
+      ],
+      "value": -129,
+      "extension": true,
+      "initial_bits": 0,
+      "following_bit": true,
+      "field_end_bit": 33,
+      "complete_hex": "8002FF7F80"
+    },
+    {
+      "root": [
+        5,
+        5
+      ],
+      "value": -128,
+      "extension": true,
+      "initial_bits": 0,
+      "following_bit": true,
+      "field_end_bit": 25,
+      "complete_hex": "80018080"
+    },
+    {
+      "root": [
+        5,
+        5
+      ],
+      "value": -1,
+      "extension": true,
+      "initial_bits": 0,
+      "following_bit": true,
+      "field_end_bit": 25,
+      "complete_hex": "8001FF80"
+    },
+    {
+      "root": [
+        5,
+        5
+      ],
+      "value": 4,
+      "extension": true,
+      "initial_bits": 0,
+      "following_bit": true,
+      "field_end_bit": 25,
+      "complete_hex": "80010480"
+    },
+    {
+      "root": [
+        5,
+        5
+      ],
+      "value": 5,
+      "extension": false,
+      "initial_bits": 0,
+      "following_bit": true,
+      "field_end_bit": 2,
+      "complete_hex": "40"
+    },
+    {
+      "root": [
+        5,
+        5
+      ],
+      "value": 6,
+      "extension": true,
+      "initial_bits": 0,
+      "following_bit": true,
+      "field_end_bit": 25,
+      "complete_hex": "80010680"
+    },
+    {
+      "root": [
+        5,
+        5
+      ],
+      "value": 127,
+      "extension": true,
+      "initial_bits": 0,
+      "following_bit": true,
+      "field_end_bit": 25,
+      "complete_hex": "80017F80"
+    },
+    {
+      "root": [
+        5,
+        5
+      ],
+      "value": 128,
+      "extension": true,
+      "initial_bits": 0,
+      "following_bit": true,
+      "field_end_bit": 33,
+      "complete_hex": "8002008080"
+    },
+    {
+      "root": [
+        5,
+        5
+      ],
+      "value": 9223372036854775807,
+      "extension": true,
+      "initial_bits": 0,
+      "following_bit": true,
+      "field_end_bit": 81,
+      "complete_hex": "80087FFFFFFFFFFFFFFF80"
+    },
+    {
+      "root": [
+        0,
+        1
+      ],
+      "value": -9223372036854775808,
+      "extension": true,
+      "initial_bits": 0,
+      "following_bit": true,
+      "field_end_bit": 81,
+      "complete_hex": "8008800000000000000080"
+    },
+    {
+      "root": [
+        0,
+        1
+      ],
+      "value": -129,
+      "extension": true,
+      "initial_bits": 0,
+      "following_bit": true,
+      "field_end_bit": 33,
+      "complete_hex": "8002FF7F80"
+    },
+    {
+      "root": [
+        0,
+        1
+      ],
+      "value": -128,
+      "extension": true,
+      "initial_bits": 0,
+      "following_bit": true,
+      "field_end_bit": 25,
+      "complete_hex": "80018080"
+    },
+    {
+      "root": [
+        0,
+        1
+      ],
+      "value": -1,
+      "extension": true,
+      "initial_bits": 0,
+      "following_bit": true,
+      "field_end_bit": 25,
+      "complete_hex": "8001FF80"
+    },
+    {
+      "root": [
+        0,
+        1
+      ],
+      "value": 0,
+      "extension": false,
+      "initial_bits": 0,
+      "following_bit": true,
+      "field_end_bit": 3,
+      "complete_hex": "20"
+    },
+    {
+      "root": [
+        0,
+        1
+      ],
+      "value": 1,
+      "extension": false,
+      "initial_bits": 0,
+      "following_bit": true,
+      "field_end_bit": 3,
+      "complete_hex": "60"
+    },
+    {
+      "root": [
+        0,
+        1
+      ],
+      "value": 2,
+      "extension": true,
+      "initial_bits": 0,
+      "following_bit": true,
+      "field_end_bit": 25,
+      "complete_hex": "80010280"
+    },
+    {
+      "root": [
+        0,
+        1
+      ],
+      "value": 127,
+      "extension": true,
+      "initial_bits": 0,
+      "following_bit": true,
+      "field_end_bit": 25,
+      "complete_hex": "80017F80"
+    },
+    {
+      "root": [
+        0,
+        1
+      ],
+      "value": 128,
+      "extension": true,
+      "initial_bits": 0,
+      "following_bit": true,
+      "field_end_bit": 33,
+      "complete_hex": "8002008080"
+    },
+    {
+      "root": [
+        0,
+        1
+      ],
+      "value": 9223372036854775807,
+      "extension": true,
+      "initial_bits": 0,
+      "following_bit": true,
+      "field_end_bit": 81,
+      "complete_hex": "80087FFFFFFFFFFFFFFF80"
+    },
+    {
+      "root": [
+        0,
+        254
+      ],
+      "value": -9223372036854775808,
+      "extension": true,
+      "initial_bits": 0,
+      "following_bit": true,
+      "field_end_bit": 81,
+      "complete_hex": "8008800000000000000080"
+    },
+    {
+      "root": [
+        0,
+        254
+      ],
+      "value": -129,
+      "extension": true,
+      "initial_bits": 0,
+      "following_bit": true,
+      "field_end_bit": 33,
+      "complete_hex": "8002FF7F80"
+    },
+    {
+      "root": [
+        0,
+        254
+      ],
+      "value": -128,
+      "extension": true,
+      "initial_bits": 0,
+      "following_bit": true,
+      "field_end_bit": 25,
+      "complete_hex": "80018080"
+    },
+    {
+      "root": [
+        0,
+        254
+      ],
+      "value": -1,
+      "extension": true,
+      "initial_bits": 0,
+      "following_bit": true,
+      "field_end_bit": 25,
+      "complete_hex": "8001FF80"
+    },
+    {
+      "root": [
+        0,
+        254
+      ],
+      "value": 0,
+      "extension": false,
+      "initial_bits": 0,
+      "following_bit": true,
+      "field_end_bit": 10,
+      "complete_hex": "0040"
+    },
+    {
+      "root": [
+        0,
+        254
+      ],
+      "value": 127,
+      "extension": false,
+      "initial_bits": 0,
+      "following_bit": true,
+      "field_end_bit": 10,
+      "complete_hex": "3FC0"
+    },
+    {
+      "root": [
+        0,
+        254
+      ],
+      "value": 128,
+      "extension": false,
+      "initial_bits": 0,
+      "following_bit": true,
+      "field_end_bit": 10,
+      "complete_hex": "4040"
+    },
+    {
+      "root": [
+        0,
+        254
+      ],
+      "value": 254,
+      "extension": false,
+      "initial_bits": 0,
+      "following_bit": true,
+      "field_end_bit": 10,
+      "complete_hex": "7F40"
+    },
+    {
+      "root": [
+        0,
+        254
+      ],
+      "value": 255,
+      "extension": true,
+      "initial_bits": 0,
+      "following_bit": true,
+      "field_end_bit": 33,
+      "complete_hex": "800200FF80"
+    },
+    {
+      "root": [
+        0,
+        254
+      ],
+      "value": 9223372036854775807,
+      "extension": true,
+      "initial_bits": 0,
+      "following_bit": true,
+      "field_end_bit": 81,
+      "complete_hex": "80087FFFFFFFFFFFFFFF80"
+    },
+    {
+      "root": [
+        1,
+        256
+      ],
+      "value": -9223372036854775808,
+      "extension": true,
+      "initial_bits": 0,
+      "following_bit": true,
+      "field_end_bit": 81,
+      "complete_hex": "8008800000000000000080"
+    },
+    {
+      "root": [
+        1,
+        256
+      ],
+      "value": -129,
+      "extension": true,
+      "initial_bits": 0,
+      "following_bit": true,
+      "field_end_bit": 33,
+      "complete_hex": "8002FF7F80"
+    },
+    {
+      "root": [
+        1,
+        256
+      ],
+      "value": -128,
+      "extension": true,
+      "initial_bits": 0,
+      "following_bit": true,
+      "field_end_bit": 25,
+      "complete_hex": "80018080"
+    },
+    {
+      "root": [
+        1,
+        256
+      ],
+      "value": -1,
+      "extension": true,
+      "initial_bits": 0,
+      "following_bit": true,
+      "field_end_bit": 25,
+      "complete_hex": "8001FF80"
+    },
+    {
+      "root": [
+        1,
+        256
+      ],
+      "value": 0,
+      "extension": true,
+      "initial_bits": 0,
+      "following_bit": true,
+      "field_end_bit": 25,
+      "complete_hex": "80010080"
+    },
+    {
+      "root": [
+        1,
+        256
+      ],
+      "value": 1,
+      "extension": false,
+      "initial_bits": 0,
+      "following_bit": true,
+      "field_end_bit": 17,
+      "complete_hex": "000080"
+    },
+    {
+      "root": [
+        1,
+        256
+      ],
+      "value": 127,
+      "extension": false,
+      "initial_bits": 0,
+      "following_bit": true,
+      "field_end_bit": 17,
+      "complete_hex": "007E80"
+    },
+    {
+      "root": [
+        1,
+        256
+      ],
+      "value": 128,
+      "extension": false,
+      "initial_bits": 0,
+      "following_bit": true,
+      "field_end_bit": 17,
+      "complete_hex": "007F80"
+    },
+    {
+      "root": [
+        1,
+        256
+      ],
+      "value": 256,
+      "extension": false,
+      "initial_bits": 0,
+      "following_bit": true,
+      "field_end_bit": 17,
+      "complete_hex": "00FF80"
+    },
+    {
+      "root": [
+        1,
+        256
+      ],
+      "value": 257,
+      "extension": true,
+      "initial_bits": 0,
+      "following_bit": true,
+      "field_end_bit": 33,
+      "complete_hex": "8002010180"
+    },
+    {
+      "root": [
+        1,
+        256
+      ],
+      "value": 9223372036854775807,
+      "extension": true,
+      "initial_bits": 0,
+      "following_bit": true,
+      "field_end_bit": 81,
+      "complete_hex": "80087FFFFFFFFFFFFFFF80"
+    },
+    {
+      "root": [
+        -128,
+        128
+      ],
+      "value": -9223372036854775808,
+      "extension": true,
+      "initial_bits": 0,
+      "following_bit": true,
+      "field_end_bit": 81,
+      "complete_hex": "8008800000000000000080"
+    },
+    {
+      "root": [
+        -128,
+        128
+      ],
+      "value": -129,
+      "extension": true,
+      "initial_bits": 0,
+      "following_bit": true,
+      "field_end_bit": 33,
+      "complete_hex": "8002FF7F80"
+    },
+    {
+      "root": [
+        -128,
+        128
+      ],
+      "value": -128,
+      "extension": false,
+      "initial_bits": 0,
+      "following_bit": true,
+      "field_end_bit": 25,
+      "complete_hex": "00000080"
+    },
+    {
+      "root": [
+        -128,
+        128
+      ],
+      "value": -1,
+      "extension": false,
+      "initial_bits": 0,
+      "following_bit": true,
+      "field_end_bit": 25,
+      "complete_hex": "00007F80"
+    },
+    {
+      "root": [
+        -128,
+        128
+      ],
+      "value": 127,
+      "extension": false,
+      "initial_bits": 0,
+      "following_bit": true,
+      "field_end_bit": 25,
+      "complete_hex": "0000FF80"
+    },
+    {
+      "root": [
+        -128,
+        128
+      ],
+      "value": 128,
+      "extension": false,
+      "initial_bits": 0,
+      "following_bit": true,
+      "field_end_bit": 25,
+      "complete_hex": "00010080"
+    },
+    {
+      "root": [
+        -128,
+        128
+      ],
+      "value": 129,
+      "extension": true,
+      "initial_bits": 0,
+      "following_bit": true,
+      "field_end_bit": 33,
+      "complete_hex": "8002008180"
+    },
+    {
+      "root": [
+        -128,
+        128
+      ],
+      "value": 9223372036854775807,
+      "extension": true,
+      "initial_bits": 0,
+      "following_bit": true,
+      "field_end_bit": 81,
+      "complete_hex": "80087FFFFFFFFFFFFFFF80"
+    },
+    {
+      "root": [
+        0,
+        65535
+      ],
+      "value": -9223372036854775808,
+      "extension": true,
+      "initial_bits": 0,
+      "following_bit": true,
+      "field_end_bit": 81,
+      "complete_hex": "8008800000000000000080"
+    },
+    {
+      "root": [
+        0,
+        65535
+      ],
+      "value": -129,
+      "extension": true,
+      "initial_bits": 0,
+      "following_bit": true,
+      "field_end_bit": 33,
+      "complete_hex": "8002FF7F80"
+    },
+    {
+      "root": [
+        0,
+        65535
+      ],
+      "value": -128,
+      "extension": true,
+      "initial_bits": 0,
+      "following_bit": true,
+      "field_end_bit": 25,
+      "complete_hex": "80018080"
+    },
+    {
+      "root": [
+        0,
+        65535
+      ],
+      "value": -1,
+      "extension": true,
+      "initial_bits": 0,
+      "following_bit": true,
+      "field_end_bit": 25,
+      "complete_hex": "8001FF80"
+    },
+    {
+      "root": [
+        0,
+        65535
+      ],
+      "value": 0,
+      "extension": false,
+      "initial_bits": 0,
+      "following_bit": true,
+      "field_end_bit": 25,
+      "complete_hex": "00000080"
+    },
+    {
+      "root": [
+        0,
+        65535
+      ],
+      "value": 127,
+      "extension": false,
+      "initial_bits": 0,
+      "following_bit": true,
+      "field_end_bit": 25,
+      "complete_hex": "00007F80"
+    },
+    {
+      "root": [
+        0,
+        65535
+      ],
+      "value": 128,
+      "extension": false,
+      "initial_bits": 0,
+      "following_bit": true,
+      "field_end_bit": 25,
+      "complete_hex": "00008080"
+    },
+    {
+      "root": [
+        0,
+        65535
+      ],
+      "value": 65535,
+      "extension": false,
+      "initial_bits": 0,
+      "following_bit": true,
+      "field_end_bit": 25,
+      "complete_hex": "00FFFF80"
+    },
+    {
+      "root": [
+        0,
+        65535
+      ],
+      "value": 65536,
+      "extension": true,
+      "initial_bits": 0,
+      "following_bit": true,
+      "field_end_bit": 41,
+      "complete_hex": "800301000080"
+    },
+    {
+      "root": [
+        0,
+        65535
+      ],
+      "value": 9223372036854775807,
+      "extension": true,
+      "initial_bits": 0,
+      "following_bit": true,
+      "field_end_bit": 81,
+      "complete_hex": "80087FFFFFFFFFFFFFFF80"
+    },
+    {
+      "root": [
+        0,
+        65536
+      ],
+      "value": -9223372036854775808,
+      "extension": true,
+      "initial_bits": 0,
+      "following_bit": true,
+      "field_end_bit": 81,
+      "complete_hex": "8008800000000000000080"
+    },
+    {
+      "root": [
+        0,
+        65536
+      ],
+      "value": -129,
+      "extension": true,
+      "initial_bits": 0,
+      "following_bit": true,
+      "field_end_bit": 33,
+      "complete_hex": "8002FF7F80"
+    },
+    {
+      "root": [
+        0,
+        65536
+      ],
+      "value": -128,
+      "extension": true,
+      "initial_bits": 0,
+      "following_bit": true,
+      "field_end_bit": 25,
+      "complete_hex": "80018080"
+    },
+    {
+      "root": [
+        0,
+        65536
+      ],
+      "value": -1,
+      "extension": true,
+      "initial_bits": 0,
+      "following_bit": true,
+      "field_end_bit": 25,
+      "complete_hex": "8001FF80"
+    },
+    {
+      "root": [
+        0,
+        65536
+      ],
+      "value": 0,
+      "extension": false,
+      "initial_bits": 0,
+      "following_bit": true,
+      "field_end_bit": 17,
+      "complete_hex": "000080"
+    },
+    {
+      "root": [
+        0,
+        65536
+      ],
+      "value": 127,
+      "extension": false,
+      "initial_bits": 0,
+      "following_bit": true,
+      "field_end_bit": 17,
+      "complete_hex": "007F80"
+    },
+    {
+      "root": [
+        0,
+        65536
+      ],
+      "value": 128,
+      "extension": false,
+      "initial_bits": 0,
+      "following_bit": true,
+      "field_end_bit": 17,
+      "complete_hex": "008080"
+    },
+    {
+      "root": [
+        0,
+        65536
+      ],
+      "value": 65536,
+      "extension": false,
+      "initial_bits": 0,
+      "following_bit": true,
+      "field_end_bit": 33,
+      "complete_hex": "4001000080"
+    },
+    {
+      "root": [
+        0,
+        65536
+      ],
+      "value": 65537,
+      "extension": true,
+      "initial_bits": 0,
+      "following_bit": true,
+      "field_end_bit": 41,
+      "complete_hex": "800301000180"
+    },
+    {
+      "root": [
+        0,
+        65536
+      ],
+      "value": 9223372036854775807,
+      "extension": true,
+      "initial_bits": 0,
+      "following_bit": true,
+      "field_end_bit": 81,
+      "complete_hex": "80087FFFFFFFFFFFFFFF80"
+    },
+    {
+      "root": [
+        1,
+        40000000
+      ],
+      "value": -9223372036854775808,
+      "extension": true,
+      "initial_bits": 0,
+      "following_bit": true,
+      "field_end_bit": 81,
+      "complete_hex": "8008800000000000000080"
+    },
+    {
+      "root": [
+        1,
+        40000000
+      ],
+      "value": -129,
+      "extension": true,
+      "initial_bits": 0,
+      "following_bit": true,
+      "field_end_bit": 33,
+      "complete_hex": "8002FF7F80"
+    },
+    {
+      "root": [
+        1,
+        40000000
+      ],
+      "value": -128,
+      "extension": true,
+      "initial_bits": 0,
+      "following_bit": true,
+      "field_end_bit": 25,
+      "complete_hex": "80018080"
+    },
+    {
+      "root": [
+        1,
+        40000000
+      ],
+      "value": -1,
+      "extension": true,
+      "initial_bits": 0,
+      "following_bit": true,
+      "field_end_bit": 25,
+      "complete_hex": "8001FF80"
+    },
+    {
+      "root": [
+        1,
+        40000000
+      ],
+      "value": 0,
+      "extension": true,
+      "initial_bits": 0,
+      "following_bit": true,
+      "field_end_bit": 25,
+      "complete_hex": "80010080"
+    },
+    {
+      "root": [
+        1,
+        40000000
+      ],
+      "value": 1,
+      "extension": false,
+      "initial_bits": 0,
+      "following_bit": true,
+      "field_end_bit": 17,
+      "complete_hex": "000080"
+    },
+    {
+      "root": [
+        1,
+        40000000
+      ],
+      "value": 127,
+      "extension": false,
+      "initial_bits": 0,
+      "following_bit": true,
+      "field_end_bit": 17,
+      "complete_hex": "007E80"
+    },
+    {
+      "root": [
+        1,
+        40000000
+      ],
+      "value": 128,
+      "extension": false,
+      "initial_bits": 0,
+      "following_bit": true,
+      "field_end_bit": 17,
+      "complete_hex": "007F80"
+    },
+    {
+      "root": [
+        1,
+        40000000
+      ],
+      "value": 40000000,
+      "extension": false,
+      "initial_bits": 0,
+      "following_bit": true,
+      "field_end_bit": 41,
+      "complete_hex": "60026259FF80"
+    },
+    {
+      "root": [
+        1,
+        40000000
+      ],
+      "value": 40000001,
+      "extension": true,
+      "initial_bits": 0,
+      "following_bit": true,
+      "field_end_bit": 49,
+      "complete_hex": "800402625A0180"
+    },
+    {
+      "root": [
+        1,
+        40000000
+      ],
+      "value": 9223372036854775807,
+      "extension": true,
+      "initial_bits": 0,
+      "following_bit": true,
+      "field_end_bit": 81,
+      "complete_hex": "80087FFFFFFFFFFFFFFF80"
+    }
+  ],
+  "input_sha256": {
+    "reference.py": "c41ffd91bfd5f62df8a7aba5a58b2c8ff883dee678a28612e0dd6b37fe10163b"
+  },
+  "limitations": [
+    "No production implementation exercised",
+    "Only single finite contiguous roots",
+    "Only signed int64 values; no malformed input acceptance or atomicity proof",
+    "No complete-message qualification or readiness improvement claimed"
+  ]
+}

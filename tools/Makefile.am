@@ -61,3 +61,5 @@ EXTRA_DIST += n15-bit-qualification/README.md n15-bit-qualification/driver.cpp n
 EXTRA_DIST += n16-integer-qualification/README.md n16-integer-qualification/driver.cpp n16-integer-qualification/qualify.py n16-integer-qualification/requirements.txt n16-integer-qualification/qualification-summary.json n16-integer-qualification/readiness.json
 
 EXTRA_DIST += n17-shape-qualification/README.md n17-shape-qualification/driver.cpp n17-shape-qualification/qualify.py n17-shape-qualification/requirements.txt n17-shape-qualification/qualification-summary.json n17-shape-qualification/baseline-shapes.json n17-shape-qualification/readiness.json
+
+EXTRA_DIST += n18-integer-study/README.md n18-integer-study/probe.c n18-integer-study/inventory.py n18-integer-study/domain-inventory.json n18-integer-study/reference.py n18-integer-study/reference-summary.json n18-integer-study/requirements.txt
