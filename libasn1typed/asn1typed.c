@@ -459,6 +459,229 @@ asn1typed_field_set_ioc(asn1typed_field_t *field,
 	return 0;
 }
 
+static int
+ioc_storage_valid(size_t count, size_t capacity, const void *data) {
+	return count <= capacity && !!capacity == !!data;
+}
+static int
+ioc_text(const char *s) { return s && s[0]; }
+static void
+ioc_registry_clear(asn1typed_ioc_registry_t *r) {
+	size_t i;
+	for(i = 0; i < r->row_count; ++i) {
+		free(r->rows[i].symbolic_id);
+		asn1typed_type_ref_clear(&r->rows[i].payload_type);
+	}
+	free(r->rows); free(r->class_module); free(r->class_source_name);
+	free(r->object_set_module); free(r->object_set_source_name);
+	free(r->selected_class_field_source_name); memset(r, 0, sizeof(*r));
+}
+static int
+ioc_registry_storage(const asn1typed_ioc_registry_t *r) {
+	return r && ioc_storage_valid(r->row_count, r->row_capacity, r->rows);
+}
+int
+asn1typed_module_add_ioc_registry(asn1typed_module_t *m, const char *cm,
+		const char *cn, const char *sm, const char *sn, const char *selected, size_t *index) {
+	asn1typed_ioc_registry_t pending;
+	size_t i;
+	if(index) *index = SIZE_MAX;
+	if(!m || !ioc_text(cm) || !ioc_text(cn) || !ioc_text(sm) || !ioc_text(sn) ||
+		!ioc_text(selected) || !ioc_storage_valid(m->ioc_registry_count, m->ioc_registry_capacity, m->ioc_registries)) return -1;
+	for(i = 0; i < m->ioc_registry_count; ++i) {
+		asn1typed_ioc_registry_t *r = &m->ioc_registries[i];
+		if(!ioc_text(r->class_module) || !ioc_text(r->class_source_name) || !ioc_text(r->object_set_module) || !ioc_text(r->object_set_source_name) || !ioc_text(r->selected_class_field_source_name)) return -1;
+		if(!strcmp(cm, r->class_module) && !strcmp(cn, r->class_source_name) && !strcmp(sm, r->object_set_module) && !strcmp(sn, r->object_set_source_name)) {
+			if(strcmp(selected, r->selected_class_field_source_name)) return -1;
+			if(index) *index = i;
+			return 0;
+		}
+	}
+	memset(&pending, 0, sizeof(pending));
+	pending.class_module = asn1typed_strdup(cm); pending.class_source_name = asn1typed_strdup(cn);
+	pending.object_set_module = asn1typed_strdup(sm); pending.object_set_source_name = asn1typed_strdup(sn);
+	pending.selected_class_field_source_name = asn1typed_strdup(selected);
+	if(!pending.class_module || !pending.class_source_name || !pending.object_set_module || !pending.object_set_source_name || !pending.selected_class_field_source_name ||
+		m->ioc_registry_count == SIZE_MAX || asn1typed_reserve((void **)&m->ioc_registries, &m->ioc_registry_capacity, m->ioc_registry_count + 1, sizeof(pending))) {
+		ioc_registry_clear(&pending); return -1;
+	}
+	m->ioc_registries[m->ioc_registry_count] = pending;
+	if(index) *index = m->ioc_registry_count;
+	++m->ioc_registry_count; return 0;
+}
+static int ioc_payload_ref_valid(const asn1typed_type_ref_t *);
+int
+asn1typed_ioc_registry_add_row(asn1typed_ioc_registry_t *r, const asn1typed_ioc_dispatch_row_t *source) {
+	asn1typed_ioc_dispatch_row_t row;
+	if(!ioc_registry_storage(r) || !source || r->row_count == SIZE_MAX || !ioc_payload_ref_valid(&source->payload_type)) return -1;
+	memset(&row, 0, sizeof(row));
+	row.has_numeric_id = source->has_numeric_id; row.numeric_id = source->numeric_id;
+	row.criticality = source->criticality; row.has_presence = source->has_presence; row.presence = source->presence;
+	if(source->symbolic_id && !(row.symbolic_id = asn1typed_strdup(source->symbolic_id))) return -1;
+	if(asn1typed_type_ref_copy(&row.payload_type, &source->payload_type) ||
+		asn1typed_reserve((void **)&r->rows, &r->row_capacity, r->row_count + 1, sizeof(row))) {
+		free(row.symbolic_id); asn1typed_type_ref_clear(&row.payload_type); return -1;
+	}
+	r->rows[r->row_count++] = row; r->evidence = ASN1TYPED_WIRE_EVIDENCE_UNAVAILABLE;
+	r->declared_row_count = 0; r->has_valid_dispatch = 0; return 0;
+}
+int
+asn1typed_ioc_registry_set_evidence(asn1typed_ioc_registry_t *r, size_t count, int ext) {
+	if(!ioc_registry_storage(r) || count != r->row_count || (ext != 0 && ext != 1) || (!count && !ext)) return -1;
+	r->evidence = ASN1TYPED_WIRE_EVIDENCE_RESOLVED; r->declared_row_count = count;
+	r->object_set_is_extensible = ext; r->has_valid_dispatch = 0; return 0;
+}
+static int
+ioc_registry_set_missing(asn1typed_ioc_registry_t *r, asn1typed_wire_evidence_e status) {
+	if(!ioc_registry_storage(r)) return -1;
+	r->evidence = status; r->declared_row_count = 0; r->object_set_is_extensible = 0; r->has_valid_dispatch = 0; return 0;
+}
+int
+asn1typed_ioc_registry_set_unavailable(asn1typed_ioc_registry_t *r) { return ioc_registry_set_missing(r, ASN1TYPED_WIRE_EVIDENCE_UNAVAILABLE); }
+int
+asn1typed_ioc_registry_set_unsupported(asn1typed_ioc_registry_t *r) { return ioc_registry_set_missing(r, ASN1TYPED_WIRE_EVIDENCE_UNSUPPORTED); }
+static int
+ioc_payload_ref_valid(const asn1typed_type_ref_t *r) {
+	if(r->actuals || r->actual_count) return 0;
+	if(r->kind == ASN1TYPED_REF_NAMED) return ioc_text(r->module) && ioc_text(r->source_name) && r->primitive_kind == ASN1TYPED_PRIMITIVE_INVALID;
+	return r->kind == ASN1TYPED_REF_PRIMITIVE && !r->module && !r->source_name &&
+		r->primitive_kind > ASN1TYPED_PRIMITIVE_INVALID && r->primitive_kind <= ASN1TYPED_PRIMITIVE_BIT_STRING;
+}
+static int
+ioc_registry_check(const asn1typed_ioc_registry_t *r, int published, char *error, size_t size) {
+	size_t i, j;
+#define IOC_BAD(text) do { if(error && size) snprintf(error, size, "%s", text); return -1; } while(0)
+	if(error && size) error[0] = 0;
+	if(!ioc_registry_storage(r)) IOC_BAD("IOC registry malformed storage");
+	if(!ioc_text(r->class_module) || !ioc_text(r->class_source_name) || !ioc_text(r->object_set_module) || !ioc_text(r->object_set_source_name) || !ioc_text(r->selected_class_field_source_name)) IOC_BAD("IOC registry missing key identity");
+	if(strcmp(r->selected_class_field_source_name, "Value") && strcmp(r->selected_class_field_source_name, "Extension")) IOC_BAD("IOC registry unsupported selected class field");
+	if(r->evidence != ASN1TYPED_WIRE_EVIDENCE_RESOLVED || (published && r->has_valid_dispatch != 1)) IOC_BAD("IOC registry evidence unavailable or stale");
+	if(r->declared_row_count != r->row_count || (r->object_set_is_extensible != 0 && r->object_set_is_extensible != 1) || (!r->row_count && !r->object_set_is_extensible)) IOC_BAD("IOC registry declaration count or extension evidence invalid");
+	for(i = 0; i < r->row_count; ++i) {
+		const asn1typed_ioc_dispatch_row_t *row = &r->rows[i];
+		if(row->has_numeric_id != 1 || row->numeric_id < 0 || row->numeric_id > 65535) IOC_BAD("IOC registry unresolved or unsupported numeric ID");
+		if(row->symbolic_id && !row->symbolic_id[0]) IOC_BAD("IOC registry empty symbolic ID");
+		if(row->criticality < ASN1TYPED_CRITICALITY_REJECT || row->criticality > ASN1TYPED_CRITICALITY_NOTIFY) IOC_BAD("IOC registry invalid criticality");
+		if((!strcmp(r->selected_class_field_source_name, "Value") && row->has_presence != 1) ||
+			(row->has_presence != 0 && row->has_presence != 1) ||
+			(i && row->has_presence != r->rows[0].has_presence) ||
+			(row->has_presence && (row->presence < ASN1TYPED_PRESENCE_MANDATORY || row->presence > ASN1TYPED_PRESENCE_CONDITIONAL)) ||
+			(!row->has_presence && row->presence != ASN1TYPED_PRESENCE_MANDATORY)) IOC_BAD("IOC registry invalid presence metadata");
+		if(!ioc_payload_ref_valid(&row->payload_type)) IOC_BAD("IOC registry unsupported payload reference");
+		for(j = 0; j < i; ++j) if(row->numeric_id == r->rows[j].numeric_id) IOC_BAD("IOC registry duplicate numeric ID");
+	}
+#undef IOC_BAD
+	return 0;
+}
+int
+asn1typed_ioc_registry_validate(const asn1typed_ioc_registry_t *r, char *error, size_t size) { return ioc_registry_check(r, 1, error, size); }
+asn1typed_wire_finalize_result_e
+asn1typed_ioc_registry_finalize(asn1typed_ioc_registry_t *r, char *error, size_t size) {
+	if(r) r->has_valid_dispatch = 0;
+	if(!ioc_registry_storage(r)) { if(error && size) snprintf(error, size, "IOC registry malformed API/storage"); return ASN1TYPED_WIRE_FINALIZE_ERROR; }
+	if(ioc_registry_check(r, 0, error, size)) return ASN1TYPED_WIRE_FINALIZE_UNAVAILABLE;
+	r->has_valid_dispatch = 1; return ASN1TYPED_WIRE_FINALIZE_OK;
+}
+static int
+ioc_empty_ref(const asn1typed_type_ref_t *r) {
+	return r->kind == ASN1TYPED_REF_NAMED && !r->module && !r->source_name && !r->actuals && !r->actual_count && r->primitive_kind == ASN1TYPED_PRIMITIVE_INVALID;
+}
+static int
+ioc_empty_size(const asn1typed_size_constraint_t *s) {
+	return !s->has_size_constraint && !s->is_extensible && !s->lower_bound && !s->upper_bound;
+}
+static int
+ioc_empty_range(const asn1typed_integer_value_range_t *r) {
+	return !r->has_value_range && !r->is_extensible && !r->lower_bound && !r->upper_bound && !r->tail && !r->tail_count;
+}
+static const asn1typed_type_t *
+ioc_named_type(const asn1typed_module_t *m, const asn1typed_type_ref_t *r) {
+	size_t i;
+	if(r->kind != ASN1TYPED_REF_NAMED || !ioc_payload_ref_valid(r) || !ioc_storage_valid(m->type_count, m->type_capacity, m->types)) return NULL;
+	for(i = 0; i < m->type_count; ++i) {
+		const asn1typed_type_t *t = &m->types[i];
+		if(t->identity.module && t->identity.source_name && !strcmp(t->identity.module, r->module) && !strcmp(t->identity.source_name, r->source_name)) return t;
+	}
+	return NULL;
+}
+static int
+ioc_scalar_clean(const asn1typed_type_t *t) {
+	return t && !t->is_extensible && !t->fields && !t->field_count && !t->field_capacity &&
+		!t->alternatives && !t->alternative_count && !t->alternative_capacity && !t->has_valid_per_root_mapping &&
+		!t->has_ioc_table && !t->ioc_object_set_is_extensible && ioc_empty_ref(&t->element_type) && ioc_empty_ref(&t->ioc_container) &&
+		ioc_empty_size(&t->size_constraint) && t->sequence_extension_evidence == ASN1TYPED_WIRE_EVIDENCE_UNAVAILABLE &&
+		!t->sequence_root_field_count && !t->sequence_known_addition_count && !t->has_valid_sequence_extension_structure;
+}
+static int
+ioc_relation_matches(const asn1typed_field_t *f, const asn1typed_ioc_registry_t *r, const char *role, const char *selector) {
+	const asn1typed_class_field_relation_t *c = &f->class_field_relation;
+	return f->has_class_field_relation == 1 && asn1typed_class_field_relation_valid(c) && c->has_selector == 1 && !c->actual_index &&
+		!strcmp(c->class_module, r->class_module) && !strcmp(c->class_source_name, r->class_source_name) && !strcmp(c->class_field_source_name, role) && !strcmp(c->selector_source_name, selector);
+}
+static int
+ioc_binding_check(const asn1typed_module_t *m, size_t index, int published, char *error, size_t size) {
+	const asn1typed_bound_instance_t *instance;
+	const asn1typed_type_t *body, *id_type, *criticality;
+	const asn1typed_ioc_registry_t *r;
+	const asn1typed_field_t *id, *crit, *value;
+	size_t i;
+#define BIND_BAD(text) do { if(error && size) snprintf(error, size, "%s", text); return -1; } while(0)
+	if(error && size) error[0] = 0;
+	if(!m || !ioc_storage_valid(m->bound_instance_count, m->bound_instance_capacity, m->bound_instances) || !ioc_storage_valid(m->ioc_registry_count, m->ioc_registry_capacity, m->ioc_registries) || index >= m->bound_instance_count) BIND_BAD("IOC binding malformed module/index/storage");
+	instance = &m->bound_instances[index]; body = &instance->body;
+	if(instance->ioc_binding.evidence != ASN1TYPED_WIRE_EVIDENCE_RESOLVED || (published && instance->ioc_binding.has_valid_binding != 1)) BIND_BAD("IOC binding evidence unavailable or stale");
+	if(instance->ioc_binding.registry_index >= m->ioc_registry_count) BIND_BAD("IOC binding registry index out of range");
+	r = &m->ioc_registries[instance->ioc_binding.registry_index];
+	if(asn1typed_ioc_registry_validate(r, error, size)) return -1;
+	if(instance->body_materialized != 1 || body->kind != ASN1TYPED_TYPE_SEQUENCE || body->is_extensible ||
+		body->field_count != 3 || !ioc_storage_valid(body->field_count, body->field_capacity, body->fields) ||
+		!ioc_empty_size(&body->size_constraint) || !ioc_empty_range(&body->value_range) || !ioc_empty_ref(&body->element_type) || !ioc_empty_ref(&body->ioc_container) || body->has_ioc_table || body->ioc_object_set_is_extensible ||
+		body->primitive_kind != ASN1TYPED_PRIMITIVE_INVALID || body->enum_items || body->enum_item_count || body->enum_item_capacity || body->has_valid_per_enumeration_mapping || body->alternatives || body->alternative_count || body->alternative_capacity || body->has_valid_per_root_mapping ||
+		body->sequence_extension_evidence != ASN1TYPED_WIRE_EVIDENCE_UNAVAILABLE || body->sequence_root_field_count || body->sequence_known_addition_count || body->has_valid_sequence_extension_structure)
+		BIND_BAD("IOC binding unsupported physical field body");
+	if(instance->ioc_binding.id_field_ordinal != 0 || instance->ioc_binding.criticality_field_ordinal != 1 || instance->ioc_binding.value_field_ordinal != 2) BIND_BAD("IOC binding physical role ordinals invalid");
+	if(instance->identity.kind != ASN1TYPED_REF_NAMED || !ioc_text(instance->identity.module) || !ioc_text(instance->identity.source_name) || instance->identity.primitive_kind != ASN1TYPED_PRIMITIVE_INVALID || instance->identity.actual_count != 1 || !instance->identity.actuals || instance->identity.actuals[0].kind != ASN1TYPED_ACTUAL_OBJECT_SET_REFERENCE || !ioc_text(instance->identity.actuals[0].module) || !ioc_text(instance->identity.actuals[0].source_name) || strcmp(instance->identity.actuals[0].module, r->object_set_module) || strcmp(instance->identity.actuals[0].source_name, r->object_set_source_name)) BIND_BAD("IOC binding actual object-set identity mismatch");
+	id = &body->fields[0]; crit = &body->fields[1]; value = &body->fields[2];
+	if(ioc_text(id->source_name) && ioc_text(crit->source_name) && ioc_text(value->source_name) && (!strcmp(id->source_name, crit->source_name) || !strcmp(id->source_name, value->source_name) || !strcmp(crit->source_name, value->source_name))) BIND_BAD("IOC binding duplicate physical field identity");
+	for(i = 0; i < 3; ++i) {
+		const asn1typed_field_t *f = &body->fields[i];
+		if(!ioc_text(f->source_name) || f->presence != ASN1TYPED_PRESENCE_MANDATORY || f->inline_enumerated || !ioc_empty_size(&f->size_constraint) || !ioc_empty_range(&f->value_range) || f->ioc.symbolic_id || f->ioc.has_numeric_id || f->ioc.numeric_id || f->ioc.criticality != ASN1TYPED_CRITICALITY_REJECT) BIND_BAD("IOC binding unsupported physical field metadata");
+	}
+	if(id->type_semantics != ASN1TYPED_FIELD_FIXED_TYPE || id->has_class_field_relation || id->class_field_relation.class_module || id->class_field_relation.class_source_name || id->class_field_relation.class_field_source_name || id->class_field_relation.actual_index || id->class_field_relation.has_selector || id->class_field_relation.selector_source_name ||
+		crit->type_semantics != ASN1TYPED_FIELD_FIXED_TYPE || !ioc_relation_matches(crit, r, "criticality", id->source_name) ||
+		value->type_semantics != ASN1TYPED_FIELD_CLASS_FIELD_SELECTED_TYPE || !ioc_empty_ref(&value->type) || !ioc_relation_matches(value, r, r->selected_class_field_source_name, id->source_name)) BIND_BAD("IOC binding selector/class role mismatch");
+	id_type = ioc_named_type(m, &id->type); criticality = ioc_named_type(m, &crit->type);
+	if(!ioc_scalar_clean(id_type) || id_type->kind != ASN1TYPED_TYPE_PRIMITIVE || id_type->primitive_kind != ASN1TYPED_PRIMITIVE_INTEGER || id_type->value_range.has_value_range != 1 || id_type->value_range.is_extensible || id_type->value_range.lower_bound != 0 || id_type->value_range.upper_bound != 65535 || id_type->value_range.tail || id_type->value_range.tail_count || id_type->enum_items || id_type->enum_item_count || id_type->enum_item_capacity || id_type->has_valid_per_enumeration_mapping) BIND_BAD("IOC binding identifier type/domain unsupported");
+	if(!ioc_scalar_clean(criticality) || criticality->kind != ASN1TYPED_TYPE_ENUMERATED || criticality->primitive_kind != ASN1TYPED_PRIMITIVE_INVALID || !ioc_empty_range(&criticality->value_range) || criticality->enum_item_count != 3 || asn1typed_enumerated_evidence_validate(criticality, error, size)) BIND_BAD("IOC binding criticality type evidence unsupported");
+	for(i = 0; i < 3; ++i) {
+		const asn1typed_enum_item_t *item = &criticality->enum_items[i];
+		const char *names[] = {"reject", "ignore", "notify"};
+		if(item->assigned_number < 0 || item->assigned_number > 2 || item->is_extension_addition || !ioc_text(item->source_name) || strcmp(item->source_name, names[(size_t)item->assigned_number])) BIND_BAD("IOC binding criticality values unsupported");
+	}
+#undef BIND_BAD
+	return 0;
+}
+int
+asn1typed_bound_instance_set_ioc_binding(asn1typed_module_t *m, size_t index, size_t registry,
+		size_t id, size_t crit, size_t value) {
+	asn1typed_ioc_binding_t old, pending;
+	if(!m || !ioc_storage_valid(m->bound_instance_count, m->bound_instance_capacity, m->bound_instances) || index >= m->bound_instance_count) return -1;
+	memset(&pending, 0, sizeof(pending)); pending.evidence = ASN1TYPED_WIRE_EVIDENCE_RESOLVED;
+	pending.registry_index = registry; pending.id_field_ordinal = id; pending.criticality_field_ordinal = crit; pending.value_field_ordinal = value;
+	old = m->bound_instances[index].ioc_binding; m->bound_instances[index].ioc_binding = pending;
+	if(ioc_binding_check(m, index, 0, NULL, 0)) { m->bound_instances[index].ioc_binding = old; return -1; }
+	return 0;
+}
+asn1typed_wire_finalize_result_e
+asn1typed_bound_instance_ioc_binding_finalize(asn1typed_module_t *m, size_t index, char *error, size_t size) {
+	if(!m || !ioc_storage_valid(m->bound_instance_count, m->bound_instance_capacity, m->bound_instances) || index >= m->bound_instance_count) { if(error && size) snprintf(error, size, "IOC binding malformed API/storage"); return ASN1TYPED_WIRE_FINALIZE_ERROR; }
+	m->bound_instances[index].ioc_binding.has_valid_binding = 0;
+	if(ioc_binding_check(m, index, 0, error, size)) return ASN1TYPED_WIRE_FINALIZE_UNAVAILABLE;
+	m->bound_instances[index].ioc_binding.has_valid_binding = 1; return ASN1TYPED_WIRE_FINALIZE_OK;
+}
+int
+asn1typed_bound_instance_ioc_binding_validate(const asn1typed_module_t *m, size_t index, char *error, size_t size) { return ioc_binding_check(m, index, 1, error, size); }
+
 int
 asn1typed_module_init(asn1typed_module_t *module,
 		const char *source_name, const char *file, unsigned line) {
@@ -488,6 +711,8 @@ asn1typed_module_clear(asn1typed_module_t *module) {
 		asn1typed_type_clear(&module->bound_instances[i].body);
 	}
 	free(module->bound_instances);
+	for(i = 0; i < module->ioc_registry_count; ++i) ioc_registry_clear(&module->ioc_registries[i]);
+	free(module->ioc_registries);
 	free(module->source_name);
 	asn1typed_source_location_clear(&module->location);
 	memset(module, 0, sizeof(*module));
@@ -583,6 +808,7 @@ asn1typed_bound_instance_set_body(asn1typed_module_t *module,
 			if(!found) return -1;
 		}
 	}
+	memset(&instance->ioc_binding, 0, sizeof(instance->ioc_binding));
 	instance->body = *body;
 	memset(body, 0, sizeof(*body));
 	instance->body_materialized = 1;

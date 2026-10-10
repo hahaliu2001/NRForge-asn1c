@@ -235,6 +235,36 @@ struct asn1typed_type_s {
 	int has_valid_per_root_mapping;
 };
 
+/* N9 opt-in physical IOC tables. Zero-initialized evidence is unavailable. */
+typedef struct asn1typed_ioc_dispatch_row_s {
+	char *symbolic_id;
+	int has_numeric_id;
+	intmax_t numeric_id;
+	asn1typed_type_ref_t payload_type;
+	asn1typed_criticality_e criticality;
+	int has_presence;
+	asn1typed_presence_e presence;
+} asn1typed_ioc_dispatch_row_t;
+
+typedef struct asn1typed_ioc_registry_s {
+	char *class_module, *class_source_name;
+	char *object_set_module, *object_set_source_name;
+	char *selected_class_field_source_name;
+	asn1typed_ioc_dispatch_row_t *rows;
+	size_t row_count, row_capacity;
+	asn1typed_wire_evidence_e evidence;
+	size_t declared_row_count;
+	int object_set_is_extensible;
+	int has_valid_dispatch;
+} asn1typed_ioc_registry_t;
+
+typedef struct asn1typed_ioc_binding_s {
+	asn1typed_wire_evidence_e evidence;
+	size_t registry_index;
+	size_t id_field_ordinal, criticality_field_ordinal, value_field_ordinal;
+	int has_valid_binding;
+} asn1typed_ioc_binding_t;
+
 /* B7b.1 owns the identity before it owns the instance's semantic body. */
 typedef struct asn1typed_bound_instance_s {
 	asn1typed_type_ref_t identity;
@@ -242,6 +272,7 @@ typedef struct asn1typed_bound_instance_s {
 	 * identity fields stay empty; all body contents are independently owned. */
 	asn1typed_type_t body;
 	int body_materialized;
+	asn1typed_ioc_binding_t ioc_binding;
 } asn1typed_bound_instance_t;
 
 typedef struct asn1typed_module_s {
@@ -254,7 +285,23 @@ typedef struct asn1typed_module_s {
 	asn1typed_bound_instance_t *bound_instances;
 	size_t bound_instance_count;
 	size_t bound_instance_capacity;
+	asn1typed_ioc_registry_t *ioc_registries;
+	size_t ioc_registry_count, ioc_registry_capacity;
 } asn1typed_module_t;
+
+/* Registry keys and rows are independently owned. Successful row mutation
+ * invalidates declaration evidence; direct edits require validation. */
+int asn1typed_module_add_ioc_registry(asn1typed_module_t *, const char *, const char *,
+		const char *, const char *, const char *, size_t *);
+int asn1typed_ioc_registry_add_row(asn1typed_ioc_registry_t *, const asn1typed_ioc_dispatch_row_t *);
+int asn1typed_ioc_registry_set_evidence(asn1typed_ioc_registry_t *, size_t, int);
+int asn1typed_ioc_registry_set_unavailable(asn1typed_ioc_registry_t *);
+int asn1typed_ioc_registry_set_unsupported(asn1typed_ioc_registry_t *);
+asn1typed_wire_finalize_result_e asn1typed_ioc_registry_finalize(asn1typed_ioc_registry_t *, char *, size_t);
+int asn1typed_ioc_registry_validate(const asn1typed_ioc_registry_t *, char *, size_t);
+int asn1typed_bound_instance_set_ioc_binding(asn1typed_module_t *, size_t, size_t, size_t, size_t, size_t);
+asn1typed_wire_finalize_result_e asn1typed_bound_instance_ioc_binding_finalize(asn1typed_module_t *, size_t, char *, size_t);
+int asn1typed_bound_instance_ioc_binding_validate(const asn1typed_module_t *, size_t, char *, size_t);
 
 /* All string arguments are copied. The caller retains ownership of them. */
 int asn1typed_source_location_init(asn1typed_source_location_t *location,

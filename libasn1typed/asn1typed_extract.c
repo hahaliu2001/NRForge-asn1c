@@ -2171,3 +2171,231 @@ fail:
 	asn1typed_module_clear(out);
 	return -1;
 }
+
+static asn1p_expr_t *
+physical_named_declaration(asn1p_t *tree, const char *module_name, const char *name) {
+	asn1p_module_t *module;
+	TQ_FOR(module, &tree->modules, mod_next)
+		if(module->ModuleName && !strcmp(module->ModuleName, module_name)) return named_declaration(module, name);
+	return NULL;
+}
+static int
+physical_class_shape(asn1p_expr_t *class_expr, const char **selected, int *has_presence) {
+	asn1p_expr_t *member;
+	unsigned seen = 0;
+	if(!class_expr || class_expr->expr_type != A1TC_CLASSDEF || !class_expr->Identifier || !class_expr->module || !class_expr->module->ModuleName) return -1;
+	*selected = NULL;
+	*has_presence = 0;
+	TQ_FOR(member, &class_expr->members, next) {
+		const char *name = member->Identifier;
+		unsigned bit;
+		if(!name || name[0] != '&' || member->meta_type != AMT_OBJECTFIELD ||
+			member->marker.flags != EM_NOMARK || member->marker.default_value ||
+			member->constraints || member->combined_constraints || member->rhs_pspecs || member->lhs_params) return -1;
+		++name;
+		if(!strcmp(name, "id")) {
+			bit = 1;
+			if(member->expr_type != A1TC_CLASSFIELD_FTVFS || !member->unique) return -1;
+		} else if(!strcmp(name, "criticality")) {
+			bit = 2;
+			if(member->expr_type != A1TC_CLASSFIELD_FTVFS || member->unique) return -1;
+		} else if(!strcmp(name, "Value") || !strcmp(name, "Extension")) {
+			bit = 4;
+			if(member->expr_type != A1TC_CLASSFIELD_TFS || member->unique) return -1;
+			*selected = name;
+		} else if(!strcmp(name, "presence")) {
+			bit = 8;
+			if(member->expr_type != A1TC_CLASSFIELD_FTVFS || member->unique) return -1;
+		} else return -1;
+		if(seen & bit) return -1;
+		seen |= bit;
+	}
+	*has_presence = !!(seen & 8);
+	return *selected && ((!strcmp(*selected, "Value") && seen == 15) || (!strcmp(*selected, "Extension") && (seen == 7 || seen == 15))) ? 0 : -1;
+}
+static int
+physical_ioc_cells(asn1p_ioc_row_t *row, const char *selected, int has_presence, asn1p_expr_t **cells) {
+	size_t i;
+	if(!row || !row->column || row->columns != (has_presence ? 4u : 3u)) return -1;
+	for(i = 0; i < row->columns; ++i) {
+		const char *name;
+		size_t role;
+		if(!row->column[i].field || !(name = row->column[i].field->Identifier) || !row->column[i].value) return -1;
+		if(*name == '&') ++name;
+		if(!strcmp(name, "id")) role = 0;
+		else if(!strcmp(name, selected)) role = 1;
+		else if(!strcmp(name, "criticality")) role = 2;
+		else if(has_presence && !strcmp(name, "presence")) role = 3;
+		else return -1;
+		if(cells[role]) return -1;
+		cells[role] = row->column[i].value;
+	}
+	return cells[0] && cells[1] && cells[2] && (!has_presence || cells[3]) ? 0 : -1;
+}
+static int
+physical_registry_row(asn1p_t *tree, asn1typed_ioc_registry_t *registry,
+		asn1p_ioc_row_t *source, int has_presence, char *error, size_t size) {
+	asn1p_expr_t *cells[4] = {NULL, NULL, NULL, NULL};
+	asn1p_expr_t value;
+	asn1p_ref_t reference;
+	asn1typed_ioc_dispatch_row_t row;
+	const char *symbol, *name;
+	memset(&row, 0, sizeof(row));
+	if(physical_ioc_cells(source, registry->selected_class_field_source_name, has_presence, cells) ||
+		ioc_id_identity(tree, cells[0], &symbol, &row.has_numeric_id, &row.numeric_id) || !row.has_numeric_id) goto malformed;
+	if(symbol) {
+		row.symbolic_id = malloc(strlen(symbol) + 1);
+		if(!row.symbolic_id) { set_error(error, size, "out of memory owning physical IOC symbolic ID"); return -1; }
+		strcpy(row.symbolic_id, symbol);
+	}
+	name = ioc_criticality_identity(cells[2]);
+	if(name && !strcmp(name, "reject")) row.criticality = ASN1TYPED_CRITICALITY_REJECT;
+	else if(name && !strcmp(name, "ignore")) row.criticality = ASN1TYPED_CRITICALITY_IGNORE;
+	else if(name && !strcmp(name, "notify")) row.criticality = ASN1TYPED_CRITICALITY_NOTIFY;
+	else goto malformed;
+	if(cells[3]) {
+		row.has_presence = 1; name = ioc_presence_identity(cells[3]);
+		if(name && !strcmp(name, "mandatory")) row.presence = ASN1TYPED_PRESENCE_MANDATORY;
+		else if(name && !strcmp(name, "optional")) row.presence = ASN1TYPED_PRESENCE_OPTIONAL;
+		else if(name && !strcmp(name, "conditional")) row.presence = ASN1TYPED_PRESENCE_CONDITIONAL;
+		else goto malformed;
+	}
+	if(reject_unowned_inline_constraint(cells[1], registry->object_set_source_name, registry->selected_class_field_source_name, error, size)) { free(row.symbolic_id); return -1; }
+	value = *cells[1];
+	if(value.meta_type != AMT_TYPE && value.meta_type != AMT_TYPEREF) goto malformed;
+	if(value.expr_type == A1TC_REFERENCE && value.reference) {
+		reference = *value.reference; reference.ref_expr = ioc_resolve(tree, cells[1], value.reference); value.reference = &reference;
+	}
+	if(value.rhs_pspecs || kind_of_type(terminal_type(&value)) == (asn1typed_type_kind_e)-1 || put_ref(&row.payload_type, &value)) goto malformed;
+	if(asn1typed_ioc_registry_add_row(registry, &row)) {
+		free(row.symbolic_id); asn1typed_type_ref_clear(&row.payload_type); set_error(error, size, "out of memory owning physical IOC dispatch row"); return -1;
+	}
+	asn1typed_type_ref_clear(&row.payload_type); return 0;
+malformed:
+	asn1typed_type_ref_clear(&row.payload_type);
+	set_error(error, size, "malformed or unresolved physical IOC row numeric ID/payload/criticality/presence"); return -1;
+}
+static int
+physical_register_binding(asn1p_t *tree, asn1typed_module_t *out, size_t index, char *error, size_t size) {
+	asn1typed_bound_instance_t *instance = &out->bound_instances[index];
+	asn1p_expr_t *set, *class_expr, *generic, *specialization, *body, *member;
+	const char *selected, *stage = "actual key";
+	size_t registry_index, ordinal = 0, j;
+	int has_presence;
+	if(instance->identity.actual_count != 1 || !instance->identity.actuals) goto malformed;
+	stage = "fixed object-set table";
+	set = physical_named_declaration(tree, instance->identity.actuals[0].module, instance->identity.actuals[0].source_name);
+	if(!set || !set->ioc_table || (set->ioc_table->rows && !set->ioc_table->row) || (!set->ioc_table->rows && !set->ioc_table->extensible)) goto malformed;
+	stage = "class shape or specialization";
+	class_expr = ioc_resolve(tree, set, set->reference);
+	if(physical_class_shape(class_expr, &selected, &has_presence) || find_instance_specialization(tree, &instance->identity, &generic, &specialization, error, size)) goto malformed;
+	stage = "physical component roles";
+	body = terminal_type(specialization);
+	if(!body || body->expr_type != ASN_CONSTR_SEQUENCE) goto malformed;
+	/* UNIQUE id provenance is not recoverable solely from its owned fixed ref. */
+	TQ_FOR(member, &body->members, next) {
+		const char *role;
+		asn1p_ref_t prefix;
+		if(ordinal >= 3 || !member->reference || member->reference->comp_count != 2 || !member->reference->components || !member->reference->components[0].name || !(role = member->reference->components[1].name)) goto malformed;
+		if(strcmp(role, ordinal == 0 ? "&id" : ordinal == 1 ? "&criticality" : !strcmp(selected, "Value") ? "&Value" : "&Extension")) goto malformed;
+		prefix = *member->reference; prefix.comp_count = 1; prefix.ref_expr = NULL;
+		if(ioc_resolve(tree, member, &prefix) != class_expr) goto malformed;
+		++ordinal;
+	}
+	if(ordinal != 3 || asn1typed_module_add_ioc_registry(out, class_expr->module->ModuleName, class_expr->Identifier, set->module->ModuleName, set->Identifier, selected, &registry_index)) goto malformed;
+	if(out->ioc_registries[registry_index].evidence == ASN1TYPED_WIRE_EVIDENCE_UNAVAILABLE) {
+		for(j = 0; j < set->ioc_table->rows; ++j)
+			if(physical_registry_row(tree, &out->ioc_registries[registry_index], set->ioc_table->row[j], has_presence, error, size)) return -1;
+		if(asn1typed_ioc_registry_set_evidence(&out->ioc_registries[registry_index], set->ioc_table->rows, !!set->ioc_table->extensible) ||
+			asn1typed_ioc_registry_finalize(&out->ioc_registries[registry_index], error, size) != ASN1TYPED_WIRE_FINALIZE_OK) return -1;
+	}
+	if(asn1typed_bound_instance_set_ioc_binding(out, index, registry_index, 0, 1, 2) ||
+		asn1typed_bound_instance_ioc_binding_finalize(out, index, error, size) != ASN1TYPED_WIRE_FINALIZE_OK) {
+		if(error && size && !error[0]) set_error(error, size, "unsupported physical IOC selector binding");
+		return -1;
+	}
+	return 0;
+malformed:
+	set_error(error, size, "unsupported physical IOC %s source evidence for %s.%s", stage, instance->identity.module, instance->identity.source_name); return -1;
+}
+static int
+physical_close_type(asn1p_t *tree, asn1typed_module_t *out, size_t index, char *error, size_t size) {
+	size_t j;
+	for(j = 0; j < out->types[index].field_count; ++j) {
+		asn1typed_field_t *f = &out->types[index].fields[j];
+		asn1typed_type_ref_t copy = {0};
+		if(f->type_semantics == ASN1TYPED_FIELD_INLINE_ENUMERATED && inline_enum_field_identity_free(f)) continue;
+		if(f->type_semantics != ASN1TYPED_FIELD_FIXED_TYPE || asn1typed_type_ref_copy(&copy, &f->type)) goto malformed;
+		if(add_ioc_dependency(tree, out, &copy, error, size)) { asn1typed_type_ref_clear(&copy); return -1; }
+		asn1typed_type_ref_clear(&copy);
+	}
+	for(j = 0; j < out->types[index].alternative_count; ++j) {
+		asn1typed_type_ref_t copy = {0};
+		if(asn1typed_type_ref_copy(&copy, &out->types[index].alternatives[j].type_ref)) goto malformed;
+		if(add_ioc_dependency(tree, out, &copy, error, size)) { asn1typed_type_ref_clear(&copy); return -1; }
+		asn1typed_type_ref_clear(&copy);
+	}
+	if(out->types[index].kind == ASN1TYPED_TYPE_SEQUENCE_OF) {
+		asn1typed_type_ref_t copy = {0};
+		if(asn1typed_type_ref_copy(&copy, &out->types[index].element_type)) goto malformed;
+		if(add_ioc_dependency(tree, out, &copy, error, size)) { asn1typed_type_ref_clear(&copy); return -1; }
+		asn1typed_type_ref_clear(&copy);
+	}
+	return 0;
+malformed:
+	set_error(error, size, "unsupported physical message dependency or out of memory copying reference"); return -1;
+}
+int
+asn1typed_extract_physical_message(asn1p_t *tree, const char *module_name, const char *message_name,
+		asn1typed_module_t *out, char *error, size_t size) {
+	asn1typed_module_t pending;
+	asn1p_expr_t *message;
+	asn1typed_type_t *root;
+	size_t type_index = 0, bound_index = 0, registry_index = 0;
+	if(error && size) error[0] = 0;
+	if(out) memset(out, 0, sizeof(*out));
+	memset(&pending, 0, sizeof(pending));
+	if(!tree || !module_name || !message_name || !out) { set_error(error, size, "invalid physical IOC extractor arguments"); return -1; }
+	message = physical_named_declaration(tree, module_name, message_name);
+	if(!message || message->meta_type != AMT_TYPE || message->lhs_params || message->rhs_pspecs || kind_of_type(terminal_type(message)) != ASN1TYPED_TYPE_SEQUENCE) goto unsupported;
+	if(asn1typed_module_init(&pending, module_name, message->module->source_file_name ? message->module->source_file_name : "<unknown>", 1) ||
+		asn1typed_module_add_type(&pending, message_name, ASN1TYPED_TYPE_SEQUENCE, pending.location.file, message->_lineno > 0 ? (unsigned)message->_lineno : 0, &root) ||
+		populate_type(tree, root, message, pending.location.file, error, size)) goto fail;
+	pending.tag_default = module_tag_default(message->module);
+	if(root->field_count != 1 || root->fields[0].type_semantics != ASN1TYPED_FIELD_FIXED_TYPE || root->fields[0].presence != ASN1TYPED_PRESENCE_MANDATORY || root->fields[0].type.actual_count != 1) goto unsupported;
+	while(type_index < pending.type_count || bound_index < pending.bound_instance_count || registry_index < pending.ioc_registry_count) {
+		if(type_index < pending.type_count) {
+			if(physical_close_type(tree, &pending, type_index++, error, size)) goto fail;
+		} else if(bound_index < pending.bound_instance_count) {
+			asn1typed_bound_instance_t *b = &pending.bound_instances[bound_index];
+			if(b->body.kind == ASN1TYPED_TYPE_SEQUENCE) {
+				if(physical_register_binding(tree, &pending, bound_index, error, size)) goto fail;
+			} else if(b->body.kind != ASN1TYPED_TYPE_SEQUENCE_OF || b->body.is_extensible || b->body.size_constraint.is_extensible || !b->body.size_constraint.has_size_constraint || b->body.size_constraint.lower_bound < 0 || b->body.size_constraint.upper_bound > 65535) goto unsupported;
+			++bound_index;
+		} else {
+			asn1typed_ioc_registry_t *r = &pending.ioc_registries[registry_index];
+			size_t j;
+			for(j = 0; j < r->row_count; ++j) {
+				asn1typed_type_ref_t copy = {0};
+				if(asn1typed_type_ref_copy(&copy, &pending.ioc_registries[registry_index].rows[j].payload_type)) goto unsupported;
+				if(add_ioc_dependency(tree, &pending, &copy, error, size)) { asn1typed_type_ref_clear(&copy); goto fail; }
+				asn1typed_type_ref_clear(&copy);
+			}
+			++registry_index;
+		}
+	}
+	/* The physical message root must hold a collection, not a single field. */
+	{
+		asn1typed_type_ref_t *ref = &pending.types[0].fields[0].type;
+		size_t i;
+		for(i = 0; i < pending.bound_instance_count; ++i)
+			if(asn1typed_type_ref_equal(ref, &pending.bound_instances[i].identity)) break;
+		if(i == pending.bound_instance_count || pending.bound_instances[i].body.kind != ASN1TYPED_TYPE_SEQUENCE_OF) goto unsupported;
+	}
+	*out = pending; return 0;
+unsupported:
+	set_error(error, size, "unsupported physical single-container IOC message graph");
+fail:
+	if(error && size && !error[0]) set_error(error, size, "out of memory owning physical IOC message graph");
+	asn1typed_module_clear(&pending); return -1;
+}

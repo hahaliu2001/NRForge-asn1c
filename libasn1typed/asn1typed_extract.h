@@ -21,6 +21,11 @@ int asn1typed_extract_message(asn1p_t *tree, const char *module_name,
 		const char *message_name, asn1typed_module_t *out,
 		char *error, size_t error_size);
 
+/* Opt-in physical single-container message graph, with owned dispatch tables
+ * and explicit selector-role proofs. Old flattened extraction is unchanged. */
+int asn1typed_extract_physical_message(asn1p_t *, const char *, const char *,
+		asn1typed_module_t *, char *, size_t);
+
 #ifdef __cplusplus
 }
 #endif

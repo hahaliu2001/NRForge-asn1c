@@ -114,3 +114,10 @@ check_asn1typed_collection_render_CPPFLAGS = $(check_asn1typed_extract_CPPFLAGS)
 check_asn1typed_collection_render_LDADD = $(check_asn1typed_extract_LDADD)
 check_asn1typed_collection_render_LDFLAGS = -Wl,--wrap=malloc -Wl,--wrap=calloc -Wl,--wrap=realloc
 EXTRA_DIST += check_asn1typed_collection_generated.sh check_asn1typed_collection_generated.cpp fixtures/collection-generation-n8.asn1
+
+check_PROGRAMS += check_asn1typed_ioc_evidence
+TESTS += check_asn1typed_ioc_evidence
+check_asn1typed_ioc_evidence_SOURCES = check_asn1typed_ioc_evidence.c check_ioc_alloc_core.c check_ioc_alloc_extract.c
+check_asn1typed_ioc_evidence_CPPFLAGS = $(check_asn1typed_extract_CPPFLAGS) -DIOC_EVIDENCE_FIXTURE=\"$(abs_srcdir)/fixtures/ioc-evidence-n9.asn1\" -DNDEBUG
+check_asn1typed_ioc_evidence_LDADD = $(check_asn1typed_extract_LDADD)
+EXTRA_DIST += fixtures/ioc-evidence-n9.asn1
