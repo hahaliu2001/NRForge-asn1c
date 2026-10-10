@@ -7,7 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define MAX_MESSAGES 128
+#define MAX_MESSAGES 512
 struct result {
 	char name[128], extraction_error[1024], envelope_error[1024];
 	asn1typed_module_t body;
@@ -74,7 +74,7 @@ int main(int argc, char **argv) {
 	int (*render[])(const asn1typed_module_t *, const char *, char **, char *, size_t) = {
 		asn1typed_render_cpp_owned_ioc_types, asn1typed_render_cpp_owned_ioc_mapping, asn1typed_render_cpp_owned_ioc_codec
 	};
-	if(argc != 4) { fprintf(stderr, "Usage: probe MODULE_LIST ASN1_ROOT MESSAGE_LIST\n"); return 2; }
+	if(argc != 4 && argc != 5) { fprintf(stderr, "Usage: probe MODULE_LIST ASN1_ROOT MESSAGE_LIST [HEADER_DIR]\n"); return 2; }
 	rows = calloc(MAX_MESSAGES, sizeof(*rows)); if(!rows) return 3;
 	file = fopen(argv[3], "r"); if(!file) { free(rows); return 2; }
 	while(fgets(line, sizeof(line), file)) {
@@ -101,6 +101,8 @@ int main(int argc, char **argv) {
 	printf("{\"parse\":\"PASS\",\"fix\":\"PASS\",\"parser_deleted_before_generation\":true,\"messages\":[");
 	for(i = 0; i < n; ++i) {
 		struct result *r = &rows[i];
+		char *outputs[3] = {NULL, NULL, NULL};
+		int generated = !r->extraction_rc;
 		if(i) putchar(',');
 		printf("{\"message\":"); string(r->name);
 		printf(",\"physical_extraction_rc\":%d,\"extraction_diagnostic\":", r->extraction_rc); string(r->extraction_error);
@@ -110,10 +112,25 @@ int main(int argc, char **argv) {
 		if(!r->extraction_rc) for(q = 0; q < 3; ++q) {
 			char *out = NULL, diag[1024] = {0};
 			int rc = render[q](&r->body, "n12::coverage", &out, diag, sizeof(diag));
+			outputs[q] = out;
+			if(rc) generated = 0;
 			if(q) putchar(',');
-			printf("{\"family\":%zu,\"rc\":%d,\"diagnostic\":", q, rc); string(diag); putchar('}'); free(out);
+			printf("{\"family\":%zu,\"rc\":%d,\"diagnostic\":", q, rc); string(diag); putchar('}');
 		}
 		printf("],\"inventory\":"); inventory(&r->body); putchar('}');
+		if(argc == 5 && generated) for(q = 0; q < 3; ++q) {
+			static const char *const families[] = {"types", "mapping", "codec"};
+			char path[4096];
+			FILE *out;
+			int len = snprintf(path, sizeof(path), "%s/%03zu_%s.hpp", argv[4], i, families[q]);
+			if(len < 0 || (size_t)len >= sizeof(path) || !(out = fopen(path, "wb"))) {
+				fprintf(stderr, "header output failed\n"); return 7;
+			}
+			int written = fputs(outputs[q], out) != EOF;
+			int closed = fclose(out) == 0;
+			if(!written || !closed) { fprintf(stderr, "header write failed\n"); return 7; }
+		}
+		for(q = 0; q < 3; ++q) free(outputs[q]);
 		asn1typed_module_clear(&r->body); asn1typed_target_envelope_clear(&r->envelope);
 	}
 	printf("]}\n"); free(rows); return 0;

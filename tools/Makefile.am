@@ -51,3 +51,5 @@ noinst_PROGRAMS += asn1typed_codec_coverage
 asn1typed_codec_coverage_SOURCES = asn1typed_codec_coverage.c $(tool_common)
 asn1typed_codec_coverage_LDADD = $(top_builddir)/libasn1typed/libasn1typed_extract.la $(top_builddir)/libasn1typed/libasn1typed.la $(common_libs)
 EXTRA_DIST += n12-codec-coverage/messages.txt n12-codec-coverage/run.py n12-codec-coverage/README.md n12-codec-coverage/coverage.json
+
+EXTRA_DIST += n13-full-codec-readiness/scan.py n13-full-codec-readiness/README.md n13-full-codec-readiness/readiness.json
