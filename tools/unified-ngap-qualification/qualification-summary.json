@@ -1,0 +1,89 @@
+{
+  "status": "PASS_FINITE_UNIFIED_PROFILE",
+  "date": "2026-10-10",
+  "base_commit": "2122667859367e3a0482f31373a0ae9846c7f58c",
+  "counts": {
+    "messages": 131,
+    "cases": 3432,
+    "linked_executables": 1,
+    "registry_entries": 131,
+    "physical_and_resource_checks": 7315,
+    "procedures": 81,
+    "initiating": 81,
+    "successful": 32,
+    "unsuccessful": 18
+  },
+  "historical_case_wire_and_semantic_hashes_preserved": true,
+  "candidate_sha256": "0c110c7af26bee7150c859a056b12177874fbfa9ed2e08e83d18e156fe863775",
+  "accepted_profile_sha256": "2eedaa7f086284c9c477e66fc933a5cbe70d3dd5feef3b9250921c3965fe4ecf",
+  "historical_accepted_profile_sha256": "4f7a9ad81fc156ffbf0f84c842a67eeac7e1a6ed2684d1d29604ce3fc6f7113e",
+  "executable_sha256": "5671dc7542edf390b96c596448e2bd91fc47ea4374d6b3a9ffd09e95ca431f8d",
+  "actual_output_sha256": "ad8b50a17aada8592db65b48b1187bbe75a5e59d375dae2e0ceedab25060f07d",
+  "provenance_counts": {
+    "source_fingerprints": 49,
+    "generated_files": 659,
+    "message_translation_units": 131
+  },
+  "public_policy": {
+    "status": "PASS",
+    "unknown_code": 81,
+    "unknown_roles": 3,
+    "absent_successful_slots": 49,
+    "absent_unsuccessful_slots": 63,
+    "unknown_extension_index": 0,
+    "retained_payload_resource_error_bit_offset": 18,
+    "receive_only_encode_refused": true,
+    "source_sha256": "115cdd0b95d26c47328b809facde2475f4a716b4b084a486017d48da8832734c",
+    "executable_sha256": "486eb0dcdb911b193af2ae16156093b6aa309b4b791d91a80590d4d4d868da03"
+  },
+  "checks": {
+    "typed_ir": {
+      "passed": 40,
+      "total": 40
+    },
+    "runtime": {
+      "passed": 10,
+      "total": 10
+    },
+    "unified_core": {
+      "passed": 1,
+      "total": 1,
+      "assertions_independent_of_ndebug": true,
+      "real_allocation_failures": 4
+    },
+    "n11_exact_profile_replay": {
+      "matched_checks": 2652,
+      "profile_verified": true
+    },
+    "missing_adapter_link": "REFUSED: all131 unresolved registrations",
+    "distribution": "PASS",
+    "generated_cmake": "STATIC_REVIEW_PASS; not executed: cmake unavailable"
+  },
+  "sanitizers": {
+    "core_unit_asan_ubsan": "PASS; detect_leaks=0",
+    "mixed_unified_run": {
+      "status": "PASS",
+      "instrumented": [
+        "runtime",
+        "PDU core",
+        "adapter000"
+      ],
+      "remaining_adapters": "130 normal objects; not sanitizer-instrumented",
+      "stdout_equals_accepted": true,
+      "executable_sha256": "d9b84fd26adfc160f467c7cfda34e171c488853019f81d2d986231c76aca0574"
+    },
+    "lsan": "UNAVAILABLE: actual detect_leaks=1 attempt failed with ptrace fatal; no leak PASS claimed"
+  },
+  "independent_review": {
+    "core_identity_ownership_transactions": "PASS; model/value-token mismatch blocker fixed",
+    "generator_tools_schema_proof": "PASS; independent native schema guard added",
+    "all_case_and_fingerprint_reconciliation": "PASS",
+    "actual_public_policy_executable": "PASS"
+  },
+  "scope": [
+    "Frozen TS38.413 V18.10.0 six-module schema and finite3432 accepted cases.",
+    "No exhaustive value-space, live vendor or conditional application-policy qualification.",
+    "No embedded NAS/RRC qualification, benchmark, application integration, Python binding or merge."
+  ],
+  "unresolved_blockers": 0
+}

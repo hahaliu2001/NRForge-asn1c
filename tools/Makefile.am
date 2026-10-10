@@ -75,3 +75,7 @@ EXTRA_DIST += shared-integer-qualification/qualify.py shared-integer-qualificati
 EXTRA_DIST += private-key-qualification/qualify.py private-key-qualification/results.json private-key-qualification/requirements.txt private-key-qualification/README.md
 
 EXTRA_DIST += shared-capability-qualification/README.md shared-capability-qualification/verify.py shared-capability-qualification/readiness.json shared-capability-qualification/summary.json
+
+noinst_PROGRAMS += asn1typed_ngap_dispatch
+asn1typed_ngap_dispatch_SOURCES = ngap-dispatch/generate.c $(tool_common)
+asn1typed_ngap_dispatch_LDADD = $(top_builddir)/libasn1typed/libasn1typed_extract.la $(top_builddir)/libasn1typed/libasn1typed.la $(common_libs)

@@ -5,7 +5,7 @@ ACLOCAL_AMFLAGS = -I m4
 CODE_COVERAGE_IGNORE_PATTERN="tests/*" "lex.yy.c" "y.tab.c" "asn1p_l.l" "asn1p_y.y"
 
 SUBDIRS =                       \
-    libaper libasn1common libasn1typed libasn1parser \
+    libaper libngap libasn1common libasn1typed libasn1parser \
     libasn1fix libasn1print     \
     libasn1compiler             \
     asn1-tools asn1c tools skeletons  \
@@ -27,3 +27,14 @@ EXTRA_DIST += docs/ngap-cpp-aper-full-pdu-qualification-contract.md docs/ngap-cp
  tools/full-pdu-qualification/semantic_bridge.py tools/full-pdu-qualification/reference_framing.py \
  tools/full-pdu-qualification/qualify.py tools/full-pdu-qualification/accepted-profile.json \
  tools/full-pdu-qualification/qualification-summary.json tools/full-pdu-qualification/compatibility-summary.json
+
+EXTRA_DIST += docs/ngap-cpp-aper-unified-dispatch-contract.md \
+ tools/ngap-dispatch/README.md \
+ tools/unified-ngap-qualification/README.md \
+ tools/unified-ngap-qualification/semantic_bridge.py \
+ tools/unified-ngap-qualification/qualify.py
+EXTRA_DIST += tools/ngap-dispatch/check_public.cpp
+EXTRA_DIST += tools/unified-ngap-qualification/compatibility-summary.json
+EXTRA_DIST += docs/ngap-cpp-aper-unified-dispatch-closeout.md \
+ tools/unified-ngap-qualification/accepted-profile.json \
+ tools/unified-ngap-qualification/qualification-summary.json
