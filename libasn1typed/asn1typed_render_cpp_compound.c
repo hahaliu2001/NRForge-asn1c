@@ -6,7 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-struct plan { struct type_plan *types; char *boolean_mapping, *boolean_put, *boolean_get, *octets_mapping, *octets_put, *octets_get; char *bits_mapping, *bits_put, *bits_get; int bits, has_bits, octets, has_octets, extensions, has_extension_sequence, collections; const struct asn1typed_cpp_ioc_entry *ioc; const char *const *extra_names; size_t extra_count; };
+struct plan { struct type_plan *types; char *boolean_mapping, *boolean_put, *boolean_get, *octets_mapping, *octets_put, *octets_get; char *bits_mapping, *bits_put, *bits_get; int values, has_integers, bits, has_bits, octets, has_octets, extensions, has_extension_sequence, collections; const struct asn1typed_cpp_ioc_entry *ioc; const char *const *extra_names; size_t extra_count; };
 static int
 append(struct compound_buf *b, const char *text) {
 	size_t n = strlen(text);
@@ -81,8 +81,7 @@ field_semantics(const asn1typed_field_t *f) {
 		!f->has_class_field_relation && !r->class_module && !r->class_source_name && !r->class_field_source_name &&
 		!r->actual_index && !r->has_selector && !r->selector_source_name &&
 		!f->ioc.symbolic_id && !f->ioc.has_numeric_id && !f->ioc.numeric_id && f->ioc.criticality == ASN1TYPED_CRITICALITY_REJECT &&
-		(f->presence == ASN1TYPED_PRESENCE_MANDATORY || f->presence == ASN1TYPED_PRESENCE_OPTIONAL) &&
-		empty_range(&f->value_range);
+		(f->presence == ASN1TYPED_PRESENCE_MANDATORY || f->presence == ASN1TYPED_PRESENCE_OPTIONAL);
 }
 static void
 clear(struct plan *p, const asn1typed_module_t *m) {
@@ -93,6 +92,7 @@ clear(struct plan *p, const asn1typed_module_t *m) {
 		free(t->encode); free(t->decode); free(t->put); free(t->get); free(t->qualified_put); free(t->qualified_get); free(t->extension_member);
 		free(t->unknown_wrapper); free(t->qualified_unknown_wrapper); free(t->value_member);
 		if(t->members) for(j = 0; j < t->member_count; ++j) {
+			free(t->members[j].value_name); free(t->members[j].value_mapping); free(t->members[j].value_put); free(t->members[j].value_get);
 			free(t->members[j].size_name); free(t->members[j].size_mapping); free(t->members[j].size_put); free(t->members[j].size_get);
 			free(t->members[j].name); free(t->members[j].wrapper); free(t->members[j].qualified_wrapper);
 		}
@@ -112,7 +112,7 @@ qualified(const char *ns, const char *scope, const char *name) {
 }
 static int
 resolve(const asn1typed_module_t *m, struct plan *p, size_t owner,
-		const asn1typed_type_ref_t *r, struct member_plan *member) {
+		const asn1typed_type_ref_t *r, const asn1typed_integer_value_range_t *range, struct member_plan *member) {
 	size_t i;
 	if(r->actuals || r->actual_count) return -1;
 	if(r->kind == ASN1TYPED_REF_PRIMITIVE) {
@@ -124,6 +124,10 @@ resolve(const asn1typed_module_t *m, struct plan *p, size_t owner,
         if(p->bits && r->primitive_kind == ASN1TYPED_PRIMITIVE_BIT_STRING) {
             p->has_bits = 1; member->type = "::nrforge::aper::BitString"; member->mapping = p->bits_mapping;
             member->put = p->bits_put; member->get = p->bits_get; return 0;
+        }
+        if(p->values && r->primitive_kind == ASN1TYPED_PRIMITIVE_INTEGER && range && range->has_value_range == 1) {
+            member->type = range->lower_bound < 0 ? "::std::int64_t" : "::std::uint64_t";
+            return 0;
         }
         if(r->primitive_kind != ASN1TYPED_PRIMITIVE_BOOLEAN) return -1;
 		member->type = "bool"; member->mapping = p->boolean_mapping;
@@ -138,10 +142,18 @@ resolve(const asn1typed_module_t *m, struct plan *p, size_t owner,
 	member->put = p->types[i].qualified_put; member->get = p->types[i].qualified_get;
 	return 0;
 }
+static int
+legacy_uint(const asn1typed_type_t *t) {
+    const asn1typed_integer_value_range_t *r = &t->value_range;
+    return t->kind == ASN1TYPED_TYPE_PRIMITIVE && t->primitive_kind == ASN1TYPED_PRIMITIVE_INTEGER &&
+        r->has_value_range == 1 && !r->lower_bound && !r->is_extensible && !r->tail && !r->tail_count &&
+        (r->upper_bound == 255 || r->upper_bound == 65535 || r->upper_bound == INT64_C(4294967295) || r->upper_bound == INT64_C(1099511627775));
+}
 typedef int (*renderer)(const asn1typed_module_t *, const char *, char **, char *, size_t);
 static renderer
-delegate(const asn1typed_type_t *t, int mode) {
+delegate(const asn1typed_type_t *t, int mode, int values) {
 	if(t->kind == ASN1TYPED_TYPE_ENUMERATED) return mode == 0 ? asn1typed_render_cpp_owned_enum_types : mode == 1 ? asn1typed_render_cpp_owned_enum_mapping : asn1typed_render_cpp_owned_enum_codec;
+    if(values && !legacy_uint(t)) return mode == 0 ? asn1typed_render_cpp_owned_integer_types : mode == 1 ? asn1typed_render_cpp_owned_integer_mapping : asn1typed_render_cpp_owned_integer_codec;
 	return mode == 0 ? asn1typed_render_cpp_owned_uint_types : mode == 1 ? asn1typed_render_cpp_owned_uint_mapping : asn1typed_render_cpp_owned_uint_codec;
 }
 static int
@@ -149,10 +161,10 @@ primitive(const asn1typed_type_t *t) {
 	return t->kind == ASN1TYPED_TYPE_ENUMERATED || (t->kind == ASN1TYPED_TYPE_PRIMITIVE && t->primitive_kind == ASN1TYPED_PRIMITIVE_INTEGER);
 }
 static int
-single_view(const asn1typed_module_t *m, size_t i, const char *ns, int mode, char **text, char *why, size_t size) {
+single_view(const asn1typed_module_t *m, size_t i, const char *ns, int mode, char **text, char *why, size_t size, int values) {
 	asn1typed_module_t view = *m;
 	view.types = &m->types[i]; view.type_count = 1; view.type_capacity = 1;
-	return delegate(&m->types[i], mode)(&view, ns, text, why, size);
+	return delegate(&m->types[i], mode, values)(&view, ns, text, why, size);
 }
 static int
 register_symbol(const char *symbol, const char ***list, size_t *count, char *why, size_t size) {
@@ -213,7 +225,7 @@ preflight(const asn1typed_module_t *m, const char *ns, struct plan *p, char *why
 		struct type_plan *tp = &p->types[i];
 		char *base;
 		const char *scope = t->kind == ASN1TYPED_TYPE_ENUMERATED ? "enum_codec::" :
-			(t->kind == ASN1TYPED_TYPE_PRIMITIVE && t->primitive_kind == ASN1TYPED_PRIMITIVE_INTEGER) ? "uint_codec::" : "compound_codec::";
+			(t->kind == ASN1TYPED_TYPE_PRIMITIVE && t->primitive_kind == ASN1TYPED_PRIMITIVE_INTEGER) ? (p->values && !legacy_uint(t) ? "integer_codec::" : "uint_codec::") : "compound_codec::";
 		if(p->extensions && !(t->kind == ASN1TYPED_TYPE_SEQUENCE && t->is_extensible) &&
 			(t->sequence_extension_evidence != ASN1TYPED_WIRE_EVIDENCE_UNAVAILABLE || t->sequence_root_field_count || t->sequence_known_addition_count || t->has_valid_sequence_extension_structure)) FAIL("unexpected SEQUENCE extension structure metadata");
 		if(!shape(t, p->extensions, p->collections, p->octets, p->bits)) FAIL("unsupported compound type shape, storage or metadata");
@@ -240,8 +252,8 @@ preflight(const asn1typed_module_t *m, const char *ns, struct plan *p, char *why
 		if(register_symbol(tp->qualified_put, &symbols, &symbol_count, why, size) || register_symbol(tp->qualified_get, &symbols, &symbol_count, why, size)) goto fail;
 		if(primitive(t)) {
 			char *text = NULL;
-			if(single_view(m, i, ns, 0, &text, why, size)) { free(text); goto fail; }
-			free(text); continue;
+			if(single_view(m, i, ns, 0, &text, why, size, p->values)) { free(text); goto fail; }
+			free(text); if(p->values && t->kind == ASN1TYPED_TYPE_PRIMITIVE && !legacy_uint(t)) p->has_integers = 1; continue;
 		}
 		if(t->kind == ASN1TYPED_TYPE_SEQUENCE && t->is_extensible) {
 			if(asn1typed_sequence_extension_structure_validate(t, why, size)) goto fail;
@@ -261,23 +273,56 @@ preflight(const asn1typed_module_t *m, const char *ns, struct plan *p, char *why
 			struct member_plan *mp = &tp->members[j];
 			const asn1typed_type_ref_t *ref;
             const asn1typed_size_constraint_t *site_size = NULL;
+            const asn1typed_integer_value_range_t *site_range = NULL;
 			const char *source;
 			if(t->kind == ASN1TYPED_TYPE_CHOICE) {
 				const asn1typed_choice_alternative_t *a = &t->alternatives[j];
-				if((!p->bits && !empty_size(&a->size_constraint)) || !empty_range(&a->value_range)) FAIL("unsupported CHOICE alternative constraint metadata");
-				ref = &a->type_ref; source = a->source_name; site_size = &a->size_constraint;
+				if((!p->bits && !empty_size(&a->size_constraint)) || (!p->values && !empty_range(&a->value_range))) FAIL("unsupported CHOICE alternative constraint metadata");
+				ref = &a->type_ref; source = a->source_name; site_size = &a->size_constraint; site_range = &a->value_range;
 			} else if(t->kind == ASN1TYPED_TYPE_SEQUENCE_OF) {
 				ref = &t->element_type; source = "elements";
 			} else {
 				const asn1typed_field_t *f = &t->fields[j];
-				if(!field_semantics(f) || (!p->bits && !empty_size(&f->size_constraint))) FAIL("unsupported SEQUENCE field semantics or metadata");
-				ref = &f->type; source = f->source_name; site_size = &f->size_constraint;
+				if(!field_semantics(f) || (!p->bits && !empty_size(&f->size_constraint)) || (!p->values && !empty_range(&f->value_range))) FAIL("unsupported SEQUENCE field semantics or metadata");
+				ref = &f->type; source = f->source_name; site_size = &f->size_constraint; site_range = &f->value_range;
 			}
 			if(!source || !source[0]) FAIL("compound member has missing source name");
 			mp->name = asn1typed_render_cpp_final_name(source, ASN1TYPED_NAME_FIELD);
 			if(!mp->name || (asn1typed_render_cpp_header_macro(mp->name) && !(p->ioc && p->ioc[i].registry && j >= 2))) FAIL("compound member spelling is unsafe, a standard header macro, or unavailable");
 			for(k = (p->ioc && p->ioc[i].registry && j >= 2) ? 2 : 0; k < j; ++k) if(!strcmp(mp->name, tp->members[k].name)) FAIL("compound member final name collision");
-			if(resolve(m, p, i, ref, mp)) FAIL("unsupported, missing, external, forward or recursive compound reference");
+			if(resolve(m, p, i, ref, site_range, mp)) FAIL("unsupported, missing, external, forward or recursive compound reference");
+            if(site_range && !empty_range(site_range)) {
+                size_t target = 0;
+                const asn1typed_integer_value_range_t *decl_range = NULL;
+                char ordinal[3 * sizeof(size_t) + 32], *local;
+                if(!p->values || site_range->has_value_range != 1 || site_range->is_extensible ||
+                   site_range->tail || site_range->tail_count || site_range->lower_bound > site_range->upper_bound ||
+                   site_range->lower_bound < INT64_MIN || site_range->upper_bound > INT64_MAX ||
+                   (site_size && !empty_size(site_size))) FAIL("unsupported INTEGER use-site interval metadata");
+                if(ref->kind == ASN1TYPED_REF_NAMED) {
+                    for(target = 0; target < i; ++target) if(!strcmp(m->types[target].identity.source_name, ref->source_name)) break;
+                    if(target == i || m->types[target].kind != ASN1TYPED_TYPE_PRIMITIVE || m->types[target].primitive_kind != ASN1TYPED_PRIMITIVE_INTEGER)
+                        FAIL("INTEGER interval use-site requires INTEGER reference");
+                    decl_range = &m->types[target].value_range;
+                    if(decl_range->has_value_range != 1 || decl_range->is_extensible || decl_range->tail || decl_range->tail_count ||
+                       site_range->lower_bound < decl_range->lower_bound || site_range->upper_bound > decl_range->upper_bound)
+                        FAIL("INTEGER use-site interval is not a subset of named declaration");
+                } else if(ref->primitive_kind != ASN1TYPED_PRIMITIVE_INTEGER) FAIL("INTEGER interval use-site requires INTEGER primitive");
+                mp->range = *site_range; mp->value_signed = (decl_range ? decl_range->lower_bound : site_range->lower_bound) < 0;
+                snprintf(ordinal, sizeof(ordinal), "_member_%zu_value_aper", j);
+                mp->value_name = join("", tp->type, ordinal);
+                mp->value_mapping = mp->value_name ? qualified(ns, "", mp->value_name) : NULL;
+                snprintf(ordinal, sizeof(ordinal), "_member_%zu_value", j);
+                local = join("put_", tp->type, ordinal);
+                mp->value_put = local ? qualified(ns, "compound_codec::", local) : NULL; free(local);
+                local = join("get_", tp->type, ordinal);
+                mp->value_get = local ? qualified(ns, "compound_codec::", local) : NULL; free(local);
+                if(!mp->value_name || !mp->value_mapping || !mp->value_put || !mp->value_get) FAIL("out of memory planning INTEGER interval helpers");
+                if(register_symbol(mp->value_name, &symbols, &symbol_count, why, size) || register_symbol(mp->value_put, &symbols, &symbol_count, why, size) ||
+                   register_symbol(mp->value_get, &symbols, &symbol_count, why, size)) goto fail;
+                mp->mapping = mp->value_mapping; mp->put = mp->value_put; mp->get = mp->value_get;
+                p->has_integers = 1;
+            }
             if(site_size && !empty_size(site_size)) {
                 size_t target = 0;
                 asn1typed_primitive_kind_e kind = ref->primitive_kind;
@@ -348,6 +393,7 @@ preflight(const asn1typed_module_t *m, const char *ns, struct plan *p, char *why
 		}
 
 	}
+    if(p->has_integers && register_symbol("integer_codec", &symbols, &symbol_count, why, size)) goto fail;
     if(p->has_bits && (register_symbol("COMPOUND_BITS", &symbols, &symbol_count, why, size) ||
         register_symbol(p->bits_put, &symbols, &symbol_count, why, size) ||
         register_symbol(p->bits_get, &symbols, &symbol_count, why, size))) goto fail;
@@ -557,14 +603,41 @@ emit_member_sizes(struct compound_buf *b, const struct type_plan *p, int mode) {
     }
     return 0;
 }
+static void
+bound_literal(char *out, size_t size, intmax_t value, int is_signed) {
+    if(!is_signed) snprintf(out, size, "UINT64_C(%" PRIuMAX ")", (uintmax_t)value);
+    else if(value == INT64_MIN) snprintf(out, size, "(-INT64_C(9223372036854775807) - INT64_C(1))");
+    else if(value < 0) snprintf(out, size, "(-INT64_C(%" PRIuMAX "))", (uintmax_t)(-value));
+    else snprintf(out, size, "INT64_C(%" PRIuMAX ")", (uintmax_t)value);
+}
 static int
-render(const asn1typed_module_t *m, const char *ns, char **out, char *diagnostic, size_t size, int mode, int extensions, int collections, int octets, int bits, const struct asn1typed_cpp_ioc_entry *ioc) {
+emit_member_values(struct compound_buf *b, const struct type_plan *p, int mode) {
+    size_t j;
+    for(j = 0; j < p->member_count; ++j) {
+        const struct member_plan *mp = &p->members[j];
+        char lower[96], upper[96];
+        const char *suffix, *put, *get;
+        if(!mp->value_name || mode == 0) continue;
+        bound_literal(lower, sizeof(lower), mp->range.lower_bound, mp->value_signed);
+        bound_literal(upper, sizeof(upper), mp->range.upper_bound, mp->value_signed);
+        if(mode == 1) {
+            if(format(b, "struct %s { using value_type = %s; static constexpr value_type lower_bound = %s; static constexpr value_type upper_bound = %s; static constexpr bool extensible = false; };\n", mp->value_name, mp->type, lower, upper)) return -1;
+            continue;
+        }
+        suffix = mp->value_signed ? "int" : "uint";
+        put = strrchr(mp->value_put, ':') + 1; get = strrchr(mp->value_get, ':') + 1;
+        if(format(b, "namespace compound_codec {\ninline ::nrforge::aper::Result<void> %s(::nrforge::aper::FieldWriter& f, const %s& v) { return f.write_bounded_%s(v, %s::lower_bound, %s::upper_bound); }\ninline ::nrforge::aper::Result<%s> %s(::nrforge::aper::FieldReader& f) { return f.read_bounded_%s(%s::lower_bound, %s::upper_bound); }\n}\n", put, mp->type, suffix, mp->value_mapping, mp->value_mapping, mp->type, get, suffix, mp->value_mapping, mp->value_mapping)) return -1;
+    }
+    return 0;
+}
+static int
+render(const asn1typed_module_t *m, const char *ns, char **out, char *diagnostic, size_t size, int mode, int extensions, int collections, int octets, int bits, int values, const struct asn1typed_cpp_ioc_entry *ioc) {
 	struct plan p = {0};
 	struct compound_buf b = {NULL, 0};
 	char why[512] = "invalid compound renderer arguments";
 	size_t i;
 	int result = -1;
-	p.extensions = extensions; p.collections = collections; p.ioc = ioc; p.octets = octets || !!ioc; p.bits = bits || !!ioc;
+	p.extensions = extensions; p.collections = collections; p.ioc = ioc; p.octets = octets || !!ioc; p.bits = bits || !!ioc; p.values = values || !!ioc;
 	if(out) *out = NULL;
 	if(diagnostic && size) diagnostic[0] = 0;
 	if(!out || preflight(m, ns, &p, why, sizeof(why))) goto done;
@@ -589,10 +662,10 @@ render(const asn1typed_module_t *m, const char *ns, char **out, char *diagnostic
 		const asn1typed_type_t *t = &m->types[i];
 		if(primitive(t)) {
 			char *text = NULL;
-			if(single_view(m, i, ns, mode, &text, why, sizeof(why))) { free(text); goto done; }
+			if(single_view(m, i, ns, mode, &text, why, sizeof(why), p.values)) { free(text); goto done; }
 			if(append(&b, text)) { free(text); goto oom; } free(text);
 		} else {
-			if(format(&b, "namespace %s {\n", ns) || emit_member_sizes(&b, &p.types[i], mode) || (ioc && ioc[i].registry ? asn1typed_render_cpp_ioc_emit(&b, &p.types[i], &ioc[i], mode) : mode == 0 ? emit_types(&b, t, &p.types[i]) : mode == 1 ? emit_mapping(&b, t, &p.types[i], &p) : emit_codec(&b, t, &p.types[i], &p)) || append(&b, "} // namespace\n")) goto oom;
+			if(format(&b, "namespace %s {\n", ns) || emit_member_sizes(&b, &p.types[i], mode) || emit_member_values(&b, &p.types[i], mode) || (ioc && ioc[i].registry ? asn1typed_render_cpp_ioc_emit(&b, &p.types[i], &ioc[i], mode) : mode == 0 ? emit_types(&b, t, &p.types[i]) : mode == 1 ? emit_mapping(&b, t, &p.types[i], &p) : emit_codec(&b, t, &p.types[i], &p)) || append(&b, "} // namespace\n")) goto oom;
 		}
 	}
 	*out = b.text; b.text = NULL; result = 0; goto done;
@@ -605,45 +678,45 @@ done:
 }
 int
 asn1typed_render_cpp_owned_compound_types(const asn1typed_module_t *m, const char *ns,
-		char **out, char *diagnostic, size_t size) { return render(m, ns, out, diagnostic, size, 0, 0, 0, 0, 0, NULL); }
+		char **out, char *diagnostic, size_t size) { return render(m, ns, out, diagnostic, size, 0, 0, 0, 0, 0, 0, NULL); }
 int
 asn1typed_render_cpp_owned_compound_mapping(const asn1typed_module_t *m, const char *ns,
-		char **out, char *diagnostic, size_t size) { return render(m, ns, out, diagnostic, size, 1, 0, 0, 0, 0, NULL); }
+		char **out, char *diagnostic, size_t size) { return render(m, ns, out, diagnostic, size, 1, 0, 0, 0, 0, 0, NULL); }
 int
 asn1typed_render_cpp_owned_compound_codec(const asn1typed_module_t *m, const char *ns,
-		char **out, char *diagnostic, size_t size) { return render(m, ns, out, diagnostic, size, 2, 0, 0, 0, 0, NULL); }
+		char **out, char *diagnostic, size_t size) { return render(m, ns, out, diagnostic, size, 2, 0, 0, 0, 0, 0, NULL); }
 
 int
 asn1typed_render_cpp_owned_sequence_extension_types(const asn1typed_module_t *m, const char *ns,
-		char **out, char *diagnostic, size_t size) { return render(m, ns, out, diagnostic, size, 0, 1, 0, 0, 0, NULL); }
+		char **out, char *diagnostic, size_t size) { return render(m, ns, out, diagnostic, size, 0, 1, 0, 0, 0, 0, NULL); }
 int
 asn1typed_render_cpp_owned_sequence_extension_mapping(const asn1typed_module_t *m, const char *ns,
-		char **out, char *diagnostic, size_t size) { return render(m, ns, out, diagnostic, size, 1, 1, 0, 0, 0, NULL); }
+		char **out, char *diagnostic, size_t size) { return render(m, ns, out, diagnostic, size, 1, 1, 0, 0, 0, 0, NULL); }
 int
 asn1typed_render_cpp_owned_sequence_extension_codec(const asn1typed_module_t *m, const char *ns,
-		char **out, char *diagnostic, size_t size) { return render(m, ns, out, diagnostic, size, 2, 1, 0, 0, 0, NULL); }
+		char **out, char *diagnostic, size_t size) { return render(m, ns, out, diagnostic, size, 2, 1, 0, 0, 0, 0, NULL); }
 
 int
 asn1typed_render_cpp_owned_collection_types(const asn1typed_module_t *m, const char *ns,
-		char **out, char *diagnostic, size_t size) { return render(m, ns, out, diagnostic, size, 0, 1, 1, 0, 0, NULL); }
+		char **out, char *diagnostic, size_t size) { return render(m, ns, out, diagnostic, size, 0, 1, 1, 0, 0, 0, NULL); }
 int
 asn1typed_render_cpp_owned_collection_mapping(const asn1typed_module_t *m, const char *ns,
-		char **out, char *diagnostic, size_t size) { return render(m, ns, out, diagnostic, size, 1, 1, 1, 0, 0, NULL); }
+		char **out, char *diagnostic, size_t size) { return render(m, ns, out, diagnostic, size, 1, 1, 1, 0, 0, 0, NULL); }
 int
 asn1typed_render_cpp_owned_collection_codec(const asn1typed_module_t *m, const char *ns,
-		char **out, char *diagnostic, size_t size) { return render(m, ns, out, diagnostic, size, 2, 1, 1, 0, 0, NULL); }
+		char **out, char *diagnostic, size_t size) { return render(m, ns, out, diagnostic, size, 2, 1, 1, 0, 0, 0, NULL); }
 
 int
 asn1typed_render_cpp_compound_ioc(const asn1typed_module_t *m, const char *ns,
         const struct asn1typed_cpp_ioc_entry *ioc, int mode,
         char **out, char *diagnostic, size_t size) {
-    return render(m, ns, out, diagnostic, size, mode, 1, 1, 1, 1, ioc);
+    return render(m, ns, out, diagnostic, size, mode, 1, 1, 1, 1, 1, ioc);
 }
 int asn1typed_render_cpp_compound_ioc_check_names(const asn1typed_module_t *m, const char *ns,
         const struct asn1typed_cpp_ioc_entry *ioc, const char *const *names, size_t count, char *why, size_t size) {
     struct plan p = {0};
     int result;
-    p.extensions = p.collections = 1; p.ioc = ioc; p.octets = !!ioc; p.bits = !!ioc; p.extra_names = names; p.extra_count = count;
+    p.extensions = p.collections = 1; p.ioc = ioc; p.octets = !!ioc; p.bits = !!ioc; p.values = !!ioc; p.extra_names = names; p.extra_count = count;
     result = preflight(m, ns, &p, why, size);
     if(p.types || p.boolean_mapping || p.boolean_put || p.boolean_get) clear(&p, m);
     return result;
@@ -651,19 +724,26 @@ int asn1typed_render_cpp_compound_ioc_check_names(const asn1typed_module_t *m, c
 
 int
 asn1typed_render_cpp_owned_octet_types(const asn1typed_module_t *m, const char *ns,
-        char **out, char *diagnostic, size_t size) { return render(m, ns, out, diagnostic, size, 0, 1, 1, 1, 0, NULL); }
+        char **out, char *diagnostic, size_t size) { return render(m, ns, out, diagnostic, size, 0, 1, 1, 1, 0, 0, NULL); }
 
 int
 asn1typed_render_cpp_owned_octet_mapping(const asn1typed_module_t *m, const char *ns,
-        char **out, char *diagnostic, size_t size) { return render(m, ns, out, diagnostic, size, 1, 1, 1, 1, 0, NULL); }
+        char **out, char *diagnostic, size_t size) { return render(m, ns, out, diagnostic, size, 1, 1, 1, 1, 0, 0, NULL); }
 
 int
 asn1typed_render_cpp_owned_octet_codec(const asn1typed_module_t *m, const char *ns,
-        char **out, char *diagnostic, size_t size) { return render(m, ns, out, diagnostic, size, 2, 1, 1, 1, 0, NULL); }
+        char **out, char *diagnostic, size_t size) { return render(m, ns, out, diagnostic, size, 2, 1, 1, 1, 0, 0, NULL); }
 
 int
-asn1typed_render_cpp_owned_bit_types(const asn1typed_module_t *m, const char *ns, char **out, char *diagnostic, size_t size) { return render(m, ns, out, diagnostic, size, 0, 1, 1, 1, 1, NULL); }
+asn1typed_render_cpp_owned_bit_types(const asn1typed_module_t *m, const char *ns, char **out, char *diagnostic, size_t size) { return render(m, ns, out, diagnostic, size, 0, 1, 1, 1, 1, 0, NULL); }
 int
-asn1typed_render_cpp_owned_bit_mapping(const asn1typed_module_t *m, const char *ns, char **out, char *diagnostic, size_t size) { return render(m, ns, out, diagnostic, size, 1, 1, 1, 1, 1, NULL); }
+asn1typed_render_cpp_owned_bit_mapping(const asn1typed_module_t *m, const char *ns, char **out, char *diagnostic, size_t size) { return render(m, ns, out, diagnostic, size, 1, 1, 1, 1, 1, 0, NULL); }
 int
-asn1typed_render_cpp_owned_bit_codec(const asn1typed_module_t *m, const char *ns, char **out, char *diagnostic, size_t size) { return render(m, ns, out, diagnostic, size, 2, 1, 1, 1, 1, NULL); }
+asn1typed_render_cpp_owned_bit_codec(const asn1typed_module_t *m, const char *ns, char **out, char *diagnostic, size_t size) { return render(m, ns, out, diagnostic, size, 2, 1, 1, 1, 1, 0, NULL); }
+
+int
+asn1typed_render_cpp_owned_value_types(const asn1typed_module_t *m, const char *ns, char **out, char *diagnostic, size_t size) { return render(m, ns, out, diagnostic, size, 0, 1, 1, 1, 1, 1, NULL); }
+int
+asn1typed_render_cpp_owned_value_mapping(const asn1typed_module_t *m, const char *ns, char **out, char *diagnostic, size_t size) { return render(m, ns, out, diagnostic, size, 1, 1, 1, 1, 1, 1, NULL); }
+int
+asn1typed_render_cpp_owned_value_codec(const asn1typed_module_t *m, const char *ns, char **out, char *diagnostic, size_t size) { return render(m, ns, out, diagnostic, size, 2, 1, 1, 1, 1, 1, NULL); }

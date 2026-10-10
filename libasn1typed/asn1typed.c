@@ -1105,8 +1105,8 @@ asn1typed_type_add_choice_alternative(asn1typed_type_t *type,
 	if(size_constraint && (!size_constraint->has_size_constraint ||
 		size_constraint->lower_bound > size_constraint->upper_bound)) return -1;
 	if(value_range && (!value_range->has_value_range || size_constraint ||
-		type_ref->kind != ASN1TYPED_REF_PRIMITIVE ||
-		type_ref->primitive_kind != ASN1TYPED_PRIMITIVE_INTEGER)) return -1;
+		(type_ref->kind == ASN1TYPED_REF_PRIMITIVE &&
+		 type_ref->primitive_kind != ASN1TYPED_PRIMITIVE_INTEGER))) return -1;
 	memset(&alternative, 0, sizeof(alternative));
 	alternative.source_name = asn1typed_strdup(source_name);
 	if(size_constraint) alternative.size_constraint = *size_constraint;

@@ -26,3 +26,7 @@ Owner authorization: 2026-10-09 (America/Los_Angeles), “同意，做N14”. Th
 ## N15 selected capability milestone
 
 Owner authorization: 2026-10-09 (America/Los_Angeles), “做N15”. Implement bounded owned BIT STRING and effective use-site SIZE lowering for BIT/OCTET, focused tests and independent primitive references, independent review/fix closure, full131 readiness rescan, and routine commit/push. Preserve frozen schemas and old generated outputs. Named-bit lists, fragmented strings, extensible SIZE codecs, unrepresented SIZE additions, NULL/private-IE semantics and general NGAP wire qualification remain outside this milestone. Stop after N15.
+
+## N16 selected capability milestone
+
+Owner authorization: “做N16”. Implement single finite non-extensible INTEGER intervals and effective use-site value constraints, with full int64/uint64 runtime arithmetic, owned extraction, generated codecs, focused independent references, independent review/fix closure, full131 readiness rescan, and routine commit/push. Preserve frozen schemas and historical generated outputs. Extensible INTEGER, discontinuous permitted sets, unconstrained INTEGER, unrepresented registry constraints, NULL/private-IE semantics and general NGAP interoperability remain outside this milestone. Stop after N16.

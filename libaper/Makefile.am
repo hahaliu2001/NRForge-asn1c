@@ -38,3 +38,9 @@ TESTS += check_aper_bits
 check_aper_bits_SOURCES = check_bits.cpp
 check_aper_bits_CPPFLAGS = -I$(srcdir) -DNDEBUG
 check_aper_bits_LDADD = libaper.la
+
+check_PROGRAMS += check_aper_integer
+TESTS += check_aper_integer
+check_aper_integer_SOURCES = check_integer.cpp
+check_aper_integer_CPPFLAGS = -I$(srcdir) -DNDEBUG
+check_aper_integer_LDADD = libaper.la

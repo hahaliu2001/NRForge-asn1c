@@ -257,6 +257,116 @@ Result<std::uint64_t> BitReader::read_constrained_uint(unsigned root_bits) {
     return Result<std::uint64_t>::success(value);
 }
 
+namespace {
+struct BoundedIntegerLayout {
+    unsigned payload_bits;
+    unsigned selector_bits;
+    unsigned maximum_octets;
+    bool aligned;
+};
+BoundedIntegerLayout bounded_integer_layout(std::uint64_t maximum_offset) noexcept {
+    if(maximum_offset == 0) return {0,0,0,false};
+    if(maximum_offset <= 254) {
+        unsigned bits=0;
+        for(auto rest=maximum_offset;rest;rest>>=1) ++bits;
+        return {bits,0,0,false};
+    }
+    if(maximum_offset == 255) return {8,0,1,true};
+    if(maximum_offset <= 65535) return {16,0,2,true};
+    unsigned octets=1,bits=0;
+    for(auto rest=maximum_offset>>8;rest;rest>>=8) ++octets;
+    for(auto rest=octets-1;rest;rest>>=1) ++bits;
+    return {0,bits,octets,true};
+}
+std::uint64_t ordered_signed(std::int64_t value) noexcept {
+    return static_cast<std::uint64_t>(value) ^ (std::uint64_t{1}<<63);
+}
+std::int64_t signed_ordered(std::uint64_t value) noexcept {
+    const auto sign=std::uint64_t{1}<<63;
+    if(value>=sign) return static_cast<std::int64_t>(value-sign);
+    return std::numeric_limits<std::int64_t>::min()+static_cast<std::int64_t>(value);
+}
+}
+
+Result<std::uint64_t> BitReader::read_bounded_uint(std::uint64_t lower,std::uint64_t upper) {
+    auto live=validate_live();
+    if(!live) return Result<std::uint64_t>::failure(live.error());
+    const auto start=cursor_bit_;
+    auto reject=[&](ErrorCode code,std::size_t position) {
+        return Result<std::uint64_t>::failure(fail({code,position}).error());
+    };
+    if(lower>upper) return reject(ErrorCode::invalid_argument,start);
+    const auto maximum_offset=upper-lower;
+    const auto layout=bounded_integer_layout(maximum_offset);
+    unsigned octets=layout.maximum_octets;
+    if(layout.selector_bits) {
+        if(start>logical_bit_limit_ || layout.selector_bits>logical_bit_limit_-start)
+            return reject(ErrorCode::truncated_input,logical_bit_limit_);
+        unsigned selector=0;
+        for(unsigned i=0;i<layout.selector_bits;++i) selector=(selector<<1)|get_bit(input_,start+i);
+        octets=selector+1;
+        if(octets>layout.maximum_octets) return reject(ErrorCode::constraint_violation,start);
+    }
+    std::size_t after_selector=0,total=0;
+    if(!checked_add_size(start,layout.selector_bits,after_selector)) return reject(ErrorCode::resource_limit,start);
+    const auto padding=layout.aligned ? (8-after_selector%8)%8 : 0;
+    const auto payload_bits=layout.selector_bits ? octets*8u : layout.payload_bits;
+    if(!checked_add_size(layout.selector_bits,padding+payload_bits,total)) return reject(ErrorCode::resource_limit,start);
+    auto ready=preflight(total,start);
+    if(!ready) return Result<std::uint64_t>::failure(ready.error());
+    for(std::size_t i=0;i<padding;++i) if(get_bit(input_,after_selector+i)) return reject(ErrorCode::nonzero_padding,after_selector+i);
+    std::uint64_t offset=0;
+    for(unsigned i=0;i<payload_bits;++i) offset=(offset<<1)|get_bit(input_,after_selector+padding+i);
+    if((layout.selector_bits && octets>1 && (offset>>((octets-1)*8))==0) || offset>maximum_offset)
+        return reject(ErrorCode::constraint_violation,start);
+    cursor_bit_=start+total; charge_wire(total);
+    return Result<std::uint64_t>::success(lower+offset);
+}
+
+Result<std::int64_t> BitReader::read_bounded_int(std::int64_t lower,std::int64_t upper) {
+    auto live=validate_live();
+    if(!live) return Result<std::int64_t>::failure(live.error());
+    if(lower>upper) return Result<std::int64_t>::failure(fail({ErrorCode::invalid_argument,cursor_bit_}).error());
+    auto value=read_bounded_uint(ordered_signed(lower),ordered_signed(upper));
+    return value ? Result<std::int64_t>::success(signed_ordered(value.value())) : Result<std::int64_t>::failure(value.error());
+}
+
+Result<void> BitWriter::write_bounded_uint(std::uint64_t value,std::uint64_t lower,std::uint64_t upper) {
+    auto live=validate_live();
+    if(!live) return live;
+    const auto start=cursor_bit_;
+    if(lower>upper) return fail({ErrorCode::invalid_argument,start});
+    if(value<lower || value>upper) return fail({ErrorCode::constraint_violation,start});
+    const auto offset=value-lower;
+    const auto layout=bounded_integer_layout(upper-lower);
+    unsigned octets=layout.maximum_octets;
+    if(layout.selector_bits) { octets=1; for(auto rest=offset>>8;rest;rest>>=8) ++octets; }
+    std::size_t after_selector=0,total=0,end=0;
+    if(!checked_add_size(start,layout.selector_bits,after_selector)) return fail({ErrorCode::resource_limit,start});
+    const auto padding=layout.aligned ? (8-after_selector%8)%8 : 0;
+    const auto payload_bits=layout.selector_bits ? octets*8u : layout.payload_bits;
+    if(!checked_add_size(layout.selector_bits,padding+payload_bits,total) || !checked_add_size(start,total,end))
+        return fail({ErrorCode::resource_limit,start});
+    auto ready=preflight(total,end,start);
+    if(!ready) return ready;
+    std::size_t output_octets=0; (void)checked_bits_to_octets(end,output_octets);
+    auto grown=grow_to(output_octets,start);
+    if(!grown) return grown;
+    for(unsigned i=0;i<layout.selector_bits;++i) set_bit(output_,start+i,(((octets-1)>>(layout.selector_bits-i-1))&1u)!=0);
+    for(std::size_t i=0;i<padding;++i) set_bit(output_,after_selector+i,false);
+    for(unsigned i=0;i<payload_bits;++i) set_bit(output_,after_selector+padding+i,((offset>>(payload_bits-i-1))&1u)!=0);
+    cursor_bit_=end; charge_wire(total); publish_output(output_octets);
+    return Result<void>::success();
+}
+
+Result<void> BitWriter::write_bounded_int(std::int64_t value,std::int64_t lower,std::int64_t upper) {
+    auto live=validate_live();
+    if(!live) return live;
+    if(lower>upper) return fail({ErrorCode::invalid_argument,cursor_bit_});
+    if(value<lower || value>upper) return fail({ErrorCode::constraint_violation,cursor_bit_});
+    return write_bounded_uint(ordered_signed(value),ordered_signed(lower),ordered_signed(upper));
+}
+
 BitWriter::BitWriter(BitWriter&& other) noexcept
     : context_(other.context_), output_(std::move(other.output_)), cursor_bit_(other.cursor_bit_) {
     known_child_ = other.known_child_;

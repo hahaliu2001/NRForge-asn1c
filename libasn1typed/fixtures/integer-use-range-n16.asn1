@@ -1,0 +1,42 @@
+IntegerUseRange DEFINITIONS AUTOMATIC TAGS ::= BEGIN
+Base ::= INTEGER (-100..100)
+S ::= SEQUENCE {
+ direct INTEGER (-5..5),
+ named Base (-8..16),
+ extended INTEGER (0..255,...),
+ union INTEGER (1..3 | 8..10)
+}
+C ::= CHOICE {
+ direct INTEGER (10..265),
+ named Base (-9..9),
+ extended INTEGER (0..255,...),
+ union INTEGER (1..3 | 8..10)
+}
+BadAddition ::= SEQUENCE { value INTEGER (0..255,...,256..300) }
+Wide ::= INTEGER (-9223372036854775808..9223372036854775807)
+Identifier ::= INTEGER (0..65535)
+Policy ::= ENUMERATED { reject, ignore, notify }
+Requirement ::= ENUMERATED { mandatory, optional, conditional }
+id-S Identifier ::= 7
+id-C Identifier ::= 8
+id-Wide Identifier ::= 9
+REGISTRY-CLASS ::= CLASS { &id Identifier UNIQUE, &criticality Policy, &Value, &presence Requirement }
+ WITH SYNTAX { ID &id CRITICALITY &criticality TYPE &Value PRESENCE &presence }
+Entry { REGISTRY-CLASS : Rows } ::= SEQUENCE {
+ id REGISTRY-CLASS.&id({Rows}),
+ criticality REGISTRY-CLASS.&criticality({Rows}{@id}),
+ value REGISTRY-CLASS.&Value({Rows}{@id})
+}
+Container { REGISTRY-CLASS : Rows } ::= SEQUENCE (SIZE(0..65535)) OF Entry {{Rows}}
+Rows REGISTRY-CLASS ::= {
+ { ID id-S CRITICALITY reject TYPE S PRESENCE mandatory } |
+ { ID id-C CRITICALITY ignore TYPE C PRESENCE optional } |
+ { ID id-Wide CRITICALITY notify TYPE Wide PRESENCE optional }, ... }
+BadRows REGISTRY-CLASS ::= { { ID id-S CRITICALITY reject TYPE BadAddition PRESENCE mandatory }, ... }
+PlainRows REGISTRY-CLASS ::= { { ID id-S CRITICALITY reject TYPE INTEGER PRESENCE mandatory }, ... }
+SizedRows REGISTRY-CLASS ::= { { ID id-S CRITICALITY reject TYPE INTEGER (2..7) PRESENCE mandatory }, ... }
+Message ::= SEQUENCE { entries Container {{Rows}} }
+BadMessage ::= SEQUENCE { entries Container {{BadRows}} }
+PlainMessage ::= SEQUENCE { entries Container {{PlainRows}} }
+SizedMessage ::= SEQUENCE { entries Container {{SizedRows}} }
+END

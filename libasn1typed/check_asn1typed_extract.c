@@ -887,7 +887,7 @@ check_inline_integer_choice_ranges(void) {
 	assert(tree && asn1f_process(tree, A1F_NOFLAGS, NULL) >= 0);
 	assert(asn1typed_extract_module(tree, "InlineIntegerChoiceBad", &ir,
 		error, sizeof(error)) == -1);
-	assert(strstr(error, "inline constrained type is unsupported") != NULL);
+	assert(strcmp(error, "C.bad: unsupported inline INTEGER constraint") == 0);
 	assert_ir_cleared(&ir);
 	asn1p_delete(tree);
 	puts("CHOICE inline INTEGER range ownership and fail-closed boundary: PASS");

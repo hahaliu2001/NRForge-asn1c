@@ -108,6 +108,14 @@ static int reference(const asn1typed_module_t *m, const asn1typed_type_ref_t *r,
     if(found == SIZE_MAX) return -1;
     return done ? !!done[found] : 1;
 }
+/* Only ordinary use-sites have owned INTEGER interval metadata. Registry
+ * payload references and SEQUENCE OF elements have no such slot. */
+static int inline_integer(const asn1typed_type_ref_t *r, const asn1typed_integer_value_range_t *v) {
+    return r->kind == ASN1TYPED_REF_PRIMITIVE && r->primitive_kind == ASN1TYPED_PRIMITIVE_INTEGER &&
+        !r->module && !r->source_name && !r->actuals && !r->actual_count && v->has_value_range == 1 &&
+        !v->is_extensible && !v->tail && !v->tail_count && v->lower_bound <= v->upper_bound &&
+        v->lower_bound >= INT64_MIN && v->upper_bound <= INT64_MAX;
+}
 static int dependencies(const asn1typed_module_t *m, const struct node *n, const unsigned char *done) {
     size_t j;
     int r, ready = 1;
@@ -117,9 +125,9 @@ static int dependencies(const asn1typed_module_t *m, const struct node *n, const
         DEP(&t->fields[0].type); DEP(&t->fields[1].type);
         for(j = 0; j < n->registry->row_count; ++j) DEP(&n->registry->rows[j].payload_type);
     } else if(t->kind == ASN1TYPED_TYPE_SEQUENCE) {
-        for(j = 0; j < t->field_count; ++j) DEP(&t->fields[j].type);
+        for(j = 0; j < t->field_count; ++j) if(!inline_integer(&t->fields[j].type, &t->fields[j].value_range)) DEP(&t->fields[j].type);
     } else if(t->kind == ASN1TYPED_TYPE_CHOICE) {
-        for(j = 0; j < t->alternative_count; ++j) DEP(&t->alternatives[j].type_ref);
+        for(j = 0; j < t->alternative_count; ++j) if(!inline_integer(&t->alternatives[j].type_ref, &t->alternatives[j].value_range)) DEP(&t->alternatives[j].type_ref);
     } else if(t->kind == ASN1TYPED_TYPE_SEQUENCE_OF) DEP(&t->element_type);
 #undef DEP
     return ready;

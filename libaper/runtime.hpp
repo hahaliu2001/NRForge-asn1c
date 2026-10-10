@@ -195,6 +195,10 @@ public:
     // Zero-based, non-extensible INTEGER domains with root_bits 8/16/32/40.
     // Prefix, octet alignment and payload form one atomic operation (N1).
     Result<std::uint64_t> read_constrained_uint(unsigned root_bits);
+    // N16: one finite non-extensible INTEGER interval. Complete uint64/int64
+    // domains are supported without computing an overflowing cardinality.
+    Result<std::uint64_t> read_bounded_uint(std::uint64_t lower,std::uint64_t upper);
+    Result<std::int64_t> read_bounded_int(std::int64_t lower,std::int64_t upper);
     // root_count 1..255; flags, length, alignment and index are atomic (N2).
     Result<EnumeratedIndex> read_enumerated(unsigned root_count, bool extensible);
     // N8: non-extensible SIZE 0<=lower<=upper<=65535; atomic count and charge.
@@ -250,6 +254,8 @@ public:
     Result<void> align_to_octet_zero();
     Result<void> write_aligned_u16_be(std::uint64_t value);
     Result<void> write_constrained_uint(std::uint64_t value, unsigned root_bits);
+    Result<void> write_bounded_uint(std::uint64_t value,std::uint64_t lower,std::uint64_t upper);
+    Result<void> write_bounded_int(std::int64_t value,std::int64_t lower,std::int64_t upper);
     // root_count 1..255; extension indexes require extensible=true (N2).
     Result<void> write_enumerated(EnumeratedIndex value, unsigned root_count, bool extensible);
     Result<void> write_bounded_collection_length(std::uint64_t count, std::size_t lower, std::size_t upper);
@@ -292,6 +298,12 @@ public:
     Result<std::uint16_t> read_aligned_u16_be() { return reader_.read_aligned_u16_be(); }
     Result<std::uint64_t> read_constrained_uint(unsigned root_bits) {
         return reader_.read_constrained_uint(root_bits);
+    }
+    Result<std::uint64_t> read_bounded_uint(std::uint64_t lower,std::uint64_t upper) {
+        return reader_.read_bounded_uint(lower,upper);
+    }
+    Result<std::int64_t> read_bounded_int(std::int64_t lower,std::int64_t upper) {
+        return reader_.read_bounded_int(lower,upper);
     }
     Result<EnumeratedIndex> read_enumerated(unsigned root_count, bool extensible) {
         return reader_.read_enumerated(root_count, extensible);
@@ -337,6 +349,12 @@ public:
     }
     Result<void> write_constrained_uint(std::uint64_t value, unsigned root_bits) {
         return writer_.write_constrained_uint(value, root_bits);
+    }
+    Result<void> write_bounded_uint(std::uint64_t value,std::uint64_t lower,std::uint64_t upper) {
+        return writer_.write_bounded_uint(value,lower,upper);
+    }
+    Result<void> write_bounded_int(std::int64_t value,std::int64_t lower,std::int64_t upper) {
+        return writer_.write_bounded_int(value,lower,upper);
     }
     Result<void> write_enumerated(EnumeratedIndex value, unsigned root_count, bool extensible) {
         return writer_.write_enumerated(value, root_count, extensible);

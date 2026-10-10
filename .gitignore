@@ -172,3 +172,8 @@ asn1c/tmp/
 /libasn1typed/check_asn1typed_bit_render
 /libasn1typed/check_asn1typed_bit_api
 /libasn1typed/check_asn1typed_bit_use_size
+
+/libaper/check_aper_integer
+/libasn1typed/check_asn1typed_integer_render
+/libasn1typed/check_asn1typed_integer_use_range
+/libasn1typed/check_asn1typed_integer_api

@@ -529,6 +529,61 @@ extract_octet_bit_use_size(asn1p_expr_t *expr,
 }
 
 static int
+extract_effective_use_integer(const asn1p_constraint_t *c,
+		asn1typed_integer_value_range_t *out, int named) {
+	unsigned i;
+	if(!named || !c || c->type != ACT_CA_SET || c->el_count <= 1)
+		return extract_integer_value_range(c, out);
+	if(!c->elements || c->el_size < c->el_count ||
+		!integer_constraint_node_empty(c)) return -1;
+	for(i = 0; i < c->el_count; ++i) {
+		asn1p_constraint_t wrapper = *c;
+		asn1p_constraint_t *child = c->elements[i];
+		asn1typed_integer_value_range_t part = {0};
+		wrapper.el_count = 1; wrapper.elements = &child;
+		if(extract_integer_value_range(&wrapper, &part) || !part.has_value_range ||
+			part.is_extensible || part.tail || part.tail_count) {
+			free(part.tail); return -1;
+		}
+		if(i == 0) *out = part;
+		else {
+			if(part.lower_bound > out->lower_bound) out->lower_bound = part.lower_bound;
+			if(part.upper_bound < out->upper_bound) out->upper_bound = part.upper_bound;
+		}
+	}
+	return out->lower_bound <= out->upper_bound ? 0 : -1;
+}
+static int
+extract_integer_use_range(asn1p_expr_t *expr,
+		asn1typed_integer_value_range_t *out) {
+	asn1typed_integer_value_range_t declared = {0}, effective = {0};
+	int named = expr->expr_type == A1TC_REFERENCE;
+	size_t i;
+	if(!expr->constraints || extract_integer_value_range(expr->constraints, &declared)
+		|| !declared.has_value_range) goto bad;
+	if(!expr->combined_constraints) {
+		*out = declared; return 0;
+	}
+	if(extract_effective_use_integer(expr->combined_constraints, &effective, named)
+		|| !effective.has_value_range) goto bad;
+	if(named) {
+		if(declared.is_extensible || declared.tail || declared.tail_count ||
+			effective.is_extensible || effective.tail || effective.tail_count ||
+			effective.lower_bound < declared.lower_bound ||
+			effective.upper_bound > declared.upper_bound) goto bad;
+	} else {
+		if(effective.lower_bound != declared.lower_bound || effective.upper_bound != declared.upper_bound ||
+			effective.is_extensible != declared.is_extensible || effective.tail_count != declared.tail_count) goto bad;
+		for(i = 0; i < declared.tail_count; ++i)
+			if(effective.tail[i].lower_bound != declared.tail[i].lower_bound ||
+				effective.tail[i].upper_bound != declared.tail[i].upper_bound) goto bad;
+	}
+	free(declared.tail); *out = effective; return 0;
+bad:
+	free(declared.tail); free(effective.tail); return -1;
+}
+
+static int
 put_ref(asn1typed_type_ref_t *ref, asn1p_expr_t *expr) {
 	asn1typed_primitive_kind_e primitive;
 	if(!expr) return -1;
@@ -621,8 +676,6 @@ add_field(asn1p_t *tree, asn1typed_type_t *type, asn1p_expr_t *field,
 	int marker_flags;
 	int owns_inline_size = 0;
 	int owns_inline_integer_range = 0;
-	const asn1p_constraint_t *inline_constraint = field->combined_constraints ?
-		field->combined_constraints : field->constraints;
 	int result;
 	if(!field->Identifier) {
 		set_error(error, error_size, "%s: unnamed SEQUENCE component at line %d",
@@ -647,12 +700,14 @@ add_field(asn1p_t *tree, asn1typed_type_t *type, asn1p_expr_t *field,
 		return -1;
 	}
 	if(field->constraints || (field->expr_type != A1TC_REFERENCE &&
-		primitive_accepts_exact_size(primitive_from_expr(field)) && field->combined_constraints)) {
+		(primitive_accepts_exact_size(primitive_from_expr(field)) ||
+		 primitive_from_expr(field) == ASN1TYPED_PRIMITIVE_INTEGER) && field->combined_constraints)) {
 		asn1typed_primitive_kind_e primitive = primitive_from_expr(field);
 		if(primitive == ASN1TYPED_PRIMITIVE_INVALID && field->expr_type == A1TC_REFERENCE)
 			primitive = primitive_from_expr(terminal_type(field));
 		if((field->meta_type != AMT_TYPE &&
-			!(field->meta_type == AMT_TYPEREF && primitive_accepts_exact_size(primitive))) || field->rhs_pspecs ||
+			!(field->meta_type == AMT_TYPEREF && (primitive_accepts_exact_size(primitive) ||
+			 primitive == ASN1TYPED_PRIMITIVE_INTEGER))) || field->rhs_pspecs ||
 			primitive == ASN1TYPED_PRIMITIVE_INVALID) {
 			if(reject_unowned_inline_constraint(field, module, field->Identifier,
 					error, error_size)) return -1;
@@ -670,8 +725,7 @@ add_field(asn1p_t *tree, asn1typed_type_t *type, asn1p_expr_t *field,
 			}
 			owns_inline_size = 1;
 		} else if(primitive == ASN1TYPED_PRIMITIVE_INTEGER) {
-			if(extract_integer_value_range(inline_constraint,
-					&field_value_range) || !field_value_range.has_value_range) {
+			if(extract_integer_use_range(field, &field_value_range)) {
 				set_error(error, error_size,
 					"%s.%s: unsupported inline INTEGER constraint", module,
 					field->Identifier);
@@ -905,12 +959,14 @@ populate_type(asn1p_t *tree, asn1typed_type_t *out, asn1p_expr_t *decl,
 				return -1;
 			}
 			if(member->constraints || (member->expr_type != A1TC_REFERENCE &&
-				primitive_accepts_exact_size(primitive_from_expr(member)) && member->combined_constraints)) {
+				(primitive_accepts_exact_size(primitive_from_expr(member)) ||
+				 primitive_from_expr(member) == ASN1TYPED_PRIMITIVE_INTEGER) && member->combined_constraints)) {
 				asn1typed_primitive_kind_e primitive = primitive_from_expr(member);
 				if(primitive == ASN1TYPED_PRIMITIVE_INVALID && member->expr_type == A1TC_REFERENCE)
 					primitive = primitive_from_expr(terminal_type(member));
 				if((member->meta_type != AMT_TYPE &&
-					!(member->meta_type == AMT_TYPEREF && primitive_accepts_exact_size(primitive))) || member->rhs_pspecs ||
+					!(member->meta_type == AMT_TYPEREF && (primitive_accepts_exact_size(primitive) ||
+					 primitive == ASN1TYPED_PRIMITIVE_INTEGER))) || member->rhs_pspecs ||
 					primitive == ASN1TYPED_PRIMITIVE_INVALID) {
 					if(reject_unowned_inline_constraint(member, decl->Identifier,
 							member->Identifier, error, error_size)) return -1;
@@ -923,15 +979,8 @@ populate_type(asn1p_t *tree, asn1typed_type_t *out, asn1p_expr_t *decl,
 					}
 					size_ptr = &alternative_size;
 				} else if(primitive == ASN1TYPED_PRIMITIVE_INTEGER) {
-					const asn1p_constraint_t *constraint =
-						member->combined_constraints ? member->combined_constraints :
-						member->constraints;
-					if(extract_integer_value_range(constraint,
-							&alternative_value_range) ||
-						!alternative_value_range.has_value_range) {
-						if(reject_unowned_inline_constraint(member,
-								decl->Identifier, member->Identifier,
-								error, error_size)) return -1;
+					if(extract_integer_use_range(member, &alternative_value_range)) {
+						set_error(error, error_size, "%s.%s: unsupported inline INTEGER constraint", decl->Identifier, member->Identifier);
 						return -1;
 					}
 					value_range_ptr = &alternative_value_range;

@@ -1,0 +1,43 @@
+IntegerGeneration DEFINITIONS AUTOMATIC TAGS ::= BEGIN
+
+SignedSmall ::= INTEGER (-5..5)
+Nonzero ::= INTEGER (5..10)
+Constant ::= INTEGER (-7..-7)
+Small255 ::= INTEGER (0..254)
+Octet256 ::= INTEGER (10..265)
+Wide257 ::= INTEGER (100..356)
+Full65536 ::= INTEGER (100..65635)
+Large65537 ::= INTEGER (100..65636)
+Signed32 ::= INTEGER (-2147483648..2147483647)
+Beyond32 ::= INTEGER (0..4294967296)
+Positive63 ::= INTEGER (0..9223372036854775807)
+FullSigned64 ::= INTEGER (-9223372036854775808..9223372036854775807)
+MinimumConstant ::= INTEGER (-9223372036854775808..-9223372036854775808)
+MaximumConstant ::= INTEGER (9223372036854775807..9223372036854775807)
+Tiny ::= INTEGER (0..15)
+
+Pick ::= CHOICE {
+    negative INTEGER (-9..-2),
+    narrow Tiny (3..9)
+}
+Packet ::= SEQUENCE {
+    lead BOOLEAN,
+    inlineSigned INTEGER (-4..4),
+    constrained Tiny (2..7),
+    optionalSigned SignedSmall (-2..3) OPTIONAL,
+    selection Pick,
+    tail BOOLEAN
+}
+PrefixSmall ::= SEQUENCE { prefix BOOLEAN, value Small255 }
+PrefixOctet ::= SEQUENCE { prefix BOOLEAN, value Octet256 }
+PrefixWide ::= SEQUENCE { prefix BOOLEAN, value Wide257 }
+PrefixLarge ::= SEQUENCE { prefix BOOLEAN, value Large65537 }
+PrefixFull ::= SEQUENCE { prefix BOOLEAN, value FullSigned64 }
+
+END
+
+IntegerOnly DEFINITIONS ::= BEGIN
+Solo ::= INTEGER (-3..4)
+Whole ::= INTEGER (-9223372036854775808..9223372036854775807)
+Fixed ::= INTEGER (13..13)
+END

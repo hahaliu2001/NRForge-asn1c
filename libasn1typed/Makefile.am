@@ -3,7 +3,7 @@ AM_CPPFLAGS = -I$(top_srcdir)/libasn1common
 
 noinst_LTLIBRARIES = libasn1typed.la libasn1typed_extract.la
 libasn1typed_la_SOURCES = asn1typed.c asn1typed.h asn1typed_envelope.c asn1typed_envelope.h asn1typed_name.c asn1typed_name.h asn1typed_render_cpp_internal.h \
-	asn1typed_render_cpp.c asn1typed_render_cpp_slice.c asn1typed_render_cpp_codec.c asn1typed_render_cpp_enum.c asn1typed_render_cpp_uint.c asn1typed_render_cpp_compound.c asn1typed_render_cpp_ioc.c asn1typed_render_cpp_envelope.c asn1typed_render_cpp_ioc_internal.h asn1typed_render_cpp.h
+	asn1typed_render_cpp.c asn1typed_render_cpp_slice.c asn1typed_render_cpp_codec.c asn1typed_render_cpp_enum.c asn1typed_render_cpp_uint.c asn1typed_render_cpp_integer.c asn1typed_render_cpp_compound.c asn1typed_render_cpp_ioc.c asn1typed_render_cpp_envelope.c asn1typed_render_cpp_ioc_internal.h asn1typed_render_cpp.h
 libasn1typed_extract_la_SOURCES = asn1typed_extract.c asn1typed_extract.h
 libasn1typed_extract_la_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/libasn1parser -I$(top_srcdir)/libasn1fix
 libasn1typed_extract_la_LIBADD = \
@@ -188,3 +188,17 @@ EXTRA_DIST += fixtures/bit-use-size-n15.asn1
 
 TESTS += check_asn1typed_ioc_bit_generated.sh
 EXTRA_DIST += check_asn1typed_ioc_bit_generated.sh check_asn1typed_ioc_bit_generated.cpp fixtures/ioc-bits-n15.asn1
+
+check_PROGRAMS += check_asn1typed_integer_render check_asn1typed_integer_use_range check_asn1typed_integer_api
+TESTS += check_asn1typed_integer_generated.sh check_asn1typed_integer_use_range check_asn1typed_integer_api
+check_asn1typed_integer_render_SOURCES = check_asn1typed_integer_render.c
+check_asn1typed_integer_render_CPPFLAGS = $(check_asn1typed_extract_CPPFLAGS) -DNDEBUG
+check_asn1typed_integer_render_LDADD = $(check_asn1typed_extract_LDADD)
+check_asn1typed_integer_render_LDFLAGS = -Wl,--wrap=malloc -Wl,--wrap=calloc -Wl,--wrap=realloc
+check_asn1typed_integer_use_range_SOURCES = check_asn1typed_integer_use_range.c check_ioc_alloc_core.c check_ioc_alloc_extract.c
+check_asn1typed_integer_use_range_CPPFLAGS = $(check_asn1typed_extract_CPPFLAGS) -DINTEGER_USE_RANGE_FIXTURE=\"$(abs_srcdir)/fixtures/integer-use-range-n16.asn1\" -DNDEBUG
+check_asn1typed_integer_use_range_LDADD = $(check_asn1typed_extract_LDADD)
+check_asn1typed_integer_api_SOURCES = check_asn1typed_integer_api.cpp
+check_asn1typed_integer_api_CPPFLAGS = $(AM_CPPFLAGS)
+check_asn1typed_integer_api_LDADD = libasn1typed.la
+EXTRA_DIST += check_asn1typed_integer_generated.sh check_asn1typed_integer_generated.cpp fixtures/integers-generation-n16.asn1 fixtures/integer-use-range-n16.asn1

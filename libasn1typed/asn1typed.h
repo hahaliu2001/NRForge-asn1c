@@ -166,7 +166,7 @@ typedef struct asn1typed_field_s {
 	asn1typed_type_ref_t type;
 	/* Inline SIZE semantics owned by this SEQUENCE use-site, when present. */
 	asn1typed_size_constraint_t size_constraint;
-	/* Inline primitive INTEGER permitted set owned by this SEQUENCE use-site. */
+	/* Effective INTEGER permitted set owned by this SEQUENCE use-site; named identity is retained. */
 	asn1typed_integer_value_range_t value_range;
 	/* Owned inline ENUMERATED body for this SEQUENCE field, when present. */
 	asn1typed_type_t *inline_enumerated;
@@ -191,7 +191,7 @@ typedef struct asn1typed_choice_alternative_s {
 	char *source_name;
 	asn1typed_type_ref_t type_ref;
 	asn1typed_size_constraint_t size_constraint;
-	/* Inline primitive INTEGER permitted set owned by this alternative. */
+	/* Effective INTEGER permitted set owned by this alternative; named identity is retained. */
 	asn1typed_integer_value_range_t value_range;
 	/* Optional owned tag evidence; index is published only by finalization. */
 	asn1typed_wire_evidence_e wire_evidence;

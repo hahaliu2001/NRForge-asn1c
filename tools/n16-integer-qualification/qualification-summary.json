@@ -1,0 +1,82 @@
+{
+  "status": "PASS",
+  "source_sha256": {
+    "libaper/runtime.hpp": "60b52401adeb8e4594c19c02943fb7bb78c1aabd619f2f8ac75e0b20810b174b",
+    "libaper/runtime.cpp": "f7efe8ffb1530cf992d6c5c593f746b676c35660afd2044e08ca32daced8a27a",
+    "tools/n16-integer-qualification/driver.cpp": "b0e4e51d3ffa416169d01bb222272c61679ce02e2ded81ca386c98cd0ced62cd",
+    "tools/n16-integer-qualification/qualify.py": "05b6b2cd3a973797ed222d50420bd0cdf4f495e26ffc0104f2447b4a57d3212a"
+  },
+  "source_snapshot_verified_unchanged": true,
+  "compiler": "c++ (Ubuntu 13.3.0-6ubuntu2~24.04) 13.3.0",
+  "compiler_command": [
+    "c++"
+  ],
+  "compiler_flags": [
+    "-std=c++20",
+    "-Wall",
+    "-Wextra",
+    "-Werror",
+    "-pedantic-errors",
+    "-Wconversion",
+    "-Wsign-conversion"
+  ],
+  "compile_inputs": [
+    "libaper/runtime.cpp",
+    "tools/n16-integer-qualification/driver.cpp"
+  ],
+  "include_directories": [
+    "libaper"
+  ],
+  "oracle": "asn1tools",
+  "oracle_version": "0.167.0",
+  "native_model_exact_cases": 926,
+  "runtime_encode_cases": 928,
+  "runtime_decode_cases": 928,
+  "native_decode_exact_wire_cases": 926,
+  "native_decode_constant_field_semantics_cases": 2,
+  "oracle_empty_substitution_difference": [
+    {
+      "profile": "ConstantNegative",
+      "prefix": 0,
+      "native_hex": "",
+      "complete_hex": "00"
+    },
+    {
+      "profile": "ConstantUnsigned",
+      "prefix": 0,
+      "native_hex": "",
+      "complete_hex": "00"
+    }
+  ],
+  "offsets": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7
+  ],
+  "profiles": [
+    "ConstantNegative",
+    "ConstantUnsigned",
+    "Two",
+    "Three",
+    "Card255",
+    "Card256",
+    "Card257",
+    "Card65536",
+    "Card65537",
+    "Signed32",
+    "Positive40",
+    "SignedLowEdge",
+    "SignedHighEdge",
+    "FullSigned",
+    "FullUnsigned",
+    "UnsignedHighEdge"
+  ],
+  "schema_sha256": "f119d7e39bdb3f83bd762db998dbca3edab9f1baed855e29a3f2aa18aa18d793",
+  "runtime_sha256": "f7efe8ffb1530cf992d6c5c593f746b676c35660afd2044e08ca32daced8a27a",
+  "scope": "Nonextensible bounded signed/unsigned 64-bit INTEGER primitive runtime framing. No generated codec or NGAP/PDU qualification."
+}

@@ -179,6 +179,18 @@ int asn1typed_render_cpp_owned_bit_types(const asn1typed_module_t *, const char 
 int asn1typed_render_cpp_owned_bit_mapping(const asn1typed_module_t *, const char *, char **, char *, size_t);
 int asn1typed_render_cpp_owned_bit_codec(const asn1typed_module_t *, const char *, char **, char *, size_t);
 
+/* N16 finite non-extensible single INTEGER interval within int64 IR evidence.
+ * Standalone family below owns signed int64 or nonnegative uint64 storage;
+ * value_* integrates ordinary graphs and effective INTEGER use-site intervals.
+ * No unconstrained/extensible INTEGER or non-contiguous permitted set lowering.
+ * Use unchanged IR/namespace and include runtime.hpp then types/mapping/codec. */
+int asn1typed_render_cpp_owned_integer_types(const asn1typed_module_t *, const char *, char **, char *, size_t);
+int asn1typed_render_cpp_owned_integer_mapping(const asn1typed_module_t *, const char *, char **, char *, size_t);
+int asn1typed_render_cpp_owned_integer_codec(const asn1typed_module_t *, const char *, char **, char *, size_t);
+int asn1typed_render_cpp_owned_value_types(const asn1typed_module_t *, const char *, char **, char *, size_t);
+int asn1typed_render_cpp_owned_value_mapping(const asn1typed_module_t *, const char *, char **, char *, size_t);
+int asn1typed_render_cpp_owned_value_codec(const asn1typed_module_t *, const char *, char **, char *, size_t);
+
 #ifdef __cplusplus
 }
 #endif
