@@ -177,3 +177,6 @@ asn1c/tmp/
 /libasn1typed/check_asn1typed_integer_render
 /libasn1typed/check_asn1typed_integer_use_range
 /libasn1typed/check_asn1typed_integer_api
+
+/libasn1typed/check_asn1typed_shape_render
+/libasn1typed/check_asn1typed_shape_api

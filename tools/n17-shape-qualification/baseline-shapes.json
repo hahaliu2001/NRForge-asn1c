@@ -1,0 +1,831 @@
+{
+  "scope": "Read-only first-failure inspection of the 23 compound-shape and 11 physical-reference N16 failure clusters; not codec qualification or predicted readiness gains.",
+  "baseline_commit": "50ce618",
+  "baseline_commit_full": "50ce618688a3a0d5358e2348bc937dfec8f2dd53",
+  "source_authority": {
+    "authority_commit": "d6e514a33ec3695925c24aa292900514b371b074",
+    "release": "TS38.413 V18.10.0",
+    "modules": [
+      {
+        "path": "ng/asn1/NGAP-CommonDataTypes.asn",
+        "git_blob": "acaba01d1fad8d656ae8f568bf951de3b67278ac",
+        "sha256": "774d888f3f63ff33508c1f5f7ca9a3f1a0a5ee5e102decb3ffed99700df5f7c1"
+      },
+      {
+        "path": "ng/asn1/NGAP-Constants.asn",
+        "git_blob": "ba80f8fd34d41c48087417dc702622abff4bbaaf",
+        "sha256": "492d40aad525d645a90cdfe2b644066007cc5ac81f6e527df9efa30bf6c8ebb8"
+      },
+      {
+        "path": "ng/asn1/NGAP-IEs.asn",
+        "git_blob": "a8974dd27e5c7f37bf439990fb39da397ec97044",
+        "sha256": "ae4edee7e7d69ac6db94e44f5e716445990ecf5943edbc9a0f328ed210c25831"
+      },
+      {
+        "path": "ng/asn1/NGAP-Containers.asn",
+        "git_blob": "978bbf5864787b87eefcfbf26c84d471de330eb5",
+        "sha256": "3165b49eb2476b0d85ad261e983e1eb29cecb32c075f9bf81546cfe7a08a2bcb"
+      },
+      {
+        "path": "ng/asn1/NGAP-PDU-Contents.asn",
+        "git_blob": "fb48dd32c66479cf539c7e1d9676c5a90919b996",
+        "sha256": "93baf5a65b4e3971839c82ef87467fffaf1a5f1dd9c159c297f6ce779e1acfd0"
+      },
+      {
+        "path": "ng/asn1/NGAP-PDU-Descriptions.asn",
+        "git_blob": "aad6567aad39cebe0591c9a16b7c25bc012d1a45",
+        "sha256": "6fc4e2326ea449942195742efc0325a4181a94aadee99da8f1e2d76fe59dfa6d"
+      }
+    ]
+  },
+  "related_evidence": [
+    "tools/n16-integer-qualification/readiness.json",
+    "docs/ngap-cpp-aper-n16-integer-contract-and-closeout.md"
+  ],
+  "inspection": {
+    "parse": "PASS",
+    "fix": "PASS",
+    "parser_deleted_before_generation": true,
+    "frozen_schema_modified": false,
+    "production_sources_modified": false,
+    "method": "Scratch copies of the existing coverage driver and IOC/compound renderers add diagnostic-only first-node/ref logging; linked existing archives; all three output families report the same first node.",
+    "scratch_source_sha256": {
+      "compound.c": "d3fbd23109247a6c66dab4c2f1d41cf11425c97fe7862c9e2e161f68edeb344b",
+      "ioc.c": "788a39fc4a4fa1bb43789d83e5c0220f975505ae0a7c5676f9744c8732c126da"
+    },
+    "scratch_raw_inventory_sha256": "22548163e076ca3c734a140bb90a7729de6a305402c85d8d203e43a16da90ec6",
+    "scratch_diagnostics_sha256": "cef9ea41873dcf22d0ba2306d5920d5f2eb6cb16af25bc419d29f1f0f34920e8"
+  },
+  "grouped_counts": {
+    "extensible_character_string": 5,
+    "extensible_bit_string_size": 16,
+    "collection_upper_bound_65536_fragmentation_boundary": 2,
+    "owned_inline_enumerated_reference": 10,
+    "extensible_inline_integer_reference": 1
+  },
+  "total_messages": 34,
+  "n17_recommended_scope": "Shared lowering of owned inline ENUMERATED SEQUENCE fields plus more specific unsupported-shape/reference diagnostics. Preserve all other existing rejection boundaries.",
+  "limitations": [
+    "First-failure classification does not prove that removing a blocker yields a complete codec.",
+    "UE-DifferentiationInfo also contains extensible periodicTime INTEGER; its two messages may reveal an excluded later blocker.",
+    "RANPagingRequest is explicitly excluded: extensible inline INTEGER, not inline ENUMERATED."
+  ],
+  "messages": [
+    {
+      "message": "AMFConfigurationUpdate",
+      "baseline_first_failure": "unsupported compound type shape, storage or metadata",
+      "first_node": {
+        "module": "NGAP-IEs",
+        "name": "AMFName",
+        "kind": 0,
+        "primitive_kind": 4,
+        "size": {
+          "present": 1,
+          "lower": 1,
+          "upper": 150,
+          "extensible": 1
+        }
+      },
+      "classification": "extensible_character_string",
+      "n17_candidate": false,
+      "reason": "Unsupported character-string primitive and extensible SIZE; outside inline ENUMERATED lowering."
+    },
+    {
+      "message": "AMFConfigurationUpdateAcknowledge",
+      "baseline_first_failure": "unsupported compound type shape, storage or metadata",
+      "first_node": {
+        "module": "NGAP-IEs",
+        "name": "TransportLayerAddress",
+        "kind": 0,
+        "primitive_kind": 7,
+        "size": {
+          "present": 1,
+          "lower": 1,
+          "upper": 160,
+          "extensible": 1
+        }
+      },
+      "classification": "extensible_bit_string_size",
+      "n17_candidate": false,
+      "reason": "Extensible BIT STRING SIZE is outside current non-extensible framing support."
+    },
+    {
+      "message": "AMFStatusIndication",
+      "baseline_first_failure": "unsupported compound type shape, storage or metadata",
+      "first_node": {
+        "module": "NGAP-IEs",
+        "name": "AMFName",
+        "kind": 0,
+        "primitive_kind": 4,
+        "size": {
+          "present": 1,
+          "lower": 1,
+          "upper": 150,
+          "extensible": 1
+        }
+      },
+      "classification": "extensible_character_string",
+      "n17_candidate": false,
+      "reason": "Unsupported character-string primitive and extensible SIZE; outside inline ENUMERATED lowering."
+    },
+    {
+      "message": "CellTrafficTrace",
+      "baseline_first_failure": "unsupported compound type shape, storage or metadata",
+      "first_node": {
+        "module": "NGAP-IEs",
+        "name": "TransportLayerAddress",
+        "kind": 0,
+        "primitive_kind": 7,
+        "size": {
+          "present": 1,
+          "lower": 1,
+          "upper": 160,
+          "extensible": 1
+        }
+      },
+      "classification": "extensible_bit_string_size",
+      "n17_candidate": false,
+      "reason": "Extensible BIT STRING SIZE is outside current non-extensible framing support."
+    },
+    {
+      "message": "HandoverNotify",
+      "baseline_first_failure": "unsupported compound type shape, storage or metadata",
+      "first_node": {
+        "module": "NGAP-IEs",
+        "name": "TransportLayerAddress",
+        "kind": 0,
+        "primitive_kind": 7,
+        "size": {
+          "present": 1,
+          "lower": 1,
+          "upper": 160,
+          "extensible": 1
+        }
+      },
+      "classification": "extensible_bit_string_size",
+      "n17_candidate": false,
+      "reason": "Extensible BIT STRING SIZE is outside current non-extensible framing support."
+    },
+    {
+      "message": "NGReset",
+      "baseline_first_failure": "unsupported compound type shape, storage or metadata",
+      "first_node": {
+        "module": "NGAP-IEs",
+        "name": "UE-associatedLogicalNG-connectionList",
+        "kind": 2,
+        "primitive_kind": 0,
+        "size": {
+          "present": 1,
+          "lower": 1,
+          "upper": 65536,
+          "extensible": 0
+        }
+      },
+      "classification": "collection_upper_bound_65536_fragmentation_boundary",
+      "n17_candidate": false,
+      "reason": "SIZE upper bound 65536 exceeds existing bounded collection domain; requires separately specified fragmentation support."
+    },
+    {
+      "message": "NGResetAcknowledge",
+      "baseline_first_failure": "unsupported compound type shape, storage or metadata",
+      "first_node": {
+        "module": "NGAP-IEs",
+        "name": "UE-associatedLogicalNG-connectionList",
+        "kind": 2,
+        "primitive_kind": 0,
+        "size": {
+          "present": 1,
+          "lower": 1,
+          "upper": 65536,
+          "extensible": 0
+        }
+      },
+      "classification": "collection_upper_bound_65536_fragmentation_boundary",
+      "n17_candidate": false,
+      "reason": "SIZE upper bound 65536 exceeds existing bounded collection domain; requires separately specified fragmentation support."
+    },
+    {
+      "message": "NGSetupRequest",
+      "baseline_first_failure": "unsupported compound type shape, storage or metadata",
+      "first_node": {
+        "module": "NGAP-IEs",
+        "name": "RANNodeName",
+        "kind": 0,
+        "primitive_kind": 4,
+        "size": {
+          "present": 1,
+          "lower": 1,
+          "upper": 150,
+          "extensible": 1
+        }
+      },
+      "classification": "extensible_character_string",
+      "n17_candidate": false,
+      "reason": "Unsupported character-string primitive and extensible SIZE; outside inline ENUMERATED lowering."
+    },
+    {
+      "message": "NGSetupResponse",
+      "baseline_first_failure": "unsupported compound type shape, storage or metadata",
+      "first_node": {
+        "module": "NGAP-IEs",
+        "name": "AMFName",
+        "kind": 0,
+        "primitive_kind": 4,
+        "size": {
+          "present": 1,
+          "lower": 1,
+          "upper": 150,
+          "extensible": 1
+        }
+      },
+      "classification": "extensible_character_string",
+      "n17_candidate": false,
+      "reason": "Unsupported character-string primitive and extensible SIZE; outside inline ENUMERATED lowering."
+    },
+    {
+      "message": "PathSwitchRequest",
+      "baseline_first_failure": "unsupported compound type shape, storage or metadata",
+      "first_node": {
+        "module": "NGAP-IEs",
+        "name": "NRencryptionAlgorithms",
+        "kind": 0,
+        "primitive_kind": 7,
+        "size": {
+          "present": 1,
+          "lower": 16,
+          "upper": 16,
+          "extensible": 1
+        }
+      },
+      "classification": "extensible_bit_string_size",
+      "n17_candidate": false,
+      "reason": "Extensible BIT STRING SIZE is outside current non-extensible framing support."
+    },
+    {
+      "message": "PDUSessionResourceModifyResponse",
+      "baseline_first_failure": "unsupported compound type shape, storage or metadata",
+      "first_node": {
+        "module": "NGAP-IEs",
+        "name": "TransportLayerAddress",
+        "kind": 0,
+        "primitive_kind": 7,
+        "size": {
+          "present": 1,
+          "lower": 1,
+          "upper": 160,
+          "extensible": 1
+        }
+      },
+      "classification": "extensible_bit_string_size",
+      "n17_candidate": false,
+      "reason": "Extensible BIT STRING SIZE is outside current non-extensible framing support."
+    },
+    {
+      "message": "PDUSessionResourceModifyIndication",
+      "baseline_first_failure": "unsupported compound type shape, storage or metadata",
+      "first_node": {
+        "module": "NGAP-IEs",
+        "name": "TransportLayerAddress",
+        "kind": 0,
+        "primitive_kind": 7,
+        "size": {
+          "present": 1,
+          "lower": 1,
+          "upper": 160,
+          "extensible": 1
+        }
+      },
+      "classification": "extensible_bit_string_size",
+      "n17_candidate": false,
+      "reason": "Extensible BIT STRING SIZE is outside current non-extensible framing support."
+    },
+    {
+      "message": "PDUSessionResourceNotify",
+      "baseline_first_failure": "unsupported compound type shape, storage or metadata",
+      "first_node": {
+        "module": "NGAP-IEs",
+        "name": "TransportLayerAddress",
+        "kind": 0,
+        "primitive_kind": 7,
+        "size": {
+          "present": 1,
+          "lower": 1,
+          "upper": 160,
+          "extensible": 1
+        }
+      },
+      "classification": "extensible_bit_string_size",
+      "n17_candidate": false,
+      "reason": "Extensible BIT STRING SIZE is outside current non-extensible framing support."
+    },
+    {
+      "message": "PDUSessionResourceReleaseResponse",
+      "baseline_first_failure": "unsupported compound type shape, storage or metadata",
+      "first_node": {
+        "module": "NGAP-IEs",
+        "name": "TransportLayerAddress",
+        "kind": 0,
+        "primitive_kind": 7,
+        "size": {
+          "present": 1,
+          "lower": 1,
+          "upper": 160,
+          "extensible": 1
+        }
+      },
+      "classification": "extensible_bit_string_size",
+      "n17_candidate": false,
+      "reason": "Extensible BIT STRING SIZE is outside current non-extensible framing support."
+    },
+    {
+      "message": "PDUSessionResourceSetupResponse",
+      "baseline_first_failure": "unsupported compound type shape, storage or metadata",
+      "first_node": {
+        "module": "NGAP-IEs",
+        "name": "TransportLayerAddress",
+        "kind": 0,
+        "primitive_kind": 7,
+        "size": {
+          "present": 1,
+          "lower": 1,
+          "upper": 160,
+          "extensible": 1
+        }
+      },
+      "classification": "extensible_bit_string_size",
+      "n17_candidate": false,
+      "reason": "Extensible BIT STRING SIZE is outside current non-extensible framing support."
+    },
+    {
+      "message": "RANConfigurationUpdate",
+      "baseline_first_failure": "unsupported compound type shape, storage or metadata",
+      "first_node": {
+        "module": "NGAP-IEs",
+        "name": "RANNodeName",
+        "kind": 0,
+        "primitive_kind": 4,
+        "size": {
+          "present": 1,
+          "lower": 1,
+          "upper": 150,
+          "extensible": 1
+        }
+      },
+      "classification": "extensible_character_string",
+      "n17_candidate": false,
+      "reason": "Unsupported character-string primitive and extensible SIZE; outside inline ENUMERATED lowering."
+    },
+    {
+      "message": "RRCInactiveTransitionReport",
+      "baseline_first_failure": "unsupported compound type shape, storage or metadata",
+      "first_node": {
+        "module": "NGAP-IEs",
+        "name": "TransportLayerAddress",
+        "kind": 0,
+        "primitive_kind": 7,
+        "size": {
+          "present": 1,
+          "lower": 1,
+          "upper": 160,
+          "extensible": 1
+        }
+      },
+      "classification": "extensible_bit_string_size",
+      "n17_candidate": false,
+      "reason": "Extensible BIT STRING SIZE is outside current non-extensible framing support."
+    },
+    {
+      "message": "SecondaryRATDataUsageReport",
+      "baseline_first_failure": "unsupported compound type shape, storage or metadata",
+      "first_node": {
+        "module": "NGAP-IEs",
+        "name": "TransportLayerAddress",
+        "kind": 0,
+        "primitive_kind": 7,
+        "size": {
+          "present": 1,
+          "lower": 1,
+          "upper": 160,
+          "extensible": 1
+        }
+      },
+      "classification": "extensible_bit_string_size",
+      "n17_candidate": false,
+      "reason": "Extensible BIT STRING SIZE is outside current non-extensible framing support."
+    },
+    {
+      "message": "UEContextModificationResponse",
+      "baseline_first_failure": "unsupported compound type shape, storage or metadata",
+      "first_node": {
+        "module": "NGAP-IEs",
+        "name": "TransportLayerAddress",
+        "kind": 0,
+        "primitive_kind": 7,
+        "size": {
+          "present": 1,
+          "lower": 1,
+          "upper": 160,
+          "extensible": 1
+        }
+      },
+      "classification": "extensible_bit_string_size",
+      "n17_candidate": false,
+      "reason": "Extensible BIT STRING SIZE is outside current non-extensible framing support."
+    },
+    {
+      "message": "UEContextReleaseComplete",
+      "baseline_first_failure": "unsupported compound type shape, storage or metadata",
+      "first_node": {
+        "module": "NGAP-IEs",
+        "name": "TransportLayerAddress",
+        "kind": 0,
+        "primitive_kind": 7,
+        "size": {
+          "present": 1,
+          "lower": 1,
+          "upper": 160,
+          "extensible": 1
+        }
+      },
+      "classification": "extensible_bit_string_size",
+      "n17_candidate": false,
+      "reason": "Extensible BIT STRING SIZE is outside current non-extensible framing support."
+    },
+    {
+      "message": "UEContextResumeRequest",
+      "baseline_first_failure": "unsupported compound type shape, storage or metadata",
+      "first_node": {
+        "module": "NGAP-IEs",
+        "name": "TransportLayerAddress",
+        "kind": 0,
+        "primitive_kind": 7,
+        "size": {
+          "present": 1,
+          "lower": 1,
+          "upper": 160,
+          "extensible": 1
+        }
+      },
+      "classification": "extensible_bit_string_size",
+      "n17_candidate": false,
+      "reason": "Extensible BIT STRING SIZE is outside current non-extensible framing support."
+    },
+    {
+      "message": "UEContextSuspendRequest",
+      "baseline_first_failure": "unsupported compound type shape, storage or metadata",
+      "first_node": {
+        "module": "NGAP-IEs",
+        "name": "TransportLayerAddress",
+        "kind": 0,
+        "primitive_kind": 7,
+        "size": {
+          "present": 1,
+          "lower": 1,
+          "upper": 160,
+          "extensible": 1
+        }
+      },
+      "classification": "extensible_bit_string_size",
+      "n17_candidate": false,
+      "reason": "Extensible BIT STRING SIZE is outside current non-extensible framing support."
+    },
+    {
+      "message": "UplinkNASTransport",
+      "baseline_first_failure": "unsupported compound type shape, storage or metadata",
+      "first_node": {
+        "module": "NGAP-IEs",
+        "name": "TransportLayerAddress",
+        "kind": 0,
+        "primitive_kind": 7,
+        "size": {
+          "present": 1,
+          "lower": 1,
+          "upper": 160,
+          "extensible": 1
+        }
+      },
+      "classification": "extensible_bit_string_size",
+      "n17_candidate": false,
+      "reason": "Extensible BIT STRING SIZE is outside current non-extensible framing support."
+    },
+    {
+      "message": "ConnectionEstablishmentIndication",
+      "baseline_first_failure": "missing or unsupported physical graph reference",
+      "first_node": {
+        "module": "NGAP-IEs",
+        "name": "UE-DifferentiationInfo"
+      },
+      "member": {
+        "declaration_ordinal": 0,
+        "name": "periodicCommunicationIndicator",
+        "inline_enumerated": true,
+        "range": {
+          "present": 0,
+          "lower": 0,
+          "upper": 0,
+          "extensible": 0,
+          "tail_count": 0
+        }
+      },
+      "reference": {
+        "kind": 0,
+        "primitive_kind": 0,
+        "module": null,
+        "name": null
+      },
+      "classification": "owned_inline_enumerated_reference",
+      "n17_candidate": true,
+      "reason": "Owned inline ENUMERATED body is present, but the physical graph dependency resolver attempts its intentionally empty ordinary type reference."
+    },
+    {
+      "message": "DownlinkRANStatusTransfer",
+      "baseline_first_failure": "missing or unsupported physical graph reference",
+      "first_node": {
+        "module": "NGAP-IEs",
+        "name": "AssociatedQosFlowItem"
+      },
+      "member": {
+        "declaration_ordinal": 1,
+        "name": "qosFlowMappingIndication",
+        "inline_enumerated": true,
+        "range": {
+          "present": 0,
+          "lower": 0,
+          "upper": 0,
+          "extensible": 0,
+          "tail_count": 0
+        }
+      },
+      "reference": {
+        "kind": 0,
+        "primitive_kind": 0,
+        "module": null,
+        "name": null
+      },
+      "classification": "owned_inline_enumerated_reference",
+      "n17_candidate": true,
+      "reason": "Owned inline ENUMERATED body is present, but the physical graph dependency resolver attempts its intentionally empty ordinary type reference."
+    },
+    {
+      "message": "InitialUEMessage",
+      "baseline_first_failure": "missing or unsupported physical graph reference",
+      "first_node": {
+        "module": "NGAP-IEs",
+        "name": "AUN3DeviceAccessInfo"
+      },
+      "member": {
+        "declaration_ordinal": 0,
+        "name": "aUN3DeviceAccess",
+        "inline_enumerated": true,
+        "range": {
+          "present": 0,
+          "lower": 0,
+          "upper": 0,
+          "extensible": 0,
+          "tail_count": 0
+        }
+      },
+      "reference": {
+        "kind": 0,
+        "primitive_kind": 0,
+        "module": null,
+        "name": null
+      },
+      "classification": "owned_inline_enumerated_reference",
+      "n17_candidate": true,
+      "reason": "Owned inline ENUMERATED body is present, but the physical graph dependency resolver attempts its intentionally empty ordinary type reference."
+    },
+    {
+      "message": "MTCommunicationHandlingRequest",
+      "baseline_first_failure": "missing or unsupported physical graph reference",
+      "first_node": {
+        "module": "NGAP-IEs",
+        "name": "HLComDeactivate"
+      },
+      "member": {
+        "declaration_ordinal": 0,
+        "name": "uEReachabilityIndication",
+        "inline_enumerated": true,
+        "range": {
+          "present": 0,
+          "lower": 0,
+          "upper": 0,
+          "extensible": 0,
+          "tail_count": 0
+        }
+      },
+      "reference": {
+        "kind": 0,
+        "primitive_kind": 0,
+        "module": null,
+        "name": null
+      },
+      "classification": "owned_inline_enumerated_reference",
+      "n17_candidate": true,
+      "reason": "Owned inline ENUMERATED body is present, but the physical graph dependency resolver attempts its intentionally empty ordinary type reference."
+    },
+    {
+      "message": "Paging",
+      "baseline_first_failure": "missing or unsupported physical graph reference",
+      "first_node": {
+        "module": "NGAP-IEs",
+        "name": "Allowed-PNI-NPN-Item"
+      },
+      "member": {
+        "declaration_ordinal": 1,
+        "name": "pNI-NPN-restricted",
+        "inline_enumerated": true,
+        "range": {
+          "present": 0,
+          "lower": 0,
+          "upper": 0,
+          "extensible": 0,
+          "tail_count": 0
+        }
+      },
+      "reference": {
+        "kind": 0,
+        "primitive_kind": 0,
+        "module": null,
+        "name": null
+      },
+      "classification": "owned_inline_enumerated_reference",
+      "n17_candidate": true,
+      "reason": "Owned inline ENUMERATED body is present, but the physical graph dependency resolver attempts its intentionally empty ordinary type reference."
+    },
+    {
+      "message": "RANPagingRequest",
+      "baseline_first_failure": "missing or unsupported physical graph reference",
+      "first_node": {
+        "module": "NGAP-IEs",
+        "name": "PagingPolicyDifferentiationItem"
+      },
+      "member": {
+        "declaration_ordinal": 4,
+        "name": "dl-DataSize",
+        "inline_enumerated": false,
+        "range": {
+          "present": 1,
+          "lower": 0,
+          "upper": 96000,
+          "extensible": 1,
+          "tail_count": 0
+        }
+      },
+      "reference": {
+        "kind": 1,
+        "primitive_kind": 2,
+        "module": null,
+        "name": null
+      },
+      "classification": "extensible_inline_integer_reference",
+      "n17_candidate": false,
+      "reason": "Inline INTEGER (0..96000, ...) does not satisfy finite non-extensible integer lowering; excluded from N17."
+    },
+    {
+      "message": "TimingSynchronisationStatusReport",
+      "baseline_first_failure": "missing or unsupported physical graph reference",
+      "first_node": {
+        "module": "NGAP-IEs",
+        "name": "RANTimingSynchronisationStatusInfo"
+      },
+      "member": {
+        "declaration_ordinal": 0,
+        "name": "synchronisationState",
+        "inline_enumerated": true,
+        "range": {
+          "present": 0,
+          "lower": 0,
+          "upper": 0,
+          "extensible": 0,
+          "tail_count": 0
+        }
+      },
+      "reference": {
+        "kind": 0,
+        "primitive_kind": 0,
+        "module": null,
+        "name": null
+      },
+      "classification": "owned_inline_enumerated_reference",
+      "n17_candidate": true,
+      "reason": "Owned inline ENUMERATED body is present, but the physical graph dependency resolver attempts its intentionally empty ordinary type reference."
+    },
+    {
+      "message": "UEInformationTransfer",
+      "baseline_first_failure": "missing or unsupported physical graph reference",
+      "first_node": {
+        "module": "NGAP-IEs",
+        "name": "UE-DifferentiationInfo"
+      },
+      "member": {
+        "declaration_ordinal": 0,
+        "name": "periodicCommunicationIndicator",
+        "inline_enumerated": true,
+        "range": {
+          "present": 0,
+          "lower": 0,
+          "upper": 0,
+          "extensible": 0,
+          "tail_count": 0
+        }
+      },
+      "reference": {
+        "kind": 0,
+        "primitive_kind": 0,
+        "module": null,
+        "name": null
+      },
+      "classification": "owned_inline_enumerated_reference",
+      "n17_candidate": true,
+      "reason": "Owned inline ENUMERATED body is present, but the physical graph dependency resolver attempts its intentionally empty ordinary type reference."
+    },
+    {
+      "message": "UplinkRANStatusTransfer",
+      "baseline_first_failure": "missing or unsupported physical graph reference",
+      "first_node": {
+        "module": "NGAP-IEs",
+        "name": "AssociatedQosFlowItem"
+      },
+      "member": {
+        "declaration_ordinal": 1,
+        "name": "qosFlowMappingIndication",
+        "inline_enumerated": true,
+        "range": {
+          "present": 0,
+          "lower": 0,
+          "upper": 0,
+          "extensible": 0,
+          "tail_count": 0
+        }
+      },
+      "reference": {
+        "kind": 0,
+        "primitive_kind": 0,
+        "module": null,
+        "name": null
+      },
+      "classification": "owned_inline_enumerated_reference",
+      "n17_candidate": true,
+      "reason": "Owned inline ENUMERATED body is present, but the physical graph dependency resolver attempts its intentionally empty ordinary type reference."
+    },
+    {
+      "message": "UplinkRIMInformationTransfer",
+      "baseline_first_failure": "missing or unsupported physical graph reference",
+      "first_node": {
+        "module": "NGAP-IEs",
+        "name": "RIMInformation"
+      },
+      "member": {
+        "declaration_ordinal": 1,
+        "name": "rIM-RSDetection",
+        "inline_enumerated": true,
+        "range": {
+          "present": 0,
+          "lower": 0,
+          "upper": 0,
+          "extensible": 0,
+          "tail_count": 0
+        }
+      },
+      "reference": {
+        "kind": 0,
+        "primitive_kind": 0,
+        "module": null,
+        "name": null
+      },
+      "classification": "owned_inline_enumerated_reference",
+      "n17_candidate": true,
+      "reason": "Owned inline ENUMERATED body is present, but the physical graph dependency resolver attempts its intentionally empty ordinary type reference."
+    },
+    {
+      "message": "DownlinkRIMInformationTransfer",
+      "baseline_first_failure": "missing or unsupported physical graph reference",
+      "first_node": {
+        "module": "NGAP-IEs",
+        "name": "RIMInformation"
+      },
+      "member": {
+        "declaration_ordinal": 1,
+        "name": "rIM-RSDetection",
+        "inline_enumerated": true,
+        "range": {
+          "present": 0,
+          "lower": 0,
+          "upper": 0,
+          "extensible": 0,
+          "tail_count": 0
+        }
+      },
+      "reference": {
+        "kind": 0,
+        "primitive_kind": 0,
+        "module": null,
+        "name": null
+      },
+      "classification": "owned_inline_enumerated_reference",
+      "n17_candidate": true,
+      "reason": "Owned inline ENUMERATED body is present, but the physical graph dependency resolver attempts its intentionally empty ordinary type reference."
+    }
+  ]
+}

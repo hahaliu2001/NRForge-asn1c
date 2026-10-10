@@ -1,6 +1,7 @@
 #include "asn1typed_render_cpp.h"
 #include "asn1typed_render_cpp_internal.h"
 #include "asn1typed_render_cpp_ioc_internal.h"
+#include "asn1typed_render_cpp_inline_enum_internal.h"
 #include <inttypes.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -139,7 +140,7 @@ static void translate(const asn1typed_module_t *m, const struct node *nodes, asn
     memset(r, 0, sizeof(*r)); r->module = (char *)"IocLowered"; r->source_name = nodes[found].name;
 }
 
-static int render_ioc(const asn1typed_module_t *m, const char *ns, char **out,
+static int render_ioc_raw(const asn1typed_module_t *m, const char *ns, char **out,
         char *diagnostic, size_t size, int mode, const char *const *names, size_t name_count) {
     struct node *nodes = NULL;
     asn1typed_module_t view;
@@ -273,6 +274,15 @@ cleanup:
 #undef BAD
 }
 
+static int render_ioc(const asn1typed_module_t *m,const char *ns,char **out,
+        char *why,size_t size,int mode,const char *const *names,size_t count) {
+    struct asn1typed_cpp_inline_enum_view view={0}; int result;
+    if(out) *out=NULL;
+    if(!out) { if(why&&size) snprintf(why,size,"invalid IOC renderer output argument"); return -1; }
+    if(asn1typed_cpp_inline_enum_view_init(&view,m,why,size)) return -1;
+    result=render_ioc_raw(view.module,ns,out,why,size,mode,names,count);
+    asn1typed_cpp_inline_enum_view_clear(&view); return result;
+}
 int asn1typed_render_cpp_owned_ioc_types(const asn1typed_module_t *m, const char *ns, char **out, char *why, size_t size) { return render_ioc(m, ns, out, why, size, 0, NULL, 0); }
 int asn1typed_render_cpp_owned_ioc_mapping(const asn1typed_module_t *m, const char *ns, char **out, char *why, size_t size) { return render_ioc(m, ns, out, why, size, 1, NULL, 0); }
 int asn1typed_render_cpp_owned_ioc_codec(const asn1typed_module_t *m, const char *ns, char **out, char *why, size_t size) { return render_ioc(m, ns, out, why, size, 2, NULL, 0); }

@@ -30,3 +30,7 @@ Owner authorization: 2026-10-09 (America/Los_Angeles), “做N15”. Implement b
 ## N16 selected capability milestone
 
 Owner authorization: “做N16”. Implement single finite non-extensible INTEGER intervals and effective use-site value constraints, with full int64/uint64 runtime arithmetic, owned extraction, generated codecs, focused independent references, independent review/fix closure, full131 readiness rescan, and routine commit/push. Preserve frozen schemas and historical generated outputs. Extensible INTEGER, discontinuous permitted sets, unconstrained INTEGER, unrepresented registry constraints, NULL/private-IE semantics and general NGAP interoperability remain outside this milestone. Stop after N16.
+
+## N17 selected capability milestone
+
+Owner authorization: “做N17”. Inspect remaining shared compound/reference failures and implement evidence-backed inline ENUMERATED field lowering, focused correctness/reference tests, independent review/fix closure, full131 readiness rescan and routine commit/push. Preserve frozen schemas and existing successful generated outputs. Character strings, extensible INTEGER/SIZE, fragmented collections, NULL/private-IE semantics and general NGAP wire qualification remain separately scoped. Stop after N17.

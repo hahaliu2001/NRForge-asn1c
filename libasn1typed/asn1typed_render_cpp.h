@@ -191,6 +191,16 @@ int asn1typed_render_cpp_owned_value_types(const asn1typed_module_t *, const cha
 int asn1typed_render_cpp_owned_value_mapping(const asn1typed_module_t *, const char *, char **, char *, size_t);
 int asn1typed_render_cpp_owned_value_codec(const asn1typed_module_t *, const char *, char **, char *, size_t);
 
+/* N17 opt-in shared shape family: lower already-owned inline ENUMERATED
+ * SEQUENCE fields through validated enum evidence into generation-local named
+ * helpers; preserve the input IR and reuse value_* support boundaries. IOC
+ * entry points use the same lowering. Missing evidence, residual constraints,
+ * conditional fields and unsupported shapes fail closed before output.
+ * Use unchanged IR/namespace; include runtime.hpp then types/mapping/codec. */
+int asn1typed_render_cpp_owned_shape_types(const asn1typed_module_t *, const char *, char **, char *, size_t);
+int asn1typed_render_cpp_owned_shape_mapping(const asn1typed_module_t *, const char *, char **, char *, size_t);
+int asn1typed_render_cpp_owned_shape_codec(const asn1typed_module_t *, const char *, char **, char *, size_t);
+
 #ifdef __cplusplus
 }
 #endif

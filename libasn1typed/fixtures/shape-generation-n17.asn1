@@ -1,0 +1,39 @@
+ShapeGeneration DEFINITIONS AUTOMATIC TAGS ::= BEGIN
+Word ::= INTEGER (0..255)
+Panel ::= SEQUENCE {
+    marker BOOLEAN,
+    phase ENUMERATED { high(9), low(-2), middle(5) },
+    status ENUMERATED { start(0), end(3), ..., between(1), later(10) } OPTIONAL,
+    copy ENUMERATED { high(9), low(-2), middle(5) } OPTIONAL,
+    class ENUMERATED { default(0), else(1) },
+    amount Word
+}
+Panels ::= SEQUENCE (SIZE(0..3)) OF Panel
+Branch ::= CHOICE { panel Panel, flag BOOLEAN }
+Envelope ::= SEQUENCE { lead BOOLEAN, branch Branch, panels Panels }
+END
+
+ShapeRenamed DEFINITIONS AUTOMATIC TAGS ::= BEGIN
+Number ::= INTEGER (0..255)
+Display ::= SEQUENCE {
+    marker BOOLEAN,
+    shade ENUMERATED { upper(9), lower(-2), middle(5) },
+    mode ENUMERATED { begin(0), finish(3), ..., between(1), later(10) } OPTIONAL,
+    duplicate ENUMERATED { upper(9), lower(-2), middle(5) } OPTIONAL,
+    class ENUMERATED { default(0), else(1) },
+    amount Number
+}
+END
+
+ShapeCollision DEFINITIONS ::= BEGIN
+Holder-inline-State ::= BOOLEAN
+Holder ::= SEQUENCE { state ENUMERATED { off, on } }
+END
+
+ShapeUnsafe DEFINITIONS ::= BEGIN
+UnsafeHolder ::= SEQUENCE { errno ENUMERATED { off, on } }
+END
+
+ShapeDefault DEFINITIONS ::= BEGIN
+DefaultHolder ::= SEQUENCE { state ENUMERATED { off, on } DEFAULT off }
+END

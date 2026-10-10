@@ -59,3 +59,5 @@ EXTRA_DIST += n14-octet-qualification/driver.cpp n14-octet-qualification/qualify
 EXTRA_DIST += n15-bit-qualification/README.md n15-bit-qualification/driver.cpp n15-bit-qualification/qualify.py n15-bit-qualification/requirements.txt n15-bit-qualification/qualification-summary.json n15-bit-qualification/readiness.json
 
 EXTRA_DIST += n16-integer-qualification/README.md n16-integer-qualification/driver.cpp n16-integer-qualification/qualify.py n16-integer-qualification/requirements.txt n16-integer-qualification/qualification-summary.json n16-integer-qualification/readiness.json
+
+EXTRA_DIST += n17-shape-qualification/README.md n17-shape-qualification/driver.cpp n17-shape-qualification/qualify.py n17-shape-qualification/requirements.txt n17-shape-qualification/qualification-summary.json n17-shape-qualification/baseline-shapes.json n17-shape-qualification/readiness.json

@@ -1,6 +1,7 @@
 #include "asn1typed_render_cpp.h"
 #include "asn1typed_render_cpp_internal.h"
 #include "asn1typed_render_cpp_ioc_internal.h"
+#include "asn1typed_render_cpp_inline_enum_internal.h"
 #include <inttypes.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -228,7 +229,13 @@ preflight(const asn1typed_module_t *m, const char *ns, struct plan *p, char *why
 			(t->kind == ASN1TYPED_TYPE_PRIMITIVE && t->primitive_kind == ASN1TYPED_PRIMITIVE_INTEGER) ? (p->values && !legacy_uint(t) ? "integer_codec::" : "uint_codec::") : "compound_codec::";
 		if(p->extensions && !(t->kind == ASN1TYPED_TYPE_SEQUENCE && t->is_extensible) &&
 			(t->sequence_extension_evidence != ASN1TYPED_WIRE_EVIDENCE_UNAVAILABLE || t->sequence_root_field_count || t->sequence_known_addition_count || t->has_valid_sequence_extension_structure)) FAIL("unexpected SEQUENCE extension structure metadata");
-		if(!shape(t, p->extensions, p->collections, p->octets, p->bits)) FAIL("unsupported compound type shape, storage or metadata");
+		if(!shape(t, p->extensions, p->collections, p->octets, p->bits)) {
+            snprintf(why, size, "unsupported compound type shape, storage or metadata: %s.%s (kind=%u primitive=%u SIZE=%d/%" PRIdMAX "..%" PRIdMAX " extensible=%d)",
+                t->identity.module ? t->identity.module : "?", t->identity.source_name ? t->identity.source_name : "?",
+                (unsigned)t->kind, (unsigned)t->primitive_kind, t->size_constraint.has_size_constraint,
+                t->size_constraint.lower_bound, t->size_constraint.upper_bound, t->size_constraint.is_extensible);
+            goto fail;
+        }
         if(t->kind == ASN1TYPED_TYPE_PRIMITIVE && t->primitive_kind == ASN1TYPED_PRIMITIVE_OCTET_STRING) p->has_octets = 1;
         if(t->kind == ASN1TYPED_TYPE_PRIMITIVE && t->primitive_kind == ASN1TYPED_PRIMITIVE_BIT_STRING) p->has_bits = 1;
 		if(!t->identity.module || strcmp(t->identity.module, m->source_name) || !t->identity.source_name || !t->identity.source_name[0]) FAIL("invalid compound type identity");
@@ -747,3 +754,21 @@ int
 asn1typed_render_cpp_owned_value_mapping(const asn1typed_module_t *m, const char *ns, char **out, char *diagnostic, size_t size) { return render(m, ns, out, diagnostic, size, 1, 1, 1, 1, 1, 1, NULL); }
 int
 asn1typed_render_cpp_owned_value_codec(const asn1typed_module_t *m, const char *ns, char **out, char *diagnostic, size_t size) { return render(m, ns, out, diagnostic, size, 2, 1, 1, 1, 1, 1, NULL); }
+
+static int
+render_shapes(const asn1typed_module_t *m, const char *ns, char **out, char *why, size_t size, int mode) {
+    struct asn1typed_cpp_inline_enum_view view = {0};
+    int rc;
+    if(out) *out = NULL;
+    if(!out) { if(why && size) snprintf(why, size, "invalid shape renderer output argument"); return -1; }
+    if(asn1typed_cpp_inline_enum_view_init(&view, m, why, size)) return -1;
+    rc = render(view.module, ns, out, why, size, mode, 1, 1, 1, 1, 1, NULL);
+    asn1typed_cpp_inline_enum_view_clear(&view);
+    return rc;
+}
+int
+asn1typed_render_cpp_owned_shape_types(const asn1typed_module_t *m, const char *ns, char **out, char *why, size_t size) { return render_shapes(m, ns, out, why, size, 0); }
+int
+asn1typed_render_cpp_owned_shape_mapping(const asn1typed_module_t *m, const char *ns, char **out, char *why, size_t size) { return render_shapes(m, ns, out, why, size, 1); }
+int
+asn1typed_render_cpp_owned_shape_codec(const asn1typed_module_t *m, const char *ns, char **out, char *why, size_t size) { return render_shapes(m, ns, out, why, size, 2); }
