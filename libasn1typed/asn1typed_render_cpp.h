@@ -125,6 +125,19 @@ int asn1typed_render_cpp_owned_sequence_extension_mapping(const asn1typed_module
 int asn1typed_render_cpp_owned_sequence_extension_codec(const asn1typed_module_t *,
         const char *, char **, char *, size_t);
 
+
+/* Opt-in N8 bounded SEQUENCE OF family, including preceding local collections
+ * and N6/N7 graphs. Requires finite non-extensible SIZE within 0..65535.
+ * Uses owned identity-preserving vectors and cumulative runtime element limits.
+ * Same unchanged IR/namespace/include order and reserved runtime namespace
+ * apply; do not mix output families for declarations in the same graph. */
+int asn1typed_render_cpp_owned_collection_types(const asn1typed_module_t *,
+        const char *, char **, char *, size_t);
+int asn1typed_render_cpp_owned_collection_mapping(const asn1typed_module_t *,
+        const char *, char **, char *, size_t);
+int asn1typed_render_cpp_owned_collection_codec(const asn1typed_module_t *,
+        const char *, char **, char *, size_t);
+
 #ifdef __cplusplus
 }
 #endif

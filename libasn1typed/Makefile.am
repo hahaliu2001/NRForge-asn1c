@@ -106,3 +106,11 @@ check_asn1typed_collection_size_SOURCES = check_asn1typed_collection_size.c
 check_asn1typed_collection_size_CPPFLAGS = $(check_asn1typed_extract_CPPFLAGS) -DCOLLECTION_SIZE_FIXTURE=\"$(abs_srcdir)/fixtures/collection-size-evidence-n8.asn1\" -DNDEBUG
 check_asn1typed_collection_size_LDADD = $(check_asn1typed_extract_LDADD)
 EXTRA_DIST += fixtures/collection-size-evidence-n8.asn1
+
+check_PROGRAMS += check_asn1typed_collection_render
+TESTS += check_asn1typed_collection_generated.sh
+check_asn1typed_collection_render_SOURCES = check_asn1typed_collection_render.c
+check_asn1typed_collection_render_CPPFLAGS = $(check_asn1typed_extract_CPPFLAGS) -DNDEBUG
+check_asn1typed_collection_render_LDADD = $(check_asn1typed_extract_LDADD)
+check_asn1typed_collection_render_LDFLAGS = -Wl,--wrap=malloc -Wl,--wrap=calloc -Wl,--wrap=realloc
+EXTRA_DIST += check_asn1typed_collection_generated.sh check_asn1typed_collection_generated.cpp fixtures/collection-generation-n8.asn1

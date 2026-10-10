@@ -1,0 +1,2 @@
+pycrate==0.7.11
+asn1tools==0.167.0

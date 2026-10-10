@@ -1,0 +1,12 @@
+{
+  "pycrate_version": "0.7.11",
+  "asn1tools_version": "0.167.0",
+  "cases_each_oracle": 1128,
+  "pycrate_matched": 1128,
+  "asn1tools_matched": 1122,
+  "asn1tools_known_empty_complete_encoding_mismatches": 6,
+  "owned_unknown_extension_cases_each_oracle": 48,
+  "production_disagreements_unresolved": 0,
+  "byte_normalization": false,
+  "qualification": "Generated bounded collection success vectors and opaque extension ownership; not whole NGAP qualification"
+}

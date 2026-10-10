@@ -1,0 +1,25 @@
+CollectionNativeSender DEFINITIONS AUTOMATIC TAGS ::= BEGIN
+Flag ::= BOOLEAN
+Word ::= INTEGER (0..255)
+Pair ::= SEQUENCE { value Word, marker Flag OPTIONAL }
+Pick ::= CHOICE { flag Flag, pair Pair }
+Words ::= SEQUENCE (SIZE (0..3)) OF Word
+Bits ::= SEQUENCE (SIZE (0..3)) OF BOOLEAN
+Pairs ::= SEQUENCE (SIZE (1..2)) OF Pair
+Picks ::= SEQUENCE (SIZE (0..3)) OF Pick
+Nested ::= SEQUENCE (SIZE (0..2)) OF Bits
+FixedThree ::= SEQUENCE (SIZE (3)) OF BOOLEAN
+Empty ::= SEQUENCE (SIZE (0)) OF BOOLEAN
+EmptyElement ::= SEQUENCE {}
+ZeroBitTriple ::= SEQUENCE (SIZE (3)) OF EmptyElement
+ShortEight ::= SEQUENCE (SIZE (0..254)) OF BOOLEAN
+OctetEight ::= SEQUENCE (SIZE (0..255)) OF BOOLEAN
+WideSixteen ::= SEQUENCE (SIZE (0..256)) OF BOOLEAN
+FullSixteen ::= SEQUENCE (SIZE (0..65535)) OF Flag
+PrefixShort ::= SEQUENCE { prefix Flag, values ShortEight }
+PrefixOctet ::= SEQUENCE { prefix Flag, values OctetEight }
+PrefixWide ::= SEQUENCE { prefix Flag, values WideSixteen }
+ExtPair ::= SEQUENCE { value Word, ..., extraFlag Flag OPTIONAL }
+ExtPairs ::= SEQUENCE (SIZE (0..2)) OF ExtPair
+Envelope ::= SEQUENCE { prefix Flag, bits Bits, pairs Pairs OPTIONAL, nested Nested, ... }
+END
