@@ -106,3 +106,30 @@ Evidence: [F1-P3 closeout](f1ap-cpp-aper-pdu-integration-closeout.md),
 `tools/f1ap-readiness/review-f1-p3.md`. Historical P1/P2 evidence is unchanged.
 Next: **F1-P4**, independent batch wire qualification; then F1-P5/F1-P6.
 E1AP and RRC remain after F1AP.
+
+## F1-P4 completion (2026-10-10)
+
+Independent finite complete-PDU wire qualification is accepted for all 158
+message identities and 94 procedures. The actual full public registry campaign
+passes 4,728 complete-byte and bidirectional semantic cases, all 975 declared
+top-level IE row occurrences, 330 SRBID extension-union cases, 8,781 main
+physical/ownership/resource checks and 610 receive-only unknown/absent slots.
+Separate independent framing evidence contributes 2,619 checks, not additional
+main semantic cases. Independent review approves the exact candidate hash.
+
+No production fix or frozen-schema edit was required. P3 readiness evidence
+remains unchanged and is not relabelled as a new scan. NGAP freshly passes 55/55
+functional tests, and 14 raw inventories, 42 BODY headers and 659 dispatch
+artifacts remain byte-exact. Historical NGAP wire reports are unchanged.
+
+Acceptance is finite: main vectors are 13–330 octets; repeated optional-omission
+traces, unreached typed fragmentation/sizes/combinations, application/mandatory-IE
+policy, RRC/NAS/vendor interpretation and fourth-root payload semantics are not
+qualified. Immediate fourth-root refusal remains a negative policy check.
+No installed F1AP SDK or benchmark is included.
+
+Evidence: [F1-P4 closeout](f1ap-cpp-aper-wire-qualification-closeout.md),
+`tools/f1ap-wire-qualification/accepted-profile.json`,
+`tools/f1ap-wire-qualification/qualification-summary.json`, and
+`tools/f1ap-wire-qualification/review.md`.
+Next: **F1-P5** C++ SDK delivery, then F1-P6 Python SDK; E1AP and RRC follow F1AP.

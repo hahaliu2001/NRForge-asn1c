@@ -103,3 +103,17 @@ unsupported and rejected after its root selector, before a procedure header
 or payload is read. Unknown procedure codes and absent outcome slots of the
 extensible procedure set are owned receive-only opaque values and refuse encode.
 See [F1-P3 contract](../../docs/f1ap-cpp-aper-pdu-integration-contract.md).
+
+## F1-P4 accepted finite wire evidence
+
+Independent qualification is separate from the historical readiness/integration
+reports above. The actual full registry passes 4,728 populated complete-byte and
+bidirectional semantic cases across all 158 identities, plus recorded error,
+ownership and budget checks. The reviewed exact profile, coverage limits,
+external promotion record and NGAP nonregression are in
+`tools/f1ap-wire-qualification/`; see its
+[README](../f1ap-wire-qualification/README.md) and
+[F1-P4 closeout](../../docs/f1ap-cpp-aper-wire-qualification-closeout.md).
+Historical P1/P2/P3 JSON is unchanged. No production fix was needed in P4, and no
+new readiness scan is claimed. Fourth-root payload semantics remain unsupported.
+Next is F1-P5 installed/relocated C++ SDK delivery, not another NGAP SDK phase.

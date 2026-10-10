@@ -1,0 +1,619 @@
+{
+  "status": "ACCEPTED_FINITE_F1AP_WIRE_PROFILE",
+  "independent_review_sha256": "cfb5c92f1d8da7305b108beefc896203e8c774b0feadba2144364c49a6a9f7c2",
+  "phase": "F1-P4",
+  "baseline_commit": "3c78d511561af8a846ca67e29b75dd88fbdbedde",
+  "profile_file": "accepted-profile.json",
+  "profile_storage_format": "nrforge-f1ap-lossless-profile-envelope-v1; expand and verify before --accepted-profile",
+  "profile_storage_sha256": "621e7814a91d747a751acd8618a21318ced6cc700ca193148efe0ea2e9173062",
+  "profile_bytes": 15760703,
+  "profile_sha256": "b957abe4cbd0c80bf109dc77dbb5e2f37257959ac6b65040003e2d875d615f64",
+  "executable_sha256": "db4ea4aba13855dfd3b14bda12a6dbe93d1a6ff831a87a854eeb8ea8a46e0f93",
+  "counts": {
+    "messages": 158,
+    "procedures": 94,
+    "roles": {
+      "0": 94,
+      "1": 36,
+      "2": 28
+    },
+    "cases": 4728,
+    "physical_and_resource_checks": 8781,
+    "receive_only_policy_slots": 610,
+    "linked_executables": 1
+  },
+  "coverage": {
+    "declared_row_occurrences": 975,
+    "covered_row_occurrences": 975,
+    "missing_row_occurrences": 0,
+    "srbid_extension_values": [
+      4,
+      5
+    ]
+  },
+  "distinct_choice_selections": 113,
+  "repeated_nested_optional_omission_entries": 4329,
+  "srbid_extension_cases": 330,
+  "wire_octet_range": [
+    13,
+    330
+  ],
+  "unresolved_disagreements": 0,
+  "production_changes": false,
+  "p3_readiness_report_preserved": true,
+  "supplemental_framing": {
+    "boundary_roots": 90,
+    "error_mutations": 2529,
+    "runtime_checks": 2619,
+    "counted_in_main_campaign": false,
+    "largest_opaque_payload_octets": 131072
+  },
+  "independent_review": "review.md",
+  "ngap_regression_sha256": "e97e3cab4f2f24df2ba31181c357c0b1beae52f0b28abc5bbbd2104ce6480b5a",
+  "ngap_regression": {
+    "scope": "F1-P4 NGAP nonregression; no new NGAP wire qualification or SDK expansion",
+    "baseline_commit": "3c78d511561af8a846ca67e29b75dd88fbdbedde",
+    "production_source_stability_vs_f1_p3": "PASS",
+    "sealed_source_hashes": {
+      "cmake/NRForgeNGAPConfig.cmake.in": "729924ea6e1e2168ba6aaeb6b67e376b3a4163b3555108b324950095dc3f9cc9",
+      "cmake/NrforgeNgapSdk.cmake": "d6a2646d8a8aaaf6d7476c562869a326627c6ca1d5650cb3fe3d66ce934e5015",
+      "cmake/VerifyNgapSdk.cmake": "c9d4c3a5d186e38997dfcbc1af6237ab10fff230e50d2e19ce1b56c855867c4b",
+      "cmake/WriteNgapSdkReceipt.cmake": "64086c8954dc396dfdc3a22029a15cfb9e7c2d8f02290e3d3ee80c14f8ed4621",
+      "libaper/runtime.cpp": "e6d162c031a4c8ba958e21460ffd5acf5ecf05d26232549da9933912e9259731",
+      "libaper/runtime.hpp": "34ceca5e464fc1c8f6e505cdd01ec00d22dd87d74d17abbb5660f605570162f1",
+      "libaper/sequence_extensions.hpp": "5447fdd559b2d1be8112161b4474810af619dd24f64678fc92d167bd36ef3db2",
+      "libasn1typed/asn1typed.c": "925bfb196ff75b0840dd83918ab719e1aed4b897228f927954694388fd3a1527",
+      "libasn1typed/asn1typed.h": "7b78750f8dcd0c756007b05544d8bdd377b368bc992b0bc19b92bdf28bff88e9",
+      "libasn1typed/asn1typed_envelope.c": "3031f07ec8c2b1aa9f0544cb32c12e7e95c6207388a079d509fff021a1ee329e",
+      "libasn1typed/asn1typed_envelope.h": "71cab9f1b5bdf0ef8a72d12d6dd63ad4f27218b165f029c181916b7fb381bef9",
+      "libasn1typed/asn1typed_extract.c": "efd5d948a34bc3d18811c44aca74ac40deed8cb35ec3957b4e382d2e410d3f0c",
+      "libasn1typed/asn1typed_extract.h": "a56be27a82a88a8548ff5b9f901325d969e9eabec3d451fceaa9f4cb6da0f4d6",
+      "libasn1typed/asn1typed_name.c": "3070d2bbdc67e719ab2c6a079a7c1116d3254215a00defa384e1f746d9c61039",
+      "libasn1typed/asn1typed_name.h": "a262d0fcd1a6bb0bd05becbad10889b7206a84d03dca7e54be97deba00a56dc1",
+      "libasn1typed/asn1typed_render_cpp.c": "6476abc318aa65596535858f5c88bc9502b8adcba974988b8b690d2c2964f273",
+      "libasn1typed/asn1typed_render_cpp.h": "fec1c47b125ca738b8631e86d46b42f79b1d8db6b3830cf18001a00563fed9fe",
+      "libasn1typed/asn1typed_render_cpp_codec.c": "8288d6cbd36bba3c47f681cd9c78b797cf02d6089fef108410ecb7e55ef06207",
+      "libasn1typed/asn1typed_render_cpp_compound.c": "6f8399ad106853a0cfdad06fc92373ba23b540372aef482a728375fb2b4bfcf6",
+      "libasn1typed/asn1typed_render_cpp_enum.c": "2fffd218d6b9d4e3ffb5091bfbea367a52ba05d9aa9e564bd25299bc6ad49ca3",
+      "libasn1typed/asn1typed_render_cpp_envelope.c": "1873c80ade49789c013f524684cad854a9b7503c11aa87c92d0b051b0ed57f99",
+      "libasn1typed/asn1typed_render_cpp_inline_enum.c": "798d2ee253a7c831ddbb745fc15722298cab7a38cbf9e0610f4db9c29d0ea25a",
+      "libasn1typed/asn1typed_render_cpp_inline_enum_internal.h": "997eff3c476706c64c73969b662aa5d38be160b6c77ade7430c74794e00afdfb",
+      "libasn1typed/asn1typed_render_cpp_integer.c": "9d2720ef57d00895fe0e5b79e079bd74675300859722ff16b7bfd6d95d04a129",
+      "libasn1typed/asn1typed_render_cpp_internal.h": "a2eeec91ddbae33c18516d55b26ac13edabe55f59bd67afd33e72c2d8ac3adf9",
+      "libasn1typed/asn1typed_render_cpp_ioc.c": "9e4c24efad08f4fe2591abfac40ddf911f4610499ac2d136e597b533c4625b6c",
+      "libasn1typed/asn1typed_render_cpp_ioc_internal.h": "29a0b4e92b22fe4588d6e54152bf7efc0d9d98d1af799a2c3840530910393c24",
+      "libasn1typed/asn1typed_render_cpp_slice.c": "c30778d2ec78a738c5cf97ee3cadf4d1712e6fda75e4893e4d746b6fd6abd492",
+      "libasn1typed/asn1typed_render_cpp_uint.c": "b1989191cc279e08afc0a9f1fc442094d252828cd5659f21230df28a286d8dee",
+      "libngap/pdu.cpp": "0e3b7ae02aac7b80cc29c58f06c0af04c14400ab2339a4e1f19a1d3319336902",
+      "libngap/pdu.hpp": "3a60f27fe7edb034954236cfeca48fed9cb9ee2a17ddb69e676ba2f544afa7d7",
+      "libngap/pdu_declarations.inc": "b4547043edf7bd7489b1517c566ac4ae5df51504bd7559b1bb13d40db7176214",
+      "libngap/pdu_implementation.inc": "c502f077254dd2bca6d65c27c3cb7498ebb1e3d34d4b1aa5021240ba5468d025",
+      "tools/developer_tree.c": "e66668657cfb0b2ed03a86a4a5a880b4a1ff61a0f8e4fbeb001dc2a923495eb8",
+      "tools/developer_tree.h": "9937648da32c77cde1404d49828230913990633c570a53231c9d449c39147233",
+      "tools/n11-envelope-qualification/source-manifest.json": "f2075096bfc3c8c6a6641cc48b6ceb13f819cd18d4be721f0b475179f34088dc",
+      "tools/ngap-dispatch/generate.c": "1ac5cc8fa89fa2f53a96a696d5ce4020121db344e2bd8c59ed9439e9338807cb",
+      "tools/ngap-dispatch/seal_sdk.py": "f6e09e9b49acc5b2cf7689523e5bf09ce5b57aca31dbd73d997cb486d74fee16"
+    },
+    "accepted_wire_profile_fingerprints": {
+      "tools/full-pdu-qualification/accepted-profile.json": "4f7a9ad81fc156ffbf0f84c842a67eeac7e1a6ed2684d1d29604ce3fc6f7113e",
+      "tools/unified-ngap-qualification/accepted-profile.json": "2eedaa7f086284c9c477e66fc933a5cbe70d3dd5feef3b9250921c3965fe4ecf",
+      "tools/ngap-sdk-consumer/native-fixtures.json": "b273aab95ac79f9aa0cb5330bd99800523a5fbd503cf39ade4f59b084afbcbfb"
+    },
+    "frozen_ngap_schema_fingerprints": {
+      "ng/asn1/NGAP-CommonDataTypes.asn": "774d888f3f63ff33508c1f5f7ca9a3f1a0a5ee5e102decb3ffed99700df5f7c1",
+      "ng/asn1/NGAP-Constants.asn": "492d40aad525d645a90cdfe2b644066007cc5ac81f6e527df9efa30bf6c8ebb8",
+      "ng/asn1/NGAP-Containers.asn": "3165b49eb2476b0d85ad261e983e1eb29cecb32c075f9bf81546cfe7a08a2bcb",
+      "ng/asn1/NGAP-IEs.asn": "ae4edee7e7d69ac6db94e44f5e716445990ecf5943edbc9a0f328ed210c25831",
+      "ng/asn1/NGAP-PDU-Contents.asn": "93baf5a65b4e3971839c82ef87467fffaf1a5f1dd9c159c297f6ce779e1acfd0",
+      "ng/asn1/NGAP-PDU-Descriptions.asn": "6fc4e2326ea449942195742efc0325a4181a94aadee99da8f1e2d76fe59dfa6d"
+    },
+    "functional_test_summary": {
+      "total": 55,
+      "pass": 55,
+      "fail": 0,
+      "skip": 0
+    },
+    "functional_tests": [
+      {
+        "suite": "libasn1typed",
+        "test": "check_asn1typed_ioc_cpp.sh",
+        "return_code": 0,
+        "status": "PASS",
+        "test_input_sha256": "717b155dd3ee370e371697e06ba2e33fd696118d1bfd5a61252fccbcd952fa60",
+        "log_sha256": "55752233283dfbcfa998cb0c97715f768aecf481b96de55307ed1d1c8704d65c"
+      },
+      {
+        "suite": "libasn1typed",
+        "test": "check_asn1typed",
+        "return_code": 0,
+        "status": "PASS",
+        "test_input_sha256": "f91dd8c4ae6a8835911aad101d558a9e37b8d0e07b8b23a21d0a4dc7fe2fa4e5",
+        "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "suite": "libasn1typed",
+        "test": "check_asn1typed_extract",
+        "return_code": 0,
+        "status": "PASS",
+        "test_input_sha256": "02e952db718b546068d83eb3aa7bbcb605aaaf50a09b8b410bac4bf91e766cba",
+        "log_sha256": "9fbdd6c0c7ab2d0381a531c6d4aa9cc627e6e932fd5d1b5677595d10f43c798b"
+      },
+      {
+        "suite": "libasn1typed",
+        "test": "check_asn1typed_name",
+        "return_code": 0,
+        "status": "PASS",
+        "test_input_sha256": "9d8fa6b0f3f084ad62753cdb092359b1a1a429041b1cc021a0c00fac5f1d251e",
+        "log_sha256": "af035a0feb58b54e1572f8913026120eb4275923f17b1425220cc542c3f0c277"
+      },
+      {
+        "suite": "libasn1typed",
+        "test": "check_asn1typed_render_cpp.sh",
+        "return_code": 0,
+        "status": "PASS",
+        "test_input_sha256": "2e5775df2001d907515fc57c0cb38c6c22bb72d6d9b49242d26a83ffe76458e3",
+        "log_sha256": "13903afe4503fc1e7f9dab21e70f3025b388a0b50a94a8e6ff71234bb1ff23de"
+      },
+      {
+        "suite": "libasn1typed",
+        "test": "check_asn1typed_owned_slice.sh",
+        "return_code": 0,
+        "status": "PASS",
+        "test_input_sha256": "ff00905fc64f1e816695c98ae97a0536e647f986d41f8072d4a48b13d0761a34",
+        "log_sha256": "9dbb471d4dfdebe7249973c3951193d2ed664a024f1f13db37c2cfef00b1e9de"
+      },
+      {
+        "suite": "libasn1typed",
+        "test": "check_asn1typed_codec.sh",
+        "return_code": 0,
+        "status": "PASS",
+        "test_input_sha256": "a05f9313aa2bac1b463b5140ea9ed614af6a20b329e01d0ea7f8ed7dd0b9d378",
+        "log_sha256": "f68325998764058b535f72a0128f7e2b52f2408e9068f97687c6919c4cc74bce"
+      },
+      {
+        "suite": "libasn1typed",
+        "test": "check_asn1typed_codec_variants.sh",
+        "return_code": 0,
+        "status": "PASS",
+        "test_input_sha256": "3af335a3dd2da8f4e5acff8f001ab6a4e09e2be8edcb90184cd0e5e775d3ac2d",
+        "log_sha256": "d6f3bb5bc966f4e7558850ae6595adde83e628fe5dee826ce9f6beff76975307"
+      },
+      {
+        "suite": "libasn1typed",
+        "test": "check_asn1typed_codec_rejections",
+        "return_code": 0,
+        "status": "PASS",
+        "test_input_sha256": "6797ba462780614a589b8a74d2ce26a96f9e49ab95ea20abebf0c9acb286e190",
+        "log_sha256": "1ee9c085e676006100664f6c35254bf7d871ff3c997204b9b808e81c1b3b7993"
+      },
+      {
+        "suite": "libasn1typed",
+        "test": "check_asn1typed_envelope",
+        "return_code": 0,
+        "status": "PASS",
+        "test_input_sha256": "2aa4e372a186a121414526d2b0c8611a2da2e8569facd88fdcebd1331ccdd6f7",
+        "log_sha256": "96fa5252a2661d7445376a0ebd838d558f27a22b298d47c2c29f611e3c5ac9ad"
+      },
+      {
+        "suite": "libasn1typed",
+        "test": "check_asn1typed_enum_evidence",
+        "return_code": 0,
+        "status": "PASS",
+        "test_input_sha256": "b9e26bd4f6491eeb8c322c57b4a7b8ba6fff9b58d637f4f61200a3a8c3007fde",
+        "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "suite": "libasn1typed",
+        "test": "check_asn1typed_enum_generated.sh",
+        "return_code": 0,
+        "status": "PASS",
+        "test_input_sha256": "fa462a4896aa2095677f54e2d83774c971ec848984832fb7366242aed236782e",
+        "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "suite": "libasn1typed",
+        "test": "check_asn1typed_uint_generated.sh",
+        "return_code": 0,
+        "status": "PASS",
+        "test_input_sha256": "471a542b3089b397543e2d09dc477fc7636b5f630bc6f05e271f2d59e6d425b3",
+        "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "suite": "libasn1typed",
+        "test": "check_asn1typed_compound_generated.sh",
+        "return_code": 0,
+        "status": "PASS",
+        "test_input_sha256": "7344f4dbcc51e5b7e356188c78f180d4a2700c3448e941560a6f609126470b7c",
+        "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "suite": "libasn1typed",
+        "test": "check_asn1typed_sequence_extension",
+        "return_code": 0,
+        "status": "PASS",
+        "test_input_sha256": "d9ddd6c2ecba85e947b61029cffe747686c676b94756426228a08743879fc232",
+        "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "suite": "libasn1typed",
+        "test": "check_asn1typed_sequence_extension_generated.sh",
+        "return_code": 0,
+        "status": "PASS",
+        "test_input_sha256": "75ecc90eeb291203200ce5d78bd8fa2308610096a8f97440902ba35a53990908",
+        "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "suite": "libasn1typed",
+        "test": "check_asn1typed_collection_size",
+        "return_code": 0,
+        "status": "PASS",
+        "test_input_sha256": "baefab463fbd0edf138054b6d2b59ab9ba32325702df127bf8a92d78a8990597",
+        "log_sha256": "6140801f687f51852b6ffa39582ae58146fa31d22c6b38aea8f484fd2885369c"
+      },
+      {
+        "suite": "libasn1typed",
+        "test": "check_asn1typed_collection_generated.sh",
+        "return_code": 0,
+        "status": "PASS",
+        "test_input_sha256": "139900c98f7f8e4c866efd95562e5e8efa5c3a5d35b03b3709da3606e5525dec",
+        "log_sha256": "57e4eec60c4836b53829542bffbf8c953cbedf5b3dd475afb85928fe566eeba2"
+      },
+      {
+        "suite": "libasn1typed",
+        "test": "check_asn1typed_ioc_evidence",
+        "return_code": 0,
+        "status": "PASS",
+        "test_input_sha256": "1eb9b489b35f97495cfe667b2c4cdf67ef1f51c7aa5223e157ced2398e263bde",
+        "log_sha256": "054fb26e887826dd4c88c4d5e309eb39cb3130ee65689e370142b0a84a4646d6"
+      },
+      {
+        "suite": "libasn1typed",
+        "test": "check_asn1typed_ioc_generated.sh",
+        "return_code": 0,
+        "status": "PASS",
+        "test_input_sha256": "c376c1a7d6178709b2e28b3efbe0684c3497c778fe479188a80f7d04b5dca4b5",
+        "log_sha256": "fdaf066d940e30c1332b99147d2f19934bfd3f845a11931d26c2993fe38cd1a9"
+      },
+      {
+        "suite": "libasn1typed",
+        "test": "check_asn1typed_envelope_generated.sh",
+        "return_code": 0,
+        "status": "PASS",
+        "test_input_sha256": "8775f683516fe2ed5818a6a878dd5e68fc01ca2ac7dd890346254645ce4837e9",
+        "log_sha256": "4838d2c46657d4a57472c972cfb260f1644e66b5df8a01bdb5fa9bab7a0a7999"
+      },
+      {
+        "suite": "libasn1typed",
+        "test": "check_asn1typed_octet_generated.sh",
+        "return_code": 0,
+        "status": "PASS",
+        "test_input_sha256": "93dafda57e1a3b9a4f15c04f157926143f4423b3a50a5f44a3bf3c3c2025c32a",
+        "log_sha256": "0cf7d1d81f9769cdc0f9a1563b3e50eb007a772978088d33d51e0bad7c63809e"
+      },
+      {
+        "suite": "libasn1typed",
+        "test": "check_asn1typed_ioc_octets",
+        "return_code": 0,
+        "status": "PASS",
+        "test_input_sha256": "775830eb86369e891e0ddc13a588b9902280409cab4f796f9a1da491075093de",
+        "log_sha256": "c4dfcde841f170b23faff60de5384a57d84610a619314a0fbe5d6e3ffaefc535"
+      },
+      {
+        "suite": "libasn1typed",
+        "test": "check_asn1typed_ioc_octet_generated.sh",
+        "return_code": 0,
+        "status": "PASS",
+        "test_input_sha256": "a9067f5339008fbdfd4f661428bb2762a5af1503da0843e720fbbeba690e9ca1",
+        "log_sha256": "e9e7db97b7294ab98e98a73a847266d4d0a0e7374f8a64a5bf0b38676565712f"
+      },
+      {
+        "suite": "libasn1typed",
+        "test": "check_asn1typed_octet_api",
+        "return_code": 0,
+        "status": "PASS",
+        "test_input_sha256": "a07d04a5299eb1723ea8048247d34f221254bf64832f092d94ae685454f21fe7",
+        "log_sha256": "c0b5d74878ba1a178e01b83eb772d8b7b81992f7b719a59cc2c0ae5fe38fe2d6"
+      },
+      {
+        "suite": "libasn1typed",
+        "test": "check_asn1typed_bit_generated.sh",
+        "return_code": 0,
+        "status": "PASS",
+        "test_input_sha256": "72913b53e9165ebf1c2b49638ebc35c63bfd17fd30a4e56bb91a1ec81a5640a7",
+        "log_sha256": "3bcdef63e4dd79a28b5311539af389285ded2ed9bf8eb84c3bb2a0920df2262a"
+      },
+      {
+        "suite": "libasn1typed",
+        "test": "check_asn1typed_bit_api",
+        "return_code": 0,
+        "status": "PASS",
+        "test_input_sha256": "2a0a9af1428cd1a7176a6b51b1d900b2c438d474bf7b4d06224f540d4749b547",
+        "log_sha256": "d8a82aa4633ae036102fbdbcac1a7da2ba4a34f0b6287d7c502611a8288c3b85"
+      },
+      {
+        "suite": "libasn1typed",
+        "test": "check_asn1typed_bit_use_size",
+        "return_code": 0,
+        "status": "PASS",
+        "test_input_sha256": "00cf6416f15ff0ade0970ff207ba6218d43135ffea3ceb3570fe52dba45b44fd",
+        "log_sha256": "f218ae9251c7d4b394841f7233e6c92a6f474fe5baf63300f12d6abe2433cd19"
+      },
+      {
+        "suite": "libasn1typed",
+        "test": "check_asn1typed_ioc_bit_generated.sh",
+        "return_code": 0,
+        "status": "PASS",
+        "test_input_sha256": "f16d70fc93e88588d5ccd02dfad2e505e06d01a3c538f237d68867fda9b32c28",
+        "log_sha256": "4cfed7927c7b0aa877c9ad9a19ba50a5788fc53e8f97d980a0b274f31fb34d49"
+      },
+      {
+        "suite": "libasn1typed",
+        "test": "check_asn1typed_integer_generated.sh",
+        "return_code": 0,
+        "status": "PASS",
+        "test_input_sha256": "791d3e7393799207a618a49abff9e4b182dc79d4e1dddf153328d22f70949297",
+        "log_sha256": "cafd48b1cb84fcf9147789a0f8ace6c1e85017ba98502c551be7d2fa82d8bab8"
+      },
+      {
+        "suite": "libasn1typed",
+        "test": "check_asn1typed_integer_use_range",
+        "return_code": 0,
+        "status": "PASS",
+        "test_input_sha256": "2ed68eb0f767f806058fafc8db06a389b671da110abc3651ecd9a27053bb9f81",
+        "log_sha256": "5fe987b041086814d8161d201ca1e35235e417191b2fcbd1e0bc7909029f8948"
+      },
+      {
+        "suite": "libasn1typed",
+        "test": "check_asn1typed_integer_api",
+        "return_code": 0,
+        "status": "PASS",
+        "test_input_sha256": "8d31eebfa250a52823a1d5a2b2a2f2597703a1e1edb1584cfe44c7f4f2579d30",
+        "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "suite": "libasn1typed",
+        "test": "check_asn1typed_shape_generated.sh",
+        "return_code": 0,
+        "status": "PASS",
+        "test_input_sha256": "b647b1e9ba044d8f043889a1f07c560a6894229d3b4e8f42595d583dfdd024af",
+        "log_sha256": "ceeca3a77c6e8acd7879d5b7efbf8c8ad974c242df354939a04cf51eaaa45896"
+      },
+      {
+        "suite": "libasn1typed",
+        "test": "check_asn1typed_shape_api",
+        "return_code": 0,
+        "status": "PASS",
+        "test_input_sha256": "d91f4c8dbb29fb5b14e86fda602e89fa8c49290ccee13263f74b7a95211938f0",
+        "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "suite": "libasn1typed",
+        "test": "check_asn1typed_character_generated.sh",
+        "return_code": 0,
+        "status": "PASS",
+        "test_input_sha256": "6751c0771c352790eb37e5ced1e12a28f0b852d02c08779bb27c6b1b455c6824",
+        "log_sha256": "a30e840843c193db13f168d0f10e7a1221d17c52b912b0bc3604fd742e175d5a"
+      },
+      {
+        "suite": "libasn1typed",
+        "test": "check_asn1typed_null_generated.sh",
+        "return_code": 0,
+        "status": "PASS",
+        "test_input_sha256": "6d31333b05e3e01fbd4bc338f2d69a0019f1679d4b912f689f8004c5c223fd7a",
+        "log_sha256": "0c9a3abd865781360f29e078fe206682a6008d925dcc19d11b06b2bc02d656c4"
+      },
+      {
+        "suite": "libasn1typed",
+        "test": "check_asn1typed_size_generated.sh",
+        "return_code": 0,
+        "status": "PASS",
+        "test_input_sha256": "1bc7f63f33019cf36691c9c88a87f3b27740c3b7857d40216cdf360510b2f87d",
+        "log_sha256": "ae95b5374cb62c44808b7ffd6971ecfded93064226a35452790486ba019a4388"
+      },
+      {
+        "suite": "libasn1typed",
+        "test": "check_asn1typed_domain_generated.sh",
+        "return_code": 0,
+        "status": "PASS",
+        "test_input_sha256": "adcb446b3356765a6b260e69c489b027483126edb01a2bfc8f1b8fd766b7c8f7",
+        "log_sha256": "10741eac24b9bbdd98d197147ff5c8805ead3cd7d0f11ba0cc2f82cad9b1c2bb"
+      },
+      {
+        "suite": "libasn1typed",
+        "test": "check_asn1typed_private_generated.sh",
+        "return_code": 0,
+        "status": "PASS",
+        "test_input_sha256": "1957102a9610efc8dc550a7e1065ea43e7ebe7e0d384367af1e407f8eefc0a8a",
+        "log_sha256": "6767fbee0c9df52040791e266a78dd0cfa7f75646f176517f7a5ad5f6cc98667"
+      },
+      {
+        "suite": "libasn1typed",
+        "test": "check_asn1typed_fragment_bits_generated.sh",
+        "return_code": 0,
+        "status": "PASS",
+        "test_input_sha256": "e8ee958d6d5a6889f316252e59617e6679c6446603df6f6c02a1da9156c65c56",
+        "log_sha256": "dfe5982f6a22cc505cb0d76cc11e7fbe86ed78f56c8af30b3c4d5af5be892204"
+      },
+      {
+        "suite": "libasn1typed",
+        "test": "check_asn1typed_inline_constructed.sh",
+        "return_code": 0,
+        "status": "PASS",
+        "test_input_sha256": "64d170fd95aa9c7ad70c6481ef3b01a5a1b72b00709f794a0d61302aba9b5617",
+        "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "suite": "libaper",
+        "test": "check_aper_runtime",
+        "return_code": 0,
+        "status": "PASS",
+        "test_input_sha256": "a9f0eb8e0065bc1d3ec28913d3c86379441146716216171bd34706e55b8fccc7",
+        "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "suite": "libaper",
+        "test": "check_aper_extensions",
+        "return_code": 0,
+        "status": "PASS",
+        "test_input_sha256": "d6db271233861ec6363fe2744257e3c2cae4a034b1c827eeaf7a2a2517cfe27a",
+        "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "suite": "libaper",
+        "test": "check_aper_collections",
+        "return_code": 0,
+        "status": "PASS",
+        "test_input_sha256": "125c14245be16a4843faa6825604bcfef6fc4edb17a2cfc170a155f9bc5c8d21",
+        "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "suite": "libaper",
+        "test": "check_aper_known_open",
+        "return_code": 0,
+        "status": "PASS",
+        "test_input_sha256": "ab94515c8b6decea6417688279bd505a6e704ad026bd205751920aab525c6bd0",
+        "log_sha256": "ea8418f06664d46c2de59e21bea0cdd86a04c1a8ba4cf8be2baef58a7725df1f"
+      },
+      {
+        "suite": "libaper",
+        "test": "check_aper_octets",
+        "return_code": 0,
+        "status": "PASS",
+        "test_input_sha256": "fe999712da28d21a4dade6340f281c2ffba4c5f4025c9b6fbf5b3e0bf7d5b1eb",
+        "log_sha256": "87a257afd779998bd218633bbdc407c2c5ae123649c41d7d6c2525be69cdcb32"
+      },
+      {
+        "suite": "libaper",
+        "test": "check_aper_bits",
+        "return_code": 0,
+        "status": "PASS",
+        "test_input_sha256": "e3663080dfd17b15039d14c77e7ff257bc985535e8e5d9db51b16db389c189d4",
+        "log_sha256": "90a384cb8ad05d3eb2312c56bfdf6865f3a3b7e06ed088a4d832566a5401bcd6"
+      },
+      {
+        "suite": "libaper",
+        "test": "check_aper_integer",
+        "return_code": 0,
+        "status": "PASS",
+        "test_input_sha256": "81df0b078b1ff20c20ac4d0936cd3903c54e31cefc2ebba0f0ee721a6cc26ea3",
+        "log_sha256": "e5fe9258a4c15e9e09a03f273a2b8bc287704b2f9b0059642f32c75ed972dc83"
+      },
+      {
+        "suite": "libaper",
+        "test": "check_aper_ext_strings",
+        "return_code": 0,
+        "status": "PASS",
+        "test_input_sha256": "d87ec4545264897ec4980d3304279ebd5a7b771a4015a286ec130a86ae7048bc",
+        "log_sha256": "0a333150e67cc5e5ca78958aac6357f841d4809e17fd5028ac8e5cab485b6acf"
+      },
+      {
+        "suite": "libaper",
+        "test": "check_aper_extensible_integer",
+        "return_code": 0,
+        "status": "PASS",
+        "test_input_sha256": "62fc9436d55babfa2d5416b816923cd66ded4d209e616b51ee8cc052d84ec05c",
+        "log_sha256": "310746140fd24b8a64ac8d4ba9304d8601559a4a90cc11a72f1207b14413245a"
+      },
+      {
+        "suite": "libaper",
+        "test": "check_aper_fragmented_bits",
+        "return_code": 0,
+        "status": "PASS",
+        "test_input_sha256": "07fb9842eec3274d7c079cbe36df9af36bf65f68014d18acebd3ce6fdf35371d",
+        "log_sha256": "9d154bb0e2a4d7a4752d29d515ca9472a336f980342bde07561ddfad10c06029"
+      },
+      {
+        "suite": "libngap",
+        "test": "check_ngap_pdu",
+        "return_code": 0,
+        "status": "PASS",
+        "test_input_sha256": "1b3933484d6f01b64efd3954d6bc7b78f5113ef4158144ed90197bf5faa6fb66",
+        "log_sha256": "c45baa769e8549f2ee1e22443f5d2cc090eb5381bed5d0e98e17ef8e145e88e5"
+      },
+      {
+        "suite": "libngap",
+        "test": "check_f1ap_pdu",
+        "return_code": 0,
+        "status": "PASS",
+        "test_input_sha256": "839f176def28292d8960423b575e1005cd8741147a82214eda560d5143dd9831",
+        "log_sha256": "7b19091b1d3c96bd0f0974e625199a90ea41fa3c2a3a0fa00b3fff03dee23c0d"
+      },
+      {
+        "suite": "tools",
+        "test": "test_tools.sh",
+        "return_code": 0,
+        "status": "PASS",
+        "test_input_sha256": "e9adcf0d843c77c3672d8d6c3dc867d4faece88c3b171b5205973fa806ae234e",
+        "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "suite": "tools",
+        "test": "check_dispatch_schema",
+        "return_code": 0,
+        "status": "PASS",
+        "test_input_sha256": "30db89bb500a1f52551d3065bb8b8ff8dc2d7139b8819c9acd948d238a5ef1c2",
+        "log_sha256": "822ab7ddfaba171df8d137e5230af0b1c74363c290ec1e7d5522e45c8b00c605"
+      }
+    ],
+    "raw14_byte_exact": true,
+    "raw14_sha256": "a1e3fbe31b4d0f3936f4f85f3ce8b4f0d3933cbc73cf2decb243bae6046162c4",
+    "body_headers": {
+      "files": 42,
+      "different": [],
+      "byte_exact": true
+    },
+    "unified_dispatch": {
+      "files": 659,
+      "different": [],
+      "byte_exact": true
+    },
+    "probe_sha256": "3e47b88fe1d0eb2487d6e839deed8d9dbbf323ea18ecc007659483cd4cfeeb1a",
+    "dispatch_generator_sha256": "f9deea86eb43d85e711ad69b8a50f11618bac9f15e7e1ee947924d715f6f5531",
+    "wire_qualification": "NO_NEW_NGAP_CAMPAIGN",
+    "limitations": [
+      "Existing accepted wire profiles preserved by exact fingerprints; no replay of full native campaign.",
+      "No archive linkage, SDK expansion or benchmark was performed in this regression rerun."
+    ],
+    "status": "PASS",
+    "accepted_unified_qualified_generated_outputs": {
+      "count": 656,
+      "byte_exact": true
+    },
+    "historical_libaper_runtime_and_test_fingerprints": {
+      "count": 13,
+      "unchanged": true
+    },
+    "historical_profile_source_fingerprint_fields": "PRESERVED_VERBATIM_IN_UNCHANGED_ACCEPTED_PROFILE_FILES_NOT_REINTERPRETED_AS_CURRENT_SOURCE_MATCH",
+    "ngap131_dispatch_generation": "PASS",
+    "ngap131_readiness_reference": {
+      "path": "tools/f1ap-readiness/ngap-regression-f1-p3.json",
+      "sha256": "71fa7215a9b96ad8a0244e05d32688c6a310af66057fa74152eefca43d9e7b9d",
+      "summary": {
+        "physical": {
+          "PASS": 131
+        },
+        "body_generation": {
+          "PASS": 131
+        },
+        "strict_compile": {
+          "PASS": 131
+        }
+      },
+      "fresh_131_strict_compile_rerun": "NOT_RUN_UNCHANGED_PRODUCTION_AND_BYTE_EXACT_GENERATED_OUTPUTS"
+    },
+    "test_only_missing_helper_relinks": 9,
+    "prerequisite_diagnostics_excluded": "Initial rerun stopped because P3 cleanup had removed test helpers; codec_variants shell returned 127. Nine test-only binaries were relinked from existing unchanged objects, then all 55 tests were rerun and passed. The initial prerequisite run is not counted.",
+    "test_only_relink_log_sha256": "2e4893ae3acbe38afbfe83f5b1cf7758be8f4e6cd03f8f9f3e05ebd3a77db489",
+    "production_archive_rebuilt": false,
+    "large_archive_link_performed": false,
+    "benchmark": "NOT_RUN"
+  },
+  "limitations": [
+    "Finite populated values and selected root/extension semantics; not exhaustive PER/ASN.1 or live vendor interoperability.",
+    "Conditional application rules and mandatory-IE procedure/state policy are outside the wire profile.",
+    "Nested optional omissions are explicit in traces; sizes, combinations and fragmentation not reached by these cases remain unqualified.",
+    "Opaque contained RRC/NAS and private vendor payload interpretation are outside scope.",
+    "Fourth-root payload semantics remain unsupported; immediate rejection is a policy check, not sender interoperability."
+  ],
+  "next_phase": "F1-P5 installed/relocated C++ SDK; F1-P6 Python SDK; E1AP then RRC"
+}
