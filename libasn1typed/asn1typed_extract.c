@@ -760,6 +760,19 @@ populate_type(asn1p_t *tree, asn1typed_type_t *out, asn1p_expr_t *decl,
 		return 0;
 	}
 	case ASN1TYPED_TYPE_SEQUENCE_OF:
+		{
+			asn1typed_size_constraint_t size_constraint = {0};
+			const asn1p_constraint_t *constraint = decl->combined_constraints ?
+				decl->combined_constraints : decl->constraints;
+			if(extract_size_constraint(constraint, &size_constraint, 1) ||
+				(size_constraint.has_size_constraint && size_constraint.lower_bound < 0)) {
+				set_error(error, error_size,
+					"%s: unsupported or unrepresentable SEQUENCE OF SIZE constraint",
+					decl->Identifier);
+				return -1;
+			}
+			out->size_constraint = size_constraint;
+		}
 		member = TQ_FIRST(&body->members);
 		if(!member || TQ_NEXT(member, next)) {
 			set_error(error, error_size, "%s: malformed SEQUENCE OF element",

@@ -99,3 +99,10 @@ check_asn1typed_sequence_extension_render_CPPFLAGS = $(check_asn1typed_extract_C
 check_asn1typed_sequence_extension_render_LDADD = $(check_asn1typed_extract_LDADD)
 check_asn1typed_sequence_extension_render_LDFLAGS = -Wl,--wrap=malloc -Wl,--wrap=calloc -Wl,--wrap=realloc
 EXTRA_DIST += check_asn1typed_sequence_extension_generated.sh check_asn1typed_sequence_extension_generated.cpp fixtures/sequence-extension-generation-n7.asn1 fixtures/sequence-extension-sender-n7.asn1
+
+check_PROGRAMS += check_asn1typed_collection_size
+TESTS += check_asn1typed_collection_size
+check_asn1typed_collection_size_SOURCES = check_asn1typed_collection_size.c
+check_asn1typed_collection_size_CPPFLAGS = $(check_asn1typed_extract_CPPFLAGS) -DCOLLECTION_SIZE_FIXTURE=\"$(abs_srcdir)/fixtures/collection-size-evidence-n8.asn1\" -DNDEBUG
+check_asn1typed_collection_size_LDADD = $(check_asn1typed_extract_LDADD)
+EXTRA_DIST += fixtures/collection-size-evidence-n8.asn1

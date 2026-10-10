@@ -1,0 +1,14 @@
+CollectionSizeEvidence DEFINITIONS AUTOMATIC TAGS ::= BEGIN
+Flag ::= BOOLEAN
+RangeList ::= SEQUENCE (SIZE (0..65535)) OF Flag
+FixedList ::= SEQUENCE (SIZE (2)) OF BOOLEAN
+EmptyList ::= SEQUENCE (SIZE (0)) OF Flag
+PositiveList ::= SEQUENCE (SIZE (1..3)) OF Flag
+UnboundedList ::= SEQUENCE OF Flag
+ExtensibleList ::= SEQUENCE (SIZE (1..3, ...)) OF Flag
+ExactExtensibleList ::= SEQUENCE (SIZE (2, ...)) OF Flag
+END
+
+CollectionSizeUnion DEFINITIONS AUTOMATIC TAGS ::= BEGIN
+UnionList ::= SEQUENCE (SIZE (1 | 3)) OF BOOLEAN
+END
