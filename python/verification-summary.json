@@ -1,0 +1,76 @@
+{
+  "status": "PASS",
+  "baseline_commit": "6f2b1598fe9c9db41062edd24c3db18c0b0447a8",
+  "sdk_identity": {
+    "version": "0.1.0",
+    "fingerprint": "cc912cb618961dad464e4d826b223ec324e541d395e4dec20db91a8e1facb7a4",
+    "schema_sha256": "2d03fffa622648d51c240d9f690b078ab6723b4d338b342264893dc2958f9339",
+    "runtime_sha256": "d4efa2e5abc207f4656aa264d78b193225072cb7df97b8e2c7f02f20a81b22e6",
+    "source_revision": "3f8a915768b28e0129736618e2f4c28c3dcbeb25"
+  },
+  "artifact": {
+    "filename": "nrforge_ngap-0.1.0-cp312-cp312-linux_x86_64.whl",
+    "sha256": "a360e926a7d4a013c17feedd55e7b15f25db38ce41758a6c1e2b824f96b6b439",
+    "size_bytes": 33812185,
+    "platform": "CPython 3.12 Linux x86-64",
+    "native_uncompressed_bytes": 177826448
+  },
+  "installed_tests": {
+    "test_count": 12,
+    "finite_native_messages": 131,
+    "independent_ng_setup_outcomes": 3,
+    "concurrent_workers": 4,
+    "concurrent_roundtrips": 32,
+    "isolated_python": true,
+    "outside_repository": true,
+    "pycrate_loaded": false,
+    "hidden_input_rerun": "PASS",
+    "hidden_inputs": [
+      "repository",
+      "C++ SDK prefix",
+      "frozen schema",
+      "SDK generation work",
+      "Python build tree"
+    ]
+  },
+  "generation": {
+    "public_headers": 267,
+    "structs": 8741,
+    "enums": 866,
+    "aliases": 1571,
+    "constraints": 587,
+    "public_sdk_rejection_tests": "PASS 2 unittest methods, seal/inventory/parser negatives"
+  },
+  "compile": "C++20 O0 -Wall -Wextra -Werror -pedantic-errors -Wconversion -Wsign-conversion",
+  "sanitizers": {
+    "conversion_core_asan_ubsan": "PASS",
+    "full_extension_sanitizers": "not run",
+    "leak_sanitizer": "not qualified"
+  },
+  "independent_review": {
+    "verdict": "PASS",
+    "ready_to_publish": true,
+    "scope": [
+      "all 131 registry/schema identities",
+      "fresh NGSetup construction exact bytes",
+      "C++ baseline error-offset comparison",
+      "strict input containers and zero budgets",
+      "unknown outer payload retention",
+      "256 mixed concurrent contexts",
+      "ELF system-only dependencies and exact wheel/native bytes"
+    ],
+    "remaining_limitations": [
+      "no full native extension sanitizer or LSan qualification",
+      "remote CI not observed"
+    ]
+  },
+  "remote_ci": "not executed locally; workflow updated",
+  "limits": [
+    "finite integration vectors, not exhaustive value-domain or live RAN qualification",
+    "ordinary CPython only; no free-threaded/subinterpreter/stable ABI/platform qualification",
+    "receive-only unknown IE/sequence/outer payload re-encoding stays unsupported"
+  ],
+  "unchanged_cpp_sdk_archive_sha256": "23788ea8ce4cd225258d65ba80034d1be6376f97b6d1dfd0d5150d8af0f8ae61",
+  "distribution_manifest": "PASS 16 Python files and closeout",
+  "build_post_link_import_gate": "PASS all 131 registry entries"
+}

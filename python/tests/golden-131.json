@@ -1,0 +1,1184 @@
+{
+  "source": "Pinned native pycrate 0.7.11 finite 131-message minimal profile; not live network qualification",
+  "cases": [
+    {
+      "frame": 1,
+      "message": "AMFConfigurationUpdate",
+      "procedure_code": 0,
+      "root": "initiatingMessage",
+      "criticality": "reject",
+      "pdu_hex": "00000003000000",
+      "wire_sha256": "6d144fffa4e64919d0b28b1a8013deeaa22c871b44b19c2db3699d912887e64c"
+    },
+    {
+      "frame": 2,
+      "message": "AMFConfigurationUpdateAcknowledge",
+      "procedure_code": 0,
+      "root": "successfulOutcome",
+      "criticality": "reject",
+      "pdu_hex": "20000003000000",
+      "wire_sha256": "8e082618800a60cb5c5a41752449661c8de6772c8b0ecbf7ddef7e1a306b635c"
+    },
+    {
+      "frame": 3,
+      "message": "AMFConfigurationUpdateFailure",
+      "procedure_code": 0,
+      "root": "unsuccessfulOutcome",
+      "criticality": "reject",
+      "pdu_hex": "40000009000001000f40020000",
+      "wire_sha256": "7a62b5649ab10ae253c0cd113218bb7a9299484d9c5251b03f11db7dc9b98e77"
+    },
+    {
+      "frame": 4,
+      "message": "BroadcastSessionModificationRequest",
+      "procedure_code": 66,
+      "root": "initiatingMessage",
+      "criticality": "reject",
+      "pdu_hex": "0042000e000001012b000700000000000000",
+      "wire_sha256": "aee7a5040cc34806966d4abd5bf767abe7709f16b325dac74960b188447a000e"
+    },
+    {
+      "frame": 5,
+      "message": "BroadcastSessionModificationResponse",
+      "procedure_code": 66,
+      "root": "successfulOutcome",
+      "criticality": "reject",
+      "pdu_hex": "2042000e000001012b000700000000000000",
+      "wire_sha256": "c5efe2e25a496c7ba3d9e2ff6cfc8bcb9729f2fec9185ec1e75443aa1dbe9336"
+    },
+    {
+      "frame": 6,
+      "message": "BroadcastSessionModificationFailure",
+      "procedure_code": 66,
+      "root": "unsuccessfulOutcome",
+      "criticality": "reject",
+      "pdu_hex": "40420014000002012b000700000000000000000f40020000",
+      "wire_sha256": "d78c285c3a26413e21a02453f1d20b8b2c40d24b1f2351a2cd96a2737cae89f0"
+    },
+    {
+      "frame": 7,
+      "message": "BroadcastSessionReleaseRequest",
+      "procedure_code": 67,
+      "root": "initiatingMessage",
+      "criticality": "reject",
+      "pdu_hex": "00430014000002012b000700000000000000000f40020000",
+      "wire_sha256": "d84099301e6449fdeaa98b269bc8dd40d7ac4ebc7390d23c90d8faa7e257e6f5"
+    },
+    {
+      "frame": 8,
+      "message": "BroadcastSessionReleaseResponse",
+      "procedure_code": 67,
+      "root": "successfulOutcome",
+      "criticality": "reject",
+      "pdu_hex": "2043000e000001012b000700000000000000",
+      "wire_sha256": "805593580ce947b87e8745741a6c3ff6e8ab85dbaa7ea0e709324c29f2fc77bd"
+    },
+    {
+      "frame": 9,
+      "message": "BroadcastSessionSetupRequest",
+      "procedure_code": 68,
+      "root": "initiatingMessage",
+      "criticality": "reject",
+      "pdu_hex": "0044002c000004012b000700000000000000009400020000012a000100013b000f0e0000010129000700000000000000",
+      "wire_sha256": "ee4940ad3710c7662db9f5a1f5c9f0b8ec56bdcf694e7a5d11d78e28b295dbf6"
+    },
+    {
+      "frame": 10,
+      "message": "BroadcastSessionSetupResponse",
+      "procedure_code": 68,
+      "root": "successfulOutcome",
+      "criticality": "reject",
+      "pdu_hex": "2044000e000001012b000700000000000000",
+      "wire_sha256": "0898aa781495c6ed9aa17bc3b9cec48860b5e78f0a274624761d8cb4c56d033f"
+    },
+    {
+      "frame": 11,
+      "message": "BroadcastSessionSetupFailure",
+      "procedure_code": 68,
+      "root": "unsuccessfulOutcome",
+      "criticality": "reject",
+      "pdu_hex": "40440014000002012b000700000000000000000f40020000",
+      "wire_sha256": "1178c2757d260c069bb9ac5fccfc92b3ed5eb826f07cb0e52cbabaf4d2e4d212"
+    },
+    {
+      "frame": 12,
+      "message": "BroadcastSessionTransportRequest",
+      "procedure_code": 80,
+      "root": "initiatingMessage",
+      "criticality": "reject",
+      "pdu_hex": "00500021000002012b00070000000000000001a2000f0e0000000000000000000000000000",
+      "wire_sha256": "4859c810b4e967ad8d86f3db9d4819c1785c7c4754826a920a32953f9531579f"
+    },
+    {
+      "frame": 13,
+      "message": "BroadcastSessionTransportResponse",
+      "procedure_code": 80,
+      "root": "successfulOutcome",
+      "criticality": "reject",
+      "pdu_hex": "2050001a000002012b00070000000000000001a300080700000000000000",
+      "wire_sha256": "3e89c01ec1d03ab3ce78b72ae5e98bb548bbf20970c30f36853a1033c76310c9"
+    },
+    {
+      "frame": 14,
+      "message": "BroadcastSessionTransportFailure",
+      "procedure_code": 80,
+      "root": "unsuccessfulOutcome",
+      "criticality": "reject",
+      "pdu_hex": "40500022000003012b00070000000000000001a1400a09000000000000000000000f40020000",
+      "wire_sha256": "f748dffa0c38854e67bfc67305563f3f0d30a33a504bf7f2c09014b447d39ff1"
+    },
+    {
+      "frame": 15,
+      "message": "DistributionSetupRequest",
+      "procedure_code": 69,
+      "root": "initiatingMessage",
+      "criticality": "reject",
+      "pdu_hex": "0045001a000002012b000700000000000000012d00080700000000000000",
+      "wire_sha256": "364102e17ec3d7c48d57906d84367fe9fad6a55019fe20fadd5f1d8422c37dfa"
+    },
+    {
+      "frame": 16,
+      "message": "DistributionSetupResponse",
+      "procedure_code": 69,
+      "root": "successfulOutcome",
+      "criticality": "reject",
+      "pdu_hex": "20450021000002012b000700000000000000012e000f0e0000000000000000000000000000",
+      "wire_sha256": "b6be4025ed4eb61991596b1b7a82490698798c310e308cb1af3d9c9438d50721"
+    },
+    {
+      "frame": 17,
+      "message": "DistributionSetupFailure",
+      "procedure_code": 69,
+      "root": "unsuccessfulOutcome",
+      "criticality": "reject",
+      "pdu_hex": "40450022000003012b000700000000000000012f400a09000000000000000000000f40020000",
+      "wire_sha256": "f60224f6b17331ca7ecdc3a4e5b01fb8c3ed19b00d009f637ae5a379a3bd1d5f"
+    },
+    {
+      "frame": 18,
+      "message": "DistributionReleaseRequest",
+      "procedure_code": 70,
+      "root": "initiatingMessage",
+      "criticality": "reject",
+      "pdu_hex": "00460022000003012b000700000000000000012c000a09000000000000000000000f40020000",
+      "wire_sha256": "81b3b525d286dab97dc05bf1cac00b72e084619466da443549152017a5c41aa2"
+    },
+    {
+      "frame": 19,
+      "message": "DistributionReleaseResponse",
+      "procedure_code": 70,
+      "root": "successfulOutcome",
+      "criticality": "reject",
+      "pdu_hex": "2046000e000001012b000700000000000000",
+      "wire_sha256": "58eab60d9eaceff2d2e9d21b4d39afe27c0509d75cfa3cdfcc14e345bed2b9df"
+    },
+    {
+      "frame": 20,
+      "message": "HandoverCancel",
+      "procedure_code": 10,
+      "root": "initiatingMessage",
+      "criticality": "reject",
+      "pdu_hex": "000a0015000003000a00020000005500020000000f40020000",
+      "wire_sha256": "296a3f0969447abe73e61018f8a11733329f94675618dc473db3885e39f66a67"
+    },
+    {
+      "frame": 21,
+      "message": "HandoverCancelAcknowledge",
+      "procedure_code": 10,
+      "root": "successfulOutcome",
+      "criticality": "reject",
+      "pdu_hex": "200a000f000002000a40020000005540020000",
+      "wire_sha256": "40f0f7bd85adf7760245c0aacbf4159a32d30a7d6c1ad57dd587dbdfe4d7d1dd"
+    },
+    {
+      "frame": 22,
+      "message": "HandoverRequired",
+      "procedure_code": 12,
+      "root": "initiatingMessage",
+      "criticality": "reject",
+      "pdu_hex": "000c003a000007000a00020000005500020000001d000100000f400200000069000e0000000000000000000000000000003d000500000001000065000100",
+      "wire_sha256": "f9f57d3cd094eddf86f6b4032ea9c29cf34813ce0f83208e4e1349c4fc1adb9a"
+    },
+    {
+      "frame": 23,
+      "message": "HandoverCommand",
+      "procedure_code": 12,
+      "root": "successfulOutcome",
+      "criticality": "reject",
+      "pdu_hex": "200c0019000004000a00020000005500020000001d000100006a000100",
+      "wire_sha256": "8bcd1354b7f86cb6edc88bba23e8393ee27337bfae4592725f0d64ed125a4b7e"
+    },
+    {
+      "frame": 24,
+      "message": "HandoverPreparationFailure",
+      "procedure_code": 12,
+      "root": "unsuccessfulOutcome",
+      "criticality": "reject",
+      "pdu_hex": "400c0015000003000a40020000005540020000000f40020000",
+      "wire_sha256": "a55cfce0f06f7cd37457b05130fe056032ada70b3081f146cb4ee76afe2ae6bc"
+    },
+    {
+      "frame": 25,
+      "message": "HandoverRequest",
+      "procedure_code": 13,
+      "root": "initiatingMessage",
+      "criticality": "reject",
+      "pdu_hex": "000d00808c00000a000a00020000001d000100000f40020000006e00040000000000770009000000000000000000005d00210000000000000000000000000000000000000000000000000000000000000000000049002400000000001e000003008b000700000000000000008600010000880007000000000000000000000200000065000100001c000700000000000000",
+      "wire_sha256": "71d9b9dba461c906249d97131566b9fb5a33d6fb46d43299f15660ac7467f5c4"
+    },
+    {
+      "frame": 26,
+      "message": "HandoverRequestAcknowledge",
+      "procedure_code": 13,
+      "root": "successfulOutcome",
+      "criticality": "reject",
+      "pdu_hex": "200d0026000004000a400200000055400200000035400e0000000a00000000000000000000006a000100",
+      "wire_sha256": "07dafab0157d32b9bf622744a601f775f9899add4443a2a6c4c378eb751e805b"
+    },
+    {
+      "frame": 27,
+      "message": "HandoverFailure",
+      "procedure_code": 13,
+      "root": "unsuccessfulOutcome",
+      "criticality": "reject",
+      "pdu_hex": "400d000f000002000a40020000000f40020000",
+      "wire_sha256": "e65989c768247a32e961db4c36bffd768152cd3e21b1e8e0bcefdbeba734ce1f"
+    },
+    {
+      "frame": 28,
+      "message": "InitialContextSetupRequest",
+      "procedure_code": 14,
+      "root": "initiatingMessage",
+      "criticality": "reject",
+      "pdu_hex": "000e0051000006000a00020000005500020000001c00070000000000000000000002000000770009000000000000000000005e00200000000000000000000000000000000000000000000000000000000000000000",
+      "wire_sha256": "ad932cc1e8704e258d3b8e23a4100517df11ec3afe7cf3dc49a1165da210259e"
+    },
+    {
+      "frame": 29,
+      "message": "InitialContextSetupResponse",
+      "procedure_code": 14,
+      "root": "successfulOutcome",
+      "criticality": "reject",
+      "pdu_hex": "200e000f000002000a40020000005540020000",
+      "wire_sha256": "ad2a6ac43387a1fc0f95d37de490d627126e3fe5824996bbd1d2b8a69f6749f1"
+    },
+    {
+      "frame": 30,
+      "message": "InitialContextSetupFailure",
+      "procedure_code": 14,
+      "root": "unsuccessfulOutcome",
+      "criticality": "reject",
+      "pdu_hex": "400e0015000003000a40020000005540020000000f40020000",
+      "wire_sha256": "655e0661a1226848b8f7695edd5b65bfa66bb429b811d1f1e7145a008e851ab5"
+    },
+    {
+      "frame": 31,
+      "message": "MTCommunicationHandlingRequest",
+      "procedure_code": 78,
+      "root": "initiatingMessage",
+      "criticality": "reject",
+      "pdu_hex": "004e001d000004000a000200000055000200000196000300000001af0003000000",
+      "wire_sha256": "b8228d3e6a1046ac42bfd300f1550d750ae9bcd4200d40e368f45c9d861ea419"
+    },
+    {
+      "frame": 32,
+      "message": "MTCommunicationHandlingResponse",
+      "procedure_code": 78,
+      "root": "successfulOutcome",
+      "criticality": "reject",
+      "pdu_hex": "204e000f000002000a00020000005500020000",
+      "wire_sha256": "68ff6256b68969c1baf2556a93fb45f61cd34c3cae66bda1c472152f665b5da3"
+    },
+    {
+      "frame": 33,
+      "message": "MTCommunicationHandlingFailure",
+      "procedure_code": 78,
+      "root": "unsuccessfulOutcome",
+      "criticality": "reject",
+      "pdu_hex": "404e0015000003000a00020000005500020000000f40020000",
+      "wire_sha256": "b0d6acd372b4d0d2fd7bf78140e25cd39f44fae2bffc1fbe5fe78925878a50b6"
+    },
+    {
+      "frame": 34,
+      "message": "MulticastSessionActivationRequest",
+      "procedure_code": 71,
+      "root": "initiatingMessage",
+      "criticality": "reject",
+      "pdu_hex": "0047001a000002012b000700000000000000013000080700000000000000",
+      "wire_sha256": "7800fff8f6ddebe6e21c8c217c0c141d2fadebe6089da7b457763bb0921295b5"
+    },
+    {
+      "frame": 35,
+      "message": "MulticastSessionActivationResponse",
+      "procedure_code": 71,
+      "root": "successfulOutcome",
+      "criticality": "reject",
+      "pdu_hex": "2047000e000001012b000700000000000000",
+      "wire_sha256": "74a496c94349e97f70df0e4bca78d1866d21375cc50c09c8491c5c5a54abe347"
+    },
+    {
+      "frame": 36,
+      "message": "MulticastSessionActivationFailure",
+      "procedure_code": 71,
+      "root": "unsuccessfulOutcome",
+      "criticality": "reject",
+      "pdu_hex": "40470014000002012b000700000000000000000f40020000",
+      "wire_sha256": "33514b0e686a61d4bb02cb5792387e1781588bb8cf2a67e4dfdd726489e84e7a"
+    },
+    {
+      "frame": 37,
+      "message": "MulticastSessionDeactivationRequest",
+      "procedure_code": 72,
+      "root": "initiatingMessage",
+      "criticality": "reject",
+      "pdu_hex": "0048001a000002012b000700000000000000013100080700000000000000",
+      "wire_sha256": "7452ac083deb78695bb3dc51fe437c974cf39913ced3c915c008d4d9d8e1cacd"
+    },
+    {
+      "frame": 38,
+      "message": "MulticastSessionDeactivationResponse",
+      "procedure_code": 72,
+      "root": "successfulOutcome",
+      "criticality": "reject",
+      "pdu_hex": "2048000e000001012b000700000000000000",
+      "wire_sha256": "f8c77d0b5a473b67df6c39f29516259628e1a43a3e3f7ec882ecfa69a860e735"
+    },
+    {
+      "frame": 39,
+      "message": "MulticastSessionUpdateRequest",
+      "procedure_code": 73,
+      "root": "initiatingMessage",
+      "criticality": "reject",
+      "pdu_hex": "00490021000002012b0007000000000000000132000f0e000001012b000700000000000000",
+      "wire_sha256": "02685e246af0d9cdf9fd86d29e6cd8d87368d64e0f8da90be9d44e93f270c92e"
+    },
+    {
+      "frame": 40,
+      "message": "MulticastSessionUpdateResponse",
+      "procedure_code": 73,
+      "root": "successfulOutcome",
+      "criticality": "reject",
+      "pdu_hex": "2049000e000001012b000700000000000000",
+      "wire_sha256": "9a15f81e940f99da5c94558e2c05535220dda5b2f01696ab6600213a0312b888"
+    },
+    {
+      "frame": 41,
+      "message": "MulticastSessionUpdateFailure",
+      "procedure_code": 73,
+      "root": "unsuccessfulOutcome",
+      "criticality": "reject",
+      "pdu_hex": "40490014000002012b000700000000000000000f40020000",
+      "wire_sha256": "ba16d5bb575b65862e363ef1252c4d47bc8a495f7ab20da809095592e99378b9"
+    },
+    {
+      "frame": 42,
+      "message": "NGReset",
+      "procedure_code": 20,
+      "root": "initiatingMessage",
+      "criticality": "reject",
+      "pdu_hex": "0014000e000002000f400200000058000100",
+      "wire_sha256": "65236a81de3a7904fb2184874b2042a78d3514eb9e5a874eab50057d6412e915"
+    },
+    {
+      "frame": 43,
+      "message": "NGResetAcknowledge",
+      "procedure_code": 20,
+      "root": "successfulOutcome",
+      "criticality": "reject",
+      "pdu_hex": "20140003000000",
+      "wire_sha256": "d7e07f8cbe18062a8c925a5010ed291a19243271838ec6e45641e357cf7ddf79"
+    },
+    {
+      "frame": 44,
+      "message": "NGSetupRequest",
+      "procedure_code": 21,
+      "root": "initiatingMessage",
+      "criticality": "reject",
+      "pdu_hex": "00150025000003001b000800000000000000000066000d000000000000000000000000000015400100",
+      "wire_sha256": "72f8f5b40701268edc0f13a86c2558bf4af289a70aa37ce438821e13b4bc5ddf"
+    },
+    {
+      "frame": 45,
+      "message": "NGSetupResponse",
+      "procedure_code": 21,
+      "root": "successfulOutcome",
+      "criticality": "reject",
+      "pdu_hex": "20150027000004000100030000410060000800000000000000000056400100005000080000000000000000",
+      "wire_sha256": "63b1634030bcaa4ffd2781f3bb131c2315981936d9ad423f8597c6acf78964d0"
+    },
+    {
+      "frame": 46,
+      "message": "NGSetupFailure",
+      "procedure_code": 21,
+      "root": "unsuccessfulOutcome",
+      "criticality": "reject",
+      "pdu_hex": "40150009000001000f40020000",
+      "wire_sha256": "9308a28d7457474f24f5ec824b4070d625489b563b7f68892bdbebfbc374a757"
+    },
+    {
+      "frame": 47,
+      "message": "PathSwitchRequest",
+      "procedure_code": 25,
+      "root": "initiatingMessage",
+      "criticality": "reject",
+      "pdu_hex": "0019003f0000050055000200000064000200000079400e000000000000000000000000000000774009000000000000000000004c000d00000009000000000000000000",
+      "wire_sha256": "3ec9f68c8335a8fbc04cf1b01443b4eb51b1ae368a99d7e0a046f5c85f27ecf8"
+    },
+    {
+      "frame": 48,
+      "message": "PathSwitchRequestAcknowledge",
+      "procedure_code": 25,
+      "root": "successfulOutcome",
+      "criticality": "reject",
+      "pdu_hex": "20190043000005000a40020000005540020000005d0021000000000000000000000000000000000000000000000000000000000000000000004d40050000000100000000020000",
+      "wire_sha256": "52231d4b066c3e6934fc16a96ff3b8e77b4ce4d05d8ead2ef656e1dba0ab4266"
+    },
+    {
+      "frame": 49,
+      "message": "PathSwitchRequestFailure",
+      "procedure_code": 25,
+      "root": "unsuccessfulOutcome",
+      "criticality": "reject",
+      "pdu_hex": "40190019000003000a4002000000554002000000454006000000020000",
+      "wire_sha256": "102b9694c217e60f00816e66524d459708a6d66d278ef400b7cb21563f8bed38"
+    },
+    {
+      "frame": 50,
+      "message": "PDUSessionResourceModifyRequest",
+      "procedure_code": 26,
+      "root": "initiatingMessage",
+      "criticality": "reject",
+      "pdu_hex": "001a001a000003000a000200000055000200000040000700000003000000",
+      "wire_sha256": "63521aa47240fdd1626f5649bb0d0843fe9e3fdfeaa74c34ed5469b93f6a3998"
+    },
+    {
+      "frame": 51,
+      "message": "PDUSessionResourceModifyResponse",
+      "procedure_code": 26,
+      "root": "successfulOutcome",
+      "criticality": "reject",
+      "pdu_hex": "201a000f000002000a40020000005540020000",
+      "wire_sha256": "49a5b3552d453205fafa147c12f03c6e568249d98bb297de25a4abd27ce0e835"
+    },
+    {
+      "frame": 52,
+      "message": "PDUSessionResourceModifyIndication",
+      "procedure_code": 27,
+      "root": "initiatingMessage",
+      "criticality": "reject",
+      "pdu_hex": "001b0021000003000a00020000005500020000003f000e0000000a00000000000000000000",
+      "wire_sha256": "5905d9256c0b7a29da0afc3fc6367c50e62dc13f6646fbe3f6fec90f05d8ee14"
+    },
+    {
+      "frame": 53,
+      "message": "PDUSessionResourceModifyConfirm",
+      "procedure_code": 27,
+      "root": "successfulOutcome",
+      "criticality": "reject",
+      "pdu_hex": "201b000f000002000a40020000005540020000",
+      "wire_sha256": "66f29461310e6d8b990b76e651e683697fc8d06431bbfde7d32c7cf69544ff3f"
+    },
+    {
+      "frame": 54,
+      "message": "PDUSessionResourceReleaseCommand",
+      "procedure_code": 28,
+      "root": "initiatingMessage",
+      "criticality": "reject",
+      "pdu_hex": "001c0019000003000a00020000005500020000004f0006000000020000",
+      "wire_sha256": "1f4b846cedd1dbc6553a64512dab2177fda3218dbe2e37e942c9063ed432b8d9"
+    },
+    {
+      "frame": 55,
+      "message": "PDUSessionResourceReleaseResponse",
+      "procedure_code": 28,
+      "root": "successfulOutcome",
+      "criticality": "reject",
+      "pdu_hex": "201c0018000003000a40020000005540020000004640050000000100",
+      "wire_sha256": "a0f961b49053fbc360ac97de5304dc716006b9ade8bde289637825913d0dd564"
+    },
+    {
+      "frame": 56,
+      "message": "PDUSessionResourceSetupRequest",
+      "procedure_code": 29,
+      "root": "initiatingMessage",
+      "criticality": "reject",
+      "pdu_hex": "001d0037000003000a00020000005500020000004a002400000000001e000003008b00070000000000000000860001000088000700000000000000",
+      "wire_sha256": "be71aa5b9d84eb69904df5c0885f076923d7d6887ce7c1bf8d3b47788a5cd536"
+    },
+    {
+      "frame": 57,
+      "message": "PDUSessionResourceSetupResponse",
+      "procedure_code": 29,
+      "root": "successfulOutcome",
+      "criticality": "reject",
+      "pdu_hex": "201d000f000002000a40020000005540020000",
+      "wire_sha256": "43a7971e1c4d09d092f8145b9749425fb45d73da53d2ad9135a9c96baa322664"
+    },
+    {
+      "frame": 58,
+      "message": "PWSCancelRequest",
+      "procedure_code": 32,
+      "root": "initiatingMessage",
+      "criticality": "reject",
+      "pdu_hex": "0020000f000002002300020000005f00020000",
+      "wire_sha256": "532e7acc8f81c316a8fc862cc78172fd4c9f353ac8f21e73421b255de4016309"
+    },
+    {
+      "frame": 59,
+      "message": "PWSCancelResponse",
+      "procedure_code": 32,
+      "root": "successfulOutcome",
+      "criticality": "reject",
+      "pdu_hex": "2020000f000002002300020000005f00020000",
+      "wire_sha256": "0da42097cfe2d0d086428f84ca651f267d78161a3099ba2d14904dc3d5cbf017"
+    },
+    {
+      "frame": 60,
+      "message": "RANConfigurationUpdate",
+      "procedure_code": 35,
+      "root": "initiatingMessage",
+      "criticality": "reject",
+      "pdu_hex": "00230003000000",
+      "wire_sha256": "d8d41e77e49e2ca3c9644c6df8dfe2c34af688bb99885e2615c4ffe8938529b1"
+    },
+    {
+      "frame": 61,
+      "message": "RANConfigurationUpdateAcknowledge",
+      "procedure_code": 35,
+      "root": "successfulOutcome",
+      "criticality": "reject",
+      "pdu_hex": "20230003000000",
+      "wire_sha256": "fe97bc324da45bf3f4e106027f8c8eab2850c89168ec5742ecc6868883e616e4"
+    },
+    {
+      "frame": 62,
+      "message": "RANConfigurationUpdateFailure",
+      "procedure_code": 35,
+      "root": "unsuccessfulOutcome",
+      "criticality": "reject",
+      "pdu_hex": "40230009000001000f40020000",
+      "wire_sha256": "5ef17f6d055b0ccae77a200308a192f29efe47348c781233e7bda81c7e94a33e"
+    },
+    {
+      "frame": 63,
+      "message": "TimingSynchronisationStatusRequest",
+      "procedure_code": 76,
+      "root": "initiatingMessage",
+      "criticality": "reject",
+      "pdu_hex": "004c000d00000200590001000184000100",
+      "wire_sha256": "f4834010833da1f141f5cc0083890ed685880657efc37967d95ddf76c6f4e9c9"
+    },
+    {
+      "frame": 64,
+      "message": "TimingSynchronisationStatusResponse",
+      "procedure_code": 76,
+      "root": "successfulOutcome",
+      "criticality": "reject",
+      "pdu_hex": "204c00080000010059400100",
+      "wire_sha256": "07e0d25da430b8a20c1b7ba54a84d5881b77dc0c521edcffde7f3bca8e906ec2"
+    },
+    {
+      "frame": 65,
+      "message": "TimingSynchronisationStatusFailure",
+      "procedure_code": 76,
+      "root": "unsuccessfulOutcome",
+      "criticality": "reject",
+      "pdu_hex": "404c000e0000020059400100000f40020000",
+      "wire_sha256": "10e500c0f112a8630c572721b066a85b98e33c5186d72f2fd57ec6084521f6f1"
+    },
+    {
+      "frame": 66,
+      "message": "UEContextModificationRequest",
+      "procedure_code": 40,
+      "root": "initiatingMessage",
+      "criticality": "reject",
+      "pdu_hex": "0028000f000002000a00020000005500020000",
+      "wire_sha256": "b4d9b74dc6819d046240a284f5be83c12dbea98026ee64ff2030c55948af494a"
+    },
+    {
+      "frame": 67,
+      "message": "UEContextModificationResponse",
+      "procedure_code": 40,
+      "root": "successfulOutcome",
+      "criticality": "reject",
+      "pdu_hex": "2028000f000002000a40020000005540020000",
+      "wire_sha256": "d66db2ac7ec0efbc8dd0b04e1f5b9068180cad41078378661d744ba3a6a0d636"
+    },
+    {
+      "frame": 68,
+      "message": "UEContextModificationFailure",
+      "procedure_code": 40,
+      "root": "unsuccessfulOutcome",
+      "criticality": "reject",
+      "pdu_hex": "40280015000003000a40020000005540020000000f40020000",
+      "wire_sha256": "8dfee89608ccae2729dcd72ba97ec495e7a0c9ba87c3c7842a2bdd913cc577d8"
+    },
+    {
+      "frame": 69,
+      "message": "UEContextReleaseCommand",
+      "procedure_code": 41,
+      "root": "initiatingMessage",
+      "criticality": "reject",
+      "pdu_hex": "002900110000020072000400000000000f40020000",
+      "wire_sha256": "c579d3737794eec743a8d129606084d7669b1b6f074551c79b0a1e99b6d6caac"
+    },
+    {
+      "frame": 70,
+      "message": "UEContextReleaseComplete",
+      "procedure_code": 41,
+      "root": "successfulOutcome",
+      "criticality": "reject",
+      "pdu_hex": "2029000f000002000a40020000005540020000",
+      "wire_sha256": "818f0c2323896a216363750c9b7f9f6997e310c01450b7c0b12e9c26dce316fa"
+    },
+    {
+      "frame": 71,
+      "message": "UEContextResumeRequest",
+      "procedure_code": 58,
+      "root": "initiatingMessage",
+      "criticality": "reject",
+      "pdu_hex": "003a0014000003000a0002000000550002000000ed400100",
+      "wire_sha256": "4bba06b31618a916c483517ee86dbf3f0edcf554e9ed1d4e0e1e27a476922609"
+    },
+    {
+      "frame": 72,
+      "message": "UEContextResumeResponse",
+      "procedure_code": 58,
+      "root": "successfulOutcome",
+      "criticality": "reject",
+      "pdu_hex": "203a000f000002000a40020000005540020000",
+      "wire_sha256": "ad63feae26317ec24b587fb05d5f7917a2f13450811412b476e13f6fa5cf8cd9"
+    },
+    {
+      "frame": 73,
+      "message": "UEContextResumeFailure",
+      "procedure_code": 58,
+      "root": "unsuccessfulOutcome",
+      "criticality": "reject",
+      "pdu_hex": "403a0015000003000a40020000005540020000000f40020000",
+      "wire_sha256": "bfec849b2454c8a0c7bc8cd1644b1306d0a9bb440ecefb21eb45ebff1e94228a"
+    },
+    {
+      "frame": 74,
+      "message": "UEContextSuspendRequest",
+      "procedure_code": 59,
+      "root": "initiatingMessage",
+      "criticality": "reject",
+      "pdu_hex": "003b000f000002000a00020000005500020000",
+      "wire_sha256": "6d97b1ebae16ef9795cea81fcae3767547701bbe93786b32eff7f75efcda87a1"
+    },
+    {
+      "frame": 75,
+      "message": "UEContextSuspendResponse",
+      "procedure_code": 59,
+      "root": "successfulOutcome",
+      "criticality": "reject",
+      "pdu_hex": "203b000f000002000a40020000005540020000",
+      "wire_sha256": "08efdfa3226d13193c28b2eb3c37328b13eaf2e2b2f75ed6c2cce8538fe69359"
+    },
+    {
+      "frame": 76,
+      "message": "UEContextSuspendFailure",
+      "procedure_code": 59,
+      "root": "unsuccessfulOutcome",
+      "criticality": "reject",
+      "pdu_hex": "403b0015000003000a40020000005540020000000f40020000",
+      "wire_sha256": "8a8a3131178087c5b7d42d366ca253ae7f39a0c6186149a0badb97fffa969105"
+    },
+    {
+      "frame": 77,
+      "message": "UERadioCapabilityCheckRequest",
+      "procedure_code": 43,
+      "root": "initiatingMessage",
+      "criticality": "reject",
+      "pdu_hex": "002b000f000002000a00020000005500020000",
+      "wire_sha256": "cc7d60813b3264a99fab7ff4ad109e0553dd010b50348ecac723f05d57dacd2a"
+    },
+    {
+      "frame": 78,
+      "message": "UERadioCapabilityCheckResponse",
+      "procedure_code": 43,
+      "root": "successfulOutcome",
+      "criticality": "reject",
+      "pdu_hex": "202b0014000003000a40020000005540020000001e000100",
+      "wire_sha256": "3ff7a6e1352a54c74baefbfa3bc11845596d179d3ee04c2d1f3eccfd48f689ba"
+    },
+    {
+      "frame": 79,
+      "message": "UERadioCapabilityIDMappingRequest",
+      "procedure_code": 60,
+      "root": "initiatingMessage",
+      "criticality": "reject",
+      "pdu_hex": "003c00080000010108000100",
+      "wire_sha256": "f8e6e8f7e8a9dd06454de25a6d0be1e212d7bc6e549306cfcd00b63f35ab1e2c"
+    },
+    {
+      "frame": 80,
+      "message": "UERadioCapabilityIDMappingResponse",
+      "procedure_code": 60,
+      "root": "successfulOutcome",
+      "criticality": "reject",
+      "pdu_hex": "203c000d00000201080001000075400100",
+      "wire_sha256": "5cefd947ee23e78bed4bc710e26a0dc336bb3b9d5db31b4da3fcf6527a172cac"
+    },
+    {
+      "frame": 81,
+      "message": "WriteReplaceWarningRequest",
+      "procedure_code": 51,
+      "root": "initiatingMessage",
+      "criticality": "reject",
+      "pdu_hex": "0033001b000004002300020000005f00020000005700020000002f00020000",
+      "wire_sha256": "534f9b042ae31a50361bd6d2442f1944c6d0bc389f95cda1fb10dbf62b2a80ac"
+    },
+    {
+      "frame": 82,
+      "message": "WriteReplaceWarningResponse",
+      "procedure_code": 51,
+      "root": "successfulOutcome",
+      "criticality": "reject",
+      "pdu_hex": "2033000f000002002300020000005f00020000",
+      "wire_sha256": "6a73500779078a6675a640d06843b5944eb0e1be74b7b56e26964eca4349f908"
+    },
+    {
+      "frame": 83,
+      "message": "AMFCPRelocationIndication",
+      "procedure_code": 64,
+      "root": "initiatingMessage",
+      "criticality": "reject",
+      "pdu_hex": "0040000f000002000a00020000005500020000",
+      "wire_sha256": "485102c2ee6a505fa587917bd82b2ea313d26128fba7dd89f56500585678fb97"
+    },
+    {
+      "frame": 84,
+      "message": "AMFStatusIndication",
+      "procedure_code": 1,
+      "root": "initiatingMessage",
+      "criticality": "ignore",
+      "pdu_hex": "0001400f000001007800080000000000000000",
+      "wire_sha256": "fe0988d7e1b50a5c580f591d804e7c166d37ec5b53b6e172b19f3cb3392e45b8"
+    },
+    {
+      "frame": 85,
+      "message": "BroadcastSessionReleaseRequired",
+      "procedure_code": 75,
+      "root": "initiatingMessage",
+      "criticality": "reject",
+      "pdu_hex": "004b0014000002012b000700000000000000000f40020000",
+      "wire_sha256": "247bfd6f2bbc6b0469447d7c6d00021222cf87280f69a4f2c9fbe2752d49a42b"
+    },
+    {
+      "frame": 86,
+      "message": "CellTrafficTrace",
+      "procedure_code": 2,
+      "root": "initiatingMessage",
+      "criticality": "ignore",
+      "pdu_hex": "0002402f000005000a00020000005500020000002c40080000000000000000002b4009000000000000000000006d4003000000",
+      "wire_sha256": "df1bf215dc60f394af9bcb98838cda2e0afdc30a61c75074294ab7b2bb730d2f"
+    },
+    {
+      "frame": 87,
+      "message": "ConnectionEstablishmentIndication",
+      "procedure_code": 65,
+      "root": "initiatingMessage",
+      "criticality": "reject",
+      "pdu_hex": "0041000f000002000a00020000005500020000",
+      "wire_sha256": "fd5665a978296fd4946cc27580bd547547b91e8ddc71da647cadbc51c75b1df9"
+    },
+    {
+      "frame": 88,
+      "message": "DeactivateTrace",
+      "procedure_code": 3,
+      "root": "initiatingMessage",
+      "criticality": "ignore",
+      "pdu_hex": "0003401b000003000a00020000005500020000002c40080000000000000000",
+      "wire_sha256": "73b631ce9698be6bbee45cf34bff842f7ee4168a0cf4ae345e6b4262c7a9cb87"
+    },
+    {
+      "frame": 89,
+      "message": "DownlinkNASTransport",
+      "procedure_code": 4,
+      "root": "initiatingMessage",
+      "criticality": "ignore",
+      "pdu_hex": "00044014000003000a000200000055000200000026000100",
+      "wire_sha256": "8eff45f7c49ce12035ffea40d63f9b161b8a4e4ba242858543c6af2c565b1041"
+    },
+    {
+      "frame": 90,
+      "message": "DownlinkNonUEAssociatedNRPPaTransport",
+      "procedure_code": 5,
+      "root": "initiatingMessage",
+      "criticality": "ignore",
+      "pdu_hex": "0005400d0000020059000100002e000100",
+      "wire_sha256": "77fb4e04cf3fbd1074eab32e68c9e67f5b462e56d800afd61ff7a1c6ef210d42"
+    },
+    {
+      "frame": 91,
+      "message": "DownlinkRANConfigurationTransfer",
+      "procedure_code": 6,
+      "root": "initiatingMessage",
+      "criticality": "ignore",
+      "pdu_hex": "00064003000000",
+      "wire_sha256": "ef6d02bfb114ce0c1adf683d16b20304d1ca2537cc8cf3f907777811113af72a"
+    },
+    {
+      "frame": 92,
+      "message": "DownlinkRANEarlyStatusTransfer",
+      "procedure_code": 63,
+      "root": "initiatingMessage",
+      "criticality": "ignore",
+      "pdu_hex": "003f401a000003000a00020000005500020000010c000700000000000000",
+      "wire_sha256": "268efe93988642895e0eb6a3d9189d0630b73b13daa606eb9af90363fb5f4013"
+    },
+    {
+      "frame": 93,
+      "message": "DownlinkRANStatusTransfer",
+      "procedure_code": 7,
+      "root": "initiatingMessage",
+      "criticality": "ignore",
+      "pdu_hex": "0007401f000003000a000200000055000200000054000c000000000000000000000000",
+      "wire_sha256": "2ffd71852616c7ddfa1a09f8512cb7efc1971e2911dd6061107525fb7186fcb7"
+    },
+    {
+      "frame": 94,
+      "message": "DownlinkRIMInformationTransfer",
+      "procedure_code": 54,
+      "root": "initiatingMessage",
+      "criticality": "ignore",
+      "pdu_hex": "00364003000000",
+      "wire_sha256": "0a2edf0044520032789e702c16f93387e23434a2cbc738247e109b78e83dabda"
+    },
+    {
+      "frame": 95,
+      "message": "DownlinkUEAssociatedNRPPaTransport",
+      "procedure_code": 8,
+      "root": "initiatingMessage",
+      "criticality": "ignore",
+      "pdu_hex": "00084019000004000a000200000055000200000059000100002e000100",
+      "wire_sha256": "a41c4d1ba88521592f9b2a7579550e28962e5faf5f43644ad3c5db7108750143"
+    },
+    {
+      "frame": 96,
+      "message": "ErrorIndication",
+      "procedure_code": 9,
+      "root": "initiatingMessage",
+      "criticality": "ignore",
+      "pdu_hex": "00094003000000",
+      "wire_sha256": "e433f9f36b85d3a499218b8f3578dab13866ece2d120f88362d4ee0e5d4fcf8a"
+    },
+    {
+      "frame": 97,
+      "message": "HandoverNotify",
+      "procedure_code": 11,
+      "root": "initiatingMessage",
+      "criticality": "ignore",
+      "pdu_hex": "000b4021000003000a000200000055000200000079400e0000000000000000000000000000",
+      "wire_sha256": "376b3b534825d918e24668ac9c884edaa8108521086dfc7e5c11c635f629213e"
+    },
+    {
+      "frame": 98,
+      "message": "HandoverSuccess",
+      "procedure_code": 61,
+      "root": "initiatingMessage",
+      "criticality": "ignore",
+      "pdu_hex": "003d400f000002000a00020000005500020000",
+      "wire_sha256": "a65709427b30cca7f06edc1561b4f503279a2b7573c8fcf8e2200f92c74dd55d"
+    },
+    {
+      "frame": 99,
+      "message": "InitialUEMessage",
+      "procedure_code": 15,
+      "root": "initiatingMessage",
+      "criticality": "ignore",
+      "pdu_hex": "000f402500000400550002000000260001000079000e0000000000000000000000000000005a400100",
+      "wire_sha256": "cb91d70889c65e3860305ced5310da53699912119b5bcd8aac1057ca668da396"
+    },
+    {
+      "frame": 100,
+      "message": "LocationReport",
+      "procedure_code": 18,
+      "root": "initiatingMessage",
+      "criticality": "ignore",
+      "pdu_hex": "00124027000004000a000200000055000200000079400e0000000000000000000000000000002140020000",
+      "wire_sha256": "31563650e36c0d7f37c4ff81bf04f1f46d297d247752c01155b37303252c577c"
+    },
+    {
+      "frame": 101,
+      "message": "LocationReportingControl",
+      "procedure_code": 16,
+      "root": "initiatingMessage",
+      "criticality": "ignore",
+      "pdu_hex": "00104015000003000a00020000005500020000002140020000",
+      "wire_sha256": "747027a419dab45581c190d173ef0f7f64dadc5f1768a2dd79f8a7b17b5f6b3e"
+    },
+    {
+      "frame": 102,
+      "message": "LocationReportingFailureIndication",
+      "procedure_code": 17,
+      "root": "initiatingMessage",
+      "criticality": "ignore",
+      "pdu_hex": "00114015000003000a00020000005500020000000f40020000",
+      "wire_sha256": "9a4b353d9870de489c709a2dfb77ab6e6fa3cef0d6f35a071b8131ac76a4db64"
+    },
+    {
+      "frame": 103,
+      "message": "MulticastGroupPaging",
+      "procedure_code": 74,
+      "root": "initiatingMessage",
+      "criticality": "ignore",
+      "pdu_hex": "004a401b000002012b40070000000000000001334009000000000000000000",
+      "wire_sha256": "c510f94b2ea2832bb56a2289ce3394fff9ff92f729441a00662e0c72d339cd75"
+    },
+    {
+      "frame": 104,
+      "message": "NASNonDeliveryIndication",
+      "procedure_code": 19,
+      "root": "initiatingMessage",
+      "criticality": "ignore",
+      "pdu_hex": "0013401a000004000a000200000055000200000026400100000f40020000",
+      "wire_sha256": "1a5abe96c7481fb06d73ec8fa61a35c555198b91444d942f30ab8dff2a37c65e"
+    },
+    {
+      "frame": 105,
+      "message": "OverloadStart",
+      "procedure_code": 22,
+      "root": "initiatingMessage",
+      "criticality": "ignore",
+      "pdu_hex": "00164003000000",
+      "wire_sha256": "fadda5a595bace05e687ff99b2beec54de31ed5078ace16cfaac239d3ede0f8a"
+    },
+    {
+      "frame": 106,
+      "message": "OverloadStop",
+      "procedure_code": 23,
+      "root": "initiatingMessage",
+      "criticality": "reject",
+      "pdu_hex": "00170003000000",
+      "wire_sha256": "0b17684f0b1fb8b6eb1b73eaae1433a2d241134f471a34ed6f1e1e5cf58b49b6"
+    },
+    {
+      "frame": 107,
+      "message": "Paging",
+      "procedure_code": 24,
+      "root": "initiatingMessage",
+      "criticality": "ignore",
+      "pdu_hex": "0018401900000200734007000000000000000067400700000000000000",
+      "wire_sha256": "9e3b4be3610baefa8918afcb02b920e0d6520c22925b9ee95cb33f9d01b58f68"
+    },
+    {
+      "frame": 108,
+      "message": "PDUSessionResourceNotify",
+      "procedure_code": 30,
+      "root": "initiatingMessage",
+      "criticality": "ignore",
+      "pdu_hex": "001e400f000002000a00020000005500020000",
+      "wire_sha256": "b2f2363247437ad2d7cdf80b922863a537149518dd8376f813b03b0d835821dd"
+    },
+    {
+      "frame": 109,
+      "message": "PrivateMessage",
+      "procedure_code": 31,
+      "root": "initiatingMessage",
+      "criticality": "ignore",
+      "pdu_hex": "001f4009000000000000000100",
+      "wire_sha256": "8e91eb0b667d8bda155cc58ad1bdaf570edd1dde63a37749768aaec7cd531cbf"
+    },
+    {
+      "frame": 110,
+      "message": "PWSFailureIndication",
+      "procedure_code": 33,
+      "root": "initiatingMessage",
+      "criticality": "ignore",
+      "pdu_hex": "0021401d0000020051000a00000000000000000000001b00080000000000000000",
+      "wire_sha256": "fd68c41b284762a72fad64f8606563745a68e3f45f862818d214f4f2bcd586fe"
+    },
+    {
+      "frame": 111,
+      "message": "PWSRestartIndication",
+      "procedure_code": 34,
+      "root": "initiatingMessage",
+      "criticality": "ignore",
+      "pdu_hex": "0022402a0000030010000a00000000000000000000001b0008000000000000000000680009000000000000000000",
+      "wire_sha256": "49847dde7fb1fc2a9132d8c65ea0c61d190cfbe72c8bdc36e0b7cd8b629d6162"
+    },
+    {
+      "frame": 112,
+      "message": "RANCPRelocationIndication",
+      "procedure_code": 57,
+      "root": "initiatingMessage",
+      "criticality": "reject",
+      "pdu_hex": "00390032000005005500020000001a00070000000000000000194008000000000000000000d540070000000000000000d30003000000",
+      "wire_sha256": "b16b1b09a40a899f36ba9abc37210ea5704c41d0be9d40deb89fc4651af87e52"
+    },
+    {
+      "frame": 113,
+      "message": "RANPagingRequest",
+      "procedure_code": 79,
+      "root": "initiatingMessage",
+      "criticality": "ignore",
+      "pdu_hex": "004f400f000002000a40020000005540020000",
+      "wire_sha256": "1e709b5a10137c0cce5b2e922c31694f8c9fd097366f46d73cdefee5ed891859"
+    },
+    {
+      "frame": 114,
+      "message": "RerouteNASRequest",
+      "procedure_code": 36,
+      "root": "initiatingMessage",
+      "criticality": "reject",
+      "pdu_hex": "00240014000003005500020000002a000100000300020000",
+      "wire_sha256": "57e4109df7d89ad460b56179209cdc997a68f466ae442e04012b47d47aa0fb44"
+    },
+    {
+      "frame": 115,
+      "message": "RetrieveUEInformation",
+      "procedure_code": 55,
+      "root": "initiatingMessage",
+      "criticality": "reject",
+      "pdu_hex": "0037000e000001001a000700000000000000",
+      "wire_sha256": "8a21b20f216d5f8ee58a34a80ead2637e9824b88fee41a288e46f0c0ac6e390b"
+    },
+    {
+      "frame": 116,
+      "message": "RRCInactiveTransitionReport",
+      "procedure_code": 37,
+      "root": "initiatingMessage",
+      "criticality": "ignore",
+      "pdu_hex": "00254026000004000a00020000005500020000005c4001000079400e0000000000000000000000000000",
+      "wire_sha256": "68f339ea801ad583518878082f1bedc255a264195af24c4b640ed0d003f4e9ce"
+    },
+    {
+      "frame": 117,
+      "message": "SecondaryRATDataUsageReport",
+      "procedure_code": 52,
+      "root": "initiatingMessage",
+      "criticality": "ignore",
+      "pdu_hex": "00344018000003000a40020000005540020000008e40050000000100",
+      "wire_sha256": "236815baf2421faf7e520697ecc125cb25e60e062b7fc58945fc839b72538ff7"
+    },
+    {
+      "frame": 118,
+      "message": "TimingSynchronisationStatusReport",
+      "procedure_code": 77,
+      "root": "initiatingMessage",
+      "criticality": "ignore",
+      "pdu_hex": "004d401900000300594001000183400100018540080000000000000000",
+      "wire_sha256": "dca562f3fb7b03a64580a519082baa1fd9e12afa0515a4cea1a6d3fdd248731e"
+    },
+    {
+      "frame": 119,
+      "message": "TraceFailureIndication",
+      "procedure_code": 38,
+      "root": "initiatingMessage",
+      "criticality": "ignore",
+      "pdu_hex": "00264021000004000a00020000005500020000002c40080000000000000000000f40020000",
+      "wire_sha256": "6b925b0ad5e7d5756aa4b11abd0eef96772bed07a70e3942597843b8ada8c1f6"
+    },
+    {
+      "frame": 120,
+      "message": "TraceStart",
+      "procedure_code": 39,
+      "root": "initiatingMessage",
+      "criticality": "ignore",
+      "pdu_hex": "00274020000003000a00020000005500020000006c400d00000000000000000000000000",
+      "wire_sha256": "5afaa0d50ed1fe5726c88ab8f77eccd2ca5d700466561ca37da27726630eea09"
+    },
+    {
+      "frame": 121,
+      "message": "UEContextReleaseRequest",
+      "procedure_code": 42,
+      "root": "initiatingMessage",
+      "criticality": "ignore",
+      "pdu_hex": "002a4015000003000a00020000005500020000000f40020000",
+      "wire_sha256": "c2610f9fc388c5d1e089a8a9a92427367435246713857207141cf7d3249f584c"
+    },
+    {
+      "frame": 122,
+      "message": "UEInformationTransfer",
+      "procedure_code": 56,
+      "root": "initiatingMessage",
+      "criticality": "reject",
+      "pdu_hex": "0038000e000001001a000700000000000000",
+      "wire_sha256": "0311b44b37ba4a09909d41d906a5dd6fcfd70b58a9313aa924e650442c2b1420"
+    },
+    {
+      "frame": 123,
+      "message": "UERadioCapabilityInfoIndication",
+      "procedure_code": 44,
+      "root": "initiatingMessage",
+      "criticality": "ignore",
+      "pdu_hex": "002c4014000003000a000200000055000200000075400100",
+      "wire_sha256": "b0cc575fb4bf2ce7a77a317ffbc57849519e22a003ef87f0f1a39cdca6d21aff"
+    },
+    {
+      "frame": 124,
+      "message": "UETNLABindingReleaseRequest",
+      "procedure_code": 45,
+      "root": "initiatingMessage",
+      "criticality": "ignore",
+      "pdu_hex": "002d400f000002000a00020000005500020000",
+      "wire_sha256": "7d038b359c73a73edd0a56a9209d4fe8849f3178c74b4000d07b6ed6b2174209"
+    },
+    {
+      "frame": 125,
+      "message": "UplinkNASTransport",
+      "procedure_code": 46,
+      "root": "initiatingMessage",
+      "criticality": "ignore",
+      "pdu_hex": "002e4026000004000a0002000000550002000000260001000079400e0000000000000000000000000000",
+      "wire_sha256": "f5e13e741c893977f5213bb99fdf45ff5fb6b75c0889cd06bb96a883d9e50d96"
+    },
+    {
+      "frame": 126,
+      "message": "UplinkNonUEAssociatedNRPPaTransport",
+      "procedure_code": 47,
+      "root": "initiatingMessage",
+      "criticality": "ignore",
+      "pdu_hex": "002f400d0000020059000100002e000100",
+      "wire_sha256": "ce231c406812cec83ce29ea567982afd958208c27930f50fc791a5a875bf8f86"
+    },
+    {
+      "frame": 127,
+      "message": "UplinkRANConfigurationTransfer",
+      "procedure_code": 48,
+      "root": "initiatingMessage",
+      "criticality": "ignore",
+      "pdu_hex": "00304003000000",
+      "wire_sha256": "652a6dfa2c2f0c6c957008d66ca4ee56de9218b86aac45074a5ddccae8194946"
+    },
+    {
+      "frame": 128,
+      "message": "UplinkRANEarlyStatusTransfer",
+      "procedure_code": 62,
+      "root": "initiatingMessage",
+      "criticality": "reject",
+      "pdu_hex": "003e001a000003000a00020000005500020000010c000700000000000000",
+      "wire_sha256": "a343e628ba1fe7f895455a90ef6c0cced2a4758d080f45ca9d25dab3bdbaf21b"
+    },
+    {
+      "frame": 129,
+      "message": "UplinkRANStatusTransfer",
+      "procedure_code": 49,
+      "root": "initiatingMessage",
+      "criticality": "ignore",
+      "pdu_hex": "0031401f000003000a000200000055000200000054000c000000000000000000000000",
+      "wire_sha256": "189941a47f77c5f1ab9054d3fc11f75b49c08d43f2e05f8d5a38ef874c22c146"
+    },
+    {
+      "frame": 130,
+      "message": "UplinkRIMInformationTransfer",
+      "procedure_code": 53,
+      "root": "initiatingMessage",
+      "criticality": "ignore",
+      "pdu_hex": "00354003000000",
+      "wire_sha256": "7331a7f2dc8f68df64f5147706fff75d934f1d0076cf4dc887d7f6d127f333b9"
+    },
+    {
+      "frame": 131,
+      "message": "UplinkUEAssociatedNRPPaTransport",
+      "procedure_code": 50,
+      "root": "initiatingMessage",
+      "criticality": "ignore",
+      "pdu_hex": "00324019000004000a000200000055000200000059000100002e000100",
+      "wire_sha256": "9336fbb0910d34164cbf2a5544fc497204e278bf8b71405bf0eb9043614272af"
+    }
+  ]
+}

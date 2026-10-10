@@ -195,3 +195,7 @@ asn1c/tmp/
 
 /libngap/check_ngap_pdu
 /tools/asn1typed_ngap_dispatch
+
+/python/build/
+/python/dist/
+/python/**/__pycache__/

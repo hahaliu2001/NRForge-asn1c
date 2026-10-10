@@ -50,3 +50,22 @@ EXTRA_DIST += docs/ngap-cpp-sdk-contract.md \
  .github/workflows/ngap-sdk.yml
 
 EXTRA_DIST += docs/ngap-cpp-sdk-closeout.md tools/ngap-sdk/verification-summary.json
+
+EXTRA_DIST += python/CMakeLists.txt \
+ python/LICENSE \
+ python/PYBIND11-LICENSE \
+ python/README.md \
+ python/examples/ng_setup.py \
+ python/ngap_sdk/conversion.hpp \
+ python/ngap_sdk/generate_bindings.py \
+ python/ngap_sdk/module.cpp \
+ python/pyproject.toml \
+ python/src/nrforge_ngap/__init__.py \
+ python/tests/golden-131.json \
+ python/tests/ng-setup-native.json \
+ python/tests/run_installed.py \
+ python/tests/test_sdk.py
+
+EXTRA_DIST += python/tests/test_generator.py
+
+EXTRA_DIST += docs/ngap-python-sdk-contract-and-closeout.md python/verification-summary.json
