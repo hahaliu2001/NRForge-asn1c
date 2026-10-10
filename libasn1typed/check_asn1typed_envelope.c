@@ -181,19 +181,65 @@ static void allocation_tests(asn1p_t *tree,const asn1typed_target_envelope_t *so
         asn1typed_target_envelope_clear(&out);
     }
 }
+static void four_root_evidence(const asn1typed_target_envelope_t *source) {
+    asn1typed_target_envelope_t d = {0}, copied = {0};
+    asn1typed_envelope_root_t root = {0};
+    asn1typed_type_actual_t actual = {ASN1TYPED_ACTUAL_OBJECT_SET_REFERENCE,"EnvelopeEvidence","UnusedIEs"};
+    char *saved;
+    REQUIRE(!asn1typed_target_envelope_copy(&d, source));
+    d.header.choice_is_extensible = 0; d.header.declared_root_count = 4;
+    root.source_name = "choice-extension"; root.source_ordinal = 3;
+    root.role = ASN1TYPED_ENVELOPE_CHOICE_EXTENSION;
+    root.unsupported_payload = 1; root.object_set_is_extensible = 1;
+    root.evidence = ASN1TYPED_WIRE_EVIDENCE_RESOLVED;
+    root.effective_tag_class = ASN1TYPED_TAG_CLASS_CONTEXT_SPECIFIC;
+    root.effective_tag_number = 100; root.field_count = 3;
+    root.field_names[0] = "id"; root.field_names[1] = "criticality"; root.field_names[2] = "value";
+    root.class_field_names[0] = "id"; root.class_field_names[1] = "criticality"; root.class_field_names[2] = "Value";
+    root.role_ordinals[1] = 1; root.role_ordinals[2] = 2;
+    root.selectors[0] = root.selectors[1] = "id";
+    REQUIRE(!asn1typed_type_ref_init_parameterized(&root.sequence,"Containers","SingleContainer",&actual,1));
+    REQUIRE(!asn1typed_type_ref_init(&root.procedure_class,"Containers","IEs"));
+    REQUIRE(!asn1typed_type_ref_init(&root.object_set,"EnvelopeEvidence","UnusedIEs"));
+    REQUIRE(!asn1typed_target_envelope_add_root(&d,&root));
+    asn1typed_type_ref_clear(&root.sequence); asn1typed_type_ref_clear(&root.procedure_class); asn1typed_type_ref_clear(&root.object_set);
+    REQUIRE(asn1typed_target_envelope_finalize(&d,diagnostic,sizeof(diagnostic)) == ASN1TYPED_WIRE_FINALIZE_OK);
+    valid(&d); REQUIRE(d.roots[3].per_root_index == 3);
+    REQUIRE(!asn1typed_target_envelope_copy(&copied,&d));
+    REQUIRE(copied.roots[3].sequence.actuals != d.roots[3].sequence.actuals);
+    asn1typed_target_envelope_clear(&d); valid(&copied);
+    saved = copied.roots[3].sequence.actuals[0].module;
+    copied.roots[3].sequence.actuals[0].module = NULL; invalid(&copied);
+    copied.roots[3].sequence.actuals[0].module = saved;
+    copied.roots[3].sequence.actuals[0].kind = (asn1typed_actual_kind_e)99; invalid(&copied);
+    copied.roots[3].sequence.actuals[0].kind = ASN1TYPED_ACTUAL_OBJECT_SET_REFERENCE;
+    saved = copied.roots[3].field_names[2]; copied.roots[3].field_names[2] = copied.roots[3].field_names[0]; invalid(&copied);
+    copied.roots[3].field_names[2] = saved;
+    copied.header.choice_is_extensible = 1; invalid(&copied); copied.header.choice_is_extensible = 0;
+    copied.roots[3].declared_row_count = 1; invalid(&copied); copied.roots[3].declared_row_count = 0;
+    valid(&copied); asn1typed_target_envelope_clear(&copied);
+}
 int main(void) {
     asn1p_t *tree = asn1p_parse_file(ENVELOPE_EVIDENCE_FIXTURE,A1P_NOFLAGS);
     asn1typed_target_envelope_t descriptor = {0}, copy = {0}, closed = {0};
     REQUIRE(tree && asn1f_process(tree,A1F_NOFLAGS,NULL) >= 0);
     REQUIRE(asn1typed_extract_target_envelope(tree,"EnvelopeEvidence","Envelope","EnvelopeBodies","TargetBody",&descriptor,diagnostic,sizeof(diagnostic)) == 0);
     REQUIRE(asn1typed_extract_target_envelope(tree,"EnvelopeEvidence","ClosedEnvelope","EnvelopeBodies","TargetBody",&closed,diagnostic,sizeof(diagnostic)) == 0);
+    {
+        asn1typed_target_envelope_t four = {0};
+        int rc = asn1typed_extract_target_envelope(tree,"EnvelopeEvidence","FourEnvelope","EnvelopeBodies","TargetBody",&four,diagnostic,sizeof(diagnostic));
+        if(rc) fprintf(stderr,"four-root extraction: %s\n",diagnostic);
+        REQUIRE(!rc); valid(&four); REQUIRE(four.root_count == 4 && !four.header.choice_is_extensible);
+        REQUIRE(four.roots[3].unsupported_payload && four.roots[3].sequence.actual_count == 1);
+        asn1typed_target_envelope_clear(&four);
+    }
     allocation_tests(tree,&descriptor);
     REQUIRE(asn1typed_target_envelope_copy(&copy,&descriptor) == 0);
     asn1p_delete(tree); asn1typed_target_envelope_clear(&descriptor);
     valid(&closed); REQUIRE(closed.header.object_set_is_extensible == 0 && closed.row_count == 3 && closed.target_row_index == 1);
     REQUIRE(!strcmp(closed.header.object_set.source_name,"ClosedRows"));
     asn1typed_target_envelope_clear(&closed);
-    check_owned(&copy); mutations(&copy);
+    check_owned(&copy); mutations(&copy); four_root_evidence(&copy);
     asn1typed_target_envelope_clear(&copy);
     REQUIRE(asn1typed_target_envelope_finalize(NULL,diagnostic,sizeof(diagnostic)) == ASN1TYPED_WIRE_FINALIZE_ERROR);
     puts("PASS owned envelope evidence, source tags, default provenance, lifecycle and scoped allocation failures");

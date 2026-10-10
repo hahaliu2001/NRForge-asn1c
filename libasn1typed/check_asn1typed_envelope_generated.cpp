@@ -23,6 +23,12 @@
 #include "normal_failure_envelope_types.hpp"
 #include "normal_failure_envelope_mapping.hpp"
 #include "normal_failure_envelope_codec.hpp"
+#include "normal_four_body_types.hpp"
+#include "normal_four_body_mapping.hpp"
+#include "normal_four_body_codec.hpp"
+#include "normal_four_envelope_types.hpp"
+#include "normal_four_envelope_mapping.hpp"
+#include "normal_four_envelope_codec.hpp"
 #include <cstdio>
 #include <cstdlib>
 #include <type_traits>
@@ -75,7 +81,30 @@ using Success = outcome::success::EnvelopeEvidenceEnvelope_aper;
 using Failure = outcome::failure::EnvelopeEvidenceEnvelope_aper;
 static_assert(Success::target_root_ordinal == 0 && Failure::target_root_ordinal == 2);
 static_assert(Success::source_ordinal_to_per_root_index[0] == 2 && Failure::source_ordinal_to_per_root_index[2] == 0);
+using Four = four::nrforge::EnvelopeEvidenceFourEnvelope_aper;
+static_assert(Four::root_count == 4 && !Four::extensible);
+static_assert(Four::target_root_ordinal == 1 && Four::source_ordinal_to_per_root_index[1] == 1);
+static_assert(Four::root_roles[3] == 3 && Four::source_ordinal_to_per_root_index[3] == 3);
+static void check_four_root() {
+    check_outcome<Four,Four::wrapper_1,Four::root_1_procedure_member,Four::root_1_criticality_member,Four::root_1_value_member>(
+        [](const auto& v) { return four::nrforge::encode_envelope_evidence_four_envelope(v); },
+        [](const auto& b) { return four::nrforge::decode_envelope_evidence_four_envelope(b); },0x40);
+    const std::vector<std::byte> fourth{std::byte{0xc0}};
+    auto unsupported = four::nrforge::decode_envelope_evidence_four_envelope(fourth);
+    REQUIRE(!unsupported && unsupported.error().code == nrforge::aper::ErrorCode::constraint_violation && unsupported.error().bit_offset == 2);
+    using FourthRoot = std::variant_alternative_t<3,decltype(Four::value_type{}.value)>;
+    auto forbidden_encoding = four::nrforge::encode_envelope_evidence_four_envelope(Four::value_type{FourthRoot{}});
+    REQUIRE(!forbidden_encoding && forbidden_encoding.error().code == nrforge::aper::ErrorCode::constraint_violation && forbidden_encoding.error().bit_offset == 0);
+    // Declared three-octet known payload, but only two octets supplied.
+    const std::vector<std::byte> malformed_known{std::byte{0x40},std::byte{0x49},std::byte{0},std::byte{3},std::byte{0},std::byte{0}};
+    auto malformed = four::nrforge::decode_envelope_evidence_four_envelope(malformed_known);
+    REQUIRE(!malformed && malformed.error().code == nrforge::aper::ErrorCode::truncated_input);
+    const std::vector<std::byte> dirty_alignment{std::byte{0x41},std::byte{0x49},std::byte{0},std::byte{3},std::byte{0},std::byte{0},std::byte{0}};
+    auto padding = four::nrforge::decode_envelope_evidence_four_envelope(dirty_alignment);
+    REQUIRE(!padding && padding.error().code == nrforge::aper::ErrorCode::nonzero_padding);
+}
 int main() {
+    check_four_root();
     check<Normal>([](const auto& value) { return ::normal::nrforge::encode_envelope_evidence_envelope(value); },
                   [](const auto& bytes) { return ::normal::nrforge::decode_envelope_evidence_envelope(bytes); });
     check<Upper>([](const auto& value) { return ::upper::nrforge::encode_envelope_evidence_envelope(value); },
@@ -86,5 +115,5 @@ int main() {
     check_outcome<Failure,Failure::wrapper_2,Failure::root_2_procedure_member,Failure::root_2_criticality_member,Failure::root_2_value_member>(
         [](const auto& v) { return outcome::failure::encode_envelope_evidence_envelope(v); },
         [](const auto& b) { return outcome::failure::decode_envelope_evidence_envelope(b); }, 0x00);
-    ::std::puts("PASS metadata-derived synthetic envelope and component-separated acronym body identity");
+    ::std::puts("PASS metadata-derived three/four-root envelope framing, unsupported-root rejection and acronym body identity");
 }

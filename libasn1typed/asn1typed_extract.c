@@ -2784,11 +2784,16 @@ envelope_root_source(asn1p_t *tree, asn1p_expr_t *alternative, size_t ordinal,
     memset(root, 0, sizeof(*root));
     if(!alternative->Identifier || alternative->expr_type != A1TC_REFERENCE || !alternative->reference
         || alternative->marker.flags != EM_NOMARK || alternative->marker.default_value || alternative->constraints || alternative->combined_constraints
-        || alternative->lhs_params || alternative->rhs_pspecs) return -1;
+        || alternative->lhs_params) return -1;
     sequence = ioc_resolve(tree, alternative, alternative->reference);
     body = terminal_type(sequence);
-    if(!sequence || sequence->meta_type != AMT_TYPE || !body || body->expr_type != ASN_CONSTR_SEQUENCE
-        || sequence->constraints || sequence->combined_constraints || envelope_source_ref(&root->sequence, sequence)) return -1;
+    if(!sequence || (sequence->meta_type != AMT_TYPE && !(alternative->rhs_pspecs && sequence->meta_type == AMT_TYPEREF)) || !body || body->expr_type != ASN_CONSTR_SEQUENCE
+        || sequence->constraints || sequence->combined_constraints) return -1;
+    if(alternative->rhs_pspecs) {
+        if(put_parameterized_object_set_ref(tree, &root->sequence, alternative, NULL, 0)) return -1;
+        root->role = ASN1TYPED_ENVELOPE_CHOICE_EXTENSION;
+        root->unsupported_payload = 1;
+    } else if(envelope_source_ref(&root->sequence, sequence)) return -1;
     root->source_name = alternative->Identifier; root->source_ordinal = ordinal;
     root->effective_tag_class = owned_tag_class(alternative->tag.tag_class);
     if(alternative->tag.tag_value < 0 || alternative->tag.tag_value > INTMAX_MAX) return -1;
@@ -2799,15 +2804,19 @@ envelope_root_source(asn1p_t *tree, asn1p_expr_t *alternative, size_t ordinal,
         asn1p_ref_t prefix;
         const char *name;
         if(field >= 3 || !member->Identifier || member->expr_type != A1TC_REFERENCE || member->marker.flags != EM_NOMARK || member->marker.default_value
-            || member->rhs_pspecs || member->lhs_params || !member->reference || member->reference->comp_count != 2
+            || (member->rhs_pspecs && !root->unsupported_payload) || member->lhs_params || !member->reference || member->reference->comp_count != 2
             || !member->reference->components || !member->reference->components[0].name
             || !(name = member->reference->components[1].name) || name[0] != '&'
             || !relation || relation->el_count != (field == 0 ? 1u : 2u)) return -1;
-        if(field == 0 ? strcmp(name, "&procedureCode") : field == 1 ? strcmp(name, "&criticality") : 0) return -1;
+        if(field == 0 ? strcmp(name, root->unsupported_payload ? "&id" : "&procedureCode") : field == 1 ? strcmp(name, "&criticality") : 0) return -1;
         if(field == 2) {
+            if(root->unsupported_payload) {
+                if(strcmp(name, "&Value")) return -1;
+            } else {
             for(role = 0; role < 3; ++role) if(!strcmp(name, payload_names[role])) break;
             if(role == 3) return -1;
             root->role = (asn1typed_envelope_role_e)role;
+            }
         }
         prefix = *member->reference; prefix.comp_count = 1; prefix.ref_expr = NULL;
         member_class = ioc_resolve(tree, member, &prefix);
@@ -2825,6 +2834,10 @@ envelope_root_source(asn1p_t *tree, asn1p_expr_t *alternative, size_t ordinal,
         ++field;
     }
     if(field != 3 || envelope_source_ref(&root->procedure_class, class_expr) || envelope_source_ref(&root->object_set, set)) return -1;
+    if(root->unsupported_payload) {
+        if(!set->ioc_table || set->ioc_table->rows || !set->ioc_table->extensible) return -1;
+        root->object_set_is_extensible = 1;
+    }
     root->field_count = field; root->evidence = ASN1TYPED_WIRE_EVIDENCE_RESOLVED;
     *class_out = class_expr; *set_out = set; return 0;
 }
@@ -2992,7 +3005,7 @@ asn1typed_extract_target_envelope(asn1p_t *tree, const char *pdu_module, const c
         const char *body_module, const char *body_name, asn1typed_target_envelope_t *out, char *error, size_t size) {
     asn1typed_target_envelope_t pending = {0};
     asn1typed_envelope_header_t header = {0};
-    asn1typed_envelope_root_t roots[3];
+    asn1typed_envelope_root_t roots[4] = {{0}};
     asn1typed_type_ref_t target = {0};
     asn1typed_type_t criticality = {0};
     asn1p_expr_t *pdu, *pdu_body, *body, *member, *class_expr = NULL, *set = NULL;
@@ -3016,22 +3029,25 @@ asn1typed_extract_target_envelope(asn1p_t *tree, const char *pdu_module, const c
             if(extension_seen) goto fail;
             extension_seen = 1; continue;
         }
-        if(extension_seen || count >= 3 || envelope_root_source(tree, member, count, &roots[count], &root_class, &root_set)) goto fail;
-        if(count && (root_class != class_expr || root_set != set)) goto fail;
-        class_expr = root_class; set = root_set; ++count;
+        if(extension_seen || count >= 4 || envelope_root_source(tree, member, count, &roots[count], &root_class, &root_set)) goto fail;
+        if(!roots[count].unsupported_payload) {
+            if(class_expr && (root_class != class_expr || root_set != set)) goto fail;
+            class_expr = root_class; set = root_set;
+        }
+        ++count;
     }
-    if(count != 3 || !extension_seen || !set || !set->ioc_table || !set->ioc_table->rows || !set->ioc_table->row
+    if(!((count == 3 && extension_seen) || (count == 4 && !extension_seen)) || !set || !set->ioc_table || !set->ioc_table->rows || !set->ioc_table->row
         || ioc_resolve(tree, set, set->reference) != class_expr
         || envelope_source_ref(&header.procedure_class, class_expr) || envelope_source_ref(&header.object_set, set)) goto fail;
-    header.declared_root_count = count; header.choice_is_extensible = 1;
+    header.declared_root_count = count; header.choice_is_extensible = extension_seen;
     header.declared_row_count = set->ioc_table->rows;
     if(envelope_set_boundary(set, &header.object_set_is_extensible)) goto fail;
     stage = "class OPTIONAL/DEFAULT and scalar source evidence";
     if(envelope_class_source(tree, class_expr, &header, &criticality, error, size)) goto fail;
     header.evidence = ASN1TYPED_WIRE_EVIDENCE_RESOLVED;
     if(asn1typed_target_envelope_set_header(&pending, &header) || asn1typed_target_envelope_set_target(&pending, &target)) goto fail;
-    for(i = 0; i < 3; ++i) {
-        roots[i].procedure_type = header.procedure_type; roots[i].criticality_type = header.criticality_type;
+    for(i = 0; i < count; ++i) {
+        if(!roots[i].unsupported_payload) { roots[i].procedure_type = header.procedure_type; roots[i].criticality_type = header.criticality_type; }
         if(asn1typed_target_envelope_add_root(&pending, &roots[i])) goto fail;
     }
     stage = "complete procedure table row evidence";
@@ -3041,8 +3057,10 @@ asn1typed_extract_target_envelope(asn1p_t *tree, const char *pdu_module, const c
     }
     stage = "finalized target-envelope evidence";
     if(asn1typed_target_envelope_finalize(&pending, error, size) != ASN1TYPED_WIRE_FINALIZE_OK) goto fail;
+    for(i = 0; i < 4; ++i) if(roots[i].sequence.actual_count) asn1typed_type_ref_clear(&roots[i].sequence);
     asn1typed_type_clear(&criticality); *out = pending; return 0;
 fail:
+    for(i = 0; i < 4; ++i) if(roots[i].sequence.actual_count) asn1typed_type_ref_clear(&roots[i].sequence);
     if(error && size && !error[0]) set_error(error, size, "unsupported/unavailable target-envelope %s or allocation failure", stage);
     asn1typed_type_clear(&criticality); asn1typed_target_envelope_clear(&pending); return -1;
 }

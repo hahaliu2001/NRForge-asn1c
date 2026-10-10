@@ -10,7 +10,7 @@
 struct envelope_names {
     char *pdu, *mapping, *body, *criticality, *criticality_mapping, *opaque, *target, *extension;
     char *encode, *decode, *put, *get, *crit_put, *crit_get;
-    char *roots[3], *fields[3][3];
+    char *roots[4], *fields[4][3];
 };
 static char *join(const char *a, const char *b) {
     size_t x = strlen(a), y = strlen(b);
@@ -32,7 +32,7 @@ static void clear_names(struct envelope_names *p) {
     free(p->pdu); free(p->mapping); free(p->body); free(p->criticality); free(p->criticality_mapping);
     free(p->opaque); free(p->target); free(p->extension); free(p->encode); free(p->decode);
     free(p->put); free(p->get); free(p->crit_put); free(p->crit_get);
-    for(i = 0; i < 3; ++i) { free(p->roots[i]); for(j = 0; j < 3; ++j) free(p->fields[i][j]); }
+    for(i = 0; i < 4; ++i) { free(p->roots[i]); for(j = 0; j < 3; ++j) free(p->fields[i][j]); }
     memset(p, 0, sizeof(*p));
 }
 static int names(const asn1typed_module_t *body, const asn1typed_target_envelope_t *d, const char *ns,
@@ -65,7 +65,7 @@ static int names(const asn1typed_module_t *body, const asn1typed_target_envelope
     p->crit_put = join("put_", p->criticality); SYMBOL(p->crit_put);
     p->crit_get = join("get_", p->criticality); SYMBOL(p->crit_get);
     symbols[count++] = "envelope_codec";
-    for(i = 0; i < 3; ++i) {
+    for(i = 0; i < d->root_count; ++i) {
         suffix = asn1typed_render_cpp_final_name(d->roots[i].source_name, ASN1TYPED_NAME_FIELD); NEED(suffix);
         p->roots[i] = join(p->pdu, "_"); NEED(p->roots[i]);
         { char *old = p->roots[i]; p->roots[i] = join(old, suffix); free(old); }
@@ -102,12 +102,14 @@ static int types(struct compound_buf *b, const struct envelope_names *p, const a
     if(emit(b,"#include <cstddef>\n#include <cstdint>\n#include <vector>\n#include <variant>\nnamespace %s {\nstruct %s { enum class Known : ::std::int64_t {", ns, p->criticality)) return -1;
     for(i = 0; i < 3; ++i) if(emit(b,"%s%s = %jd", i ? ", " : "", d->header.criticalities[i].source_name, d->header.criticalities[i].assigned_number)) return -1;
     if(emit(b,"}; Known value{}; };\nstruct %s { ::std::vector<::std::byte> payload{}; };\nstruct %s { ::%s::%s value{}; };\nstruct %s { ::std::uint64_t index{}; ::std::vector<::std::byte> payload{}; };\n",p->opaque,p->target,ns,p->body,p->extension)) return -1;
-    for(i = 0; i < 3; ++i) {
+    for(i = 0; i < d->root_count; ++i) {
+        if(d->roots[i].unsupported_payload) { if(emit(b,"struct %s {};\n",p->roots[i])) return -1; continue; }
         if(emit(b,"struct %s { ::std::uint64_t %s{}; ::%s::%s %s{}; ",p->roots[i],p->fields[i][0],ns,p->criticality,p->fields[i][1])) return -1;
         if(i == d->target_root_ordinal) {
             if(emit(b,"::std::variant<::%s::%s, ::%s::%s> %s{}; };\n",ns,p->opaque,ns,p->target,p->fields[i][2])) return -1;
         } else if(emit(b,"::%s::%s %s{}; };\n",ns,p->opaque,p->fields[i][2])) return -1;
     }
+    if(d->root_count == 4) return emit(b,"struct %s { ::std::variant<::%s::%s, ::%s::%s, ::%s::%s, ::%s::%s> value{}; };\n} // namespace\n",p->pdu,ns,p->roots[0],ns,p->roots[1],ns,p->roots[2],ns,p->roots[3]);
     return emit(b,"struct %s { ::std::variant<::%s::%s, ::%s::%s, ::%s::%s, ::%s::%s> value{}; };\n} // namespace\n",p->pdu,ns,p->roots[0],ns,p->roots[1],ns,p->roots[2],ns,p->extension);
 }
 static int mapping(struct compound_buf *b, const struct envelope_names *p, const asn1typed_target_envelope_t *d, const char *ns) {
@@ -118,10 +120,24 @@ static int mapping(struct compound_buf *b, const struct envelope_names *p, const
     if(emit(b,"#include <array>\n#include <cstddef>\n#include <cstdint>\nnamespace %s {\nstruct %s { using value_type = ::%s::%s; static constexpr unsigned root_count = 3; static constexpr bool extensible = false; struct Entry { ::std::int64_t assigned_number; unsigned per_index; }; static constexpr ::std::array<Entry, 3> entries{{",ns,p->criticality_mapping,ns,p->criticality)) return -1;
     for(i=0;i<3;++i) if(emit(b,"%s{%jd, %zu}",i?", ":"",d->header.criticalities[i].assigned_number,d->header.criticalities[i].per_index)) return -1;
     if(emit(b,"}}; };\nstruct %s {\nusing value_type = ::%s::%s;\nusing body_type = ::%s::%s;\nusing body_mapping = ::%s::%s_aper;\nusing criticality_type = ::%s::%s;\nusing criticality_mapping = ::%s::%s;\nusing target_wrapper_type = ::%s::%s;\nusing opaque_type = ::%s::%s;\nusing unknown_extension_type = ::%s::%s;\nstatic constexpr ::std::size_t root_count = %zu;\nstatic constexpr bool extensible = %s;\nstatic constexpr bool object_set_extensible = %s;\nstatic constexpr unsigned procedure_root_bits = %u;\nstatic constexpr ::std::uint64_t procedure_lower_bound = %jd, procedure_upper_bound = %jd;\nstatic constexpr ::std::uint64_t target_code = %jd;\nstatic constexpr unsigned expected_criticality = %u;\nstatic constexpr ::std::size_t target_root_ordinal = %zu;\n",p->mapping,ns,p->pdu,ns,p->body,ns,p->body,ns,p->criticality,ns,p->criticality_mapping,ns,p->target,ns,p->opaque,ns,p->extension,d->root_count,d->header.choice_is_extensible?"true":"false",d->header.object_set_is_extensible?"true":"false",procedure_bits,d->header.procedure_lower_bound,d->header.procedure_upper_bound,d->rows[d->target_row_index].numeric_code,d->rows[d->target_row_index].expected_criticality,d->target_root_ordinal)) return -1;
+    if(d->root_count == 3) {
     if(emit(b,"static constexpr ::std::array<::std::size_t, 3> source_ordinal_to_per_root_index{{%zu, %zu, %zu}};\nstatic constexpr ::std::array<::std::size_t, 3> per_root_index_to_source_ordinal{{",d->roots[0].per_root_index,d->roots[1].per_root_index,d->roots[2].per_root_index)) return -1;
     for(i=0;i<3;++i) { for(j=0;j<3;++j) if(d->roots[j].per_root_index==i) break; if(emit(b,"%s%zu",i?", ":"",j)) return -1; }
     if(emit(b,"}};\nstatic constexpr ::std::array<unsigned,3> root_roles{{%u,%u,%u}};\n",(unsigned)d->roots[0].role,(unsigned)d->roots[1].role,(unsigned)d->roots[2].role)) return -1;
     for(i=0;i<3;++i) if(emit(b,"using wrapper_%zu = ::%s::%s;\nstatic constexpr auto root_%zu_procedure_member = &wrapper_%zu::%s;\nstatic constexpr auto root_%zu_criticality_member = &wrapper_%zu::%s;\nstatic constexpr auto root_%zu_value_member = &wrapper_%zu::%s;\n",i,ns,p->roots[i],i,i,p->fields[i][0],i,i,p->fields[i][1],i,i,p->fields[i][2])) return -1;
+    } else {
+        if(emit(b,"static constexpr ::std::array<::std::size_t,4> source_ordinal_to_per_root_index{{")) return -1;
+        for(i=0;i<4;++i) if(emit(b,"%s%zu",i?", ":"",d->roots[i].per_root_index)) return -1;
+        if(emit(b,"}};\nstatic constexpr ::std::array<::std::size_t,4> per_root_index_to_source_ordinal{{")) return -1;
+        for(i=0;i<4;++i) { for(j=0;j<4;++j) if(d->roots[j].per_root_index==i) break; if(emit(b,"%s%zu",i?", ":"",j)) return -1; }
+        if(emit(b,"}};\nstatic constexpr ::std::array<unsigned,4> root_roles{{")) return -1;
+        for(i=0;i<4;++i) if(emit(b,"%s%u",i?",":"",(unsigned)d->roots[i].role)) return -1;
+        if(emit(b,"}};\n")) return -1;
+        for(i=0;i<4;++i) {
+            if(d->roots[i].unsupported_payload) continue;
+            if(emit(b,"using wrapper_%zu = ::%s::%s;\nstatic constexpr auto root_%zu_procedure_member = &wrapper_%zu::%s;\nstatic constexpr auto root_%zu_criticality_member = &wrapper_%zu::%s;\nstatic constexpr auto root_%zu_value_member = &wrapper_%zu::%s;\n",i,ns,p->roots[i],i,i,p->fields[i][0],i,i,p->fields[i][1],i,i,p->fields[i][2])) return -1;
+        }
+    }
     if(emit(b,"struct Row { ::std::uint64_t code; unsigned expected_criticality; unsigned default_provenance; ::std::array<bool,3> payload_present; };\nstatic constexpr ::std::array<Row,%zu> rows{{",d->row_count)) return -1;
     for(i=0;i<d->row_count;++i) if(emit(b,"%s{%jd,%u,%u,{{%s,%s,%s}}}",i?", ":"",d->rows[i].numeric_code,d->rows[i].expected_criticality,(unsigned)d->rows[i].default_provenance,d->rows[i].payload_present[0]?"true":"false",d->rows[i].payload_present[1]?"true":"false",d->rows[i].payload_present[2]?"true":"false")) return -1;
     return emit(b,"}};\nstatic constexpr bool has_procedure_code(::std::uint64_t code) { for(const auto& row : rows) if(row.code == code) return true; return false; }\n};\n} // namespace\n");
@@ -131,8 +147,14 @@ static int codec(struct compound_buf *b, const struct envelope_names *p, const a
     if(emit(b,"#include <new>\n#include <stdexcept>\n#include <utility>\n#include <span>\nnamespace %s { namespace envelope_codec {\n",ns)) return -1;
     if(emit(b,"inline ::nrforge::aper::Result<void> %s(::nrforge::aper::FieldWriter& f, const ::%s::%s& v) {\nfor(const auto& entry : ::%s::%s::entries) if(static_cast<::std::int64_t>(v.value) == entry.assigned_number) return f.write_enumerated({false,entry.per_index}, ::%s::%s::root_count, false);\nreturn f.record_failure({::nrforge::aper::ErrorCode::constraint_violation,f.cursor_bit()});\n}\ninline ::nrforge::aper::Result<::%s::%s> %s(::nrforge::aper::FieldReader& f) {\nauto index = f.read_enumerated(::%s::%s::root_count,false);\nif(!index) return ::nrforge::aper::Result<::%s::%s>::failure(index.error());\nfor(const auto& entry : ::%s::%s::entries) if(entry.per_index == index.value().index) return ::nrforge::aper::Result<::%s::%s>::success({static_cast<::%s::%s::Known>(entry.assigned_number)});\nauto failure = f.record_failure({::nrforge::aper::ErrorCode::constraint_violation,f.cursor_bit()});\nreturn ::nrforge::aper::Result<::%s::%s>::failure(failure.error());\n}\n",p->crit_put,ns,p->criticality,ns,p->criticality_mapping,ns,p->criticality_mapping,ns,p->criticality,p->crit_get,ns,p->criticality_mapping,ns,p->criticality,ns,p->criticality_mapping,ns,p->criticality,ns,p->criticality,ns,p->criticality)) return -1;
     if(emit(b,"inline ::nrforge::aper::Result<void> %s(::nrforge::aper::FieldWriter& f, const ::%s::%s& v) {\nconst auto* root = ::std::get_if<::%s::%s>(&v.value);\nif(!root || root->%s.valueless_by_exception() || !::std::holds_alternative<::%s::%s>(root->%s) || root->%s != ::%s::%s::target_code) return f.record_failure({::nrforge::aper::ErrorCode::constraint_violation,f.cursor_bit()});\nauto selector = f.write_enumerated({false,::%s::%s::source_ordinal_to_per_root_index[::%s::%s::target_root_ordinal]},static_cast<unsigned>(::%s::%s::root_count),::%s::%s::extensible); if(!selector) return selector;\nauto code = f.write_constrained_uint(root->%s,::%s::%s::procedure_root_bits); if(!code) return code;\nauto criticality = ::%s::envelope_codec::%s(f,root->%s); if(!criticality) return criticality;\nreturn f.write_known_open_type([&](::nrforge::aper::FieldWriter& child) { return ::%s::compound_codec::put_%s(child,::std::get<::%s::%s>(root->%s).value); });\n}\n",p->put,ns,p->pdu,ns,p->roots[target],p->fields[target][2],ns,p->target,p->fields[target][2],p->fields[target][0],ns,p->mapping,ns,p->mapping,ns,p->mapping,ns,p->mapping,ns,p->mapping,p->fields[target][0],ns,p->mapping,ns,p->crit_put,p->fields[target][1],ns,p->body,ns,p->target,p->fields[target][2])) return -1;
-    if(emit(b,"inline ::nrforge::aper::Result<::%s::%s> %s(::nrforge::aper::FieldReader& f) {\ntry {\nauto selector = f.read_enumerated(static_cast<unsigned>(::%s::%s::root_count),::%s::%s::extensible);\nif(!selector) return ::nrforge::aper::Result<::%s::%s>::failure(selector.error());\nif(selector.value().is_extension) {\nauto payload = f.read_open_type_owned(); if(!payload) return ::nrforge::aper::Result<::%s::%s>::failure(payload.error());\nreturn ::nrforge::aper::Result<::%s::%s>::success({::%s::%s{selector.value().index,::std::move(payload).value()}});\n}\nconst auto ordinal = ::%s::%s::per_root_index_to_source_ordinal[static_cast<::std::size_t>(selector.value().index)];\n",ns,p->pdu,p->get,ns,p->mapping,ns,p->mapping,ns,p->pdu,ns,p->pdu,ns,p->pdu,ns,p->extension,ns,p->mapping)) return -1;
-    for(i=0;i<3;++i) {
+    if(emit(b,"inline ::nrforge::aper::Result<::%s::%s> %s(::nrforge::aper::FieldReader& f) {\ntry {\nauto selector = f.read_enumerated(static_cast<unsigned>(::%s::%s::root_count),::%s::%s::extensible);\nif(!selector) return ::nrforge::aper::Result<::%s::%s>::failure(selector.error());\n",ns,p->pdu,p->get,ns,p->mapping,ns,p->mapping,ns,p->pdu)) return -1;
+    if(d->header.choice_is_extensible && emit(b,"if(selector.value().is_extension) {\nauto payload = f.read_open_type_owned(); if(!payload) return ::nrforge::aper::Result<::%s::%s>::failure(payload.error());\nreturn ::nrforge::aper::Result<::%s::%s>::success({::%s::%s{selector.value().index,::std::move(payload).value()}});\n}\n",ns,p->pdu,ns,p->pdu,ns,p->extension)) return -1;
+    if(emit(b,"const auto ordinal = ::%s::%s::per_root_index_to_source_ordinal[static_cast<::std::size_t>(selector.value().index)];\n",ns,p->mapping)) return -1;
+    for(i=0;i<d->root_count;++i) {
+        if(d->roots[i].unsupported_payload) {
+            if(emit(b,"if(ordinal == %zu) { auto failure = f.record_failure({::nrforge::aper::ErrorCode::constraint_violation,f.cursor_bit()}); return ::nrforge::aper::Result<::%s::%s>::failure(failure.error()); }\n",i,ns,p->pdu)) return -1;
+            continue;
+        }
         if(emit(b,"if(ordinal == %zu) {\n::%s::%s root{};\nauto code = f.read_constrained_uint(::%s::%s::procedure_root_bits); if(!code) return ::nrforge::aper::Result<::%s::%s>::failure(code.error()); root.%s = code.value();\nif(!::%s::%s::object_set_extensible && !::%s::%s::has_procedure_code(code.value())) { auto failure = f.record_failure({::nrforge::aper::ErrorCode::constraint_violation,f.cursor_bit()}); return ::nrforge::aper::Result<::%s::%s>::failure(failure.error()); }\nauto criticality = ::%s::envelope_codec::%s(f); if(!criticality) return ::nrforge::aper::Result<::%s::%s>::failure(criticality.error()); root.%s = ::std::move(criticality).value();\n",i,ns,p->roots[i],ns,p->mapping,ns,p->pdu,p->fields[i][0],ns,p->mapping,ns,p->mapping,ns,p->pdu,ns,p->crit_get,ns,p->pdu,p->fields[i][1])) return -1;
         if(i == target && emit(b,"if(code.value() == ::%s::%s::target_code) {\nauto payload = f.read_known_open_type<::%s::%s>([](::nrforge::aper::FieldReader& child) { return ::%s::compound_codec::get_%s(child); });\nif(!payload) return ::nrforge::aper::Result<::%s::%s>::failure(payload.error());\nroot.%s = ::%s::%s{::std::move(payload).value()};\n} else {\n",ns,p->mapping,ns,p->body,ns,p->body,ns,p->pdu,p->fields[i][2],ns,p->target)) return -1;
         if(emit(b,"auto payload = f.read_open_type_owned(); if(!payload) return ::nrforge::aper::Result<::%s::%s>::failure(payload.error());\nroot.%s = ::%s::%s{::std::move(payload).value()};\n",ns,p->pdu,p->fields[i][2],ns,p->opaque)) return -1;

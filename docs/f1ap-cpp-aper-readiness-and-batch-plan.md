@@ -78,3 +78,31 @@ Current evidence: [F1-P2 closeout](f1ap-cpp-aper-shared-body-closeout.md),
 reports. The historical F1-P1 report above remains unchanged. Next: **F1-P3**,
 complete F1AP-PDU integration; then F1-P4 batch wire qualification, F1-P5 C++ SDK
 and F1-P6 Python SDK. E1AP and RRC follow F1AP.
+
+## F1-P3 completion (2026-10-10)
+
+F1-P3 shared complete-PDU integration is complete. Owned evidence supports
+F1AP's four-root non-extensible CHOICE; the parameterized fourth root is owned,
+validated and explicitly rejected before any ordinary procedure header.
+Profile-separated public APIs reuse the NGAP registry/ownership/transaction
+implementation. The controller reconciles all 94 procedures and 158 outcomes,
+rejects missing closure, and emits byte-identical complete outputs on repeat.
+
+All 158 messages pass separate BODY and envelope extraction/generation/strict
+compilation gates. All 474 BODY headers remain byte-identical to F1-P2. The
+complete adapter library builds, links and passes a finite all-158 typed-slot
+runtime check. Functional tests pass 55/55. NGAP retains 131/131 readiness,
+baseline artifact equality and existing installed/relocated SDK behavior.
+Independent agent review accepts the final evidence.
+
+These are integration gates, not independent wire qualification. All 158 wire
+statuses remain `NOT_RUN`; the finite values are 157 empty-container BODY values
+and one vendor-opaque PrivateMessage entry. No mandatory-IE policy or populated
+payload interoperability is implied. F1-P5 installed F1AP SDK is not delivered.
+
+Evidence: [F1-P3 closeout](f1ap-cpp-aper-pdu-integration-closeout.md),
+`tools/f1ap-readiness/readiness-f1-p3.json`,
+`tools/f1ap-readiness/dispatch-integration-f1-p3.json`, and
+`tools/f1ap-readiness/review-f1-p3.md`. Historical P1/P2 evidence is unchanged.
+Next: **F1-P4**, independent batch wire qualification; then F1-P5/F1-P6.
+E1AP and RRC remain after F1AP.

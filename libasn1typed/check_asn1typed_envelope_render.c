@@ -146,16 +146,25 @@ static int actual_variants(const char *list,const char *root,const char *directo
 }
 int main(int argc,char **argv) {
     asn1p_t *body_tree,*envelope_tree;
-    asn1typed_module_t body = {0}; asn1typed_target_envelope_t descriptor = {0};
+    asn1typed_module_t body = {0}; asn1typed_target_envelope_t descriptor = {0}, four = {0};
     if(argc == 5 && !strcmp(argv[1],"--actual")) return actual_variants(argv[2],argv[3],argv[4]);
     REQUIRE(argc == 5);
     body_tree = asn1p_parse_file(argv[1],A1P_NOFLAGS); envelope_tree = asn1p_parse_file(argv[2],A1P_NOFLAGS);
     REQUIRE(body_tree && envelope_tree && asn1f_process(body_tree,A1F_NOFLAGS,NULL) >= 0 && asn1f_process(envelope_tree,A1F_NOFLAGS,NULL) >= 0);
     REQUIRE(asn1typed_extract_physical_message(body_tree,"IOCCppGeneration","DispatchMessage",&body,diagnostic,sizeof(diagnostic)) == 0);
     REQUIRE(asn1typed_extract_target_envelope(envelope_tree,"EnvelopeEvidence","Envelope","EnvelopeBodies","TargetBody",&descriptor,diagnostic,sizeof(diagnostic)) == 0);
+    REQUIRE(asn1typed_extract_target_envelope(envelope_tree,"EnvelopeEvidence","FourEnvelope","EnvelopeBodies","TargetBody",&four,diagnostic,sizeof(diagnostic)) == 0);
     asn1p_delete(body_tree); asn1p_delete(envelope_tree);
     associate(&descriptor,&body);
     generate(&body,&descriptor,"normal::nrforge",argv[3]);
+    {
+        char prefix[2048];
+        associate(&four,&body);
+        REQUIRE(four.root_count == 4 && !four.header.choice_is_extensible && four.roots[3].unsupported_payload);
+        REQUIRE(snprintf(prefix,sizeof(prefix),"%s_four",argv[3]) > 0);
+        generate(&body,&four,"four::nrforge",prefix);
+        asn1typed_target_envelope_clear(&four);
+    }
     outcome_variants(&body,&descriptor,argv[3]);
     refused(NULL,&descriptor,"normal::nrforge"); refused(&body,NULL,"normal::nrforge"); refused(&body,&descriptor,"class");
     {

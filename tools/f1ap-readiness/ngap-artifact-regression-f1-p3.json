@@ -1,0 +1,97 @@
+{
+  "scope": "F1-P3 NGAP generation nonregression against 0ad019c340934391861e8c80ba5c3e7253adfef5",
+  "raw14_byte_exact": true,
+  "raw14_baseline_sha256": "a1e3fbe31b4d0f3936f4f85f3ce8b4f0d3933cbc73cf2decb243bae6046162c4",
+  "raw14_final_sha256": "a1e3fbe31b4d0f3936f4f85f3ce8b4f0d3933cbc73cf2decb243bae6046162c4",
+  "body_headers": {
+    "baseline_files": 42,
+    "final_files": 42,
+    "compared": 42,
+    "baseline_only": [],
+    "final_only": [],
+    "different": []
+  },
+  "dispatch": {
+    "baseline_files": 659,
+    "final_files": 659,
+    "compared": 659,
+    "baseline_only": [],
+    "final_only": [],
+    "different": [],
+    "different_excluding_manifest_paths": []
+  },
+  "dispatch_manifest_logical_equal": true,
+  "qualification_limit": "NGAP regression and SDK integration preservation, including existing three finite NG Setup goldens. No new NGAP wire qualification or full native campaign; no benchmark.",
+  "ngap131_readiness": {
+    "summary": {
+      "physical": {
+        "PASS": 131
+      },
+      "body_generation": {
+        "PASS": 131
+      },
+      "strict_compile": {
+        "PASS": 131
+      }
+    },
+    "first_failure_clusters": {},
+    "report_sha256": "71fa7215a9b96ad8a0244e05d32688c6a310af66057fa74152eefca43d9e7b9d",
+    "parser_deleted_before_generation": true,
+    "scan_guards": "PASS"
+  },
+  "sdk_preservation": {
+    "status": "PASS",
+    "messages": 131,
+    "procedures": 81,
+    "fingerprint": "dd4be7aebc7cd385b232c1b10d29abf70b5c0b13d9a63d2fcff257bc20d7251c",
+    "sealed_source_stability": "PASS",
+    "source_revision": "0ad019c340934391861e8c80ba5c3e7253adfef5",
+    "full_strict_o0_archive_linkcheck_install": "PASS",
+    "build_receipt_sha256": "b1bc3f00a449d4a99b07a9a71e208603fcccb297e2527b35ad8edde67b89b54d",
+    "compile_commands_sha256": "8c503b64ac9324da1148ffda13b1e9184f5d8f32dbe988c4b5f06fd36d563de4",
+    "installed_shared_declaration_inc_dependency": "PASS",
+    "relocated_three_ng_setup_outcomes": "PASS",
+    "installed_only_dependencies": true,
+    "expected_fingerprint_mismatch_rejected": true,
+    "full_consumer_wrong_library_clean_link_rejection": "PASS",
+    "wrong_library_clean_cmake_rc": 2,
+    "wrong_library_clean_ld_rc": 1,
+    "direct_pdu_and_message_header_link_guards": "PASS",
+    "relocated_header_restored_byte_exact": true,
+    "standalone_public_registry_policy_check": "PASS",
+    "public_check_scope": "Unknown procedure codes, all 112 absent outcome slots, outer extension receive-only policy",
+    "linker_memory_option": "-Wl,--no-keep-memory",
+    "strict_compile_options": [
+      "-std=c++20",
+      "-O0",
+      "-Wall",
+      "-Wextra",
+      "-Werror",
+      "-pedantic-errors",
+      "-Wconversion",
+      "-Wsign-conversion"
+    ]
+  },
+  "diagnostic_attempts_not_acceptance": [
+    "Parallel-2 SDK compile failed from cc1plus resource kill; serial retry accepted.",
+    "An interrupted zero-byte scratch object was removed and rebuilt; final real link check accepted every registration.",
+    "Overlapping GNU ld link was resource-killed; accepted SDK link ran with --no-keep-memory.",
+    "The verifier old wrong-library log had expected guard symbol plus resource kill: its PASS alone is not clean negative evidence. Exclusive low-memory replay returned the expected normal linker failure.",
+    "Standalone public link and one negative replay were interrupted to avoid cgroup memory pressure; their final exclusive runs are the accepted evidence."
+  ],
+  "final_log_sha256": {
+    "build-clean-object.log": "16e87fe93f6e8f3fd7242e090981ea4fd2cdaca1f9095dd153251c426044e758",
+    "install.log": "0af6056cc95609eb47e1d6144cdac98f975b2611664efb68dee93c7ef6891310",
+    "seal-v2.log": "71d8f5af4bf887407d473a7fdd8500a803d6819d6e0e9fe57bb7ad1b27d8e590",
+    "check-public-final-build.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "check-public-run.log": "309308867b20d628e45b77720b88ec91da8d89a43b3930f733e0dcae07aec1e9",
+    "consumer.output": "611cf40559cb638bbd24cc1949a931633a48af6e630f670bde898dbe8be9876d",
+    "wrong-library-lowmem-exclusive.log": "cc8c91818b5c3daa7cc150daa338eb088676cf434324e7a1610fcc09d7e1f362",
+    "pdu-only-mismatch.log": "abdcbe7ef54a6635658856f6559202ebac17aa10580e1ddcc61ff2653c98579f",
+    "message-only-mismatch.log": "abdcbe7ef54a6635658856f6559202ebac17aa10580e1ddcc61ff2653c98579f"
+  },
+  "binary_sha256": {
+    "sdk_link_check": "8f5142421a3d02eb2c02a08e654febba00ea88d9e5a77cd75edde01dc9c2cd14",
+    "public_check": "c85926519b95af182a802fe911a59de295a23eb6fa66d1c4e5bb9c278e484a7d"
+  }
+}

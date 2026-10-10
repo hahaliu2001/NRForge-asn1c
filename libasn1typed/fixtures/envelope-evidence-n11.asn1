@@ -77,4 +77,22 @@ ClosedEnvelope ::= CHOICE {
   failed [2] ClosedFailureFrame,
   ...
 }
+ENVELOPE-IES ::= CLASS {
+  &id INTEGER (0..65535) UNIQUE,
+  &criticality Criticality,
+  &Value
+} WITH SYNTAX { ID &id CRITICALITY &criticality TYPE &Value }
+UnusedIEs ENVELOPE-IES ::= { ... }
+SingleContainer {ENVELOPE-IES : Set} ::= IEField {{Set}}
+IEField {ENVELOPE-IES : Set} ::= SEQUENCE {
+  id ENVELOPE-IES.&id({Set}),
+  criticality ENVELOPE-IES.&criticality({Set}{@id}),
+  value ENVELOPE-IES.&Value({Set}{@id})
+}
+FourEnvelope ::= CHOICE {
+  completed [9] SuccessFrame,
+  started [5] BeginFrame,
+  failed [2] FailureFrame,
+  choice-extension [20] SingleContainer {{UnusedIEs}}
+}
 END

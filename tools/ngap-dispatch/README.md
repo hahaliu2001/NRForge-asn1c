@@ -33,3 +33,30 @@ if(made) {
 All adapters and `registry.cpp` must be linked exactly once. Mapping/codec headers stay private to their adapter TUs. The CMake target publishes generated/public runtime include directories and C++20 requirements. The seal identifies exact source and generated content; CMake refuses modified inputs and installs a relocatable `NRForge::ngap` target. Applications discover it with `find_package(NRForgeNGAP 0.1.0 EXACT CONFIG REQUIRED)`. Public installed headers enforce their fingerprint-specific library link guard. See `tools/ngap-sdk/README.md` for the complete build and `tools/ngap-sdk-consumer/README.md` for the independently verified installed consumer.
 
 Decoded PDUs preserve received criticality; `body_if<Body>()` safely checks the concrete type. Root identity is immutable. Unknown root slots and unknown outer extensions are owned receive-only values and refuse encode. Malformed known messages remain errors. This API performs wire dispatch, not NGAP procedure/application validation. See the repository unified dispatch contract and qualification tool for finite interoperability evidence.
+
+## F1AP shared dispatch profile (F1-P3)
+
+Use the same controller with a final `--f1ap` argument, the frozen F1AP module
+list and all declared F1AP message names. It emits `f1ap.hpp`, separate
+`nrforge::f1ap::messages` BODY identities and a complete F1AP registry. The
+generated CMake target `nrforge_f1ap` builds a repository-local dispatch library;
+it does not install, seal or qualify an F1AP SDK (F1-P5).
+
+```sh
+mkdir generated-f1ap
+./tools/asn1typed_ngap_dispatch tools/f1ap-readiness/f1ap-rel18.modules /path/to/frozen-f1ap/src messages.txt generated-f1ap --f1ap
+cmake -S generated-f1ap -B generated-f1ap-build -DNRFORGE_SOURCE_ROOT=/absolute/path/to/NRForge-asn1c
+cmake --build generated-f1ap-build -j1
+```
+
+`make_f1ap_pdu`, `encode_f1ap_pdu` and `decode_f1ap_pdu` expose the same owned
+dispatch contract under distinct F1AP types. Both protocol headers can coexist;
+there is no alias between NGAP and F1AP PDU, role or type-erased BODY identities.
+Shared source implements the existing transaction and ownership behavior with
+owned-evidence framing: F1AP has four roots and no outer extension bit. Its
+`choice-extension` root is unsupported and fails before reading an outcome
+header; it is never confused with an NGAP outer extension or opaque procedure.
+Unknown root procedures/absent outcome slots remain receive-only opaque values
+only when the procedure object set permits them. Known malformed BODY values
+do not fall back to opaque data. All-message linkage and focused vectors are
+integration gates, not the independent batch wire qualification of F1-P4.

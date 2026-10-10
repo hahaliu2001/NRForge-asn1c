@@ -10,7 +10,10 @@ extern "C" {
 typedef enum asn1typed_envelope_role_e {
     ASN1TYPED_ENVELOPE_INITIATING,
     ASN1TYPED_ENVELOPE_SUCCESSFUL,
-    ASN1TYPED_ENVELOPE_UNSUCCESSFUL
+    ASN1TYPED_ENVELOPE_UNSUCCESSFUL,
+    /* A physical root alternative, never an outer CHOICE extension addition.
+     * Its payload is deliberately unsupported by the target codec. */
+    ASN1TYPED_ENVELOPE_CHOICE_EXTENSION
 } asn1typed_envelope_role_e;
 typedef enum asn1typed_envelope_default_provenance_e {
     ASN1TYPED_ENVELOPE_DEFAULT_UNAVAILABLE,
@@ -49,6 +52,9 @@ typedef struct asn1typed_envelope_root_s {
     intmax_t effective_tag_number;
     int has_per_root_index;
     size_t per_root_index;
+    int unsupported_payload;
+    int object_set_is_extensible;
+    size_t declared_row_count;
 } asn1typed_envelope_root_t;
 typedef struct asn1typed_envelope_row_s {
     char *symbolic_code;

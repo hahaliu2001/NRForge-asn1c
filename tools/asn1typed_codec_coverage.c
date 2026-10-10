@@ -74,10 +74,10 @@ int main(int argc, char **argv) {
 	int (*render[])(const asn1typed_module_t *, const char *, char **, char *, size_t) = {
 		asn1typed_render_cpp_owned_ioc_types, asn1typed_render_cpp_owned_ioc_mapping, asn1typed_render_cpp_owned_ioc_codec
 	};
-	if(argc != 4 && argc != 5 && argc != 8) { fprintf(stderr, "Usage: probe MODULE_LIST ASN1_ROOT MESSAGE_LIST [HEADER_DIR [BODY_MODULE DESCRIPTION_MODULE PDU_TYPE]]\n"); return 2; }
-	const char *body_module = argc == 8 ? argv[5] : "NGAP-PDU-Contents";
-	const char *description_module = argc == 8 ? argv[6] : "NGAP-PDU-Descriptions";
-	const char *pdu_type = argc == 8 ? argv[7] : "NGAP-PDU";
+	if((argc != 4 && argc != 5 && argc != 8 && argc != 9) || (argc == 9 && strcmp(argv[8], "--envelopes"))) { fprintf(stderr, "Usage: probe MODULE_LIST ASN1_ROOT MESSAGE_LIST [HEADER_DIR [BODY_MODULE DESCRIPTION_MODULE PDU_TYPE [--envelopes]]]\n"); return 2; }
+	const char *body_module = argc >= 8 ? argv[5] : "NGAP-PDU-Contents";
+	const char *description_module = argc >= 8 ? argv[6] : "NGAP-PDU-Descriptions";
+	const char *pdu_type = argc >= 8 ? argv[7] : "NGAP-PDU";
 	rows = calloc(MAX_MESSAGES, sizeof(*rows)); if(!rows) return 3;
 	file = fopen(argv[3], "r"); if(!file) { free(rows); return 2; }
 	while(fgets(line, sizeof(line), file)) {
@@ -120,7 +120,31 @@ int main(int argc, char **argv) {
 			if(q) putchar(',');
 			printf("{\"family\":%zu,\"rc\":%d,\"diagnostic\":", q, rc); string(diag); putchar('}');
 		}
-		printf("],\"inventory\":"); inventory(&r->body); putchar('}');
+		printf("]");
+		if(argc == 9) {
+			int (*envelope_render[])(const asn1typed_module_t *, const asn1typed_target_envelope_t *, const char *, char **, char *, size_t) = {
+				asn1typed_render_cpp_target_envelope_types, asn1typed_render_cpp_target_envelope_mapping, asn1typed_render_cpp_target_envelope_codec
+			};
+			printf(",\"envelope_generation\":[");
+			if(generated && !r->envelope_rc) for(q = 0; q < 3; ++q) {
+				char *out = NULL, diag[1024] = {0};
+				int rc = envelope_render[q](&r->body, &r->envelope, "n12::coverage", &out, diag, sizeof(diag));
+				if(q) putchar(',');
+				printf("{\"family\":%zu,\"rc\":%d,\"diagnostic\":", q, rc); string(diag); putchar('}');
+				if(!rc) {
+					static const char *const families[] = {"types", "mapping", "codec"};
+					char path[4096]; FILE *file;
+					int len = snprintf(path, sizeof(path), "%s/%03zu_envelope_%s.hpp", argv[4], i, families[q]);
+					if(!out || len < 0 || (size_t)len >= sizeof(path) || !(file = fopen(path, "wb"))) { free(out); return 7; }
+					int written = fputs(out, file) != EOF;
+					int closed = fclose(file) == 0;
+					if(!written || !closed) { free(out); return 7; }
+				}
+				free(out);
+			}
+			putchar(']');
+		}
+		printf(",\"inventory\":"); inventory(&r->body); putchar('}');
 		if(argc >= 5 && generated) for(q = 0; q < 3; ++q) {
 			static const char *const families[] = {"types", "mapping", "codec"};
 			char path[4096];

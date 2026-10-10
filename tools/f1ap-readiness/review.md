@@ -17,3 +17,9 @@ No clang++, sanitizer sweep, runtime vectors, independent wire qualification or 
 
 
 Subsequent shared implementation is independently reviewed in [F1-P2 review](review-f1-p2.md). The historical F1-P1 verdict and report above remain unchanged.
+
+# Later-phase evidence
+
+The original F1-P1 review above is historical. F1-P3 independent implementation
+and final integration acceptance is recorded separately in
+`review-f1-p3.md`; its finite runtime evidence is not wire qualification.

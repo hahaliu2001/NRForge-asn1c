@@ -194,6 +194,8 @@ asn1c/tmp/
 /tools/asn1typed_full_pdu_probe
 
 /libngap/check_ngap_pdu
+/libngap/check_f1ap_pdu
+/tools/check_dispatch_schema
 /tools/asn1typed_ngap_dispatch
 
 /python/build/

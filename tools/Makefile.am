@@ -5,6 +5,10 @@ tool_common = developer_tree.c developer_tree.h
 common_libs = $(top_builddir)/libasn1fix/libasn1fix.la $(top_builddir)/libasn1parser/libasn1parser.la $(top_builddir)/libasn1common/libasn1common.la
 noinst_PROGRAMS = asn1typed_real_probe asn1typed_tree_inspect asn1typed_ioc_probe
 TESTS = test_tools.sh
+check_PROGRAMS = check_dispatch_schema
+TESTS += check_dispatch_schema
+check_dispatch_schema_SOURCES = ngap-dispatch/check_schema.c $(tool_common)
+check_dispatch_schema_LDADD = $(top_builddir)/libasn1typed/libasn1typed_extract.la $(top_builddir)/libasn1typed/libasn1typed.la $(common_libs)
 EXTRA_DIST = developer_tree.h test_tools.sh README.md qualification/ngap-rel18.modules
 EXTRA_DIST += n7-sequence-extension-qualification/qualify.py n7-sequence-extension-qualification/driver.cpp n7-sequence-extension-qualification/README.md n7-sequence-extension-qualification/requirements.txt n7-sequence-extension-qualification/qualification-summary.json n7-sequence-extension-qualification/accepted-profile.json
 EXTRA_DIST += n8-collection-qualification/qualify.py n8-collection-qualification/driver.cpp n8-collection-qualification/sender.asn1 n8-collection-qualification/README.md n8-collection-qualification/requirements.txt n8-collection-qualification/qualification-summary.json n8-collection-qualification/accepted-profile.json
@@ -81,3 +85,4 @@ asn1typed_ngap_dispatch_SOURCES = ngap-dispatch/generate.c $(tool_common)
 asn1typed_ngap_dispatch_LDADD = $(top_builddir)/libasn1typed/libasn1typed_extract.la $(top_builddir)/libasn1typed/libasn1typed.la $(common_libs)
 
 EXTRA_DIST += f1ap-readiness/scan.py f1ap-readiness/test_scan.py f1ap-readiness/README.md f1ap-readiness/source-manifest.json f1ap-readiness/f1ap-rel18.modules f1ap-readiness/readiness.json f1ap-readiness/review.md
+EXTRA_DIST += f1ap-readiness/check_dispatch.py f1ap-readiness/readiness-f1-p3.json f1ap-readiness/dispatch-integration-f1-p3.json f1ap-readiness/ngap-regression-f1-p3.json f1ap-readiness/ngap-artifact-regression-f1-p3.json f1ap-readiness/review-f1-p3.md

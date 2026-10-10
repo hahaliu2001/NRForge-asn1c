@@ -60,7 +60,7 @@ function(nrforge_package_sdk target)
     ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}")
   install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/sdk-public/"
     DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/nrforge/ngap"
-    FILES_MATCHING PATTERN "*.hpp")
+    FILES_MATCHING PATTERN "*.hpp" PATTERN "*.inc")
   install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/sdk-provenance.json"
     DESTINATION "${CMAKE_INSTALL_DATADIR}/nrforge-ngap")
   set(config_dir "${CMAKE_INSTALL_LIBDIR}/cmake/NRForgeNGAP")

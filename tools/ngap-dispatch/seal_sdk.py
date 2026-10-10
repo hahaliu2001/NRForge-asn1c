@@ -67,6 +67,7 @@ def main():
                 raise ValueError('missing or escaped generated input')
     paths = [*sorted((repo / 'libaper').glob('*.hpp')),
              repo / 'libaper/runtime.cpp', repo / 'libngap/pdu.hpp', repo / 'libngap/pdu.cpp',
+             repo / 'libngap/pdu_declarations.inc', repo / 'libngap/pdu_implementation.inc',
              *sorted((repo / 'libasn1typed').glob('asn1typed*.c')),
              *sorted((repo / 'libasn1typed').glob('asn1typed*.h')),
              repo / 'tools/developer_tree.c', repo / 'tools/developer_tree.h',
@@ -124,6 +125,7 @@ inline constexpr SdkIdentity header_sdk_identity{
     public = generated / 'sdk-public'
     (public / 'messages').mkdir(parents=True)
     public_inputs = [(repo / 'libngap/pdu.hpp', 'pdu.hpp'),
+                     (repo / 'libngap/pdu_declarations.inc', 'pdu_declarations.inc'),
                      (repo / 'libaper/runtime.hpp', 'runtime.hpp'),
                      (repo / 'libaper/sequence_extensions.hpp', 'sequence_extensions.hpp'),
                      (generated / 'ngap.hpp', 'ngap.hpp')]

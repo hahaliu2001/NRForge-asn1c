@@ -76,6 +76,7 @@ def main():
     ap.add_argument('--work', type=Path, required=True)
     ap.add_argument('--output', type=Path, required=True)
     ap.add_argument('--cxx', default='g++')
+    ap.add_argument('--envelopes', action='store_true', help='also generate and strictly compile target envelopes')
     args = ap.parse_args()
     repo, root, probe = args.repo.resolve(), args.asn1_root.resolve(), args.probe.resolve()
     spec = importlib.util.spec_from_file_location('n12guard', repo / 'tools/n12-codec-coverage/run.py')
@@ -94,7 +95,8 @@ def main():
               *sorted((repo / 'libasn1typed').glob('asn1typed*.c')), *sorted((repo / 'libasn1typed').glob('asn1typed*.h'))]
     fingerprints = {str(p.relative_to(repo)) if p.is_relative_to(repo) else 'probe_binary': hashlib.sha256(p.read_bytes()).hexdigest() for p in inputs}
     with (work / 'probe.log').open('w') as log:
-        run = subprocess.run([str(probe), str(repo / 'tools/f1ap-readiness/f1ap-rel18.modules'), str(root), str(messages), str(headers), 'F1AP-PDU-Contents', 'F1AP-PDU-Descriptions', 'F1AP-PDU'],
+        run = subprocess.run([str(probe), str(repo / 'tools/f1ap-readiness/f1ap-rel18.modules'), str(root), str(messages), str(headers), 'F1AP-PDU-Contents', 'F1AP-PDU-Descriptions', 'F1AP-PDU']
+                             + (['--envelopes'] if args.envelopes else []),
                              check=True, stdout=subprocess.PIPE, stderr=log, text=True)
     raw = guard.validate(json.loads(run.stdout), messages)
     (work / 'raw-inventory.json').write_text(json.dumps(raw) + '\n')
@@ -117,6 +119,21 @@ def main():
             row['compile'] = {'status': 'PASS' if result.returncode == 0 else 'FAIL', 'return_code': result.returncode,
                               'diagnostic': result.stdout, 'header_sha256': {f: hashlib.sha256((headers / f'{i:03d}_{f}.hpp').read_bytes()).hexdigest() for f in ['types', 'mapping', 'codec']}}
         row['wire_qualification'] = 'NOT_RUN'
+        if args.envelopes:
+            generations = observed.get('envelope_generation', [])
+            eligible = observed['physical_extraction_rc'] == 0 and observed['envelope_extraction_rc'] == 0 and all(g['rc'] == 0 for g in observed['generation'])
+            if [g['family'] for g in generations] != ([0, 1, 2] if eligible else []):
+                raise ValueError('envelope generation family coverage mismatch')
+            row['envelope_compile'] = {'status': 'NOT_RUN', 'reason': 'BODY or envelope evidence/generation failed'}
+            if eligible and all(g['rc'] == 0 for g in generations):
+                tu = headers / f'{i:03d}_envelope.cpp'
+                families = ['types', 'mapping', 'codec', 'envelope_types', 'envelope_mapping', 'envelope_codec']
+                tu.write_text('#include "runtime.hpp"\n#include "sequence_extensions.hpp"\n' + ''.join(f'#include "{i:03d}_{f}.hpp"\n' for f in families))
+                cmd = compiler + ['-std=c++20', '-Wall', '-Wextra', '-Werror', '-pedantic-errors', '-Wconversion', '-Wsign-conversion', '-DNDEBUG', '-I' + str(repo / 'libaper'), '-fsyntax-only', str(tu)]
+                result = subprocess.run(cmd, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                (work / f'{i:03d}-envelope-compile.log').write_text(result.stdout)
+                row['envelope_compile'] = {'status': 'PASS' if result.returncode == 0 else 'FAIL', 'return_code': result.returncode,
+                                           'diagnostic': result.stdout, 'header_sha256': {f: hashlib.sha256((headers / f'{i:03d}_{f}.hpp').read_bytes()).hexdigest() for f in families[3:]}}
     verify(repo, root)
     for p in inputs:
         key = str(p.relative_to(repo)) if p.is_relative_to(repo) else 'probe_binary'
@@ -149,6 +166,18 @@ def main():
                               'Target descriptor extraction does not qualify complete PDU encoding or interoperability.',
                               'Strict syntax compilation does not establish runtime bytes, linkage, vendor interoperability or protocol policy.'],
               'messages': rows}
+    if args.envelopes:
+        report['scope'] = '158-message BODY and target-envelope extraction/generation/strict compilation readiness; not wire qualification'
+        report['summary']['envelope_generation'] = dict(Counter('PASS' if len(r['envelope_generation']) == 3 and all(g['rc'] == 0 for g in r['envelope_generation']) else 'FAIL' for r in rows))
+        report['summary']['envelope_strict_compile'] = dict(Counter(r['envelope_compile']['status'] for r in rows))
+        for r in rows:
+            if r['envelope_extraction_rc']:
+                clusters['envelope-extraction: ' + r['envelope_diagnostic']].append(r['message'])
+            elif any(g['rc'] for g in r['envelope_generation']):
+                clusters['envelope-generation failure'].append(r['message'])
+            elif r['envelope_compile']['status'] != 'PASS':
+                clusters['envelope-strict-compile failure'].append(r['message'])
+        report['first_failure_clusters'] = dict(clusters)
     args.output.write_text(json.dumps(report, indent=2) + '\n')
     print(json.dumps(report['summary']))
 
