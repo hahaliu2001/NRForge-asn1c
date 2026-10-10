@@ -1,4 +1,5 @@
 #include "runtime.hpp"
+#include <algorithm>
 
 #include <limits>
 #include <stdexcept>
@@ -55,7 +56,7 @@ BitReader::BitReader(std::span<const std::byte> input, DecodeContext& context,
 Result<BitReader> BitReader::make(std::span<const std::byte> input,
                                   DecodeContext& context) {
     if(context.failed_) return Result<BitReader>::failure(context.error_);
-    if(context.finished_)
+    if(context.finished_ || context.known_active_reader_)
         return Result<BitReader>::failure({ErrorCode::invalid_state, 0});
     std::size_t input_bits = 0;
     if(input.size() > context.limits_.max_input_octets || !checked_octets_to_bits(input.size(), input_bits)) {
@@ -70,7 +71,7 @@ Result<BitReader> BitReader::make_bounded_for_test(std::span<const std::byte> in
                                                    std::size_t logical_bit_limit,
                                                    DecodeContext& context) {
     if(context.failed_) return Result<BitReader>::failure(context.error_);
-    if(context.finished_)
+    if(context.finished_ || context.known_active_reader_)
         return Result<BitReader>::failure({ErrorCode::invalid_state, 0});
     std::size_t input_bits = 0;
     if(input.size() > context.limits_.max_input_octets || !checked_octets_to_bits(input.size(), input_bits)) {
@@ -89,18 +90,28 @@ Result<BitReader> BitReader::make_bounded_for_test(std::span<const std::byte> in
 BitReader::BitReader(BitReader&& other) noexcept
     : input_(other.input_), context_(other.context_), logical_bit_limit_(other.logical_bit_limit_),
       cursor_bit_(other.cursor_bit_) {
+    known_child_ = other.known_child_;
+    locally_finished_ = other.locally_finished_;
+    known_origin_ = other.known_origin_;
+    known_frame_start_ = other.known_frame_start_;
+    if(context_ && context_->known_active_reader_ == &other) context_->known_active_reader_ = this;
     other.context_ = nullptr;
 }
 
 Result<void> BitReader::fail(Error error) noexcept {
-    if(context_) context_->fail(error);
+    if(context_) {
+        if(!context_->failed_) error = map_known_error(error);
+        context_->fail(error);
+    }
     return Result<void>::failure(context_ && context_->failed_ ? context_->error_ : error);
 }
 
 Result<void> BitReader::validate_live() const noexcept {
     if(!context_) return Result<void>::failure({ErrorCode::invalid_state, cursor_bit_});
     if(context_->failed_) return Result<void>::failure(context_->error_);
-    if(context_->finished_) return Result<void>::failure({ErrorCode::invalid_state, cursor_bit_});
+    if(context_->finished_ || locally_finished_ ||
+       (context_->known_active_reader_ && context_->known_active_reader_ != this))
+        return Result<void>::failure(map_known_error({ErrorCode::invalid_state, cursor_bit_}));
     return Result<void>::success();
 }
 
@@ -110,8 +121,8 @@ Result<void> BitReader::preflight(std::size_t bit_count, std::size_t start) noex
     if(start > logical_bit_limit_ || bit_count > logical_bit_limit_ - start)
         return fail({ErrorCode::truncated_input, logical_bit_limit_});
     std::size_t projected = 0;
-    if(!checked_add_size(context_->wire_bits_, bit_count, projected) ||
-       projected > context_->limits_.max_wire_bits)
+    if(!known_child_ && (!checked_add_size(context_->wire_bits_, bit_count, projected) ||
+       projected > context_->limits_.max_wire_bits))
         return fail({ErrorCode::resource_limit, start});
     return Result<void>::success();
 }
@@ -121,7 +132,7 @@ Result<bool> BitReader::read_bit() {
     if(!ready) return Result<bool>::failure(ready.error());
     const bool value = get_bit(input_, cursor_bit_) != 0;
     ++cursor_bit_;
-    ++context_->wire_bits_;
+    charge_wire(1);
     return Result<bool>::success(value);
 }
 
@@ -136,7 +147,7 @@ Result<void> BitReader::align_to_octet_zero() {
             return fail({ErrorCode::nonzero_padding, cursor_bit_ + i});
     }
     cursor_bit_ += padding;
-    context_->wire_bits_ += padding;
+    charge_wire(padding);
     return Result<void>::success();
 }
 
@@ -159,7 +170,7 @@ Result<std::uint16_t> BitReader::read_aligned_u16_be() {
     for(std::size_t i = 0; i < 16; ++i)
         accumulator = (accumulator << 1) | get_bit(input_, payload_start + i);
     cursor_bit_ = payload_start + 16;
-    context_->wire_bits_ += total;
+    charge_wire(total);
     return Result<std::uint16_t>::success(static_cast<std::uint16_t>(accumulator));
 }
 
@@ -169,15 +180,16 @@ Result<void> BitReader::validate_complete_value() {
     if(cursor_bit_ == 0) {
         if(input_.empty()) return fail({ErrorCode::truncated_input, 0});
         std::size_t projected_wire = 0;
-        if(!checked_add_size(context_->wire_bits_, 8, projected_wire) ||
-           projected_wire > context_->limits_.max_wire_bits)
+        if(!known_child_ && (!checked_add_size(context_->wire_bits_, 8, projected_wire) ||
+           projected_wire > context_->limits_.max_wire_bits))
             return fail({ErrorCode::resource_limit, 0});
         for(std::size_t i = 0; i < 8; ++i)
             if(get_bit(input_, i) != 0) return fail({ErrorCode::nonzero_padding, i});
         if(input_.size() > 1) return fail({ErrorCode::trailing_data, 8});
-        context_->wire_bits_ = projected_wire;
+        if(!known_child_) context_->wire_bits_ = projected_wire;
         cursor_bit_ = 8;
-        context_->finished_ = true;
+        if(known_child_) locally_finished_ = true;
+    else context_->finished_ = true;
         return Result<void>::success();
     }
 
@@ -190,8 +202,9 @@ Result<void> BitReader::validate_complete_value() {
     const auto rounded_end = cursor_bit_ + padding;
     if(rounded_end / 8 < input_.size()) return fail({ErrorCode::trailing_data, rounded_end});
     cursor_bit_ = rounded_end;
-    context_->wire_bits_ += padding;
-    context_->finished_ = true;
+    charge_wire(padding);
+    if(known_child_) locally_finished_ = true;
+    else context_->finished_ = true;
     return Result<void>::success();
 }
 
@@ -240,25 +253,36 @@ Result<std::uint64_t> BitReader::read_constrained_uint(unsigned root_bits) {
     if(prefix_bits && octets > 1 && (value >> ((octets - 1) * 8)) == 0)
         return Result<std::uint64_t>::failure(fail({ErrorCode::constraint_violation, start}).error());
     cursor_bit_ = start + total;
-    context_->wire_bits_ += total;
+    charge_wire(total);
     return Result<std::uint64_t>::success(value);
 }
 
 BitWriter::BitWriter(BitWriter&& other) noexcept
     : context_(other.context_), output_(std::move(other.output_)), cursor_bit_(other.cursor_bit_) {
+    known_child_ = other.known_child_;
+    locally_finished_ = other.locally_finished_;
+    known_encode_anchor_ = other.known_encode_anchor_;
+    known_staged_octets_ = other.known_staged_octets_;
+    other.known_staged_octets_ = 0;
+    if(context_ && context_->known_active_writer_ == &other) context_->known_active_writer_ = this;
     other.context_ = nullptr;
     other.cursor_bit_ = 0;
 }
 
 Result<void> BitWriter::fail(Error error) noexcept {
-    if(context_) context_->fail(error);
+    if(context_) {
+        if(!context_->failed_ && known_child_) error.bit_offset = known_encode_anchor_;
+        context_->fail(error);
+    }
     return Result<void>::failure(context_ && context_->failed_ ? context_->error_ : error);
 }
 
 Result<void> BitWriter::validate_live() const noexcept {
     if(!context_) return Result<void>::failure({ErrorCode::invalid_state, cursor_bit_});
     if(context_->failed_) return Result<void>::failure(context_->error_);
-    if(context_->finished_) return Result<void>::failure({ErrorCode::invalid_state, cursor_bit_});
+    if(context_->finished_ || locally_finished_ ||
+       (context_->known_active_writer_ && context_->known_active_writer_ != this))
+        return Result<void>::failure({ErrorCode::invalid_state, known_child_ ? known_encode_anchor_ : cursor_bit_});
     return Result<void>::success();
 }
 
@@ -266,6 +290,16 @@ Result<void> BitWriter::preflight(std::size_t bit_count, std::size_t projected_e
                                   std::size_t start) noexcept {
     auto live = validate_live();
     if(!live) return live;
+    if(known_child_) {
+        std::size_t octets = 0, projected = 0;
+        (void)checked_bits_to_octets(projected_end, octets);
+        const auto extra = octets > output_.size() ? octets - output_.size() : 0;
+        if(octets > output_.max_size() ||
+           !checked_add_size(context_->known_open_staging_octets_, extra, projected) ||
+           projected > context_->limits_.max_known_open_staging_octets)
+            return fail({ErrorCode::resource_limit, start});
+        return Result<void>::success();
+    }
     std::size_t projected_wire = 0;
     std::size_t projected_octets = 0;
     if(!checked_add_size(context_->wire_bits_, bit_count, projected_wire) ||
@@ -281,13 +315,24 @@ Result<void> BitWriter::preflight(std::size_t bit_count, std::size_t projected_e
 Result<void> BitWriter::grow_to(std::size_t octets, std::size_t start) noexcept {
     if(octets <= output_.size()) return Result<void>::success();
     if(octets > output_.max_size()) return fail({ErrorCode::resource_limit, start});
+    const auto extra = octets - output_.size();
+    if(known_child_) {
+        std::size_t projected = 0;
+        if(!checked_add_size(context_->known_open_staging_octets_, extra, projected) ||
+           projected > context_->limits_.max_known_open_staging_octets)
+            return fail({ErrorCode::resource_limit, start});
+        context_->known_open_staging_octets_ = projected;
+    }
     try {
         output_.resize(octets, std::byte{0});
     } catch(const std::bad_alloc&) {
+        if(known_child_) context_->known_open_staging_octets_ -= extra;
         return fail({ErrorCode::allocation_failure, start});
     } catch(const std::length_error&) {
+        if(known_child_) context_->known_open_staging_octets_ -= extra;
         return fail({ErrorCode::resource_limit, start});
     }
+    if(known_child_) known_staged_octets_ += extra;
     return Result<void>::success();
 }
 
@@ -305,8 +350,8 @@ Result<void> BitWriter::write_bit(bool value) {
     if(!grown) return grown;
     set_bit(output_, start, value);
     cursor_bit_ = end;
-    context_->wire_bits_ += 1;
-    context_->logical_output_octets_ = octets;
+    charge_wire(1);
+    publish_output(octets);
     return Result<void>::success();
 }
 
@@ -325,8 +370,8 @@ Result<void> BitWriter::align_to_octet_zero() {
     if(!grown) return grown;
     for(std::size_t i = 0; i < padding; ++i) set_bit(output_, start + i, false);
     cursor_bit_ = end;
-    context_->wire_bits_ += padding;
-    context_->logical_output_octets_ = octets;
+    charge_wire(padding);
+    publish_output(octets);
     return Result<void>::success();
 }
 
@@ -353,8 +398,8 @@ Result<void> BitWriter::write_aligned_u16_be(std::uint64_t value) {
         set_bit(output_, payload_start + i, ((value >> shift) & 1u) != 0);
     }
     cursor_bit_ = end;
-    context_->wire_bits_ += total;
-    context_->logical_output_octets_ = octets;
+    charge_wire(total);
+    publish_output(octets);
     return Result<void>::success();
 }
 
@@ -382,9 +427,10 @@ Result<CompleteEncoding> BitWriter::finish() {
     result.complete_encoding_bits = end;
     result.octet_count = octets;
     result.octets = std::move(output_);
-    context_->wire_bits_ += padding;
-    context_->logical_output_octets_ = octets;
-    context_->finished_ = true;
+    charge_wire(padding);
+    publish_output(octets);
+    if(known_child_) locally_finished_ = true;
+    else context_->finished_ = true;
     cursor_bit_ = end;
     return Result<CompleteEncoding>::success(std::move(result));
 }
@@ -425,8 +471,8 @@ Result<void> BitWriter::write_constrained_uint(std::uint64_t value, unsigned roo
     for(unsigned i = 0; i < octets * 8; ++i)
         set_bit(output_, payload_start + i, ((value >> (octets * 8 - i - 1)) & 1u) != 0);
     cursor_bit_ = end;
-    context_->wire_bits_ += total;
-    context_->logical_output_octets_ = output_octets;
+    charge_wire(total);
+    publish_output(output_octets);
     return Result<void>::success();
 }
 
@@ -483,8 +529,8 @@ Result<void> BitWriter::write_enumerated(EnumeratedIndex value,
         }
     }
     cursor_bit_ = end;
-    context_->wire_bits_ += total;
-    context_->logical_output_octets_ = output_octets;
+    charge_wire(total);
+    publish_output(output_octets);
     return Result<void>::success();
 }
 
@@ -555,7 +601,7 @@ Result<EnumeratedIndex> BitReader::read_enumerated(unsigned root_count, bool ext
          (index_bits > 8 && (value.index >> (index_bits - 8)) == 0))))
         return reject(ErrorCode::constraint_violation, start);
     cursor_bit_ = end;
-    context_->wire_bits_ += end - start;
+    charge_wire(end - start);
     return Result<EnumeratedIndex>::success(value);
 }
 
@@ -711,7 +757,7 @@ Result<SequenceExtensionBitmap> BitReader::read_sequence_extension_bitmap() {
                                         FramingPass::copy, frame.units, &result.packed_bits);
     if(!copied) return reject(copied.error());
     cursor_bit_ = frame.end;
-    context_->wire_bits_ += frame.end - start;
+    charge_wire(frame.end - start);
     context_->extension_bitmap_bits_ = projected;
     return Result<SequenceExtensionBitmap>::success(std::move(result));
 }
@@ -753,7 +799,7 @@ Result<std::vector<std::byte>> BitReader::read_open_type_owned() {
                                         FramingPass::copy, frame.units, &result);
     if(!copied) return reject(copied.error());
     cursor_bit_ = frame.end;
-    context_->wire_bits_ += frame.end - start;
+    charge_wire(frame.end - start);
     context_->retained_unknown_payload_octets_ = projected_octets;
     context_->retained_unknown_records_ = projected_records;
     return Result<std::vector<std::byte>>::success(std::move(result));
@@ -797,7 +843,7 @@ Result<std::size_t> BitReader::read_bounded_collection_length(std::size_t lower,
        elements > context_->limits_.max_collection_elements)
         return reject(ErrorCode::resource_limit, start);
     cursor_bit_ = start + total;
-    context_->wire_bits_ += total;
+    charge_wire(total);
     context_->collection_elements_ = elements;
     return Result<std::size_t>::success(count);
 }
@@ -834,10 +880,251 @@ Result<void> BitWriter::write_bounded_collection_length(std::uint64_t count,
     for(unsigned i = 0; i < width; ++i)
         set_bit(output_, start + padding + i, ((offset >> (width - i - 1)) & 1u) != 0);
     cursor_bit_ = end;
-    context_->wire_bits_ += total;
-    context_->logical_output_octets_ = octets;
+    charge_wire(total);
+    publish_output(octets);
     context_->collection_elements_ = elements;
     return Result<void>::success();
+}
+
+namespace {
+template<class Function> struct ScopeExit {
+    Function function;
+    ~ScopeExit() noexcept { function(); }
+};
+template<class Function> ScopeExit<Function> on_exit(Function function) {
+    return {std::move(function)};
+}
+
+// Map a logical content bit across determinant gaps without fragment metadata.
+// A non-final boundary belongs to the following content; EOF precedes a zero
+// terminal determinant. The containing frame has already passed all scans.
+bool payload_bit_position(std::span<const std::byte> input, std::size_t limit,
+                          std::size_t frame_start, std::size_t logical,
+                          std::size_t payload_bits, std::size_t& position) noexcept {
+    auto cursor = frame_start;
+    std::size_t consumed = 0;
+    auto take = [&](unsigned width, std::size_t& number) {
+        if(cursor > limit || width > limit - cursor) return false;
+        number = 0;
+        for(unsigned i = 0; i < width; ++i) number = (number << 1) | get_bit(input, cursor++);
+        return true;
+    };
+    for(;;) {
+        const auto padding = (8 - cursor % 8) % 8;
+        if(cursor > limit || padding > limit - cursor) return false;
+        cursor += padding;
+        std::size_t first = 0, units = 0;
+        if(!take(8, first)) return false;
+        bool fragment = false;
+        if(first < 128) units = first;
+        else if(first < 192) {
+            std::size_t low = 0;
+            if(!take(8, low)) return false;
+            units = ((first & 63u) << 8) | low;
+        } else {
+            if(first < 193 || first > 196) return false;
+            units = (first & 63u) * 16384;
+            fragment = true;
+        }
+        std::size_t bits = 0, next = 0;
+        if(!checked_octets_to_bits(units, bits) || !checked_add_size(consumed, bits, next) ||
+           cursor > limit || bits > limit - cursor) return false;
+        if(logical < next || (logical == next && logical == payload_bits)) {
+            position = cursor + logical - consumed;
+            return true;
+        }
+        cursor += bits;
+        consumed = next;
+        if(!fragment) return false;
+    }
+}
+
+bool framed_octets(std::size_t payload, std::size_t& total) noexcept {
+    total = payload;
+    auto remaining = payload;
+    while(remaining >= 16384) {
+        const auto blocks = std::min<std::size_t>(4, remaining / 16384);
+        if(!checked_add_size(total, 1, total)) return false;
+        remaining -= blocks * 16384;
+    }
+    return checked_add_size(total, remaining < 128 ? 1 : 2, total);
+}
+} // namespace
+
+Error BitReader::map_known_error(Error error) const noexcept {
+    if(!known_child_) return error;
+    std::size_t enclosing = 0;
+    if(error.bit_offset > logical_bit_limit_ ||
+       !payload_bit_position(known_origin_->input_, known_origin_->logical_bit_limit_,
+                             known_frame_start_, error.bit_offset, logical_bit_limit_, enclosing)) {
+        error.code = ErrorCode::invalid_argument;
+        enclosing = known_frame_start_;
+    }
+    error.bit_offset = enclosing;
+    return known_origin_->map_known_error(error);
+}
+
+Result<void> BitReader::read_known_open_type_impl(
+    void* argument, Result<void> (*callback)(FieldReader&, void*)) {
+    auto live = validate_live();
+    if(!live) return live;
+    const auto start = cursor_bit_;
+    auto scanned = scan_extension_frame(input_, logical_bit_limit_, start, false,
+                                        FramingPass::availability, 0);
+    if(!scanned) return fail(scanned.error());
+    const auto frame = scanned.value();
+    auto ready = preflight(frame.end - start, start);
+    if(!ready) return ready;
+    std::size_t staging = 0;
+    std::vector<std::byte> payload;
+    if(context_->known_open_depth_ >= context_->limits_.max_known_open_depth ||
+       !checked_add_size(context_->known_open_staging_octets_, frame.units, staging) ||
+       staging > context_->limits_.max_known_open_staging_octets || frame.units > payload.max_size())
+        return fail({ErrorCode::resource_limit, start});
+    for(auto pass : {FramingPass::padding, FramingPass::canonical}) {
+        auto checked = scan_extension_frame(input_, logical_bit_limit_, start, false, pass, frame.units);
+        if(!checked) return fail(checked.error());
+    }
+    auto* context = context_;
+    const auto wire = context->wire_bits_, elements = context->collection_elements_;
+    const auto bitmap = context->extension_bitmap_bits_, retained = context->retained_unknown_payload_octets_;
+    const auto records = context->retained_unknown_records_, depth = context->known_open_depth_;
+    const auto previous_view = context->known_active_reader_;
+    bool committed = false;
+    context->known_open_staging_octets_ = staging;
+    ++context->known_open_depth_;
+    auto cleanup = on_exit([&]() noexcept {
+        context->known_open_staging_octets_ -= frame.units;
+        context->known_open_depth_ = depth;
+        context->known_active_reader_ = previous_view;
+        if(!committed) {
+            context->wire_bits_ = wire;
+            context->collection_elements_ = elements;
+            context->extension_bitmap_bits_ = bitmap;
+            context->retained_unknown_payload_octets_ = retained;
+            context->retained_unknown_records_ = records;
+        }
+    });
+    try {
+        payload.resize(frame.units);
+        auto copied = scan_extension_frame(input_, logical_bit_limit_, start, false,
+                                            FramingPass::copy, frame.units, &payload);
+        if(!copied) return fail(copied.error());
+        std::size_t bits = 0;
+        (void)checked_octets_to_bits(frame.units, bits);
+        BitReader child(payload, *context, bits);
+        child.known_child_ = true;
+        child.known_origin_ = this;
+        child.known_frame_start_ = start;
+        context->known_active_reader_ = &child;
+        FieldReader fields(child);
+        try {
+            auto decoded = callback(fields, argument);
+            if(context->failed_) return Result<void>::failure(context->error_);
+            if(!decoded) return child.fail(decoded.error());
+            auto complete = child.validate_complete_value();
+            if(!complete) return complete;
+        } catch(const std::bad_alloc&) {
+            return child.fail({ErrorCode::allocation_failure, child.cursor_bit_});
+        } catch(const std::length_error&) {
+            return child.fail({ErrorCode::resource_limit, child.cursor_bit_});
+        } catch(...) {
+            // The anchor is in this stream; this reader maps it only if this
+            // known field is itself inside another decoded known payload.
+            if(!context->failed_) (void)fail({ErrorCode::invalid_state, start});
+            throw;
+        }
+        cursor_bit_ = frame.end;
+        charge_wire(frame.end - start);
+        committed = true;
+        return Result<void>::success();
+    } catch(const std::bad_alloc&) {
+        return fail({ErrorCode::allocation_failure, start});
+    } catch(const std::length_error&) {
+        return fail({ErrorCode::resource_limit, start});
+    }
+}
+
+Result<void> BitWriter::write_known_open_type_impl(
+    void* argument, Result<void> (*callback)(FieldWriter&, void*)) {
+    auto live = validate_live();
+    if(!live) return live;
+    const auto start = cursor_bit_;
+    if(context_->known_open_depth_ >= context_->limits_.max_known_open_depth)
+        return fail({ErrorCode::resource_limit, start});
+    auto* context = context_;
+    const auto wire = context->wire_bits_, elements = context->collection_elements_;
+    const auto logical_output = context->logical_output_octets_, depth = context->known_open_depth_;
+    const auto previous_view = context->known_active_writer_;
+    BitWriter child(*context);
+    child.known_child_ = true;
+    child.known_encode_anchor_ = known_child_ ? known_encode_anchor_ : start;
+    bool committed = false;
+    ++context->known_open_depth_;
+    context->known_active_writer_ = &child;
+    auto cleanup = on_exit([&]() noexcept {
+        context->known_open_staging_octets_ -= child.known_staged_octets_;
+        context->known_open_depth_ = depth;
+        context->known_active_writer_ = previous_view;
+        if(!committed) {
+            context->wire_bits_ = wire;
+            context->collection_elements_ = elements;
+            context->logical_output_octets_ = logical_output;
+        }
+    });
+    try {
+        FieldWriter fields(child);
+        auto encoded = callback(fields, argument);
+        if(context->failed_) return Result<void>::failure(context->error_);
+        if(!encoded) return child.fail(encoded.error());
+        auto complete = child.finish();
+        if(!complete) return Result<void>::failure(complete.error());
+        const auto& payload = complete.value().octets;
+        std::size_t octets = 0, frame_bits = 0, total = 0, end = 0;
+        const auto padding = (8 - start % 8) % 8;
+        if(!framed_octets(payload.size(), octets) || !checked_octets_to_bits(octets, frame_bits) ||
+           !checked_add_size(padding, frame_bits, total) || !checked_add_size(start, total, end))
+            return fail({ErrorCode::resource_limit, start});
+        // Admit the enclosing view for its final atomic append. The callback
+        // has returned and the child is locally complete.
+        context->known_active_writer_ = previous_view;
+        auto ready = preflight(total, end, start);
+        if(!ready) return ready;
+        std::size_t output_octets = 0;
+        (void)checked_bits_to_octets(end, output_octets);
+        auto grown = grow_to(output_octets, start);
+        if(!grown) return grown;
+        auto position = start;
+        auto emit = [&](std::uint64_t value, unsigned width) {
+            for(unsigned i = width; i > 0; --i)
+                set_bit(output_, position++, ((value >> (i - 1)) & 1u) != 0);
+        };
+        emit(0, static_cast<unsigned>(padding));
+        std::size_t consumed = 0;
+        while(payload.size() - consumed >= 16384) {
+            const auto blocks = std::min<std::size_t>(4, (payload.size() - consumed) / 16384);
+            emit(0xc0 + blocks, 8);
+            for(std::size_t i = 0; i < blocks * 16384; ++i)
+                emit(std::to_integer<unsigned>(payload[consumed++]), 8);
+        }
+        const auto remaining = payload.size() - consumed;
+        if(remaining < 128) emit(remaining, 8);
+        else { emit(0x80u | (remaining >> 8), 8); emit(remaining & 255, 8); }
+        for(; consumed < payload.size(); ++consumed)
+            emit(std::to_integer<unsigned>(payload[consumed]), 8);
+        cursor_bit_ = end;
+        charge_wire(total);
+        publish_output(output_octets);
+        committed = true;
+        return Result<void>::success();
+    } catch(const std::bad_alloc&) {
+        return child.fail({ErrorCode::allocation_failure, child.cursor_bit_});
+    } catch(const std::length_error&) {
+        return child.fail({ErrorCode::resource_limit, child.cursor_bit_});
+    } catch(...) {
+        if(!context->failed_) (void)fail({ErrorCode::invalid_state, start});
+        throw;
+    }
 }
 
 } // namespace nrforge::aper

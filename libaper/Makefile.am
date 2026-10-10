@@ -20,3 +20,9 @@ TESTS += check_aper_collections
 check_aper_collections_SOURCES = check_collections.cpp
 check_aper_collections_CPPFLAGS = -I$(srcdir) -DNDEBUG
 check_aper_collections_LDADD = libaper.la
+
+check_PROGRAMS += check_aper_known_open
+TESTS += check_aper_known_open
+check_aper_known_open_SOURCES = check_known_open.cpp
+check_aper_known_open_CPPFLAGS = -I$(srcdir) -DNDEBUG
+check_aper_known_open_LDADD = libaper.la

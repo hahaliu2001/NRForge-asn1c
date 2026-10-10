@@ -4,12 +4,17 @@
 #include <cstddef>
 #include <cstdint>
 #include <new>
+#include <optional>
+#include <type_traits>
 #include <span>
 #include <utility>
 #include <variant>
 #include <vector>
 
 namespace nrforge::aper {
+
+class FieldReader;
+class FieldWriter;
 
 namespace detail {
 bool checked_add_size(std::size_t left, std::size_t right, std::size_t& out) noexcept;
@@ -86,6 +91,8 @@ struct Limits {
     std::size_t max_retained_unknown_payload_octets = 1u << 20;
     std::size_t max_retained_unknown_records = 1024;
     std::size_t max_collection_elements = 65536;
+    std::size_t max_known_open_staging_octets = 1u << 20;
+    std::size_t max_known_open_depth = 16;
 };
 
 struct SequenceExtensionBitmap {
@@ -99,6 +106,8 @@ public:
     const Limits& limits() const noexcept { return limits_; }
     std::size_t wire_bits() const noexcept { return wire_bits_; }
     std::size_t collection_elements() const noexcept { return collection_elements_; }
+    std::size_t known_open_staging_octets() const noexcept { return known_open_staging_octets_; }
+    std::size_t known_open_depth() const noexcept { return known_open_depth_; }
     std::size_t extension_bitmap_bits() const noexcept { return extension_bitmap_bits_; }
     std::size_t retained_unknown_payload_octets() const noexcept { return retained_unknown_payload_octets_; }
     std::size_t retained_unknown_records() const noexcept { return retained_unknown_records_; }
@@ -112,9 +121,12 @@ private:
     Limits limits_;
     std::size_t wire_bits_ = 0;
     std::size_t collection_elements_ = 0;
+    std::size_t known_open_staging_octets_ = 0;
+    std::size_t known_open_depth_ = 0;
     std::size_t extension_bitmap_bits_ = 0;
     std::size_t retained_unknown_payload_octets_ = 0;
     std::size_t retained_unknown_records_ = 0;
+    const void* known_active_reader_ = nullptr;
     bool failed_ = false;
     bool finished_ = false;
     Error error_{ErrorCode::invalid_state, 0};
@@ -127,6 +139,8 @@ public:
     const Limits& limits() const noexcept { return limits_; }
     std::size_t wire_bits() const noexcept { return wire_bits_; }
     std::size_t collection_elements() const noexcept { return collection_elements_; }
+    std::size_t known_open_staging_octets() const noexcept { return known_open_staging_octets_; }
+    std::size_t known_open_depth() const noexcept { return known_open_depth_; }
     std::size_t logical_output_octets() const noexcept { return logical_output_octets_; }
     bool failed() const noexcept { return failed_; }
     bool finished() const noexcept { return finished_; }
@@ -138,7 +152,10 @@ private:
     Limits limits_;
     std::size_t wire_bits_ = 0;
     std::size_t collection_elements_ = 0;
+    std::size_t known_open_staging_octets_ = 0;
+    std::size_t known_open_depth_ = 0;
     std::size_t logical_output_octets_ = 0;
+    const void* known_active_writer_ = nullptr;
     bool failed_ = false;
     bool finished_ = false;
     Error error_{ErrorCode::invalid_state, 0};
@@ -178,6 +195,8 @@ public:
     // N7-P2: owned, atomic extension framing; no inner payload interpretation.
     Result<SequenceExtensionBitmap> read_sequence_extension_bitmap();
     Result<std::vector<std::byte>> read_open_type_owned();
+    template<class T, class DecodeFields>
+    Result<T> read_known_open_type(DecodeFields&& decode_fields);
     Result<void> validate_complete_value();
     std::size_t cursor_bit() const noexcept { return cursor_bit_; }
 
@@ -188,6 +207,13 @@ private:
     Result<void> validate_live() const noexcept;
     Result<void> preflight(std::size_t bit_count, std::size_t start) noexcept;
     Result<void> fail(Error error) noexcept;
+    Result<void> read_known_open_type_impl(void*, Result<void> (*)(FieldReader&, void*));
+    Error map_known_error(Error) const noexcept;
+    void charge_wire(std::size_t count) noexcept { if(!known_child_) context_->wire_bits_ += count; }
+    bool known_child_ = false;
+    bool locally_finished_ = false;
+    const BitReader* known_origin_ = nullptr;
+    std::size_t known_frame_start_ = 0;
     std::span<const std::byte> input_;
     DecodeContext* context_;
     std::size_t logical_bit_limit_;
@@ -209,16 +235,26 @@ public:
     // root_count 1..255; extension indexes require extensible=true (N2).
     Result<void> write_enumerated(EnumeratedIndex value, unsigned root_count, bool extensible);
     Result<void> write_bounded_collection_length(std::uint64_t count, std::size_t lower, std::size_t upper);
+    template<class EncodeFields>
+    Result<void> write_known_open_type(EncodeFields&& encode_fields);
     Result<void> reject_sequence_extension_data();
     Result<CompleteEncoding> finish();
     std::size_t cursor_bit() const noexcept { return cursor_bit_; }
 
 private:
+    friend class FieldWriter;
     Result<void> validate_live() const noexcept;
     Result<void> preflight(std::size_t bit_count, std::size_t projected_end,
                            std::size_t start) noexcept;
     Result<void> grow_to(std::size_t octets, std::size_t start) noexcept;
     Result<void> fail(Error error) noexcept;
+    Result<void> write_known_open_type_impl(void*, Result<void> (*)(FieldWriter&, void*));
+    void charge_wire(std::size_t count) noexcept { if(!known_child_) context_->wire_bits_ += count; }
+    void publish_output(std::size_t count) noexcept { if(!known_child_) context_->logical_output_octets_ = count; }
+    bool known_child_ = false;
+    bool locally_finished_ = false;
+    std::size_t known_encode_anchor_ = 0;
+    std::size_t known_staged_octets_ = 0;
     EncodeContext* context_;
     std::vector<std::byte> output_;
     std::size_t cursor_bit_ = 0;
@@ -250,6 +286,10 @@ public:
         return reader_.read_sequence_extension_bitmap();
     }
     Result<std::vector<std::byte>> read_open_type_owned() { return reader_.read_open_type_owned(); }
+    template<class T, class DecodeFields>
+    Result<T> read_known_open_type(DecodeFields&& decode_fields) {
+        return reader_.template read_known_open_type<T>(std::forward<DecodeFields>(decode_fields));
+    }
     std::size_t cursor_bit() const noexcept { return reader_.cursor_bit(); }
 private:
     BitReader& reader_;
@@ -275,10 +315,44 @@ public:
         return writer_.write_bounded_collection_length(count, lower, upper);
     }
     Result<void> reject_sequence_extension_data() { return writer_.reject_sequence_extension_data(); }
+    template<class EncodeFields>
+    Result<void> write_known_open_type(EncodeFields&& encode_fields) {
+        return writer_.write_known_open_type(std::forward<EncodeFields>(encode_fields));
+    }
+    Result<void> record_failure(Error error) {
+        auto live = writer_.validate_live();
+        return live ? writer_.fail(error) : live;
+    }
     std::size_t cursor_bit() const noexcept { return writer_.cursor_bit(); }
 private:
     BitWriter& writer_;
 };
+
+template<class T, class DecodeFields>
+Result<T> BitReader::read_known_open_type(DecodeFields&& decode_fields) {
+    static_assert(std::is_nothrow_move_constructible_v<T>, "known-open values require nothrow move publication");
+    struct State {
+        std::remove_reference_t<DecodeFields>* callback;
+        std::optional<Result<T>> value;
+    } state{&decode_fields, {}};
+    auto status = read_known_open_type_impl(&state, +[](FieldReader& child, void* pointer) {
+        auto& stored = *static_cast<State*>(pointer);
+        auto decoded = std::forward<DecodeFields>(*stored.callback)(child);
+        if(!decoded) return Result<void>::failure(decoded.error());
+        stored.value.emplace(std::move(decoded));
+        return Result<void>::success();
+    });
+    if(!status) return Result<T>::failure(status.error());
+    return std::move(*state.value);
+}
+
+template<class EncodeFields>
+Result<void> BitWriter::write_known_open_type(EncodeFields&& encode_fields) {
+    struct State { std::remove_reference_t<EncodeFields>* callback; } state{&encode_fields};
+    return write_known_open_type_impl(&state, +[](FieldWriter& child, void* pointer) {
+        return std::forward<EncodeFields>(*static_cast<State*>(pointer)->callback)(child);
+    });
+}
 
 template<class T, class DecodeFields>
 Result<T> decode_complete(std::span<const std::byte> input, const Limits& limits,
