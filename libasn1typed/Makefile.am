@@ -143,3 +143,24 @@ check_asn1typed_envelope_render_CPPFLAGS = $(check_asn1typed_extract_CPPFLAGS) -
 check_asn1typed_envelope_render_LDADD = $(check_asn1typed_extract_LDADD)
 check_asn1typed_envelope_render_LDFLAGS = -Wl,--wrap=malloc -Wl,--wrap=calloc -Wl,--wrap=realloc
 EXTRA_DIST += check_asn1typed_envelope_generated.sh check_asn1typed_envelope_generated.cpp
+
+check_PROGRAMS += check_asn1typed_octet_render
+TESTS += check_asn1typed_octet_generated.sh
+check_asn1typed_octet_render_SOURCES = check_asn1typed_octet_render.c
+check_asn1typed_octet_render_CPPFLAGS = $(check_asn1typed_extract_CPPFLAGS) -DNDEBUG
+check_asn1typed_octet_render_LDADD = $(check_asn1typed_extract_LDADD)
+check_asn1typed_octet_render_LDFLAGS = -Wl,--wrap=malloc -Wl,--wrap=calloc -Wl,--wrap=realloc
+EXTRA_DIST += check_asn1typed_octet_generated.sh check_asn1typed_octet_generated.cpp fixtures/octets-generation-n14.asn1
+
+check_PROGRAMS += check_asn1typed_ioc_octets
+TESTS += check_asn1typed_ioc_octets check_asn1typed_ioc_octet_generated.sh
+check_asn1typed_ioc_octets_SOURCES = check_asn1typed_ioc_octets.c check_ioc_alloc_core.c check_ioc_alloc_extract.c
+check_asn1typed_ioc_octets_CPPFLAGS = $(check_asn1typed_extract_CPPFLAGS) -DIOC_OCTETS_FIXTURE=\"$(abs_srcdir)/fixtures/ioc-octets-n14.asn1\" -DNDEBUG
+check_asn1typed_ioc_octets_LDADD = $(check_asn1typed_extract_LDADD)
+EXTRA_DIST += check_asn1typed_ioc_octet_generated.sh check_asn1typed_ioc_octet_generated.cpp fixtures/ioc-octets-n14.asn1
+
+check_PROGRAMS += check_asn1typed_octet_api
+TESTS += check_asn1typed_octet_api
+check_asn1typed_octet_api_SOURCES = check_asn1typed_octet_api.cpp
+check_asn1typed_octet_api_CPPFLAGS = $(AM_CPPFLAGS)
+check_asn1typed_octet_api_LDADD = libasn1typed.la

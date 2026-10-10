@@ -192,6 +192,12 @@ public:
     Result<EnumeratedIndex> read_enumerated(unsigned root_count, bool extensible);
     // N8: non-extensible SIZE 0<=lower<=upper<=65535; atomic count and charge.
     Result<std::size_t> read_bounded_collection_length(std::size_t lower, std::size_t upper);
+    // N14: non-extensible OCTET STRING. Unconstrained mode supports lengths
+    // through 16383; fragmented determinants are refused as resource_limit,
+    // not a schema upper bound. Unconstrained mode requires lower=upper=0.
+    // Alignment, determinant, payload and owned allocation are atomic.
+    Result<std::vector<std::byte>> read_octet_string_owned(std::size_t lower,
+        std::size_t upper, bool unconstrained = false);
     // N7-P2: owned, atomic extension framing; no inner payload interpretation.
     Result<SequenceExtensionBitmap> read_sequence_extension_bitmap();
     Result<std::vector<std::byte>> read_open_type_owned();
@@ -235,6 +241,8 @@ public:
     // root_count 1..255; extension indexes require extensible=true (N2).
     Result<void> write_enumerated(EnumeratedIndex value, unsigned root_count, bool extensible);
     Result<void> write_bounded_collection_length(std::uint64_t count, std::size_t lower, std::size_t upper);
+    Result<void> write_octet_string(std::span<const std::byte> value,
+        std::size_t lower, std::size_t upper, bool unconstrained = false);
     template<class EncodeFields>
     Result<void> write_known_open_type(EncodeFields&& encode_fields);
     Result<void> reject_sequence_extension_data();
@@ -277,6 +285,10 @@ public:
     Result<std::size_t> read_bounded_collection_length(std::size_t lower, std::size_t upper) {
         return reader_.read_bounded_collection_length(lower, upper);
     }
+    Result<std::vector<std::byte>> read_octet_string_owned(std::size_t lower,
+        std::size_t upper, bool unconstrained = false) {
+        return reader_.read_octet_string_owned(lower, upper, unconstrained);
+    }
     // Generated helper failures preserve sticky state and lifecycle semantics.
     Result<void> record_failure(Error error) {
         auto live = reader_.validate_live();
@@ -313,6 +325,10 @@ public:
     }
     Result<void> write_bounded_collection_length(std::uint64_t count, std::size_t lower, std::size_t upper) {
         return writer_.write_bounded_collection_length(count, lower, upper);
+    }
+    Result<void> write_octet_string(std::span<const std::byte> value,
+        std::size_t lower, std::size_t upper, bool unconstrained = false) {
+        return writer_.write_octet_string(value, lower, upper, unconstrained);
     }
     Result<void> reject_sequence_extension_data() { return writer_.reject_sequence_extension_data(); }
     template<class EncodeFields>

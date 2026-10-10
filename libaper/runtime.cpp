@@ -887,6 +887,117 @@ Result<void> BitWriter::write_bounded_collection_length(std::uint64_t count,
 }
 
 namespace {
+unsigned octet_length_width(std::size_t lower, std::size_t upper) noexcept {
+    const auto range = upper - lower + 1;
+    if(range >= 257) return 16;
+    if(range == 256) return 8;
+    unsigned width = 0;
+    for(auto remaining = range - 1; remaining; remaining >>= 1) ++width;
+    return width;
+}
+}
+
+Result<std::vector<std::byte>> BitReader::read_octet_string_owned(
+    std::size_t lower, std::size_t upper, bool unconstrained) {
+    auto live = validate_live();
+    if(!live) return Result<std::vector<std::byte>>::failure(live.error());
+    const auto start = cursor_bit_;
+    auto reject = [&](ErrorCode code, std::size_t offset) {
+        return Result<std::vector<std::byte>>::failure(fail({code,offset}).error());
+    };
+    if((unconstrained && (lower || upper)) || (!unconstrained && (lower > upper || upper > 65535)))
+        return reject(ErrorCode::invalid_argument,start);
+    const bool variable = unconstrained || lower != upper;
+    const auto range = unconstrained ? std::size_t{0} : upper - lower + 1;
+    const auto initial_padding = unconstrained || (!variable && upper >= 3) ||
+        (variable && range >= 256) ? (8 - start % 8) % 8 : 0;
+    std::size_t position = 0;
+    if(!checked_add_size(start,initial_padding,position)) return reject(ErrorCode::resource_limit,start);
+    unsigned width = variable ? (unconstrained ? 8 : octet_length_width(lower,upper)) : 0;
+    auto available = [&](std::size_t bits) {
+        return position <= logical_bit_limit_ && bits <= logical_bit_limit_ - position;
+    };
+    if(!available(width)) return reject(ErrorCode::truncated_input,logical_bit_limit_);
+    std::size_t encoded_length = 0;
+    for(unsigned i = 0; i < width; ++i)
+        encoded_length = (encoded_length << 1) | get_bit(input_,position + i);
+    position += width;
+    bool noncanonical = false;
+    if(unconstrained) {
+        if(encoded_length >= 192) return reject(ErrorCode::resource_limit,start);
+        if(encoded_length >= 128) {
+            if(!available(8)) return reject(ErrorCode::truncated_input,logical_bit_limit_);
+            encoded_length = ((encoded_length & 63u) << 8);
+            for(unsigned i = 0; i < 8; ++i) encoded_length |= static_cast<std::size_t>(get_bit(input_,position + i)) << (7 - i);
+            position += 8;
+            noncanonical = encoded_length < 128;
+        }
+    } else if(variable && encoded_length >= range) {
+        return reject(ErrorCode::constraint_violation,start);
+    }
+    const auto count = unconstrained ? encoded_length : lower + encoded_length;
+    const auto payload_padding = variable ? (8 - position % 8) % 8 : 0;
+    std::size_t payload_bits = 0,end = 0;
+    if(!checked_octets_to_bits(count,payload_bits) ||
+       !checked_add_size(position,payload_padding,end) || !checked_add_size(end,payload_bits,end))
+        return reject(ErrorCode::resource_limit,start);
+    auto ready = preflight(end - start,start);
+    if(!ready) return Result<std::vector<std::byte>>::failure(ready.error());
+    for(std::size_t i = 0; i < initial_padding; ++i)
+        if(get_bit(input_,start + i)) return reject(ErrorCode::nonzero_padding,start + i);
+    for(std::size_t i = 0; i < payload_padding; ++i)
+        if(get_bit(input_,position + i)) return reject(ErrorCode::nonzero_padding,position + i);
+    if(noncanonical) return reject(ErrorCode::constraint_violation,start);
+    std::vector<std::byte> value;
+    if(count > value.max_size()) return reject(ErrorCode::resource_limit,start);
+    try { value.resize(count); }
+    catch(const std::bad_alloc&) { return reject(ErrorCode::allocation_failure,start); }
+    catch(const std::length_error&) { return reject(ErrorCode::resource_limit,start); }
+    const auto payload_start = position + payload_padding;
+    for(std::size_t i = 0; i < count; ++i) {
+        unsigned octet = 0;
+        for(unsigned bit = 0; bit < 8; ++bit) octet = (octet << 1) | get_bit(input_,payload_start + i * 8 + bit);
+        value[i] = static_cast<std::byte>(octet);
+    }
+    cursor_bit_ = end; charge_wire(end - start);
+    return Result<std::vector<std::byte>>::success(std::move(value));
+}
+
+Result<void> BitWriter::write_octet_string(std::span<const std::byte> value,
+    std::size_t lower, std::size_t upper, bool unconstrained) {
+    auto live = validate_live();
+    if(!live) return live;
+    const auto start = cursor_bit_;
+    if((unconstrained && (lower || upper)) || (!unconstrained && (lower > upper || upper > 65535))) return fail({ErrorCode::invalid_argument,start});
+    if(unconstrained && value.size() > 16383) return fail({ErrorCode::resource_limit,start});
+    if(!unconstrained && (value.size() < lower || value.size() > upper)) return fail({ErrorCode::constraint_violation,start});
+    const bool variable = unconstrained || lower != upper;
+    const auto range = unconstrained ? std::size_t{0} : upper - lower + 1;
+    const auto initial_padding = unconstrained || (!variable && upper >= 3) ||
+        (variable && range >= 256) ? (8 - start % 8) % 8 : 0;
+    const auto width = variable ? (unconstrained ? (value.size() < 128 ? 8u : 16u) : octet_length_width(lower,upper)) : 0u;
+    std::size_t position = 0,end = 0,payload_bits = 0;
+    if(!checked_add_size(start,initial_padding + width,position)) return fail({ErrorCode::resource_limit,start});
+    const auto payload_padding = variable ? (8 - position % 8) % 8 : 0;
+    if(!checked_octets_to_bits(value.size(),payload_bits) || !checked_add_size(position,payload_padding,end) ||
+       !checked_add_size(end,payload_bits,end)) return fail({ErrorCode::resource_limit,start});
+    auto ready = preflight(end - start,end,start);
+    if(!ready) return ready;
+    std::size_t octets = 0; (void)checked_bits_to_octets(end,octets);
+    auto grown = grow_to(octets,start);
+    if(!grown) return grown;
+    for(std::size_t i = 0; i < initial_padding; ++i) set_bit(output_,start + i,false);
+    const auto determinant = unconstrained ? value.size() | (width == 16 ? 0x8000u : 0u) : value.size() - lower;
+    for(unsigned i = 0; i < width; ++i) set_bit(output_,start + initial_padding + i,((determinant >> (width - i - 1)) & 1u) != 0);
+    for(std::size_t i = 0; i < payload_padding; ++i) set_bit(output_,position + i,false);
+    const auto payload_start = position + payload_padding;
+    for(std::size_t i = 0; i < value.size(); ++i) for(unsigned bit = 0; bit < 8; ++bit)
+        set_bit(output_,payload_start + i * 8 + bit,(std::to_integer<unsigned>(value[i]) & (0x80u >> bit)) != 0);
+    cursor_bit_ = end; charge_wire(end - start); publish_output(octets);
+    return Result<void>::success();
+}
+
+namespace {
 template<class Function> struct ScopeExit {
     Function function;
     ~ScopeExit() noexcept { function(); }

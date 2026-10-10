@@ -2260,7 +2260,23 @@ physical_registry_row(asn1p_t *tree, asn1typed_ioc_registry_t *registry,
 		else if(name && !strcmp(name, "conditional")) row.presence = ASN1TYPED_PRESENCE_CONDITIONAL;
 		else goto malformed;
 	}
-	if(reject_unowned_inline_constraint(cells[1], registry->object_set_source_name, registry->selected_class_field_source_name, error, size)) { free(row.symbolic_id); return -1; }
+	if(cells[1]->constraints ||
+		(cells[1]->expr_type != A1TC_REFERENCE && cells[1]->combined_constraints)) {
+		/* Selected anonymous payloads have no SIZE/range ownership slot.
+		 * The existing Contents-only compatibility rule needs no new slot:
+		 * it owns the outer OCTET STRING and deliberately does not traverse
+		 * the contained type. Named references retain their declaration's
+		 * constraints through ordinary dependency closure instead. */
+		if(cells[1]->meta_type != AMT_TYPE ||
+			cells[1]->expr_type != ASN_BASIC_OCTET_STRING || cells[1]->rhs_pspecs ||
+			!is_opaque_contents_constraint(cells[1]->constraints) ||
+			(cells[1]->combined_constraints &&
+			 !is_opaque_contents_constraint(cells[1]->combined_constraints))) {
+			set_error(error, size, "%s.%s: inline constrained type is unsupported",
+				registry->object_set_source_name, registry->selected_class_field_source_name);
+			free(row.symbolic_id); return -1;
+		}
+	}
 	value = *cells[1];
 	if(value.meta_type != AMT_TYPE && value.meta_type != AMT_TYPEREF) goto malformed;
 	if(value.expr_type == A1TC_REFERENCE && value.reference) {
@@ -2270,8 +2286,9 @@ physical_registry_row(asn1p_t *tree, asn1typed_ioc_registry_t *registry,
 	if(asn1typed_ioc_registry_add_row(registry, &row)) {
 		free(row.symbolic_id); asn1typed_type_ref_clear(&row.payload_type); set_error(error, size, "out of memory owning physical IOC dispatch row"); return -1;
 	}
-	asn1typed_type_ref_clear(&row.payload_type); return 0;
+	free(row.symbolic_id); asn1typed_type_ref_clear(&row.payload_type); return 0;
 malformed:
+	free(row.symbolic_id);
 	asn1typed_type_ref_clear(&row.payload_type);
 	set_error(error, size, "malformed or unresolved physical IOC row numeric ID/payload/criticality/presence"); return -1;
 }

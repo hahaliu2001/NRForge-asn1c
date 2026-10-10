@@ -1,0 +1,12 @@
+OctetsGeneration DEFINITIONS AUTOMATIC TAGS ::= BEGIN
+Zero ::= OCTET STRING (SIZE (0))
+One ::= OCTET STRING (SIZE (1))
+Two ::= OCTET STRING (SIZE (2))
+Three ::= OCTET STRING (SIZE (3))
+Small ::= OCTET STRING (SIZE (0..3))
+Wide ::= OCTET STRING (SIZE (1..256))
+Opaque ::= OCTET STRING
+Message ::= SEQUENCE { lead BOOLEAN, first One, second Two, third Three, data Opaque OPTIONAL, inline OCTET STRING }
+Pick ::= CHOICE { bytes Three, marker BOOLEAN }
+List ::= SEQUENCE (SIZE (0..3)) OF One
+END

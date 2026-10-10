@@ -852,3 +852,7 @@ The accepted foundation includes:
 -   fail-closed behavior outside frozen boundaries.
 
 This summary is not a substitute for the detailed entries above.
+
+## N14 bounded C++ APER OCTET capability
+
+The Owned IR OCTET/opaque-Contents rules above are retained. N14 adds vector<byte> C++ types, mapping and codecs for named non-extensible SIZE intervals 0..65535 and opaque unconstrained unfragmented values up to 16383 octets at runtime. Physical IOC selected direct Contents-only Value/Extension cells reuse the existing outer-octet ownership rule; unsupported anonymous SIZE/constraint combinations remain rejected. No contained-value validation, SIZE extension or fragmentation support is claimed. Earlier non-IOC compound/collection API acceptance boundaries are unchanged. See [the exact N14 contract and evidence](ngap-cpp-aper-n14-octet-contract-and-closeout.md).

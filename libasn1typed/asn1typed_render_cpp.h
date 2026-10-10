@@ -160,6 +160,15 @@ int asn1typed_render_cpp_target_envelope_types(const asn1typed_module_t *, const
 int asn1typed_render_cpp_target_envelope_mapping(const asn1typed_module_t *, const asn1typed_target_envelope_t *, const char *, char **, char *, size_t);
 int asn1typed_render_cpp_target_envelope_codec(const asn1typed_module_t *, const asn1typed_target_envelope_t *, const char *, char **, char *, size_t);
 
+/* N14: named non-extensible OCTET STRING SIZE 0..65535, or opaque unconstrained
+ * OCTET STRING (unfragmented values <=16383 octets at runtime). Anonymous primitive
+ * references are unconstrained only; use-site SIZE and extensible SIZE fail closed.
+ * Types, mapping, codec use one unchanged IR/namespace, included in that order
+ * after runtime.hpp. No contained-payload interpretation is performed. */
+int asn1typed_render_cpp_owned_octet_types(const asn1typed_module_t *, const char *, char **, char *, size_t);
+int asn1typed_render_cpp_owned_octet_mapping(const asn1typed_module_t *, const char *, char **, char *, size_t);
+int asn1typed_render_cpp_owned_octet_codec(const asn1typed_module_t *, const char *, char **, char *, size_t);
+
 #ifdef __cplusplus
 }
 #endif

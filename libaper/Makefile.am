@@ -26,3 +26,9 @@ TESTS += check_aper_known_open
 check_aper_known_open_SOURCES = check_known_open.cpp
 check_aper_known_open_CPPFLAGS = -I$(srcdir) -DNDEBUG
 check_aper_known_open_LDADD = libaper.la
+
+check_PROGRAMS += check_aper_octets
+TESTS += check_aper_octets
+check_aper_octets_SOURCES = check_octets.cpp
+check_aper_octets_CPPFLAGS = -I$(srcdir) -DNDEBUG
+check_aper_octets_LDADD = libaper.la

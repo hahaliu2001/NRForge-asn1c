@@ -1,0 +1,52 @@
+IOCOctets DEFINITIONS AUTOMATIC TAGS ::= BEGIN
+Identifier ::= INTEGER (0..65535)
+Policy ::= ENUMERATED { reject, ignore, notify }
+Requirement ::= ENUMERATED { mandatory, optional, conditional }
+NamedOctets ::= OCTET STRING (SIZE(3))
+Contained ::= BIT STRING { unsupportedNamedBit(0) }
+id-Contained Identifier ::= 91
+id-Plain Identifier ::= 7
+id-Named Identifier ::= 42
+REGISTRY-CLASS ::= CLASS {
+  &id Identifier UNIQUE,
+  &criticality Policy,
+  &Value,
+  &presence Requirement
+} WITH SYNTAX { ID &id CRITICALITY &criticality TYPE &Value PRESENCE &presence }
+Entry { REGISTRY-CLASS : Rows } ::= SEQUENCE {
+  number REGISTRY-CLASS.&id({Rows}),
+  policy REGISTRY-CLASS.&criticality({Rows}{@number}),
+  content REGISTRY-CLASS.&Value({Rows}{@number})
+}
+Container { REGISTRY-CLASS : Rows } ::= SEQUENCE (SIZE(0..65535)) OF Entry {{Rows}}
+Rows REGISTRY-CLASS ::= {
+  { ID id-Contained CRITICALITY reject TYPE OCTET STRING (CONTAINING Contained) PRESENCE mandatory } |
+  { ID id-Plain CRITICALITY ignore TYPE OCTET STRING PRESENCE optional } |
+  { ID id-Named CRITICALITY notify TYPE NamedOctets PRESENCE conditional }, ...
+}
+Message ::= SEQUENCE { entries Container {{Rows}}, ... }
+SizedRows REGISTRY-CLASS ::= {
+  { ID id-Plain CRITICALITY ignore TYPE OCTET STRING (SIZE(3)) PRESENCE mandatory }, ...
+}
+SizedMessage ::= SEQUENCE { entries Container {{SizedRows}} }
+CompoundRows REGISTRY-CLASS ::= {
+  { ID id-Plain CRITICALITY ignore TYPE OCTET STRING (CONTAINING Contained) (SIZE(3)) PRESENCE mandatory }, ...
+}
+CompoundMessage ::= SEQUENCE { entries Container {{CompoundRows}} }
+EXTENSION-CLASS ::= CLASS {
+  &id Identifier UNIQUE,
+  &criticality Policy,
+  &Extension,
+  &presence Requirement
+} WITH SYNTAX { ID &id CRITICALITY &criticality EXTENSION &Extension PRESENCE &presence }
+ExtensionEntry { EXTENSION-CLASS : Rows } ::= SEQUENCE {
+  tag EXTENSION-CLASS.&id({Rows}),
+  policy EXTENSION-CLASS.&criticality({Rows}{@tag}),
+  extensionContent EXTENSION-CLASS.&Extension({Rows}{@tag})
+}
+ExtensionContainer { EXTENSION-CLASS : Rows } ::= SEQUENCE (SIZE(1..65535)) OF ExtensionEntry {{Rows}}
+ExtensionRows EXTENSION-CLASS ::= {
+  { ID id-Contained CRITICALITY ignore EXTENSION OCTET STRING (CONTAINING Contained) PRESENCE optional }, ...
+}
+ExtensionMessage ::= SEQUENCE { extensions ExtensionContainer {{ExtensionRows}} }
+END

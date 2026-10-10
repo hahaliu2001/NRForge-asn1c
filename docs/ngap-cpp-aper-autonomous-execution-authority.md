@@ -18,3 +18,7 @@ Owner authorization: 2026-10-09 (America/Los_Angeles), following completion of N
 ## N13 all-message readiness extension
 
 Owner authorization: 2026-10-09 (America/Los_Angeles). N13 supersedes the proposed two-message reuse batch with a full 131-message NGAP codec readiness scan. The Owner accepted one verified six-module Parser/Fixer pass, batch physical extraction and BODY generation, strict compilation of generation-success cases, observed shared-gap grouping, independent review and routine commit/push. No production codec expansion, new runtime semantic, schema pruning or new wire qualification is authorized by this scan. Future work is organized by shared capability clusters and batch acceptance rather than individual-message design handoffs.
+
+## N14 shared OCTET STRING capability extension
+
+Owner authorization: 2026-10-09 (America/Los_Angeles), “同意，做N14”. This selects the N13 recommended OCTET STRING/reference-lowering capability batch, including bounded contract study, implementation, focused correctness/independent reference checks, independent review/fix closure, full 131-message readiness rescan and routine commit/push. It authorizes no schema change, BIT STRING/NULL/private-IE architecture expansion, arbitrary constraint erasure, contained-protocol interpretation, performance benchmark or general NGAP interoperability claim. Complete-message qualification remains separate from primitive acceptance and BODY readiness. Stop after this shared-capability milestone; do not begin N15 automatically.
