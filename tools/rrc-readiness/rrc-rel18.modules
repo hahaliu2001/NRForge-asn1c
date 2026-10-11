@@ -1,0 +1,6 @@
+rrc/asn1/NR-RRC-Definitions.asn
+rrc/asn1/PC5-RRC-Definitions.asn
+rrc/asn1/NR-UE-Variables.asn
+rrc/asn1/NR-Sidelink-Preconf.asn
+rrc/asn1/NR-Sidelink-DiscoveryMessage.asn
+rrc/asn1/NR-InterNodeDefinitions.asn

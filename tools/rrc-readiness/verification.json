@@ -1,0 +1,27 @@
+{
+  "batch": "RRC-P1",
+  "baseline": "3a237c1f283352d6898be708249e1b89dc634dc3",
+  "date": "2026-10-11",
+  "compiler": "GCC 13.3.0 Ubuntu 13.3.0-6ubuntu2~24.04",
+  "python": "3.12.14",
+  "probe_compile": {
+    "flags": "-std=gnu11 -Wall -Wextra -Werror -DHAVE_CONFIG_H",
+    "result": "PASS"
+  },
+  "authenticated_modules": 6,
+  "parse_fix": "PASS",
+  "whole_module_extraction": {"PASS": 1, "FAIL": 5},
+  "physical_IOC_root_extraction": {"PASS": 0, "FAIL": 16},
+  "report_reproduction": "PASS; initial scan and fresh --check are byte-identical",
+  "raw_fixed_ast_sha256": "41f3524fdc7bdad93083f3a2892b6060a2492ca36418e2134ea32332061ba2f7",
+  "report_sha256": "952f2dcdf1e464e392874fbba17cfaabab2f4cef6b8c3fea79cc38ed2b0dd486",
+  "inventory_reconciliation": "PASS; 2630 named types, 12 roots, 66 distinct payloads, 20 DEFAULT fields, 338 type-actual sites, 640 source group pairs",
+  "fixture_authentication": "PASS; four pinned Git blobs, decoded-byte SHA-256, byte length and terminal padding",
+  "negative_authentication": "PASS; changed first module in an isolated temporary root rejected; reversed module order rejected before probe execution",
+  "aper_regression": {"command": "make -C libaper check", "PASS": 10, "FAIL": 0, "SKIP": 0},
+  "cpp_generation": "NOT_RUN",
+  "cpp_compile": "NOT_RUN",
+  "new_uper_wire_qualification": "NOT_RUN",
+  "performance_benchmark": "NOT_RUN",
+  "scope": "Only readiness documentation and tools; external frozen schema/fixtures and production sources unchanged"
+}

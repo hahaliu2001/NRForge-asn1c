@@ -1,0 +1,47 @@
+{
+  "repository": "hahaliu2001/NRForge-RAN",
+  "commit": "abc850e5461e1b15cf5c81907d0d0fdd5e3a1179",
+  "scope": "Inherited frozen bare ASN.1 value fixtures; P1 authenticates bytes only, no new codec operation",
+  "fixtures": [
+    {
+      "path": "tests/fixtures/f1/rrc/mib.hex",
+      "git_blob": "e960e5ac9262a27f4eafcd37446ffb19a3e4fc53",
+      "asn1_type": "MIB",
+      "module": "NR-RRC-Definitions",
+      "semantic_bits": 23,
+      "bytes": 3,
+      "hex": "020008",
+      "decoded_sha256": "1c4a0138f3016b928168ee3bb27ae67a6b53e51f0cad818174a9cadcfaf90bba"
+    },
+    {
+      "path": "tests/fixtures/f1/rrc/sib1.hex",
+      "git_blob": "001a00364e6ce0d4e413e762a20fcec910140e16",
+      "asn1_type": "SIB1",
+      "module": "NR-RRC-Definitions",
+      "semantic_bits": 117,
+      "bytes": 15,
+      "hex": "800000082002010000010000040008",
+      "decoded_sha256": "7d37718a217e63e27664d4c7ef4669711b4a798f285c489cff808d5dba954d52"
+    },
+    {
+      "path": "tests/fixtures/f1/rrc/sib2.hex",
+      "git_blob": "5d946f4625aedd1d806da86abbdf918b2a2c2998",
+      "asn1_type": "SIB2",
+      "module": "NR-RRC-Definitions",
+      "semantic_bits": 48,
+      "bytes": 6,
+      "hex": "000000000000",
+      "decoded_sha256": "b0f66adc83641586656866813fd9dd0b8ebb63796075661ba45d1aa8089e1d44"
+    },
+    {
+      "path": "tests/fixtures/f1/rrc/measurement_timing_configuration.hex",
+      "git_blob": "4daddb72ffc0402845066df20e4480037235ff6b",
+      "asn1_type": "MeasurementTimingConfiguration",
+      "module": "NR-InterNodeDefinitions",
+      "semantic_bits": 5,
+      "bytes": 1,
+      "hex": "00",
+      "decoded_sha256": "6e340b9cffb37a989ca544e6bb780a2c78901d3fb33738768511a30617afa01d"
+    }
+  ]
+}

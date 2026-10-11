@@ -1,0 +1,59 @@
+{
+  "repository": "hahaliu2001/NRForge-RAN",
+  "commit": "abc850e5461e1b15cf5c81907d0d0fdd5e3a1179",
+  "authority": "TS 38.331 V18.10.0 Release 18 (2026-06)",
+  "encoding": "UPER",
+  "asn1c_baseline": "3a237c1f283352d6898be708249e1b89dc634dc3",
+  "combined_bytes": 1715754,
+  "combined_sha256": "97a7f13be4c515c9c78e5f752647807621d59568ca33eeea6258513731462d2b",
+  "modules": [
+    {
+      "module": "NR-RRC-Definitions",
+      "path": "rrc/asn1/NR-RRC-Definitions.asn",
+      "repository_path": "src/rrc/asn1/NR-RRC-Definitions.asn",
+      "git_blob": "d2ff191187811052c9e5a367fa3a87042c0a5d54",
+      "bytes": 1600609,
+      "sha256": "0819b6b6e91ca0dc2ee8d81c8c10a7d978c837fa4862a775a17683bd133a45a5"
+    },
+    {
+      "module": "PC5-RRC-Definitions",
+      "path": "rrc/asn1/PC5-RRC-Definitions.asn",
+      "repository_path": "src/rrc/asn1/PC5-RRC-Definitions.asn",
+      "git_blob": "0d94594c0250bd1505d34045a7d3180e2732047f",
+      "bytes": 36315,
+      "sha256": "0873e4bd5c108c2f6027914a94d32da231042670dab04e6e08bc0409b6a22ea0"
+    },
+    {
+      "module": "NR-UE-Variables",
+      "path": "rrc/asn1/NR-UE-Variables.asn",
+      "repository_path": "src/rrc/asn1/NR-UE-Variables.asn",
+      "git_blob": "3fc6f13e27f9fb1b18134ec2e527065646aa923d",
+      "bytes": 14495,
+      "sha256": "36102e0158707a5c8d36c6fe622b5a7230b5de49ca0c4785fc10d942a7f889a8"
+    },
+    {
+      "module": "NR-Sidelink-Preconf",
+      "path": "rrc/asn1/NR-Sidelink-Preconf.asn",
+      "repository_path": "src/rrc/asn1/NR-Sidelink-Preconf.asn",
+      "git_blob": "11aa5f66ee55aa222eea19fc81dc551cb2a96b39",
+      "bytes": 6277,
+      "sha256": "0cfa72918a6eb30f71d69600825fe0a00cb0259fe04c5111ec9210c7289aeb2c"
+    },
+    {
+      "module": "NR-Sidelink-DiscoveryMessage",
+      "path": "rrc/asn1/NR-Sidelink-DiscoveryMessage.asn",
+      "repository_path": "src/rrc/asn1/NR-Sidelink-DiscoveryMessage.asn",
+      "git_blob": "fb76c57ad8e6b235aa5c2ab2f877b6bfb59a9852",
+      "bytes": 563,
+      "sha256": "f41839b5721fa537cbb5bda1375ac962ff6307e93c3afeaa630d5bcd8b8e5d04"
+    },
+    {
+      "module": "NR-InterNodeDefinitions",
+      "path": "rrc/asn1/NR-InterNodeDefinitions.asn",
+      "repository_path": "src/rrc/asn1/NR-InterNodeDefinitions.asn",
+      "git_blob": "8e675afa2faf48cea8898ce44315d8287dd0c016",
+      "bytes": 57495,
+      "sha256": "00b6abe26c5572926ddc46904a23221d5aca3c94569e6d02a8d8effec1f7a32d"
+    }
+  ]
+}
