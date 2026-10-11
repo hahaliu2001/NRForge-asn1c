@@ -1,0 +1,5171 @@
+{
+  "scope": "72-message BODY and target-envelope extraction/generation/strict compilation readiness; not wire qualification",
+  "baseline_commit": "3df8651d3d4a8e835a04ede4bde9d609fd6e0ced",
+  "source_authority": {
+    "repository": "hahaliu2001/NRForge-RAN",
+    "commit": "d6e514a33ec3695925c24aa292900514b371b074",
+    "standard": "TS 37.483 V18.6.0 Release 18",
+    "provenance_path": "src/e1/asn1/README.md",
+    "combined_bytes": 249289,
+    "combined_sha256": "5cfd3832772f7898360ba1a6d3a09c5ca9c78c3d9a97e6b5e009880bfcc685b9",
+    "modules": [
+      {
+        "path": "e1/asn1/E1AP-PDU-Descriptions.asn",
+        "size": 16318,
+        "git_blob": "4f657bb0a71e4f187acb30b7bbe968c3fa7e2327",
+        "sha256": "297a2816743114089df58a748536366581b87a0acb02967252fccc184790a244"
+      },
+      {
+        "path": "e1/asn1/E1AP-PDU-Contents.asn",
+        "size": 84405,
+        "git_blob": "09adceec45db6004a46bd0f5d62ebcbdeca400d2",
+        "sha256": "41941d2c0754d7126a6ac1120d0052c7db692818e4d6d99044cd8aeb352b23ae"
+      },
+      {
+        "path": "e1/asn1/E1AP-IEs.asn",
+        "size": 125671,
+        "git_blob": "4ece13b3595f2c35a837594c0fb9f7f79f8e8028",
+        "sha256": "f672cb38af72ef4207b1e3a81184b135879843cbb96ec16dd7594499154b914c"
+      },
+      {
+        "path": "e1/asn1/E1AP-CommonDataTypes.asn",
+        "size": 1284,
+        "git_blob": "9aeb3d9d9bc19da90aa7653a442ef97e0f300ede",
+        "sha256": "4d8b336cdfbae51a31dded5c30f03256b8dd2926dab9953e7fde4168091345a8"
+      },
+      {
+        "path": "e1/asn1/E1AP-Constants.asn",
+        "size": 17492,
+        "git_blob": "3f2be55c777d0e24d5527b92ba8d5a8f4e457888",
+        "sha256": "d7f67de4412978de20aac452c4adc8fe99c028921c5c457fd9a9a44ebf457a23"
+      },
+      {
+        "path": "e1/asn1/E1AP-Containers.asn",
+        "size": 4119,
+        "git_blob": "a412be6c059218094c0cfa1a921da3611e71e44e",
+        "sha256": "60615bc833d01f23f06680345ba931dbf6f9b8833963ddb5a23e234c6cfbd1bc"
+      }
+    ]
+  },
+  "input_sha256": {
+    "tools/asn1typed_codec_coverage": "e018c64115232d09485811ff3e546ebfcbae6ab40c86553748cc36b3b151fbb1",
+    "tools/asn1typed_codec_coverage.c": "3722f26ac5730fd29e78c360db776d04b8a086f1618dbba1773d7b67d0dd6777",
+    "tools/e1ap-readiness/scan.py": "94637109efc5598228b995c9354110e5a6c61b45d754c83783ff95906e9df0ec",
+    "tools/n12-codec-coverage/run.py": "3fc178c9d1d79f433bf7125bd02df30885b80be8f8251c7e7a5ea3649eea3b6d",
+    "tools/e1ap-readiness/source-manifest.json": "049c96c7f4667f42e1c1aae33e2826f2833346851cb997affbdfc2c080836472",
+    "tools/e1ap-readiness/e1ap-rel18.modules": "11faf379c1b6a3f1ca74d7d05dfdb1b2f44f196827cb1125f2e283f364f60596",
+    "libaper/runtime.hpp": "34ceca5e464fc1c8f6e505cdd01ec00d22dd87d74d17abbb5660f605570162f1",
+    "libaper/sequence_extensions.hpp": "5447fdd559b2d1be8112161b4474810af619dd24f64678fc92d167bd36ef3db2",
+    "libasn1typed/asn1typed.c": "925bfb196ff75b0840dd83918ab719e1aed4b897228f927954694388fd3a1527",
+    "libasn1typed/asn1typed_envelope.c": "3031f07ec8c2b1aa9f0544cb32c12e7e95c6207388a079d509fff021a1ee329e",
+    "libasn1typed/asn1typed_extract.c": "efd5d948a34bc3d18811c44aca74ac40deed8cb35ec3957b4e382d2e410d3f0c",
+    "libasn1typed/asn1typed_name.c": "3070d2bbdc67e719ab2c6a079a7c1116d3254215a00defa384e1f746d9c61039",
+    "libasn1typed/asn1typed_render_cpp.c": "6476abc318aa65596535858f5c88bc9502b8adcba974988b8b690d2c2964f273",
+    "libasn1typed/asn1typed_render_cpp_codec.c": "8288d6cbd36bba3c47f681cd9c78b797cf02d6089fef108410ecb7e55ef06207",
+    "libasn1typed/asn1typed_render_cpp_compound.c": "6f8399ad106853a0cfdad06fc92373ba23b540372aef482a728375fb2b4bfcf6",
+    "libasn1typed/asn1typed_render_cpp_enum.c": "2fffd218d6b9d4e3ffb5091bfbea367a52ba05d9aa9e564bd25299bc6ad49ca3",
+    "libasn1typed/asn1typed_render_cpp_envelope.c": "1873c80ade49789c013f524684cad854a9b7503c11aa87c92d0b051b0ed57f99",
+    "libasn1typed/asn1typed_render_cpp_inline_enum.c": "798d2ee253a7c831ddbb745fc15722298cab7a38cbf9e0610f4db9c29d0ea25a",
+    "libasn1typed/asn1typed_render_cpp_integer.c": "9d2720ef57d00895fe0e5b79e079bd74675300859722ff16b7bfd6d95d04a129",
+    "libasn1typed/asn1typed_render_cpp_ioc.c": "9e4c24efad08f4fe2591abfac40ddf911f4610499ac2d136e597b533c4625b6c",
+    "libasn1typed/asn1typed_render_cpp_slice.c": "c30778d2ec78a738c5cf97ee3cadf4d1712e6fda75e4893e4d746b6fd6abd492",
+    "libasn1typed/asn1typed_render_cpp_uint.c": "b1989191cc279e08afc0a9f1fc442094d252828cd5659f21230df28a286d8dee",
+    "libasn1typed/asn1typed.h": "7b78750f8dcd0c756007b05544d8bdd377b368bc992b0bc19b92bdf28bff88e9",
+    "libasn1typed/asn1typed_envelope.h": "71cab9f1b5bdf0ef8a72d12d6dd63ad4f27218b165f029c181916b7fb381bef9",
+    "libasn1typed/asn1typed_extract.h": "a56be27a82a88a8548ff5b9f901325d969e9eabec3d451fceaa9f4cb6da0f4d6",
+    "libasn1typed/asn1typed_name.h": "a262d0fcd1a6bb0bd05becbad10889b7206a84d03dca7e54be97deba00a56dc1",
+    "libasn1typed/asn1typed_render_cpp.h": "fec1c47b125ca738b8631e86d46b42f79b1d8db6b3830cf18001a00563fed9fe",
+    "libasn1typed/asn1typed_render_cpp_inline_enum_internal.h": "997eff3c476706c64c73969b662aa5d38be160b6c77ade7430c74794e00afdfb",
+    "libasn1typed/asn1typed_render_cpp_internal.h": "a2eeec91ddbae33c18516d55b26ac13edabe55f59bd67afd33e72c2d8ac3adf9",
+    "libasn1typed/asn1typed_render_cpp_ioc_internal.h": "29a0b4e92b22fe4588d6e54152bf7efc0d9d98d1af799a2c3840530910393c24"
+  },
+  "compiler": "g++ (Ubuntu 13.3.0-6ubuntu2~24.04) 13.3.0",
+  "strict_compile_options": [
+    "-std=c++20",
+    "-Wall",
+    "-Wextra",
+    "-Werror",
+    "-pedantic-errors",
+    "-Wconversion",
+    "-Wsign-conversion",
+    "-DNDEBUG",
+    "-fsyntax-only"
+  ],
+  "parse": "PASS",
+  "fix": "PASS",
+  "parser_deleted_before_generation": true,
+  "inventory_counts": {
+    "procedures": 40,
+    "messages": 72,
+    "roles": {
+      "INITIATING MESSAGE": 40,
+      "SUCCESSFUL OUTCOME": 20,
+      "UNSUCCESSFUL OUTCOME": 12
+    }
+  },
+  "summary": {
+    "physical": {
+      "PASS": 70,
+      "FAIL": 2
+    },
+    "body_generation": {
+      "PASS": 70,
+      "NOT_RUN": 2
+    },
+    "strict_compile": {
+      "PASS": 70,
+      "NOT_RUN": 2
+    },
+    "envelope_extraction": {
+      "PASS": 72
+    },
+    "envelope_generation": {
+      "PASS": 70,
+      "NOT_RUN": 2
+    },
+    "envelope_strict_compile": {
+      "PASS": 70,
+      "NOT_RUN": 2
+    }
+  },
+  "first_failure_clusters": {
+    "physical-extraction: E1AP-IEs.usageCountUL: unsupported inline INTEGER constraint": [
+      "DataUsageReport",
+      "MRDC-DataUsageReport"
+    ]
+  },
+  "limitations": [
+    "Observed inventory covers ordinary declarations and use-sites, not bound-instance internals.",
+    "Extraction stops at its first failure; later dependencies are masked.",
+    "Shared diagnostic text can have different underlying semantic causes.",
+    "Cluster sizes are observed affected message counts, not predicted unlock counts.",
+    "Target descriptor extraction does not qualify complete PDU encoding or interoperability.",
+    "Strict syntax compilation does not establish runtime bytes, linkage, vendor interoperability or protocol policy."
+  ],
+  "messages": [
+    {
+      "message": "Reset",
+      "procedure": "reset",
+      "procedure_code": 0,
+      "role": "INITIATING MESSAGE",
+      "expected_criticality": "reject",
+      "criticality_provenance": "explicit",
+      "root_container": "protocol-ie",
+      "physical_extraction_rc": 0,
+      "extraction_diagnostic": "",
+      "owned_types": 15,
+      "bound_instances": 7,
+      "registries": 5,
+      "envelope_extraction_rc": 0,
+      "envelope_diagnostic": "",
+      "generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "envelope_generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "types": "bb01904faa8e5f1bce5536695f88108af7e385ecbc4b6353f727e099a7f6e864",
+          "mapping": "80e38bbd5f0cfe5af28b3687a9e0a59a4d610135a3dfb48f72b16464d82c2ce4",
+          "codec": "88978c514c46d5daf47a09a8ade7ab657462e15b2adbfaaba0581f9333c32c0c"
+        }
+      },
+      "wire_qualification": "NOT_RUN",
+      "envelope_compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "envelope_types": "b20a6854b58c844c5f99b3de1c303cc739c3f1ffa83cdb1f79c7e0d97857d2c2",
+          "envelope_mapping": "cf8ff8040fd2dc1f97afc48a7ad8a29b7c0e668bc459b0a7a96a540a6ddfff9c",
+          "envelope_codec": "a43d82df8d2cfa2bb648b9db90c53bc12a1d2d9aa20b4088470630a19a6cce57"
+        }
+      }
+    },
+    {
+      "message": "ResetAcknowledge",
+      "procedure": "reset",
+      "procedure_code": 0,
+      "role": "SUCCESSFUL OUTCOME",
+      "expected_criticality": "reject",
+      "criticality_provenance": "explicit",
+      "root_container": "protocol-ie",
+      "physical_extraction_rc": 0,
+      "extraction_diagnostic": "",
+      "owned_types": 14,
+      "bound_instances": 9,
+      "registries": 5,
+      "envelope_extraction_rc": 0,
+      "envelope_diagnostic": "",
+      "generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "envelope_generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "types": "88d712f878ca3fd6c1de31ac8ad75c117254f534154ce05f1b0bb585e6dd06b2",
+          "mapping": "e0acc9872c5bcd82a420f74dd9352434026f4e151f156fbfd894f0b300aa56b1",
+          "codec": "167b9a4258ab8702c1d191e5720b506e2a84dc445d09d91fb32b88248bdd06a7"
+        }
+      },
+      "wire_qualification": "NOT_RUN",
+      "envelope_compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "envelope_types": "ee2fcaf6be303dc13b9ea1b6d4203af43d81b7d62746c9a0ae0c8fc14e62ec43",
+          "envelope_mapping": "769f2d13f92e21e31a6b767bb3d6e9e6fc2b0ba991a9d5274b70b398af5caca5",
+          "envelope_codec": "11768157c7574ce7be462ee89c091bbe856797355d63705d6c99698c053de039"
+        }
+      }
+    },
+    {
+      "message": "ErrorIndication",
+      "procedure": "errorIndication",
+      "procedure_code": 1,
+      "role": "INITIATING MESSAGE",
+      "expected_criticality": "ignore",
+      "criticality_provenance": "explicit",
+      "root_container": "protocol-ie",
+      "physical_extraction_rc": 0,
+      "extraction_diagnostic": "",
+      "owned_types": 19,
+      "bound_instances": 7,
+      "registries": 4,
+      "envelope_extraction_rc": 0,
+      "envelope_diagnostic": "",
+      "generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "envelope_generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "types": "e995e08b1392dad151a0dfcf4891bf3e1ff7424c5d8a231e728243a6ee59e1d5",
+          "mapping": "0decbeab3ed67ee660514deccc712c96434d095b9885d0b1193fa90a4d0fb41e",
+          "codec": "d7d29e652177d58afd0ddbdfe57e6d8b22df0fff5090e74a0a6ec4e2b027d007"
+        }
+      },
+      "wire_qualification": "NOT_RUN",
+      "envelope_compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "envelope_types": "4fa1381f87eea39e71c0e9fbb0c16c9cb8cb0892c8de195f366b842b229d5abd",
+          "envelope_mapping": "dd0cb83f6f01f02ddb85615ecde512c93f6799e35aed0bfad9c8e8ad229f87ba",
+          "envelope_codec": "a9b513a17418ed7519899775a8b3c6d68eea568cbf441f1e7c40de0720ff316f"
+        }
+      }
+    },
+    {
+      "message": "GNB-CU-UP-E1SetupRequest",
+      "procedure": "gNB-CU-UP-E1Setup",
+      "procedure_code": 3,
+      "role": "INITIATING MESSAGE",
+      "expected_criticality": "reject",
+      "criticality_provenance": "explicit",
+      "root_container": "protocol-ie",
+      "physical_extraction_rc": 0,
+      "extraction_diagnostic": "",
+      "owned_types": 63,
+      "bound_instances": 53,
+      "registries": 27,
+      "envelope_extraction_rc": 0,
+      "envelope_diagnostic": "",
+      "generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "envelope_generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "types": "0ba91253c85dae5e84dde01e34ecbde126a087d0745ea2c08893325f8062f4a2",
+          "mapping": "ed2e7a84eb4e1f8f6191b98cb740ff48490783d168fd8831f0cd9124759f3716",
+          "codec": "bfbce4504f8ad3392508863de5523e256b50ba37938f1b06ca714fdddfb34f3e"
+        }
+      },
+      "wire_qualification": "NOT_RUN",
+      "envelope_compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "envelope_types": "9cdf786100a4703f65023dd2c7c4178e4fda50800fe2b451161d6ba1391bda8e",
+          "envelope_mapping": "d6ffa559795b4f1055a32d108f8d134ebff5113550a8e230093f53688b910473",
+          "envelope_codec": "12d47544c0b50d732cb54e19cfda66c119929febb1bc353ddb5548dae7160deb"
+        }
+      }
+    },
+    {
+      "message": "GNB-CU-UP-E1SetupResponse",
+      "procedure": "gNB-CU-UP-E1Setup",
+      "procedure_code": 3,
+      "role": "SUCCESSFUL OUTCOME",
+      "expected_criticality": "reject",
+      "criticality_provenance": "explicit",
+      "root_container": "protocol-ie",
+      "physical_extraction_rc": 0,
+      "extraction_diagnostic": "",
+      "owned_types": 22,
+      "bound_instances": 16,
+      "registries": 8,
+      "envelope_extraction_rc": 0,
+      "envelope_diagnostic": "",
+      "generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "envelope_generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "types": "e95dd1c1407f80bb76f3ffeacd2a208390fdb21e6d171c521ff028327eddddb4",
+          "mapping": "c9332a75341c8619458a9fe0cac875be81445e8a6db035a9aeec5656e49cfc2f",
+          "codec": "4ebb318ae6a652aef8102369402bec82ea75be21ebf0772e5a21bf5adda28b18"
+        }
+      },
+      "wire_qualification": "NOT_RUN",
+      "envelope_compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "envelope_types": "109128b45e8041bb3a18ac4b9c92510fdd541b9550ac478485b289b827ec905d",
+          "envelope_mapping": "9f66a5e79855082e652c5d5da995349d5ff8966c4db42a71d2e13a28bd0d29bd",
+          "envelope_codec": "64c8e3f728c09a0276963249d964c83c13e9b599611246bcea95ce124783a855"
+        }
+      }
+    },
+    {
+      "message": "GNB-CU-UP-E1SetupFailure",
+      "procedure": "gNB-CU-UP-E1Setup",
+      "procedure_code": 3,
+      "role": "UNSUCCESSFUL OUTCOME",
+      "expected_criticality": "reject",
+      "criticality_provenance": "explicit",
+      "root_container": "protocol-ie",
+      "physical_extraction_rc": 0,
+      "extraction_diagnostic": "",
+      "owned_types": 16,
+      "bound_instances": 7,
+      "registries": 4,
+      "envelope_extraction_rc": 0,
+      "envelope_diagnostic": "",
+      "generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "envelope_generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "types": "ff68a6be119aa321a239c46ec5a019d57153ee2d5c1a790f95e76fe05c5d37c6",
+          "mapping": "629880516b1c3b25a2c602eb0c501e24644e882e7cae26f44c27f54f9989e0b8",
+          "codec": "7751fa320699ece2a25398e6191460bbeabddbfe1f74e35f370abe89ffb9af8e"
+        }
+      },
+      "wire_qualification": "NOT_RUN",
+      "envelope_compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "envelope_types": "15aea3afa7ed7e4def8ad67e2a6958f3316751f0f7df03d918e5eaf51c23bd98",
+          "envelope_mapping": "412f5aecdb724e96664e3c0ccf32a749a8e3338ac766e63723cf73f3d70664fb",
+          "envelope_codec": "b20d48a7bdfe78c01e599450e010590bcb263981c6eb19bbf287841f0cecadce"
+        }
+      }
+    },
+    {
+      "message": "GNB-CU-CP-E1SetupRequest",
+      "procedure": "gNB-CU-CP-E1Setup",
+      "procedure_code": 4,
+      "role": "INITIATING MESSAGE",
+      "expected_criticality": "reject",
+      "criticality_provenance": "explicit",
+      "root_container": "protocol-ie",
+      "physical_extraction_rc": 0,
+      "extraction_diagnostic": "",
+      "owned_types": 16,
+      "bound_instances": 12,
+      "registries": 6,
+      "envelope_extraction_rc": 0,
+      "envelope_diagnostic": "",
+      "generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "envelope_generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "types": "6d5e19dff5dee21b7185c694f0440237b060539b8f5e3841a8072e955e59754f",
+          "mapping": "d2e435f3864da28aa8de1f660b0906fb5e8ecd9e47b14a7c799b1cedd2602a91",
+          "codec": "34f7fbad7b65387688b95891e44dce7b899abc8244e76ef56959c323e32f799b"
+        }
+      },
+      "wire_qualification": "NOT_RUN",
+      "envelope_compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "envelope_types": "a5c84535f83dd055ea90c996fddd1e034ae181bc08d2b99d4e34ab7d1b67a0f9",
+          "envelope_mapping": "91736d7eadcda4083cde63edde06b3e99945c2534f9c203953caf3520561d622",
+          "envelope_codec": "1fc390dc89962c3b615f2ea37a445bab690c1ae1586bbfe54beeba45699f9f00"
+        }
+      }
+    },
+    {
+      "message": "GNB-CU-CP-E1SetupResponse",
+      "procedure": "gNB-CU-CP-E1Setup",
+      "procedure_code": 4,
+      "role": "SUCCESSFUL OUTCOME",
+      "expected_criticality": "reject",
+      "criticality_provenance": "explicit",
+      "root_container": "protocol-ie",
+      "physical_extraction_rc": 0,
+      "extraction_diagnostic": "",
+      "owned_types": 63,
+      "bound_instances": 49,
+      "registries": 25,
+      "envelope_extraction_rc": 0,
+      "envelope_diagnostic": "",
+      "generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "envelope_generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "types": "c919e494683db59564779afc7c793d361d2d35f76f1dca11e4bbc75c58e338a4",
+          "mapping": "fd185e94f89376643ca7f02191e250b6b25905a9ab74c4ee5d767dd960a1a93b",
+          "codec": "5d2153a71526e93766002a89ab2cc88d7dc067ca8f984ed05278664b342bfb46"
+        }
+      },
+      "wire_qualification": "NOT_RUN",
+      "envelope_compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "envelope_types": "8053f1ee5b3a4797518c771e9f2bb40882b584233d4c38cd83ebe08f5f4c8074",
+          "envelope_mapping": "f62e17701c3dbc80025eaad43b47b39d23da8efad72407f66fda19cc7c43ab0b",
+          "envelope_codec": "747ef3d4630528e37513e7a9be932a778da188e1e75a0c650adafb2d18af4215"
+        }
+      }
+    },
+    {
+      "message": "GNB-CU-CP-E1SetupFailure",
+      "procedure": "gNB-CU-CP-E1Setup",
+      "procedure_code": 4,
+      "role": "UNSUCCESSFUL OUTCOME",
+      "expected_criticality": "reject",
+      "criticality_provenance": "explicit",
+      "root_container": "protocol-ie",
+      "physical_extraction_rc": 0,
+      "extraction_diagnostic": "",
+      "owned_types": 16,
+      "bound_instances": 7,
+      "registries": 4,
+      "envelope_extraction_rc": 0,
+      "envelope_diagnostic": "",
+      "generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "envelope_generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "types": "311a13ab623b929fa200cd716f5250fa17bc844c687b1e95a0203600e224fb59",
+          "mapping": "b4c64700bef33d0dca8682a57e8beb293b611ba967e1b4fd880ca87ced8c5a3d",
+          "codec": "fcf00787d83abc1a2626ed2ec7c5a918b9c8683d920f189a07b1edb0ac09d1bb"
+        }
+      },
+      "wire_qualification": "NOT_RUN",
+      "envelope_compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "envelope_types": "5bde985a27b9e990264bd8503049525a411bf5f54244347e17aeb8831db67a91",
+          "envelope_mapping": "55a38d70421b0dddc30c470feec709f95ee3e367aa69e5e40a38e44b61329c41",
+          "envelope_codec": "ad762dfbd85081a9bdda7c4f417ff35e5c8ef2995f5c0cdaa95fb292a36ceadb"
+        }
+      }
+    },
+    {
+      "message": "GNB-CU-UP-ConfigurationUpdate",
+      "procedure": "gNB-CU-UP-ConfigurationUpdate",
+      "procedure_code": 5,
+      "role": "INITIATING MESSAGE",
+      "expected_criticality": "reject",
+      "criticality_provenance": "explicit",
+      "root_container": "protocol-ie",
+      "physical_extraction_rc": 0,
+      "extraction_diagnostic": "",
+      "owned_types": 67,
+      "bound_instances": 58,
+      "registries": 30,
+      "envelope_extraction_rc": 0,
+      "envelope_diagnostic": "",
+      "generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "envelope_generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "types": "1a3016eaf111566db611b7db161babeac5b7f0d0c522b8f5434e7656b6edd035",
+          "mapping": "4c9cace46c22d09d4115e17dddc4abc4a09c835ce2e5ceb9af5f7c3115b28c43",
+          "codec": "3f758d10214a904b3290d1efacf01fcf12428c3d50db7dafd751f0c71d246fd1"
+        }
+      },
+      "wire_qualification": "NOT_RUN",
+      "envelope_compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "envelope_types": "5a0ab9f3cb6daff5c680784bc0824dbf8cd9310fa7d72a794dfa4ae886ffb380",
+          "envelope_mapping": "d163a65b52a4679a10a85971ab9ec2365e915ee2e7bdadece06ad15f0b90629e",
+          "envelope_codec": "6b1bc50f21b7a7846f6319be62348060b3246addd296f48f9a835947ca89ed59"
+        }
+      }
+    },
+    {
+      "message": "GNB-CU-UP-ConfigurationUpdateAcknowledge",
+      "procedure": "gNB-CU-UP-ConfigurationUpdate",
+      "procedure_code": 5,
+      "role": "SUCCESSFUL OUTCOME",
+      "expected_criticality": "reject",
+      "criticality_provenance": "explicit",
+      "root_container": "protocol-ie",
+      "physical_extraction_rc": 0,
+      "extraction_diagnostic": "",
+      "owned_types": 18,
+      "bound_instances": 14,
+      "registries": 7,
+      "envelope_extraction_rc": 0,
+      "envelope_diagnostic": "",
+      "generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "envelope_generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "types": "ad9f8bb1b3783a4b888bc106c0b518a7d40a6ff322ca0a4ee62e971d3d6cb8c8",
+          "mapping": "c684fd44c98de6f36bdfe503035b36fd0cd732d4bdfd4d30cbe191677ee3aeed",
+          "codec": "b46edbefeaa759744225eb51e8d4ec41b7b6fe9cee2d1e8934e6efc494148eb5"
+        }
+      },
+      "wire_qualification": "NOT_RUN",
+      "envelope_compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "envelope_types": "0357a214eb2206587b6706b679c88d531e703e7f34656a21e9b747d387b9a097",
+          "envelope_mapping": "b44a3a173adf56f23d45cc2d73af76c8431016d8c433cc70a1e55b70d7762b4c",
+          "envelope_codec": "0d11926a906b89c2f37195bf85e1ae064873556e4f35a9e26a503fbf067deed2"
+        }
+      }
+    },
+    {
+      "message": "GNB-CU-UP-ConfigurationUpdateFailure",
+      "procedure": "gNB-CU-UP-ConfigurationUpdate",
+      "procedure_code": 5,
+      "role": "UNSUCCESSFUL OUTCOME",
+      "expected_criticality": "reject",
+      "criticality_provenance": "explicit",
+      "root_container": "protocol-ie",
+      "physical_extraction_rc": 0,
+      "extraction_diagnostic": "",
+      "owned_types": 16,
+      "bound_instances": 7,
+      "registries": 4,
+      "envelope_extraction_rc": 0,
+      "envelope_diagnostic": "",
+      "generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "envelope_generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "types": "e5e9c22ac17d675d209c43160f0aa68c8056a25347c9fee8c97d914c0a1df213",
+          "mapping": "830e1a1e3d206e6dcad0b21fb1609498c44943af57897a2f78e6fae474ada299",
+          "codec": "aab0877c7a9500e83c18c025b9fb8fa3c77ddc7bd8c993e8f7ef00bc08be99f3"
+        }
+      },
+      "wire_qualification": "NOT_RUN",
+      "envelope_compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "envelope_types": "04ef78cb314e366020691666ab1540dc45d189626078b39eff9664252a6a050f",
+          "envelope_mapping": "b4d316e0821e008cef634c151e7c8ba3cbf12f2755050fdba1b35dae357ad037",
+          "envelope_codec": "b8e4694f9d8466cfb96ca4af3c691e98338296d43e8c5f64988cba1401bf0cef"
+        }
+      }
+    },
+    {
+      "message": "GNB-CU-CP-ConfigurationUpdate",
+      "procedure": "gNB-CU-CP-ConfigurationUpdate",
+      "procedure_code": 6,
+      "role": "INITIATING MESSAGE",
+      "expected_criticality": "reject",
+      "criticality_provenance": "explicit",
+      "root_container": "protocol-ie",
+      "physical_extraction_rc": 0,
+      "extraction_diagnostic": "",
+      "owned_types": 26,
+      "bound_instances": 21,
+      "registries": 11,
+      "envelope_extraction_rc": 0,
+      "envelope_diagnostic": "",
+      "generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "envelope_generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "types": "9ed46f644eb4089d9632458009438062c4b6093ff35ace78b5763ad81cb167a9",
+          "mapping": "d4e2dadd54515ec9ebc365f5d6b370927d922e81023b42ef46dcdfb80c7603e2",
+          "codec": "4a4561838d46fa1b3d87abe4141a31da2f49c6a63699261b2505b7af7efdded4"
+        }
+      },
+      "wire_qualification": "NOT_RUN",
+      "envelope_compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "envelope_types": "b7842bb0f6dcf144bc70d09f08b4e8aefb859790905770afac1b79bef8c7fd4e",
+          "envelope_mapping": "ee0262ebf728fbd762459506aff63aae93dab74cf310217be152a1403c244c0d",
+          "envelope_codec": "0ddf9a6d3c66875a57e55c19cc55b5867bd93ff56418bff8c4080e9d37bd4909"
+        }
+      }
+    },
+    {
+      "message": "GNB-CU-CP-ConfigurationUpdateAcknowledge",
+      "procedure": "gNB-CU-CP-ConfigurationUpdate",
+      "procedure_code": 6,
+      "role": "SUCCESSFUL OUTCOME",
+      "expected_criticality": "reject",
+      "criticality_provenance": "explicit",
+      "root_container": "protocol-ie",
+      "physical_extraction_rc": 0,
+      "extraction_diagnostic": "",
+      "owned_types": 30,
+      "bound_instances": 22,
+      "registries": 12,
+      "envelope_extraction_rc": 0,
+      "envelope_diagnostic": "",
+      "generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "envelope_generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "types": "eb7bb35a8bb386411ef9f2d8033f52b252eabb927a8d1ce34ab5a38117f9b397",
+          "mapping": "7020678772c16c363c042a52a17a511f9ee2a95d3a8b93432b043e2865fd058c",
+          "codec": "616439e3e014fb33e1a4bc1187d4b648444b393f0024232df8ab8628bc746480"
+        }
+      },
+      "wire_qualification": "NOT_RUN",
+      "envelope_compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "envelope_types": "771855871c9df878dc87878b80091bcf252ba2c2e5154f8373fcae1a8fc45be1",
+          "envelope_mapping": "d2566efbfee25ff9186da466d3d384835ce9adc0007cdffedea3f5485f210865",
+          "envelope_codec": "78c01d1dfdc1c15349941c907259eaf5e4d7d91407cb3b5f62b103ab739496dd"
+        }
+      }
+    },
+    {
+      "message": "GNB-CU-CP-ConfigurationUpdateFailure",
+      "procedure": "gNB-CU-CP-ConfigurationUpdate",
+      "procedure_code": 6,
+      "role": "UNSUCCESSFUL OUTCOME",
+      "expected_criticality": "reject",
+      "criticality_provenance": "explicit",
+      "root_container": "protocol-ie",
+      "physical_extraction_rc": 0,
+      "extraction_diagnostic": "",
+      "owned_types": 16,
+      "bound_instances": 7,
+      "registries": 4,
+      "envelope_extraction_rc": 0,
+      "envelope_diagnostic": "",
+      "generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "envelope_generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "types": "114c49524e30b470f16263c4663a4b2aad4db546e387a6b22a2581559f8930b6",
+          "mapping": "a1ae90502ebdddbd52ea6ccb1ce387844afeb7b8ff28d77b79a426df54bf08fe",
+          "codec": "2f146fd40abbacdf4bde18c90d8080d585476a0b93785fa029e895fdc49e096d"
+        }
+      },
+      "wire_qualification": "NOT_RUN",
+      "envelope_compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "envelope_types": "c8c1b03b9ec4c9d31b566b4f8056c42daf029e34c53b2e07558206023fab0de1",
+          "envelope_mapping": "6a196a27e3aea5a0963fab4f1e3eeee8bf40865c19a7574aff05a8fd9de7015b",
+          "envelope_codec": "728476c5b4abed35c89f06afdcb1f6b3ef1c22345647b03045fda78bf3357e0b"
+        }
+      }
+    },
+    {
+      "message": "E1ReleaseRequest",
+      "procedure": "e1Release",
+      "procedure_code": 7,
+      "role": "INITIATING MESSAGE",
+      "expected_criticality": "reject",
+      "criticality_provenance": "explicit",
+      "root_container": "protocol-ie",
+      "physical_extraction_rc": 0,
+      "extraction_diagnostic": "",
+      "owned_types": 9,
+      "bound_instances": 3,
+      "registries": 2,
+      "envelope_extraction_rc": 0,
+      "envelope_diagnostic": "",
+      "generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "envelope_generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "types": "022aacfe628f2e37f18ee24ea9a426cfcc673cf6c7e277b6d31142571adc69bf",
+          "mapping": "96269362dcdc244a9b0ace288ab7c78e34a5a1b1f2c0ab1d2dfd87810535b79a",
+          "codec": "99cdb7004815f53947549ceb89f5ca756c3ca719953bf5bc2c7f91993bddb6da"
+        }
+      },
+      "wire_qualification": "NOT_RUN",
+      "envelope_compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "envelope_types": "14919a3c3244dd3c9ec62560ad381c996c6677d0f8a765bf9b8b01427eeb5948",
+          "envelope_mapping": "b414b3bcf8207d35aba6b8f7d8c1cc2b2c966851686704887792e548026ef3e8",
+          "envelope_codec": "d49852c893e98624de664949723b5fb345a3baa021746387ab3f57d77996ecdf"
+        }
+      }
+    },
+    {
+      "message": "E1ReleaseResponse",
+      "procedure": "e1Release",
+      "procedure_code": 7,
+      "role": "SUCCESSFUL OUTCOME",
+      "expected_criticality": "reject",
+      "criticality_provenance": "explicit",
+      "root_container": "protocol-ie",
+      "physical_extraction_rc": 0,
+      "extraction_diagnostic": "",
+      "owned_types": 10,
+      "bound_instances": 6,
+      "registries": 3,
+      "envelope_extraction_rc": 0,
+      "envelope_diagnostic": "",
+      "generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "envelope_generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "types": "b6d00ec0c60e26cf670fc48249ba7a86856dd4628e21ee484f93828baac9ec5f",
+          "mapping": "4d904f0931bf6e651becccea7f8edf5ad76d001bbd7136df4e3acc4e233bf1a0",
+          "codec": "a723de29f05af0c446ffb98cc0dac8512bc493653d54ffde03482b60ca0b6583"
+        }
+      },
+      "wire_qualification": "NOT_RUN",
+      "envelope_compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "envelope_types": "0c430e66dea7d6333c1d73d1134501a144840b840217f619d08c2eefba740dff",
+          "envelope_mapping": "9ebc925930c6b71a9729ce78c8cd5b20e4dca7b01bcccdaa1c41ddab4988f5b5",
+          "envelope_codec": "cc09b288113e400c6379ea981b368fd3f7204780ea1b347715b3b31dae0277d4"
+        }
+      }
+    },
+    {
+      "message": "BearerContextSetupRequest",
+      "procedure": "bearerContextSetup",
+      "procedure_code": 8,
+      "role": "INITIATING MESSAGE",
+      "expected_criticality": "reject",
+      "criticality_provenance": "explicit",
+      "root_container": "protocol-ie",
+      "physical_extraction_rc": 0,
+      "extraction_diagnostic": "",
+      "owned_types": 178,
+      "bound_instances": 119,
+      "registries": 63,
+      "envelope_extraction_rc": 0,
+      "envelope_diagnostic": "",
+      "generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "envelope_generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "types": "6393d0df792c16bd6c03cac8e85ff84c174cfc5b166cf08eb2ae7883474c52de",
+          "mapping": "8f8d36f26a04fc2bbf1e002f405adc790d91e188e972c4df310bacf4ea56532d",
+          "codec": "ba54203bf80626979d7a61637ac522da787a34cad5ec59e3a72903f35146626a"
+        }
+      },
+      "wire_qualification": "NOT_RUN",
+      "envelope_compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "envelope_types": "2b68166c5239169f74047b482b7ce0ee33062b7a4784c25557136a4c379daaf0",
+          "envelope_mapping": "64bad92a4e614accd5bc45506c0c45a69dd8d7cd1dedb296d61dddaafb6e20fb",
+          "envelope_codec": "50028ed7fed2ddb2740a9ccb2ad2eeb7ca324a94909572742e0e4e7089fa8953"
+        }
+      }
+    },
+    {
+      "message": "BearerContextSetupResponse",
+      "procedure": "bearerContextSetup",
+      "procedure_code": 8,
+      "role": "SUCCESSFUL OUTCOME",
+      "expected_criticality": "reject",
+      "criticality_provenance": "explicit",
+      "root_container": "protocol-ie",
+      "physical_extraction_rc": 0,
+      "extraction_diagnostic": "",
+      "owned_types": 58,
+      "bound_instances": 41,
+      "registries": 22,
+      "envelope_extraction_rc": 0,
+      "envelope_diagnostic": "",
+      "generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "envelope_generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "types": "7572476a15b81f698280abefb3b6db39660e3a48279433494eeb4470883c5cef",
+          "mapping": "14c2f6b3de818132cdc2c31564db19cf884916375adc4665d6b7dbccdc4a4b2b",
+          "codec": "184e3b4f007cf4354ae56ffc27364cc376ff9002df411bcb1e3a62bb890563ed"
+        }
+      },
+      "wire_qualification": "NOT_RUN",
+      "envelope_compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "envelope_types": "90b1b3d712016437a8378e8fe0abe0dd08d6ac6fb42780c80151b9ff4505b78d",
+          "envelope_mapping": "9bfd3b73c29d4a6a22b5f582eb3d7c35b8991396b4f303245182da237f2c0878",
+          "envelope_codec": "b99e4857f24e0e6a77ff60d5031a14c14afc9fdb4f22a77b0b62455433483cb3"
+        }
+      }
+    },
+    {
+      "message": "BearerContextSetupFailure",
+      "procedure": "bearerContextSetup",
+      "procedure_code": 8,
+      "role": "UNSUCCESSFUL OUTCOME",
+      "expected_criticality": "reject",
+      "criticality_provenance": "explicit",
+      "root_container": "protocol-ie",
+      "physical_extraction_rc": 0,
+      "extraction_diagnostic": "",
+      "owned_types": 17,
+      "bound_instances": 7,
+      "registries": 4,
+      "envelope_extraction_rc": 0,
+      "envelope_diagnostic": "",
+      "generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "envelope_generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "types": "70a9437f470957740ec30d27eb32b895120f79b1704ed290f0cc8acaf6ab67fe",
+          "mapping": "8466b0ca3fb714cb1d8683f7d50c5d6abcb79dd5e2081994a65618bb63fa72c8",
+          "codec": "68ef08008cde4691fc94cc5e6bb3205c4fa6a3545cf7d314b30a6373d3282a75"
+        }
+      },
+      "wire_qualification": "NOT_RUN",
+      "envelope_compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "envelope_types": "fc02c941bc32c382c45bf2cf54ec148fc9340d77cef0d2fe8c2c16df5f0157a1",
+          "envelope_mapping": "6c0c15ad7e59de89e10eeba1f1d799ad04294e0fdfecbfa6860023ce1ad41e6a",
+          "envelope_codec": "e5b2528ab2665117c25ac294984fc9504a36dac4b1370f08af60bed7ab946de2"
+        }
+      }
+    },
+    {
+      "message": "BearerContextModificationRequest",
+      "procedure": "bearerContextModification",
+      "procedure_code": 9,
+      "role": "INITIATING MESSAGE",
+      "expected_criticality": "reject",
+      "criticality_provenance": "explicit",
+      "root_container": "protocol-ie",
+      "physical_extraction_rc": 0,
+      "extraction_diagnostic": "",
+      "owned_types": 194,
+      "bound_instances": 133,
+      "registries": 70,
+      "envelope_extraction_rc": 0,
+      "envelope_diagnostic": "",
+      "generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "envelope_generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "types": "a174d0a813186f4c3e38da96cdd1bf4929eb40262c441f56552483fda5ed361f",
+          "mapping": "bf8f1b36febc3c20360c287acb6fe5bc81730607ca250915a36ccef466d44ce8",
+          "codec": "e2c626ec251c648e0169d78f159e3867b2d4f154f18186e7ae4121d95e4e6e20"
+        }
+      },
+      "wire_qualification": "NOT_RUN",
+      "envelope_compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "envelope_types": "5cdc88e6a9ad4ed04974f134ab518ffc7739f32b7108a8f851d7c1f1fabd9ef1",
+          "envelope_mapping": "cd3534adc1e6f57cae54274087d3128dcf3dcd5fe0e35c194b3f0344491eaa8e",
+          "envelope_codec": "2098d927f5c3a2722c8cfc4805b78f39c07a4531ae621a20e8b0b4bf104be111"
+        }
+      }
+    },
+    {
+      "message": "BearerContextModificationResponse",
+      "procedure": "bearerContextModification",
+      "procedure_code": 9,
+      "role": "SUCCESSFUL OUTCOME",
+      "expected_criticality": "reject",
+      "criticality_provenance": "explicit",
+      "root_container": "protocol-ie",
+      "physical_extraction_rc": 0,
+      "extraction_diagnostic": "",
+      "owned_types": 84,
+      "bound_instances": 70,
+      "registries": 37,
+      "envelope_extraction_rc": 0,
+      "envelope_diagnostic": "",
+      "generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "envelope_generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "types": "580908751b73f00c48df4511e645cdd73c9b91348108de4784918a98adad1f92",
+          "mapping": "4ee9e98220262f562f41e9fb4506788099983b48bf826a385eb6f3d6834d5029",
+          "codec": "eb83cf23793d8fcfbc52e15bad6249f45674eeaf033af7b3c306313af9d3c428"
+        }
+      },
+      "wire_qualification": "NOT_RUN",
+      "envelope_compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "envelope_types": "7d5179bc66dd49608c4f8571d60dbdc3d2e59a150c6f667fe8ec5c78eb60e4c0",
+          "envelope_mapping": "b096402b9dd0f99f9f8764347b657a582a8d735d873a2350c084817ec119d7e5",
+          "envelope_codec": "9be278adbca94ca99cb8c9e8f1de0fe2a26819e50f2eaf27d0b48b4bda7727f3"
+        }
+      }
+    },
+    {
+      "message": "BearerContextModificationFailure",
+      "procedure": "bearerContextModification",
+      "procedure_code": 9,
+      "role": "UNSUCCESSFUL OUTCOME",
+      "expected_criticality": "reject",
+      "criticality_provenance": "explicit",
+      "root_container": "protocol-ie",
+      "physical_extraction_rc": 0,
+      "extraction_diagnostic": "",
+      "owned_types": 17,
+      "bound_instances": 7,
+      "registries": 4,
+      "envelope_extraction_rc": 0,
+      "envelope_diagnostic": "",
+      "generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "envelope_generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "types": "2b09d8269a883feb42db24eb7789b1684ca83d4a9c41f70ab1528c429092aa60",
+          "mapping": "d81f934b208d8f4ad3ca9a4862f385d97d8682dba7e53f3e8f114cf34fe4040d",
+          "codec": "c7ee84901fd00d07c9cfd1cdec261b3fc7802a28ca2ca074d7eb7a34c66f3743"
+        }
+      },
+      "wire_qualification": "NOT_RUN",
+      "envelope_compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "envelope_types": "e673a63792990941801a4290ec4f69ffd745950b24e30bd160f8ba6df05b04a0",
+          "envelope_mapping": "f7ee4af54f7a3d27165291eb89e33f39251da7d287e52eb9c77040125386e437",
+          "envelope_codec": "3ca0a064198f49894e0f23b517f58ba2333b03fd0b6fe226ef85b071a436cb20"
+        }
+      }
+    },
+    {
+      "message": "BearerContextModificationRequired",
+      "procedure": "bearerContextModificationRequired",
+      "procedure_code": 10,
+      "role": "INITIATING MESSAGE",
+      "expected_criticality": "reject",
+      "criticality_provenance": "explicit",
+      "root_container": "protocol-ie",
+      "physical_extraction_rc": 0,
+      "extraction_diagnostic": "",
+      "owned_types": 39,
+      "bound_instances": 27,
+      "registries": 15,
+      "envelope_extraction_rc": 0,
+      "envelope_diagnostic": "",
+      "generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "envelope_generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "types": "a582366a0890acffaac4c22755996f5ee61926218d88b165de23ec59018580f0",
+          "mapping": "d093d1ade7c654dd33ebf896106f8771fbb79025428eee32af99603d2d4d5e29",
+          "codec": "a58e41a927b0fb68bb8c82dfd00db127f06391567b1ea989359fe2ee5997d4dd"
+        }
+      },
+      "wire_qualification": "NOT_RUN",
+      "envelope_compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "envelope_types": "7e1913f7faa1086505522247934cc46514480bc4f1f3a36558df52c73721ea53",
+          "envelope_mapping": "bccff8b73b620a9efca8bb984023cae9b7181218b7e901f5306746c71481ddb8",
+          "envelope_codec": "6709166679c84e79463333da0960868684cbada0c5a2c79d3e66de85dab95813"
+        }
+      }
+    },
+    {
+      "message": "BearerContextModificationConfirm",
+      "procedure": "bearerContextModificationRequired",
+      "procedure_code": 10,
+      "role": "SUCCESSFUL OUTCOME",
+      "expected_criticality": "reject",
+      "criticality_provenance": "explicit",
+      "root_container": "protocol-ie",
+      "physical_extraction_rc": 0,
+      "extraction_diagnostic": "",
+      "owned_types": 28,
+      "bound_instances": 19,
+      "registries": 10,
+      "envelope_extraction_rc": 0,
+      "envelope_diagnostic": "",
+      "generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "envelope_generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "types": "81193b61e15ae51280203098d59b59c50dc836bc80c6ca0931057c9d9d52e362",
+          "mapping": "2b67f7b54fb3b7e190b71a5412803babc08f21dc0dcda760625075b8dd1b12de",
+          "codec": "8a87e0869fa7972635b1b4eedbd08a51cd7803d1e35bb0c96c20c791d48bafc9"
+        }
+      },
+      "wire_qualification": "NOT_RUN",
+      "envelope_compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "envelope_types": "c0e8a6bbd3d35b15d88364f628aa8e2e763a679cdc1813f513a18324e8ea704a",
+          "envelope_mapping": "55776fb0036481d9102c57d06e5518d07b2c1b49c14545204e6b64942946d681",
+          "envelope_codec": "1931cc2826ed7258137667f88e39483e8a5845a45bfe6cfbb48506e07e5af83a"
+        }
+      }
+    },
+    {
+      "message": "BearerContextReleaseCommand",
+      "procedure": "bearerContextRelease",
+      "procedure_code": 11,
+      "role": "INITIATING MESSAGE",
+      "expected_criticality": "reject",
+      "criticality_provenance": "explicit",
+      "root_container": "protocol-ie",
+      "physical_extraction_rc": 0,
+      "extraction_diagnostic": "",
+      "owned_types": 10,
+      "bound_instances": 3,
+      "registries": 2,
+      "envelope_extraction_rc": 0,
+      "envelope_diagnostic": "",
+      "generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "envelope_generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "types": "29f1b8c8c40626c283f8b6bf8991e58281da7b7e707a2130592dd613f193515b",
+          "mapping": "f0aff4e773e876a878415a7089fca4ae96c49d2a7d05512cf32b0ac1f45aed35",
+          "codec": "25c323b6d3155c7caa2cbc565ab30308d6b7b055e377a52446f830bc28676ac2"
+        }
+      },
+      "wire_qualification": "NOT_RUN",
+      "envelope_compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "envelope_types": "644c48a43510f4c9f9a07eda838bb3c7a9cdc7474b14fae72e56fd206d733eab",
+          "envelope_mapping": "8dccc3ba46155087209591dca97e3ebdbefd1bc2f842a3c427ef775d47ef616a",
+          "envelope_codec": "b45b0ad06c39ba39ca34807495b77846144f46b6245f79332d41db263ca9ee42"
+        }
+      }
+    },
+    {
+      "message": "BearerContextReleaseComplete",
+      "procedure": "bearerContextRelease",
+      "procedure_code": 11,
+      "role": "SUCCESSFUL OUTCOME",
+      "expected_criticality": "reject",
+      "criticality_provenance": "explicit",
+      "root_container": "protocol-ie",
+      "physical_extraction_rc": 0,
+      "extraction_diagnostic": "",
+      "owned_types": 18,
+      "bound_instances": 10,
+      "registries": 5,
+      "envelope_extraction_rc": 0,
+      "envelope_diagnostic": "",
+      "generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "envelope_generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "types": "5a66df855bcc8df628c80b6c333fb4f4968fd415bd5b068f93e3368ba80c5b3d",
+          "mapping": "ebcd8aea919ad8b749878aa995a60b785f4d79378070cab3dd43eed41faf6240",
+          "codec": "880233beae32dcca8dbd913fe97145954a2ef1aebe88fbdc8f0d9b987d8c380e"
+        }
+      },
+      "wire_qualification": "NOT_RUN",
+      "envelope_compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "envelope_types": "aaaa8ec959d19f7c61720e6f1ba22805c5115c7f2c4f9876b0ac7edc69d16598",
+          "envelope_mapping": "522d4a1df6a3a7cc051549647219a95d7c3fc21972afd08b7c2f86ad9ec0123c",
+          "envelope_codec": "0ad6419d2e5dfd70227a2651b7e357f6903d88c3f0c098d16e3f50877a8c3357"
+        }
+      }
+    },
+    {
+      "message": "BearerContextReleaseRequest",
+      "procedure": "bearerContextReleaseRequest",
+      "procedure_code": 12,
+      "role": "INITIATING MESSAGE",
+      "expected_criticality": "ignore",
+      "criticality_provenance": "explicit",
+      "root_container": "protocol-ie",
+      "physical_extraction_rc": 0,
+      "extraction_diagnostic": "",
+      "owned_types": 16,
+      "bound_instances": 7,
+      "registries": 4,
+      "envelope_extraction_rc": 0,
+      "envelope_diagnostic": "",
+      "generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "envelope_generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "types": "69c60829f4ef13f6a5ff35ccfcd8e0d504a3d0c848598e102a8c1f05c334132f",
+          "mapping": "1cba485c7ea297f0db1b6289dbea398950bf17f0723430fba99f9dec7eee66d6",
+          "codec": "c299d3a7b701b3b2a505ac8abc89e320604b350ce1be2b70e4db2ae999e3b4ea"
+        }
+      },
+      "wire_qualification": "NOT_RUN",
+      "envelope_compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "envelope_types": "2228b65a58be5b403e2dc9edea2c5f791769e90aa53cc7dc05658f793b70e82d",
+          "envelope_mapping": "260170f6af06672902d1344089513172fb14827d65bf2eefeb7fd14b947dfab2",
+          "envelope_codec": "e71e2061ec55365e6c889ac1f0b63ff62d8fc45164a1cace6606af6aa6639898"
+        }
+      }
+    },
+    {
+      "message": "BearerContextInactivityNotification",
+      "procedure": "bearerContextInactivityNotification",
+      "procedure_code": 13,
+      "role": "INITIATING MESSAGE",
+      "expected_criticality": "ignore",
+      "criticality_provenance": "explicit",
+      "root_container": "protocol-ie",
+      "physical_extraction_rc": 0,
+      "extraction_diagnostic": "",
+      "owned_types": 15,
+      "bound_instances": 7,
+      "registries": 4,
+      "envelope_extraction_rc": 0,
+      "envelope_diagnostic": "",
+      "generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "envelope_generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "types": "ac25d0c454433fad5b15111f9c3d5859bf7d289212239b5eec246f75d32a7172",
+          "mapping": "b7409a10c9b63bfbb71e8ff2e5baccaa2dba8c54ba1607cfd6edd6391f7489ee",
+          "codec": "b667eb8f803be6534f60a917148c78b871302d36c5965af2581cca3d2aa2341e"
+        }
+      },
+      "wire_qualification": "NOT_RUN",
+      "envelope_compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "envelope_types": "26b8478fd5d9a41ddeb878bc08b3eaabd3a24837d8e4b47e373c509d17b70987",
+          "envelope_mapping": "027dd6775a884a4ad99340fa2a4b092df56d194aae62c73c56f95e27c7fe1431",
+          "envelope_codec": "fa6efd83a6964e8d72dbe6bd8031196642d4d0c72f992ced6fb984366689f790"
+        }
+      }
+    },
+    {
+      "message": "DLDataNotification",
+      "procedure": "dLDataNotification",
+      "procedure_code": 14,
+      "role": "INITIATING MESSAGE",
+      "expected_criticality": "ignore",
+      "criticality_provenance": "explicit",
+      "root_container": "protocol-ie",
+      "physical_extraction_rc": 0,
+      "extraction_diagnostic": "",
+      "owned_types": 18,
+      "bound_instances": 8,
+      "registries": 4,
+      "envelope_extraction_rc": 0,
+      "envelope_diagnostic": "",
+      "generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "envelope_generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "types": "06cdf6dd6481dfda0035df49f5b4030eee5aa92b9171c18d73fd77b5d9f3697c",
+          "mapping": "8dbd7396658f1c7cd1daa84cf880145a6026d2f4420da3fd7cfded0d04f9ecde",
+          "codec": "769f0b4cec6ff0cca5ee83627079f9845bdfaac9d53546c33c79d3b6d1df379e"
+        }
+      },
+      "wire_qualification": "NOT_RUN",
+      "envelope_compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "envelope_types": "c676fa78f45be22cddb13feb7b7570390b1b0835768ed57a0341a1c63abc670e",
+          "envelope_mapping": "6a15956182b236cd919e9cf2df8f301dcd9c49a27a616f02e28c93e1dcbe00f3",
+          "envelope_codec": "f3a9c2f5c39a92aaa9f0cdde77977663a5c63aeca407fa285494e8070fc4bf88"
+        }
+      }
+    },
+    {
+      "message": "ULDataNotification",
+      "procedure": "uLDataNotification",
+      "procedure_code": 18,
+      "role": "INITIATING MESSAGE",
+      "expected_criticality": "ignore",
+      "criticality_provenance": "explicit",
+      "root_container": "protocol-ie",
+      "physical_extraction_rc": 0,
+      "extraction_diagnostic": "",
+      "owned_types": 14,
+      "bound_instances": 6,
+      "registries": 3,
+      "envelope_extraction_rc": 0,
+      "envelope_diagnostic": "",
+      "generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "envelope_generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "types": "aff606432122111cae1e30d8c8af7bcd503377f7b92efedd37407a94e1920bf7",
+          "mapping": "93abd412db532bc61c0e7704fa0d4c7dd0872db2258feadd268404275ecb82f3",
+          "codec": "f95a6a78f7bbcf85760e3b51bea65711be3d256ff4e2062f4f85a58966255f80"
+        }
+      },
+      "wire_qualification": "NOT_RUN",
+      "envelope_compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "envelope_types": "e8a59313939353dddc9cc023834c018574ed29147d819359cce37c00864dcfa0",
+          "envelope_mapping": "d69eef7c662cfcf98e9abecb027890be39fb065498138563590cf827ff7457d9",
+          "envelope_codec": "7e0d2f2a97991e9c29621a9a082b4a565604c2d57862be719b0963149fed2174"
+        }
+      }
+    },
+    {
+      "message": "DataUsageReport",
+      "procedure": "dataUsageReport",
+      "procedure_code": 15,
+      "role": "INITIATING MESSAGE",
+      "expected_criticality": "ignore",
+      "criticality_provenance": "explicit",
+      "root_container": "protocol-ie",
+      "physical_extraction_rc": -1,
+      "extraction_diagnostic": "E1AP-IEs.usageCountUL: unsupported inline INTEGER constraint",
+      "owned_types": 0,
+      "bound_instances": 0,
+      "registries": 0,
+      "envelope_extraction_rc": 0,
+      "envelope_diagnostic": "",
+      "generation": [],
+      "envelope_generation": [],
+      "compile": {
+        "status": "NOT_RUN",
+        "reason": "physical extraction or BODY generation failed"
+      },
+      "wire_qualification": "NOT_RUN",
+      "envelope_compile": {
+        "status": "NOT_RUN",
+        "reason": "BODY or envelope evidence/generation failed"
+      }
+    },
+    {
+      "message": "GNB-CU-UP-CounterCheckRequest",
+      "procedure": "gNB-CU-UP-CounterCheck",
+      "procedure_code": 16,
+      "role": "INITIATING MESSAGE",
+      "expected_criticality": "ignore",
+      "criticality_provenance": "explicit",
+      "root_container": "protocol-ie",
+      "physical_extraction_rc": 0,
+      "extraction_diagnostic": "",
+      "owned_types": 15,
+      "bound_instances": 13,
+      "registries": 7,
+      "envelope_extraction_rc": 0,
+      "envelope_diagnostic": "",
+      "generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "envelope_generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "types": "885bddf0be25e1b160d281ba93199553fdb0a782911b237f5518f72653ae760c",
+          "mapping": "04745396f876b626921d95c89e57a7e9acd0f7f8e1c718cc658750f0fa3909e6",
+          "codec": "4a35ee05f1db6098ec1e62ef5feacfdf3d18101ba0828caa66263f3e51827a00"
+        }
+      },
+      "wire_qualification": "NOT_RUN",
+      "envelope_compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "envelope_types": "4abad1e5e1f1c9d95ae491f14d2f1e856e6b9fe4deb0ebbb4c3342c2bf8bffcd",
+          "envelope_mapping": "642685b9b95c6fc57dddd736146ded38d329e3a39353e3a794e3e51a64930bda",
+          "envelope_codec": "161c0ed82a96903ec2471595b7d159de3d0c676afd2496747e15801b481fbbc7"
+        }
+      }
+    },
+    {
+      "message": "GNB-CU-UP-StatusIndication",
+      "procedure": "gNB-CU-UP-StatusIndication",
+      "procedure_code": 17,
+      "role": "INITIATING MESSAGE",
+      "expected_criticality": "ignore",
+      "criticality_provenance": "explicit",
+      "root_container": "protocol-ie",
+      "physical_extraction_rc": 0,
+      "extraction_diagnostic": "",
+      "owned_types": 5,
+      "bound_instances": 2,
+      "registries": 1,
+      "envelope_extraction_rc": 0,
+      "envelope_diagnostic": "",
+      "generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "envelope_generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "types": "13f495a71c5f0df4a20a279ed6aa59bb17a71b333448d6e197b21b442a0be5a1",
+          "mapping": "ee708448a9ebef91598308f799fa305559dd07e8d4f3b198a6c8db6f7d1b074b",
+          "codec": "eaa3d6aae8b2e06021ff1f951a6a582998161ed9563b52a3f1e187847d8a0b59"
+        }
+      },
+      "wire_qualification": "NOT_RUN",
+      "envelope_compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "envelope_types": "c84c2ef6b909fb7c00fe3b44bbdf49dbaed7c2fd0b092111bc7379ebcc3c3795",
+          "envelope_mapping": "596a305c483f86770cc68b6745657f80491a3154cf2f8a97854eba94a7113c3a",
+          "envelope_codec": "75b894607a8da7673b806ea6bbd0fbf56a6d8bd1f51ecf8008e0d914ac27bdac"
+        }
+      }
+    },
+    {
+      "message": "PrivateMessage",
+      "procedure": "privateMessage",
+      "procedure_code": 2,
+      "role": "INITIATING MESSAGE",
+      "expected_criticality": "ignore",
+      "criticality_provenance": "explicit",
+      "root_container": "private",
+      "physical_extraction_rc": 0,
+      "extraction_diagnostic": "",
+      "owned_types": 3,
+      "bound_instances": 2,
+      "registries": 0,
+      "envelope_extraction_rc": 0,
+      "envelope_diagnostic": "",
+      "generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "envelope_generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "types": "d212831aa8834983bdf6ccd2351fa69f27186c9b3ebb978eb8e355d9c28d61cf",
+          "mapping": "fa7b6e2c902bb7b8e652e6962a3001273f262b5351cccff68d80e4f4c94aa3ad",
+          "codec": "f919be304e32ec1a54ddac72846e7267090bebf39354f2d3582fbf0d02c64e78"
+        }
+      },
+      "wire_qualification": "NOT_RUN",
+      "envelope_compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "envelope_types": "ef6da7abaecb969ec6515694a958eb13a560da786b0fb5eb5e7749f22ffe5449",
+          "envelope_mapping": "84e83ffc17bb1e7fffed8e7c62645781bab6e13177b17311618cf55286661cb0",
+          "envelope_codec": "387d36b53e7e9cc5315718ccc0aedcb739860d980f48e64ef8d566b7b54f2a59"
+        }
+      }
+    },
+    {
+      "message": "GNB-CU-CPMeasurementResultsInformation",
+      "procedure": "gNB-CU-CPMeasurementResultsInformation",
+      "procedure_code": 27,
+      "role": "INITIATING MESSAGE",
+      "expected_criticality": "ignore",
+      "criticality_provenance": "explicit",
+      "root_container": "protocol-ie",
+      "physical_extraction_rc": 0,
+      "extraction_diagnostic": "",
+      "owned_types": 8,
+      "bound_instances": 4,
+      "registries": 2,
+      "envelope_extraction_rc": 0,
+      "envelope_diagnostic": "",
+      "generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "envelope_generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "types": "5cea5e8f427d14558943f31e3bd22d45e463aa2c53afc93c8221776eb33ae3ea",
+          "mapping": "87545dd575500422a358d88a7eb3c4509fb67e93949ffc044c90050a7c92c0f8",
+          "codec": "2ced5257d85eed3fa7b53d40a9fc41b57f7b727fb5bdc81e7f78ac452a3c6642"
+        }
+      },
+      "wire_qualification": "NOT_RUN",
+      "envelope_compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "envelope_types": "516fdb5d83ae9135fa28bca0e080bbd83c7efb0ae62b6d412b6445dadf6f9297",
+          "envelope_mapping": "77ced87c7c6f48c89c4a63326cbfc6c5a14187622a1752990c811d834deb4963",
+          "envelope_codec": "2f3099373be06b05d2e15a4e5819998b1370deb83eb41b014286a264b8a52733"
+        }
+      }
+    },
+    {
+      "message": "MRDC-DataUsageReport",
+      "procedure": "mRDC-DataUsageReport",
+      "procedure_code": 19,
+      "role": "INITIATING MESSAGE",
+      "expected_criticality": "ignore",
+      "criticality_provenance": "explicit",
+      "root_container": "protocol-ie",
+      "physical_extraction_rc": -1,
+      "extraction_diagnostic": "E1AP-IEs.usageCountUL: unsupported inline INTEGER constraint",
+      "owned_types": 0,
+      "bound_instances": 0,
+      "registries": 0,
+      "envelope_extraction_rc": 0,
+      "envelope_diagnostic": "",
+      "generation": [],
+      "envelope_generation": [],
+      "compile": {
+        "status": "NOT_RUN",
+        "reason": "physical extraction or BODY generation failed"
+      },
+      "wire_qualification": "NOT_RUN",
+      "envelope_compile": {
+        "status": "NOT_RUN",
+        "reason": "BODY or envelope evidence/generation failed"
+      }
+    },
+    {
+      "message": "DeactivateTrace",
+      "procedure": "deactivateTrace",
+      "procedure_code": 21,
+      "role": "INITIATING MESSAGE",
+      "expected_criticality": "ignore",
+      "criticality_provenance": "explicit",
+      "root_container": "protocol-ie",
+      "physical_extraction_rc": 0,
+      "extraction_diagnostic": "",
+      "owned_types": 6,
+      "bound_instances": 2,
+      "registries": 1,
+      "envelope_extraction_rc": 0,
+      "envelope_diagnostic": "",
+      "generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "envelope_generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "types": "84f14ae2bef0f771d2e326cced859079ade7930f04cc569f3fde066292582c91",
+          "mapping": "1a534e3fd97f84e5e21e1cab021246ea1b93db09fc787e08c27efa1816e91244",
+          "codec": "9fa001a8722ee529a27e449bb9828b0ad894070d86e7715426fab786147f1c9d"
+        }
+      },
+      "wire_qualification": "NOT_RUN",
+      "envelope_compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "envelope_types": "b3f085675cc6b1c2b50eb4078644cabb62ba9f6177094e0c303799fac35665c8",
+          "envelope_mapping": "570afd562bfb766c013d21fe4ff847302af3d7e46d3c4746c37adf6c23213e63",
+          "envelope_codec": "504ee6f06fbac6c66c98a01cd4e487069f7c0807e4ffabc0d81685b7b2868605"
+        }
+      }
+    },
+    {
+      "message": "TraceStart",
+      "procedure": "traceStart",
+      "procedure_code": 20,
+      "role": "INITIATING MESSAGE",
+      "expected_criticality": "ignore",
+      "criticality_provenance": "explicit",
+      "root_container": "protocol-ie",
+      "physical_extraction_rc": 0,
+      "extraction_diagnostic": "",
+      "owned_types": 26,
+      "bound_instances": 15,
+      "registries": 8,
+      "envelope_extraction_rc": 0,
+      "envelope_diagnostic": "",
+      "generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "envelope_generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "types": "18bf5e101ef0da8187cd11ed78a7e2dbe5acb8f1aa1ad282076c014463bdea52",
+          "mapping": "917734c40360ceafe8106a57d44683ca366a2b2a5d0fb7b5f11966d217e06481",
+          "codec": "5f51ee0fbdc3e52292eb8a71128d4f2c98e23e78a4c745d2c2f3b0ae7963fa80"
+        }
+      },
+      "wire_qualification": "NOT_RUN",
+      "envelope_compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "envelope_types": "97bde49891f64b1be13e609086143809113b0545735ec7dd9aaddf78379bed0c",
+          "envelope_mapping": "0638acbd8cb6becf6627d95a3b30af98ca5ebfd03947a066b366a25cb770da45",
+          "envelope_codec": "5a3f8065cca658d8bf69912c05f4420b4428d4c73c2781a36cc9c653f088893a"
+        }
+      }
+    },
+    {
+      "message": "ResourceStatusRequest",
+      "procedure": "resourceStatusReportingInitiation",
+      "procedure_code": 22,
+      "role": "INITIATING MESSAGE",
+      "expected_criticality": "reject",
+      "criticality_provenance": "explicit",
+      "root_container": "protocol-ie",
+      "physical_extraction_rc": 0,
+      "extraction_diagnostic": "",
+      "owned_types": 9,
+      "bound_instances": 2,
+      "registries": 1,
+      "envelope_extraction_rc": 0,
+      "envelope_diagnostic": "",
+      "generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "envelope_generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "types": "f54fbf46ca87639a827d56772bfdf86fca0b626b7e14cd523728261e1b766d0b",
+          "mapping": "d18360608fa86228cdedc6b28d4bc38336bd0a6c0a8bc14d3144f890adacae57",
+          "codec": "3366d91c7c2069b9b8217c859dce72e797ee383b65e651a40560d6d09ca28b84"
+        }
+      },
+      "wire_qualification": "NOT_RUN",
+      "envelope_compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "envelope_types": "0ed2e2de575a792595a6b435101116e88509ad360b959c0f17d253bd4a9b5112",
+          "envelope_mapping": "45c2db0a5ad8c76321dfa1bed31bebab725a46d4bc5e6c16253074049a17c728",
+          "envelope_codec": "3488bc4c3ee77ffb1934dbf1307fe31e199526255ddcd16a28581a13ac51a072"
+        }
+      }
+    },
+    {
+      "message": "ResourceStatusResponse",
+      "procedure": "resourceStatusReportingInitiation",
+      "procedure_code": 22,
+      "role": "SUCCESSFUL OUTCOME",
+      "expected_criticality": "reject",
+      "criticality_provenance": "explicit",
+      "root_container": "protocol-ie",
+      "physical_extraction_rc": 0,
+      "extraction_diagnostic": "",
+      "owned_types": 12,
+      "bound_instances": 6,
+      "registries": 3,
+      "envelope_extraction_rc": 0,
+      "envelope_diagnostic": "",
+      "generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "envelope_generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "types": "339a0535a0df066453284cc4afacf4737df3d5c04ec8a46048f249c021710706",
+          "mapping": "0b822905e11d3ef152a83cd0688b5f063271d99b31e5829a620c4e3cc49ff872",
+          "codec": "11c063b929dee1e42a33afa8c140632f40f5bf03985ed2f8c1bd9ba2c0aae50b"
+        }
+      },
+      "wire_qualification": "NOT_RUN",
+      "envelope_compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "envelope_types": "c59a065ff94179ac874b269848378ced6a996813daea103b6beae36b0ce43ae0",
+          "envelope_mapping": "c3e5e51d75340e2ed4a58e0309048d3e195742a314cabe10bdc7ff8192652029",
+          "envelope_codec": "4e9e386343c9faf3a5bea96ce5f8981c4b8ede77207ca9703440210347340d50"
+        }
+      }
+    },
+    {
+      "message": "ResourceStatusFailure",
+      "procedure": "resourceStatusReportingInitiation",
+      "procedure_code": 22,
+      "role": "UNSUCCESSFUL OUTCOME",
+      "expected_criticality": "reject",
+      "criticality_provenance": "explicit",
+      "root_container": "protocol-ie",
+      "physical_extraction_rc": 0,
+      "extraction_diagnostic": "",
+      "owned_types": 17,
+      "bound_instances": 7,
+      "registries": 4,
+      "envelope_extraction_rc": 0,
+      "envelope_diagnostic": "",
+      "generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "envelope_generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "types": "bffd4fe3af4d9c3335e40b33174a60bbe5c371f75d02e218fa28772fd358cb22",
+          "mapping": "862a5ac70528c1e66b6728a56fa025dd1ed521912b1dc01ced09781f015f0c68",
+          "codec": "d457cdf573b9d9e7567706c87d79664d837413b34c7adb49da6f05a266c3b29c"
+        }
+      },
+      "wire_qualification": "NOT_RUN",
+      "envelope_compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "envelope_types": "663e2f245a935cd6e3f4496ba39be9e9e15ce359b5c3c9982a73477692189b21",
+          "envelope_mapping": "b6c7f82bf23e10d8962bed27065dd52d637b089ee7bae0b2f4eb2c66dcc31d9e",
+          "envelope_codec": "7ba4472bc6b1d1a95d0153c91cbe76554ae8cff0ba8ee54486d79872fce9d1aa"
+        }
+      }
+    },
+    {
+      "message": "ResourceStatusUpdate",
+      "procedure": "resourceStatusReporting",
+      "procedure_code": 23,
+      "role": "INITIATING MESSAGE",
+      "expected_criticality": "ignore",
+      "criticality_provenance": "explicit",
+      "root_container": "protocol-ie",
+      "physical_extraction_rc": 0,
+      "extraction_diagnostic": "",
+      "owned_types": 8,
+      "bound_instances": 6,
+      "registries": 3,
+      "envelope_extraction_rc": 0,
+      "envelope_diagnostic": "",
+      "generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "envelope_generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "types": "60e5ac9e814f8cee04100c1ee46cdc0a60de85d5cd6deef9c7696c6ad820b269",
+          "mapping": "1cf96893aa2a3f1ac78616e0f476bcd0f1ff29cd9c3207ca8c4add421f4d8c50",
+          "codec": "526b52c64bf8a7d37a915bc490573d4544fcd23c7a1530bcd86387d6085dd62a"
+        }
+      },
+      "wire_qualification": "NOT_RUN",
+      "envelope_compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "envelope_types": "b0b7fb32480e7418bc855d4ffb8d14b5f680b7a727a2e2f9a73344da51de58ed",
+          "envelope_mapping": "43eb811dd1234ce437fc7cbd8a8c56ca4c3cf1d0233055ce71d44b7bdfedcb34",
+          "envelope_codec": "43e040d9782e49c8969f8cffd7eea9086f34271d4ae9d4605273f3c60bde5df6"
+        }
+      }
+    },
+    {
+      "message": "IAB-UPTNLAddressUpdate",
+      "procedure": "iAB-UPTNLAddressUpdate",
+      "procedure_code": 24,
+      "role": "INITIATING MESSAGE",
+      "expected_criticality": "reject",
+      "criticality_provenance": "explicit",
+      "root_container": "protocol-ie",
+      "physical_extraction_rc": 0,
+      "extraction_diagnostic": "",
+      "owned_types": 7,
+      "bound_instances": 4,
+      "registries": 2,
+      "envelope_extraction_rc": 0,
+      "envelope_diagnostic": "",
+      "generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "envelope_generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "types": "87885e36eba612273299494279b277301b5b90309ae31eb505763be41e4a5de1",
+          "mapping": "0b85831da74e62ee73431e6a870fd0d59ee3df354767a548ec49ea5858ed1205",
+          "codec": "a8a78045303e6cb2ae02ad21c83d0c7bf38368ebc317c7f1d06585a3a94d3515"
+        }
+      },
+      "wire_qualification": "NOT_RUN",
+      "envelope_compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "envelope_types": "2af7e0a2729bf79482f9f641daea1a130cc9c7977a4aa69bc775e6c9eea6361b",
+          "envelope_mapping": "49565d5d450c0f897c5b2bd321738d790bf98542cd478729435f7ef829b9e161",
+          "envelope_codec": "300c5067928b44c6b119f6e37f7a0fcc9f53079e9a59239855c6492578e20876"
+        }
+      }
+    },
+    {
+      "message": "IAB-UPTNLAddressUpdateAcknowledge",
+      "procedure": "iAB-UPTNLAddressUpdate",
+      "procedure_code": 24,
+      "role": "SUCCESSFUL OUTCOME",
+      "expected_criticality": "reject",
+      "criticality_provenance": "explicit",
+      "root_container": "protocol-ie",
+      "physical_extraction_rc": 0,
+      "extraction_diagnostic": "",
+      "owned_types": 13,
+      "bound_instances": 8,
+      "registries": 4,
+      "envelope_extraction_rc": 0,
+      "envelope_diagnostic": "",
+      "generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "envelope_generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "types": "d88afc7dbe5085fed3fe659997730027be145f4f7319068a063bc02c23ced4be",
+          "mapping": "f05fb067604b2bf02cca3bea1aac9d6fb2d6b68d57bba3a607679078aa3f99f1",
+          "codec": "afb6ca3b785221d00946294f7ec82240884d229cacf065329471375027b293d1"
+        }
+      },
+      "wire_qualification": "NOT_RUN",
+      "envelope_compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "envelope_types": "5fd33f8fe2a02a98c71110a6cec22b7810a9c2946afd89a1d9a5fccb7f5c03df",
+          "envelope_mapping": "6b2a003baf5ae5e1c457e328ca46d2dc40ad11076e766039faa0c33a704a38e8",
+          "envelope_codec": "4c3e0bd8894baff6485fbcf1915a5d43eb63c7ffab84cd06299b9f55b1a1f317"
+        }
+      }
+    },
+    {
+      "message": "IAB-UPTNLAddressUpdateFailure",
+      "procedure": "iAB-UPTNLAddressUpdate",
+      "procedure_code": 24,
+      "role": "UNSUCCESSFUL OUTCOME",
+      "expected_criticality": "reject",
+      "criticality_provenance": "explicit",
+      "root_container": "protocol-ie",
+      "physical_extraction_rc": 0,
+      "extraction_diagnostic": "",
+      "owned_types": 16,
+      "bound_instances": 7,
+      "registries": 4,
+      "envelope_extraction_rc": 0,
+      "envelope_diagnostic": "",
+      "generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "envelope_generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "types": "91ac8b9355da20667ede2018f47fb866a25c7b857335911e7ef96894e28bcbe6",
+          "mapping": "8fd74e2f1c659182563b3496a3093317d6da73ffea1c93a8aec68140a292319d",
+          "codec": "816d653dc551def0c2fbf88219273287ce279eb1e2fe3dc5960acaab78483a39"
+        }
+      },
+      "wire_qualification": "NOT_RUN",
+      "envelope_compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "envelope_types": "ed56b0934c063f738835c504095c1071f64bd23c3c89fdb072b7fd9709aaf1d8",
+          "envelope_mapping": "b0de5b768d4c7a4766e20a57bc13ea8f6f7d99b64f761eedaf662bf324f3491e",
+          "envelope_codec": "1807765af05a6193ee3961df8ed670e6cf881456de08f002ebdcb9b1e75fc8fb"
+        }
+      }
+    },
+    {
+      "message": "CellTrafficTrace",
+      "procedure": "cellTrafficTrace",
+      "procedure_code": 25,
+      "role": "INITIATING MESSAGE",
+      "expected_criticality": "ignore",
+      "criticality_provenance": "explicit",
+      "root_container": "protocol-ie",
+      "physical_extraction_rc": 0,
+      "extraction_diagnostic": "",
+      "owned_types": 9,
+      "bound_instances": 2,
+      "registries": 1,
+      "envelope_extraction_rc": 0,
+      "envelope_diagnostic": "",
+      "generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "envelope_generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "types": "9875ec88ee060c760cc375439b810e062d699d674e931d2a7199f3c96c1eaf4a",
+          "mapping": "bf1aadced3d369dfb327d25b778029176cac2e02a6e2a73e46a03cadfc83c90e",
+          "codec": "2e1839201d368d64aa71c4fa6f6882bb14ef834d5b8e34c3add843557eeb8545"
+        }
+      },
+      "wire_qualification": "NOT_RUN",
+      "envelope_compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "envelope_types": "40913487948cf8ecbc48b28bc749da708b605ba13d867e7b50597798120ddf6d",
+          "envelope_mapping": "0caa02aa5dcb2711e5f700e8dd57e3c3eb8b4f02c150e4e0a444ae8527a7da1a",
+          "envelope_codec": "f7e2c0ceab20fb04c15ba38bc26da105e2278e5b5a13ba6680882f011206eedb"
+        }
+      }
+    },
+    {
+      "message": "EarlyForwardingSNTransfer",
+      "procedure": "earlyForwardingSNTransfer",
+      "procedure_code": 26,
+      "role": "INITIATING MESSAGE",
+      "expected_criticality": "ignore",
+      "criticality_provenance": "explicit",
+      "root_container": "protocol-ie",
+      "physical_extraction_rc": 0,
+      "extraction_diagnostic": "",
+      "owned_types": 11,
+      "bound_instances": 6,
+      "registries": 3,
+      "envelope_extraction_rc": 0,
+      "envelope_diagnostic": "",
+      "generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "envelope_generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "types": "848e2c41818358ebe316db7ad39b6ba530801816431870a043d91b414b4867a8",
+          "mapping": "52bdb1c80bac39d904d7412f46134e3f4c068ca1d6c886841acd2f016166dda9",
+          "codec": "19ee42a392437cd0fefbff362827d81d319c558875c1df63da5d78f31b9fbb40"
+        }
+      },
+      "wire_qualification": "NOT_RUN",
+      "envelope_compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "envelope_types": "0ee5f1470d15b5f0886f604eb8cceae07cca3912d9f2566f02510e2279eea6f4",
+          "envelope_mapping": "4c02fc217790b3e62f382d5907763b869bf54bfea8dd0e85fab5a01d8cdd718c",
+          "envelope_codec": "b92a35644bde946e8b717c9a30012b7860f7fae10415dee108b744af6c620da1"
+        }
+      }
+    },
+    {
+      "message": "IABPSKNotification",
+      "procedure": "iABPSKNotification",
+      "procedure_code": 28,
+      "role": "INITIATING MESSAGE",
+      "expected_criticality": "reject",
+      "criticality_provenance": "explicit",
+      "root_container": "protocol-ie",
+      "physical_extraction_rc": 0,
+      "extraction_diagnostic": "",
+      "owned_types": 8,
+      "bound_instances": 4,
+      "registries": 2,
+      "envelope_extraction_rc": 0,
+      "envelope_diagnostic": "",
+      "generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "envelope_generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "types": "0ba879626e3f24e423faaf88890c06defa14685b97dd28bfa623026e38a7541b",
+          "mapping": "56488ab41942e1b35dd8b040d25da98b25a84ad63b6bdf0eb7c2ced2d21a606e",
+          "codec": "351239abbb9fc0951fece6aa3dad0b0998b62186d8e91d6c8fe815a1af066e9d"
+        }
+      },
+      "wire_qualification": "NOT_RUN",
+      "envelope_compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "envelope_types": "1bcecf2465178297f93163ea2f088636f46e7f5a9775947b0a6ed88f544af306",
+          "envelope_mapping": "d1001845cff83219a795f5a23fcbd153a279871c8417192f401d68d22967eb2f",
+          "envelope_codec": "9a145dac56ad35745a88b2d99e656a27400c983fd0c2cd92b9a15cf84456bbf1"
+        }
+      }
+    },
+    {
+      "message": "BCBearerContextSetupRequest",
+      "procedure": "bCBearerContextSetup",
+      "procedure_code": 29,
+      "role": "INITIATING MESSAGE",
+      "expected_criticality": "reject",
+      "criticality_provenance": "explicit",
+      "root_container": "protocol-ie",
+      "physical_extraction_rc": 0,
+      "extraction_diagnostic": "",
+      "owned_types": 102,
+      "bound_instances": 75,
+      "registries": 40,
+      "envelope_extraction_rc": 0,
+      "envelope_diagnostic": "",
+      "generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "envelope_generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "types": "78e7131cc3a91e877efeaee8b184cda320b3a7947aecd4b36ab2c5007696f4ed",
+          "mapping": "bc1fe1f9479454b85bbcb75789a0f944991e95971d8537ab45bcc582b6ad30d3",
+          "codec": "98de9da535a6e79430cb3a4f4946df4736908d7dbb54bf5e035b02ac1048183c"
+        }
+      },
+      "wire_qualification": "NOT_RUN",
+      "envelope_compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "envelope_types": "34402cb262a652df8cf61822e14d4ecd092b3866e1b8d3247cc2890cb0c51df7",
+          "envelope_mapping": "9bc8597a7847453249724c5e29b160117125dc560d4a4983280b47460f837546",
+          "envelope_codec": "44710a0e4fe08d4febe6a41c3f99e47ae17f36bbcbfd593aeac09d0cf7688b7e"
+        }
+      }
+    },
+    {
+      "message": "BCBearerContextSetupResponse",
+      "procedure": "bCBearerContextSetup",
+      "procedure_code": 29,
+      "role": "SUCCESSFUL OUTCOME",
+      "expected_criticality": "reject",
+      "criticality_provenance": "explicit",
+      "root_container": "protocol-ie",
+      "physical_extraction_rc": 0,
+      "extraction_diagnostic": "",
+      "owned_types": 115,
+      "bound_instances": 82,
+      "registries": 45,
+      "envelope_extraction_rc": 0,
+      "envelope_diagnostic": "",
+      "generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "envelope_generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "types": "ee4a4e3c017bb3ddb88d9217e392a214cb0291a44d8f1acf4c44a61df922a170",
+          "mapping": "8a112924b343cfa23a5b997d207e32879243453eacfcea2548af7563162d6bcd",
+          "codec": "48fc3d2e3f8ea5da0d33ef6e40f72434ed989e1a0fc1e3f69b34ae5103241608"
+        }
+      },
+      "wire_qualification": "NOT_RUN",
+      "envelope_compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "envelope_types": "910a75569ead70cdbf7b653cb3167098511beb32ea71c15b13a1606d9c2f2950",
+          "envelope_mapping": "27b9cbc54e801dc452ec4146ed0a679d4fa2e6de444ef17c8a44e11cf59c3727",
+          "envelope_codec": "09d55cea57b88f5300b7d9c386eff4e97be25b750668f1f14deb62edb1af1f2f"
+        }
+      }
+    },
+    {
+      "message": "BCBearerContextSetupFailure",
+      "procedure": "bCBearerContextSetup",
+      "procedure_code": 29,
+      "role": "UNSUCCESSFUL OUTCOME",
+      "expected_criticality": "reject",
+      "criticality_provenance": "explicit",
+      "root_container": "protocol-ie",
+      "physical_extraction_rc": 0,
+      "extraction_diagnostic": "",
+      "owned_types": 17,
+      "bound_instances": 7,
+      "registries": 4,
+      "envelope_extraction_rc": 0,
+      "envelope_diagnostic": "",
+      "generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "envelope_generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "types": "2326b8c2651e708d06cfe344f819e4688ebc9026078621fcdc4dde74577091c7",
+          "mapping": "24da082dd62c34936024d33af977be047333175cc879332901820d38f731af7c",
+          "codec": "3ebe0d3a9074a7b71f0cf6c6679a879c8cc1245d4a30dcb11c73bec1eeddbfe2"
+        }
+      },
+      "wire_qualification": "NOT_RUN",
+      "envelope_compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "envelope_types": "888ccb436da5fffd64d34dbfcd425eabf3bf0f7860e46a7c4ff0e02c983579a4",
+          "envelope_mapping": "13b3d85671f22aa6dd8746a26f43fa4a024d877eb843bbcb508b6973d9850148",
+          "envelope_codec": "19d1520fdb787d6da00e71d2a74359452f42d18a7e5b2421a5e81f756efd4ed0"
+        }
+      }
+    },
+    {
+      "message": "BCBearerContextModificationRequest",
+      "procedure": "bCBearerContextModification",
+      "procedure_code": 30,
+      "role": "INITIATING MESSAGE",
+      "expected_criticality": "reject",
+      "criticality_provenance": "explicit",
+      "root_container": "protocol-ie",
+      "physical_extraction_rc": 0,
+      "extraction_diagnostic": "",
+      "owned_types": 105,
+      "bound_instances": 78,
+      "registries": 43,
+      "envelope_extraction_rc": 0,
+      "envelope_diagnostic": "",
+      "generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "envelope_generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "types": "7aae5e4f6f27a1e690c45da4c8f089877dbf19e5264901bd528c3b9c7dbd39c3",
+          "mapping": "c36de749644383b210c20be032c5d2556c759a6fd2350eb10cb172149f643da1",
+          "codec": "4e38c70becd5273cb147cee1285b66db6e30812fac101b7fbf3404d36c168997"
+        }
+      },
+      "wire_qualification": "NOT_RUN",
+      "envelope_compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "envelope_types": "660e8ad5b073110d2380c2ff4c3a6fea30f9563b9763f0e6620e0ec2b631a37b",
+          "envelope_mapping": "01176fad6b2c694645f27dbd02e07b88783def850d0a043ccea4fa5936272cae",
+          "envelope_codec": "97923dc985250da4636e7b9edbca577d839b4b59260124174aa0f5272d21417f"
+        }
+      }
+    },
+    {
+      "message": "BCBearerContextModificationResponse",
+      "procedure": "bCBearerContextModification",
+      "procedure_code": 30,
+      "role": "SUCCESSFUL OUTCOME",
+      "expected_criticality": "reject",
+      "criticality_provenance": "explicit",
+      "root_container": "protocol-ie",
+      "physical_extraction_rc": 0,
+      "extraction_diagnostic": "",
+      "owned_types": 115,
+      "bound_instances": 82,
+      "registries": 45,
+      "envelope_extraction_rc": 0,
+      "envelope_diagnostic": "",
+      "generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "envelope_generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "types": "3c876295d8737d43c6cde714d71d6ee733a0b9afb787fa2f45a0c0e90c57bd7e",
+          "mapping": "991fe7db01334b924310c26101b85ef7b242b6f8f28a256709bfb6c990b58923",
+          "codec": "2df5362e2cfc9c825f98ebcb1403a0bd899b0831adeefd3ab12218ec9bb3a838"
+        }
+      },
+      "wire_qualification": "NOT_RUN",
+      "envelope_compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "envelope_types": "5a827cc257dfdb23521402a24aec226e8510f4742049ded19029e4a5726d6622",
+          "envelope_mapping": "9d3bba97702ba79fefcf6325f53b31f7d990de60cc577320ebf3ef5f881fa717",
+          "envelope_codec": "04a00b34d88ffdaa2069fdcaec17329d182767474691c75158e5b0f7b616a93f"
+        }
+      }
+    },
+    {
+      "message": "BCBearerContextModificationFailure",
+      "procedure": "bCBearerContextModification",
+      "procedure_code": 30,
+      "role": "UNSUCCESSFUL OUTCOME",
+      "expected_criticality": "reject",
+      "criticality_provenance": "explicit",
+      "root_container": "protocol-ie",
+      "physical_extraction_rc": 0,
+      "extraction_diagnostic": "",
+      "owned_types": 17,
+      "bound_instances": 7,
+      "registries": 4,
+      "envelope_extraction_rc": 0,
+      "envelope_diagnostic": "",
+      "generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "envelope_generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "types": "f5cf0c802e2f69681908da61e809927e0578ca211a5a568dafd6f9a236b52a9b",
+          "mapping": "633f6d1b42c4c757066c093f15d04a073ebaa722a6bd9aa0540abe479bbebbed",
+          "codec": "f943da803ccd099a8142c9a1436e36453eb45c0a68b14c43d28e3ec7d2c6417d"
+        }
+      },
+      "wire_qualification": "NOT_RUN",
+      "envelope_compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "envelope_types": "eb38672a1bf83e27eb7647edfe8d0f07510d214b0de2e89ec984720dd1a70ee2",
+          "envelope_mapping": "a45b6878240cd420c108dff1b82529a452e6ac9c5551f3581aa7f3678e76d4c5",
+          "envelope_codec": "e8b023a9dedfeb8e05d2738aac6c26fb137e615b3fea43389d514a3e496e72e1"
+        }
+      }
+    },
+    {
+      "message": "BCBearerContextModificationRequired",
+      "procedure": "bCBearerContextModificationRequired",
+      "procedure_code": 31,
+      "role": "INITIATING MESSAGE",
+      "expected_criticality": "reject",
+      "criticality_provenance": "explicit",
+      "root_container": "protocol-ie",
+      "physical_extraction_rc": 0,
+      "extraction_diagnostic": "",
+      "owned_types": 8,
+      "bound_instances": 4,
+      "registries": 2,
+      "envelope_extraction_rc": 0,
+      "envelope_diagnostic": "",
+      "generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "envelope_generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "types": "8231c1d6dc627a6cd6ce7e8b9ed288803dc11aec8dcd49f39fd845feace6ef86",
+          "mapping": "25daf73a64df41bbc3f7dc07d9906dcbf06f25174830f18a033797a6e0712b89",
+          "codec": "9399b9e99321afbb6c9064ce39c4e178d16e7b86056d1739395e1ea6d5c0264d"
+        }
+      },
+      "wire_qualification": "NOT_RUN",
+      "envelope_compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "envelope_types": "d0a528a08ae3e7467545ca9f8caa63188db11a42b67f3dc6bf472dc7a01df18c",
+          "envelope_mapping": "27fcde6843042ff190d46cd81135a98bbdb154638540a061e97b552454331c9e",
+          "envelope_codec": "4c929c251352cfcd8b6f4e0cf08449dc71027c9f535ae0985c6fbc450e2a076e"
+        }
+      }
+    },
+    {
+      "message": "BCBearerContextModificationConfirm",
+      "procedure": "bCBearerContextModificationRequired",
+      "procedure_code": 31,
+      "role": "SUCCESSFUL OUTCOME",
+      "expected_criticality": "reject",
+      "criticality_provenance": "explicit",
+      "root_container": "protocol-ie",
+      "physical_extraction_rc": 0,
+      "extraction_diagnostic": "",
+      "owned_types": 13,
+      "bound_instances": 8,
+      "registries": 4,
+      "envelope_extraction_rc": 0,
+      "envelope_diagnostic": "",
+      "generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "envelope_generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "types": "4bbf4a811cba12ed0e7c370ac9d344ecb492986a7a4b620ec66a0a51eddcfae0",
+          "mapping": "d9761d8c6d814f5ce0cb415d679c8b6a2c73800a2f815cb94d8a6c78353e5f6f",
+          "codec": "401f5342b91a16873f4a2c5954e2b6b3ccd157eb4c5a383eb2d27cd5a01bf33f"
+        }
+      },
+      "wire_qualification": "NOT_RUN",
+      "envelope_compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "envelope_types": "ddd42fed781e27a062c1ce8670b5a1fe2c13522a101dfd133331d15b7ca0d662",
+          "envelope_mapping": "7ee53d5aed990674196890163bc91117a14443e5e7e8d1f29d548a4355b5bb26",
+          "envelope_codec": "22ac42383338c883ed5cbe3448edb6ddac21294c69d376c840d010ae5f58d5b3"
+        }
+      }
+    },
+    {
+      "message": "BCBearerContextReleaseCommand",
+      "procedure": "bCBearerContextRelease",
+      "procedure_code": 32,
+      "role": "INITIATING MESSAGE",
+      "expected_criticality": "reject",
+      "criticality_provenance": "explicit",
+      "root_container": "protocol-ie",
+      "physical_extraction_rc": 0,
+      "extraction_diagnostic": "",
+      "owned_types": 10,
+      "bound_instances": 3,
+      "registries": 2,
+      "envelope_extraction_rc": 0,
+      "envelope_diagnostic": "",
+      "generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "envelope_generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "types": "f5d39d74643a1e4ef98602a4736b7095beb63222167ef8770c2f6d9c8acd14b0",
+          "mapping": "178445292ffacaa1377588731077cf76fcf8b775c631320f7e2a27e0473a38bb",
+          "codec": "5ba43afc8e35aa82413c28949d8fbb7d24b8925a239f5a53b4fc5747173517dd"
+        }
+      },
+      "wire_qualification": "NOT_RUN",
+      "envelope_compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "envelope_types": "977197adc245c0ae8a6c2d043194fe3deebca7221b706693594abb3c412a9760",
+          "envelope_mapping": "9584dfcacd0154662e87e47a89e76c5c74252c17e2583e50efd63d9a0e168473",
+          "envelope_codec": "c9d27ee2adccf1e6c6f596592946f1ada57ed692c47ed7fc2e784c02730d5ac1"
+        }
+      }
+    },
+    {
+      "message": "BCBearerContextReleaseComplete",
+      "procedure": "bCBearerContextRelease",
+      "procedure_code": 32,
+      "role": "SUCCESSFUL OUTCOME",
+      "expected_criticality": "reject",
+      "criticality_provenance": "explicit",
+      "root_container": "protocol-ie",
+      "physical_extraction_rc": 0,
+      "extraction_diagnostic": "",
+      "owned_types": 12,
+      "bound_instances": 6,
+      "registries": 3,
+      "envelope_extraction_rc": 0,
+      "envelope_diagnostic": "",
+      "generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "envelope_generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "types": "3cb5f27f7f73a1f0d56865c9f81b5bb3710de38a443670aa1df19d285b532248",
+          "mapping": "da14bce6bfdba76a49b89921d00c1840bf1da687f50f0433a435c2a7124da017",
+          "codec": "199221fb22736b22062591ecfc8a419e7d79f1cd646a7985c929b4b2cfb00516"
+        }
+      },
+      "wire_qualification": "NOT_RUN",
+      "envelope_compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "envelope_types": "b6df039e606911d30e5764fc7854b1b95f0e0be890baeb46d578ee4f9b4974ae",
+          "envelope_mapping": "92377ba488af63ef3177ad47674706f2e6c1ee7f4b36dd8955f97f5c5edb6a4a",
+          "envelope_codec": "0deaea5da8e0e95588a2b74c042ea5b3473ac4a3febe76a46715b01b69b85b46"
+        }
+      }
+    },
+    {
+      "message": "BCBearerContextReleaseRequest",
+      "procedure": "bCBearerContextReleaseRequest",
+      "procedure_code": 33,
+      "role": "INITIATING MESSAGE",
+      "expected_criticality": "reject",
+      "criticality_provenance": "explicit",
+      "root_container": "protocol-ie",
+      "physical_extraction_rc": 0,
+      "extraction_diagnostic": "",
+      "owned_types": 10,
+      "bound_instances": 3,
+      "registries": 2,
+      "envelope_extraction_rc": 0,
+      "envelope_diagnostic": "",
+      "generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "envelope_generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "types": "f33afa8cd5e547306dc521bc5927549c5e8391d66e8ce5bbe7bc93fbce1bb486",
+          "mapping": "8c4cc0d432b608d1d4acf2f37b8fd39403878b3800c8d096167013201ba4ac7e",
+          "codec": "9f6d1fcc0c305d2fe70461a6dad32aa39fcddc495d7e924b296491680500a108"
+        }
+      },
+      "wire_qualification": "NOT_RUN",
+      "envelope_compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "envelope_types": "5886df5f130a29e39bb723c55a3bb3214453ebeccd86d1d5de191ecfba010b73",
+          "envelope_mapping": "75a88950965343c5d23eafef69f7bc41f0dad49677f95131bd0b50fd451392a3",
+          "envelope_codec": "d539d2c980a55535767642d5319e8904250715f65c6ff87055bafe08bad89e52"
+        }
+      }
+    },
+    {
+      "message": "MCBearerContextSetupRequest",
+      "procedure": "mCBearerContextSetup",
+      "procedure_code": 34,
+      "role": "INITIATING MESSAGE",
+      "expected_criticality": "reject",
+      "criticality_provenance": "explicit",
+      "root_container": "protocol-ie",
+      "physical_extraction_rc": 0,
+      "extraction_diagnostic": "",
+      "owned_types": 88,
+      "bound_instances": 61,
+      "registries": 32,
+      "envelope_extraction_rc": 0,
+      "envelope_diagnostic": "",
+      "generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "envelope_generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "types": "048f3cac330679479813043691cb674218a0103288ae325e20218a4684171dff",
+          "mapping": "a98f88f41cdf9c17f4eff0cd586856e3efa81301a67bfe89537019595486c975",
+          "codec": "3b3bcd3f75be02bb4d84f0e8e94fdce97ef92f4092c28bd5c7a8f86f65b19d2c"
+        }
+      },
+      "wire_qualification": "NOT_RUN",
+      "envelope_compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "envelope_types": "1b5f95ce8cbd016137d043d9709a3edc30d367ec1744ec8e2ccf850a02ee0e5f",
+          "envelope_mapping": "008cde7df630941f3a68164c3e22f14774d8c1f7d55992194be21b15d9b64436",
+          "envelope_codec": "ebd7343043990955e52e6a0220fe6bd4cf69e8cc8a9d591fee31b4ba166d8d66"
+        }
+      }
+    },
+    {
+      "message": "MCBearerContextSetupResponse",
+      "procedure": "mCBearerContextSetup",
+      "procedure_code": 34,
+      "role": "SUCCESSFUL OUTCOME",
+      "expected_criticality": "reject",
+      "criticality_provenance": "explicit",
+      "root_container": "protocol-ie",
+      "physical_extraction_rc": 0,
+      "extraction_diagnostic": "",
+      "owned_types": 107,
+      "bound_instances": 73,
+      "registries": 40,
+      "envelope_extraction_rc": 0,
+      "envelope_diagnostic": "",
+      "generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "envelope_generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "types": "4aeda92ea5d44f25965543ccddd7b662780935878095ff9b93896886d66f35e1",
+          "mapping": "8c5af1f6bb41fcf1bc3e01f87c71cf2eec72a02c2a0d1d58617384df8bcbd80c",
+          "codec": "fbdcdacb01eec504fbeebb24c189c22282e1518c24596ccca0bdf7234a2c499c"
+        }
+      },
+      "wire_qualification": "NOT_RUN",
+      "envelope_compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "envelope_types": "f388c5c9a6dabf4642ec019b3edbe4336926d9264f1212a8f051b1d392425511",
+          "envelope_mapping": "8ded2ad632150779ab84733e131731b6f13bd5748a88c4c722a0a61b9dc99428",
+          "envelope_codec": "a5ef6debcac6524aebf0a9dd27778dc88790d4cd64c12f589b47bd259c7bf2df"
+        }
+      }
+    },
+    {
+      "message": "MCBearerContextSetupFailure",
+      "procedure": "mCBearerContextSetup",
+      "procedure_code": 34,
+      "role": "UNSUCCESSFUL OUTCOME",
+      "expected_criticality": "reject",
+      "criticality_provenance": "explicit",
+      "root_container": "protocol-ie",
+      "physical_extraction_rc": 0,
+      "extraction_diagnostic": "",
+      "owned_types": 17,
+      "bound_instances": 7,
+      "registries": 4,
+      "envelope_extraction_rc": 0,
+      "envelope_diagnostic": "",
+      "generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "envelope_generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "types": "8c515449842618f8db5250f2dafedb9653c8095e62f12266fcec77880df4abda",
+          "mapping": "0eeea7835f84e7f4d9f1eef773b38a801828bc71ab02cd207258706642c2c512",
+          "codec": "84870ef63c7f6acc95ff6c3b882405b7da93b9edcf6eca081b64fbb566d9b99e"
+        }
+      },
+      "wire_qualification": "NOT_RUN",
+      "envelope_compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "envelope_types": "b082062ed64f05da1a403f8dc5a179905fa0504db2234de0f39ba49517f61a74",
+          "envelope_mapping": "ae209bacf6393388b0419ad1b320bcba37aaf4a5e32bbea3ea6012a77e4efc3e",
+          "envelope_codec": "97486a115302b8b9b23cb8fc0e093683bacd1d50657c032017739cf2df892fd1"
+        }
+      }
+    },
+    {
+      "message": "MCBearerContextModificationRequest",
+      "procedure": "mCBearerContextModification",
+      "procedure_code": 35,
+      "role": "INITIATING MESSAGE",
+      "expected_criticality": "reject",
+      "criticality_provenance": "explicit",
+      "root_container": "protocol-ie",
+      "physical_extraction_rc": 0,
+      "extraction_diagnostic": "",
+      "owned_types": 110,
+      "bound_instances": 86,
+      "registries": 46,
+      "envelope_extraction_rc": 0,
+      "envelope_diagnostic": "",
+      "generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "envelope_generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "types": "d47ecea947f95078131fbbf73e1cc568de2be0e708307b5cd7c3d5ad3cfb6dae",
+          "mapping": "02d5c7836c105bb8f20dc07d7e3690c8e180f4888c35d8d28ed1cbc380521d8b",
+          "codec": "3d1cfccb7e4a82f24803525bd2a2e1c46e90a6d8744423b2192ae6b02ce2efb2"
+        }
+      },
+      "wire_qualification": "NOT_RUN",
+      "envelope_compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "envelope_types": "e51f8f88aae9589d041909a0eb7ddeb98e7499393036a77a603eaf5aa81ab7a0",
+          "envelope_mapping": "5e7063b6e21b48abf303f19b1d9a9bb676da5152cd47c33e37cb374b6c640327",
+          "envelope_codec": "94309a309a0a3e0a051ae7294f8332aa6293074b53bf264877956c2fc1cd4f50"
+        }
+      }
+    },
+    {
+      "message": "MCBearerContextModificationResponse",
+      "procedure": "mCBearerContextModification",
+      "procedure_code": 35,
+      "role": "SUCCESSFUL OUTCOME",
+      "expected_criticality": "reject",
+      "criticality_provenance": "explicit",
+      "root_container": "protocol-ie",
+      "physical_extraction_rc": 0,
+      "extraction_diagnostic": "",
+      "owned_types": 114,
+      "bound_instances": 81,
+      "registries": 44,
+      "envelope_extraction_rc": 0,
+      "envelope_diagnostic": "",
+      "generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "envelope_generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "types": "286a3e0c9bfc90caa589f92bb44e2310fb87a5d73cecc4649d144f3e19e9f9fb",
+          "mapping": "c60c2ff341d075e08b119fd125dfe584a1cbd5e84ef40b3b63938d96ef3f622d",
+          "codec": "639ecab40f9e251e20d1b869958219e01e57de9f9aaa1214a3d2674b2c85ac4a"
+        }
+      },
+      "wire_qualification": "NOT_RUN",
+      "envelope_compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "envelope_types": "9ed8dbdef202e708ef36d03b6befc3382ed5c88b75f181cadb4bb5df2e774d1f",
+          "envelope_mapping": "5acdfb5db32c0726d59420a19d8e7fa78315bc84d2dab31c33d9a82913274fba",
+          "envelope_codec": "20bf308ca50dca390ac7ff51d77f26705b806f6d6f5810df3e504abc3466bc4b"
+        }
+      }
+    },
+    {
+      "message": "MCBearerContextModificationFailure",
+      "procedure": "mCBearerContextModification",
+      "procedure_code": 35,
+      "role": "UNSUCCESSFUL OUTCOME",
+      "expected_criticality": "reject",
+      "criticality_provenance": "explicit",
+      "root_container": "protocol-ie",
+      "physical_extraction_rc": 0,
+      "extraction_diagnostic": "",
+      "owned_types": 20,
+      "bound_instances": 9,
+      "registries": 5,
+      "envelope_extraction_rc": 0,
+      "envelope_diagnostic": "",
+      "generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "envelope_generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "types": "d2a797699812e9eb1ed7d38135e0cea9ce44abc3e40256ad2ad07bef675d15bb",
+          "mapping": "549e9883af53a11456dd8a861052dc15f4537c957e51f9c7b9ee3a614282a644",
+          "codec": "063765771690b8f15133fdf87f7bc01a7bc9bed42a29e8d4853e0f917ac6ade4"
+        }
+      },
+      "wire_qualification": "NOT_RUN",
+      "envelope_compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "envelope_types": "2b907a3999050c3f543e1db348f29215f3c0889fd337b430764d40b85a74a31d",
+          "envelope_mapping": "2b991818b8c8dd1076dfd217efd7395b5465f6e213d578f38af7e7430de22800",
+          "envelope_codec": "d8aae0f5935065af1fe9750e82437d042fdb2a343c958f6b1557aa087f9c9380"
+        }
+      }
+    },
+    {
+      "message": "MCBearerContextModificationRequired",
+      "procedure": "mCBearerContextModificationRequired",
+      "procedure_code": 36,
+      "role": "INITIATING MESSAGE",
+      "expected_criticality": "reject",
+      "criticality_provenance": "explicit",
+      "root_container": "protocol-ie",
+      "physical_extraction_rc": 0,
+      "extraction_diagnostic": "",
+      "owned_types": 16,
+      "bound_instances": 10,
+      "registries": 5,
+      "envelope_extraction_rc": 0,
+      "envelope_diagnostic": "",
+      "generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "envelope_generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "types": "6802da0810d7166f8f8a1d0109af9ddeba59951e4d00297eb63cb5fd34398939",
+          "mapping": "7b296256d096fe7c8171e68e916783204d5ec15cfd0fe6faac29f699e86bc859",
+          "codec": "5292e4f5d45d83989e44ddb98eb331f473e0952de603022be3ba202d105d25ea"
+        }
+      },
+      "wire_qualification": "NOT_RUN",
+      "envelope_compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "envelope_types": "bccb9bb63cafda5cce5277cde837b68702790ba5ffef4e6eea0e9b7294a5ed50",
+          "envelope_mapping": "9383280fe146774dd274073f830d1d9c6c192cae848de21822e986a52d611028",
+          "envelope_codec": "49f2144ddfe9d7de0e3e8c6408a46701167f4a80e7daba8274017221a3451010"
+        }
+      }
+    },
+    {
+      "message": "MCBearerContextModificationConfirm",
+      "procedure": "mCBearerContextModificationRequired",
+      "procedure_code": 36,
+      "role": "SUCCESSFUL OUTCOME",
+      "expected_criticality": "reject",
+      "criticality_provenance": "explicit",
+      "root_container": "protocol-ie",
+      "physical_extraction_rc": 0,
+      "extraction_diagnostic": "",
+      "owned_types": 19,
+      "bound_instances": 12,
+      "registries": 6,
+      "envelope_extraction_rc": 0,
+      "envelope_diagnostic": "",
+      "generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "envelope_generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "types": "c7780d46e147c6e06c075eba8099d2ad16142cb3a9f105b9a43940cf158b5c06",
+          "mapping": "7dccf2f4c731f6c627af6f2d673a9a662d697063a9af386dc29015998c958859",
+          "codec": "9ffae6793d7a971370af458ade5d59047dc9645e0845f864541cf283af17cb75"
+        }
+      },
+      "wire_qualification": "NOT_RUN",
+      "envelope_compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "envelope_types": "d55997508b6dc906344675833c6a8ccd93ca3c10f00438a00af09c2ae3d8433b",
+          "envelope_mapping": "b150696fec3e114abeaf4a8001678122fb263e2b90d224cd20c7cac95a61c702",
+          "envelope_codec": "83c32f4c5d68b9c1bf7af83778b23039a53c2728f91addb7f733ea48604fbce8"
+        }
+      }
+    },
+    {
+      "message": "MCBearerNotification",
+      "procedure": "mCBearerNotification",
+      "procedure_code": 39,
+      "role": "INITIATING MESSAGE",
+      "expected_criticality": "reject",
+      "criticality_provenance": "explicit",
+      "root_container": "protocol-ie",
+      "physical_extraction_rc": 0,
+      "extraction_diagnostic": "",
+      "owned_types": 9,
+      "bound_instances": 7,
+      "registries": 4,
+      "envelope_extraction_rc": 0,
+      "envelope_diagnostic": "",
+      "generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "envelope_generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "types": "a1d32c2f263a65f9a73e2dc2588a4b974e6866203b2a2c8cc1ca1b5ed2d7cc1e",
+          "mapping": "7a60d85df28c84568c24b2f4def2536e12e764bfa7099b139649371d11ed2efa",
+          "codec": "45b083fca0822712b33e8261bf751c905c2469a4ee0f981cc40b93f6389d5e52"
+        }
+      },
+      "wire_qualification": "NOT_RUN",
+      "envelope_compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "envelope_types": "0bd0aa589efee73c9287f8b32a2a787e7b3ceae872cf13c537af8b25819fd85f",
+          "envelope_mapping": "4d9fd9f69a6ff814ff3e48ad090c0cc9d7206de506818bd0ad50827730013683",
+          "envelope_codec": "d6b560f2e0c96bb04c1d58761cd380d44a69e8c39475bd6e12cb204d72b28038"
+        }
+      }
+    },
+    {
+      "message": "MCBearerContextReleaseCommand",
+      "procedure": "mCBearerContextRelease",
+      "procedure_code": 37,
+      "role": "INITIATING MESSAGE",
+      "expected_criticality": "reject",
+      "criticality_provenance": "explicit",
+      "root_container": "protocol-ie",
+      "physical_extraction_rc": 0,
+      "extraction_diagnostic": "",
+      "owned_types": 10,
+      "bound_instances": 3,
+      "registries": 2,
+      "envelope_extraction_rc": 0,
+      "envelope_diagnostic": "",
+      "generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "envelope_generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "types": "98959ed7d9ea039dc94966adf3896bbd32868128eed7d10c866f0fd453d80a17",
+          "mapping": "a4a254281fbf11405e02fc9bc4069b37b63b16cf896e088a620e25c4661d6029",
+          "codec": "134bd58cbb4ede209386b41afd7eae61e39763b04fa292e71d0afaaa344e321f"
+        }
+      },
+      "wire_qualification": "NOT_RUN",
+      "envelope_compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "envelope_types": "1226aded773f28101985338c038cded9797e4d7900bec073900e550ca1835e6d",
+          "envelope_mapping": "0806f17674ef8a2a74d4e4fb80f29381aa8a7999a8be3d5bef892d44a428c559",
+          "envelope_codec": "b54f55463fb29503fe9d3c99230e873ba696f2bbd1924dca47b95ff7c00a7bf5"
+        }
+      }
+    },
+    {
+      "message": "MCBearerContextReleaseComplete",
+      "procedure": "mCBearerContextRelease",
+      "procedure_code": 37,
+      "role": "SUCCESSFUL OUTCOME",
+      "expected_criticality": "reject",
+      "criticality_provenance": "explicit",
+      "root_container": "protocol-ie",
+      "physical_extraction_rc": 0,
+      "extraction_diagnostic": "",
+      "owned_types": 12,
+      "bound_instances": 6,
+      "registries": 3,
+      "envelope_extraction_rc": 0,
+      "envelope_diagnostic": "",
+      "generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "envelope_generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "types": "86ec3a0ca2af81069cc9bba44dee185b8bc6ff5b9cd7b94d3a929fde715fc640",
+          "mapping": "084dfa2fae6ea472833f8ad534e6cf86a922c20bed1b0e7fc325992ae30cc226",
+          "codec": "2f40188bb135007091c0cffb9430a12c6780e0a66bd05237c9b1ac06d3cbe45a"
+        }
+      },
+      "wire_qualification": "NOT_RUN",
+      "envelope_compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "envelope_types": "fcda40dc73057f40118d8e41608b5d8ab6941b636a5932ed947bbfa2cc02b4f4",
+          "envelope_mapping": "6a0aa2fd9660335746ada31b8bc45b459c2c308d3d1d660772f376e44906e04e",
+          "envelope_codec": "66624a807e202531dd9aae93b36acb38df245776508a91524df12c97b2fa91d3"
+        }
+      }
+    },
+    {
+      "message": "MCBearerContextReleaseRequest",
+      "procedure": "mCBearerContextReleaseRequest",
+      "procedure_code": 38,
+      "role": "INITIATING MESSAGE",
+      "expected_criticality": "reject",
+      "criticality_provenance": "explicit",
+      "root_container": "protocol-ie",
+      "physical_extraction_rc": 0,
+      "extraction_diagnostic": "",
+      "owned_types": 10,
+      "bound_instances": 3,
+      "registries": 2,
+      "envelope_extraction_rc": 0,
+      "envelope_diagnostic": "",
+      "generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "envelope_generation": [
+        {
+          "family": 0,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 1,
+          "rc": 0,
+          "diagnostic": ""
+        },
+        {
+          "family": 2,
+          "rc": 0,
+          "diagnostic": ""
+        }
+      ],
+      "compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "types": "98dff34c547897bad64388901d7bd06c3119d58e8a62cbac50f255ba36a9860e",
+          "mapping": "1880a77d5000eeba5c8eb9c4f682ea3812f769f6fbccb6cfafe4f7861857cb68",
+          "codec": "9ba2219aac94efca9fc3216c1bad8c376b72f45cbeee1d73ade5e298d2868066"
+        }
+      },
+      "wire_qualification": "NOT_RUN",
+      "envelope_compile": {
+        "status": "PASS",
+        "return_code": 0,
+        "diagnostic": "",
+        "header_sha256": {
+          "envelope_types": "8c3ca8f15d20f42153dd8d45b742916568f229350ee573aba3614a102060edc2",
+          "envelope_mapping": "6f7e56ca3838e4beb9e3c9c73fed87d60b1d6cc61a437ebc260f085f0387f26d",
+          "envelope_codec": "2162c076b093b5dcb63821b236c638c0169f820b919e8d1080572fed4a3fa076"
+        }
+      }
+    }
+  ]
+}

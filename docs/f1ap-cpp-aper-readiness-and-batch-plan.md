@@ -192,3 +192,14 @@ Evidence: [F1-P6 contract and closeout](f1ap-python-sdk-contract-and-closeout.md
 `tools/f1ap-python/verification-summary.json` and `tools/f1ap-python/review.md`.
 Next: **E1AP readiness and shared-capability planning**, then RRC. No merge is
 part of this acceptance.
+
+
+## E1AP handoff study (2026-10-11)
+
+The separate E1-P1 readiness study covers frozen TS 37.483 V18.6.0 E1AP:
+40 procedures / 72 messages. Seventy BODY and target-envelope pipelines pass
+strict syntax compilation; two usage reports stop at the shared full uint64
+owned-constraint boundary. All 72 target descriptors extract. No E1AP wire
+qualification or production codec implementation is added by the study.
+See [E1AP readiness and batch plan](e1ap-cpp-aper-readiness-and-batch-plan.md).
+Next implementation batch: E1-P2 shared unsigned64 evidence/rendering support.

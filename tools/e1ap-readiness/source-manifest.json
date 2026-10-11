@@ -1,0 +1,46 @@
+{
+  "repository": "hahaliu2001/NRForge-RAN",
+  "commit": "d6e514a33ec3695925c24aa292900514b371b074",
+  "standard": "TS 37.483 V18.6.0 Release 18",
+  "provenance_path": "src/e1/asn1/README.md",
+  "combined_bytes": 249289,
+  "combined_sha256": "5cfd3832772f7898360ba1a6d3a09c5ca9c78c3d9a97e6b5e009880bfcc685b9",
+  "modules": [
+    {
+      "path": "e1/asn1/E1AP-PDU-Descriptions.asn",
+      "size": 16318,
+      "git_blob": "4f657bb0a71e4f187acb30b7bbe968c3fa7e2327",
+      "sha256": "297a2816743114089df58a748536366581b87a0acb02967252fccc184790a244"
+    },
+    {
+      "path": "e1/asn1/E1AP-PDU-Contents.asn",
+      "size": 84405,
+      "git_blob": "09adceec45db6004a46bd0f5d62ebcbdeca400d2",
+      "sha256": "41941d2c0754d7126a6ac1120d0052c7db692818e4d6d99044cd8aeb352b23ae"
+    },
+    {
+      "path": "e1/asn1/E1AP-IEs.asn",
+      "size": 125671,
+      "git_blob": "4ece13b3595f2c35a837594c0fb9f7f79f8e8028",
+      "sha256": "f672cb38af72ef4207b1e3a81184b135879843cbb96ec16dd7594499154b914c"
+    },
+    {
+      "path": "e1/asn1/E1AP-CommonDataTypes.asn",
+      "size": 1284,
+      "git_blob": "9aeb3d9d9bc19da90aa7653a442ef97e0f300ede",
+      "sha256": "4d8b336cdfbae51a31dded5c30f03256b8dd2926dab9953e7fde4168091345a8"
+    },
+    {
+      "path": "e1/asn1/E1AP-Constants.asn",
+      "size": 17492,
+      "git_blob": "3f2be55c777d0e24d5527b92ba8d5a8f4e457888",
+      "sha256": "d7f67de4412978de20aac452c4adc8fe99c028921c5c457fd9a9a44ebf457a23"
+    },
+    {
+      "path": "e1/asn1/E1AP-Containers.asn",
+      "size": 4119,
+      "git_blob": "a412be6c059218094c0cfa1a921da3611e71e44e",
+      "sha256": "60615bc833d01f23f06680345ba931dbf6f9b8833963ddb5a23e234c6cfbd1bc"
+    }
+  ]
+}
