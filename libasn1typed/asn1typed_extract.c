@@ -390,6 +390,7 @@ static int
 extract_integer_value_range(const asn1p_constraint_t *constraint,
 		asn1typed_integer_value_range_t *out) {
 	const asn1p_constraint_t *list, *root, *range;
+	asn1p_constraint_t single_value_range;
 	integer_interval_list_t terms = {0};
 	asn1typed_integer_value_range_t pending = {0};
 	int extensible = 0;
@@ -437,6 +438,20 @@ extract_integer_value_range(const asn1p_constraint_t *constraint,
 			!integer_constraint_node_empty(list->elements[1])) return -1;
 		root = list->elements[0];
 		extensible = 1;
+	}
+	/* A closed solitary root value has the same owned domain as [v,v].
+	 * Normalize a read-only local view; never rewrite parser/fixer nodes or
+	 * accept an extensible single-value root through this new path. */
+	if(!extensible && root->type == ACT_EL_VALUE) {
+		if(root->el_count || !integer_constraint_leaf(root) ||
+			!root->value || root->value->type != ATV_INTEGER ||
+			root->range_start || root->range_stop || root->containedSubtype)
+			return -1;
+		single_value_range = *root;
+		single_value_range.type = ACT_EL_RANGE;
+		single_value_range.range_start = single_value_range.range_stop = root->value;
+		single_value_range.value = NULL;
+		root = &single_value_range;
 	}
 	if(root->type == ACT_EL_RANGE) {
 		range = root;

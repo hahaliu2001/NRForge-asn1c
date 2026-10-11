@@ -243,6 +243,90 @@ assert_integer_intervals(const asn1typed_integer_value_range_t *range,
 
 static asn1p_expr_t *find_decl(asn1p_t *tree, const char *name);
 
+
+/* Closed singleton roots use existing owned range metadata, not a new IR kind. */
+static void
+check_integer_singletons(void) {
+    const char source[] =
+        "Singleton DEFINITIONS AUTOMATIC TAGS ::= BEGIN\n"
+        "Zero ::= INTEGER (0)\nFour ::= INTEGER (4)\nNegative ::= INTEGER (-7)\n"
+        "Min ::= INTEGER (-9223372036854775808)\n"
+        "Max ::= INTEGER (9223372036854775807)\n"
+        "Unsigned ::= INTEGER (18446744073709551615)\n"
+        "Alias ::= Four\n"
+        "Fields ::= SEQUENCE { direct INTEGER (4), named Four, optional INTEGER (0) OPTIONAL }\n"
+        "Pick ::= CHOICE { zero INTEGER (0), negative INTEGER (-7) }\nEND\n";
+    const char *names[] = {"Zero", "Four", "Negative", "Min", "Max"};
+    const intmax_t expected[] = {0, 4, -7, INTMAX_MIN, INTMAX_MAX};
+    asn1typed_module_t ir = {0};
+    char error[512] = {0};
+    asn1p_t *tree = asn1p_parse_buffer(source, -1, "singletons.asn", 1, A1P_NOFLAGS);
+    assert(tree && asn1f_process(tree, A1F_NOFLAGS, NULL) >= 0);
+    if(asn1typed_extract_module(tree, "Singleton", &ir, error, sizeof(error))) {
+        fprintf(stderr, "singleton extraction: %s\n", error); assert(0);
+    }
+    /* The source SingleValue leaf remains intact after normalization. */
+    asn1p_expr_t *decl = find_decl(tree, "Four");
+    assert(decl->constraints->elements[0]->type == ACT_EL_VALUE);
+    assert(decl->combined_constraints->elements[0]->type == ACT_EL_VALUE);
+    asn1typed_module_t alias_graph = {0};
+    assert(asn1typed_extract_root_graph(tree, "Singleton", "Alias", NULL, &alias_graph, error, sizeof(error)) == 0);
+    asn1p_delete(tree);
+    for(size_t i = 0; i < sizeof(names)/sizeof(names[0]); ++i) {
+        asn1typed_type_t *t = find_type(&ir, names[i]);
+        assert(t && t->value_range.has_value_range && !t->value_range.is_extensible);
+        assert(!t->value_range.unsigned_bounds && !t->value_range.tail_count);
+        assert(t->value_range.lower_bound == expected[i] && t->value_range.upper_bound == expected[i]);
+    }
+    asn1typed_type_t *u = find_type(&ir, "Unsigned"), *a = find_type(&alias_graph, "Alias");
+    assert(u && u->value_range.unsigned_bounds && !u->value_range.is_extensible);
+    assert(u->value_range.unsigned_lower_bound == UINT64_MAX && u->value_range.unsigned_upper_bound == UINT64_MAX);
+    assert(a && a->value_range.lower_bound == 4 && a->value_range.upper_bound == 4);
+    asn1typed_type_t *f = find_type(&ir, "Fields"), *c = find_type(&ir, "Pick");
+    assert(f && f->field_count == 3 && f->fields[0].value_range.lower_bound == 4 && f->fields[0].value_range.upper_bound == 4);
+    assert(f->fields[2].presence == ASN1TYPED_PRESENCE_OPTIONAL && f->fields[2].value_range.has_value_range);
+    assert(c && c->alternative_count == 2 && c->alternatives[0].value_range.has_value_range);
+    assert(c->alternatives[1].value_range.lower_bound == -7 && c->alternatives[1].value_range.upper_bound == -7);
+    asn1typed_module_clear(&ir);
+    asn1typed_module_clear(&alias_graph);
+
+    const char *bad[] = {
+        "Bad ::= INTEGER (4, ...)",
+        "Bad ::= INTEGER (-9223372036854775809)",
+        "Bad ::= INTEGER (18446744073709551616)",
+        "Bad ::= SEQUENCE (SIZE (1..2)) OF INTEGER (4)"
+    };
+    for(size_t i = 0; i < sizeof(bad)/sizeof(bad[0]); ++i) {
+        char input[256];
+        snprintf(input, sizeof(input), "RejectSingleton DEFINITIONS ::= BEGIN\n%s\nEND\n", bad[i]);
+        tree = asn1p_parse_buffer(input, -1, "reject-singleton.asn", 1, A1P_NOFLAGS);
+        assert(tree && asn1f_process(tree, A1F_NOFLAGS, NULL) >= 0);
+        assert(asn1typed_extract_module(tree, "RejectSingleton", &ir, error, sizeof(error)) == -1);
+        assert(error[0]); assert_ir_cleared(&ir);
+        asn1p_delete(tree);
+    }
+    /* Corrupt fixed leaves after parsing, so rejection reaches extraction. */
+    for(size_t i = 0; i < 3; ++i) {
+        tree = asn1p_parse_buffer(source, -1, "malformed-singleton.asn", 1, A1P_NOFLAGS);
+        assert(tree && asn1f_process(tree, A1F_NOFLAGS, NULL) >= 0);
+        decl = find_decl(tree, "Four");
+        asn1p_constraint_t *leaf = decl->combined_constraints->elements[0];
+        assert(leaf->type == ACT_EL_VALUE);
+        if(i == 0) { asn1p_value_t *saved = leaf->value; leaf->value = NULL;
+            assert(asn1typed_extract_module(tree, "Singleton", &ir, error, sizeof(error)) == -1);
+            leaf->value = saved;
+        } else if(i == 1) { leaf->range_start = leaf->value;
+            assert(asn1typed_extract_module(tree, "Singleton", &ir, error, sizeof(error)) == -1);
+            leaf->range_start = NULL;
+        } else { unsigned saved = leaf->el_size; leaf->el_size = 1;
+            assert(asn1typed_extract_module(tree, "Singleton", &ir, error, sizeof(error)) == -1);
+            leaf->el_size = saved;
+        }
+        assert(error[0]); assert_ir_cleared(&ir); asn1p_delete(tree);
+    }
+    puts("Closed singleton INTEGER signed/unsigned/alias/field/choice ownership and fail-closed forms: PASS");
+}
+
 static void
 check_integer_permitted_value_sets(void) {
 	static const char *unsupported[] = {
@@ -256,7 +340,7 @@ check_integer_permitted_value_sets(void) {
 		"Bad ::= INTEGER (1 | 9223372036854775808)\nEND\n",
 		"IntegerNonIntegerTerm DEFINITIONS ::= BEGIN\n"
 		"Bad ::= INTEGER (1 | \"x\")\nEND\n",
-		"IntegerStandaloneSingle DEFINITIONS ::= BEGIN\nBad ::= INTEGER (7)\nEND\n"
+		"IntegerExtensibleSingle DEFINITIONS ::= BEGIN\nBad ::= INTEGER (7, ...)\nEND\n"
 	};
 	static const asn1typed_integer_interval_t range_and_singles[] = {
 		{ 1, 30 }, { 40, 40 }, { 50, 50 }
@@ -321,7 +405,7 @@ check_integer_permitted_value_sets(void) {
 		static const char *module_names[] = {
 			"MalformedIntegerUnion", "IntegerMinMax", "IntegerExcept",
 			"IntegerNestedCompound", "IntegerTooWide",
-			"IntegerNonIntegerTerm", "IntegerStandaloneSingle"
+			"IntegerNonIntegerTerm", "IntegerExtensibleSingle"
 		};
 		tree = asn1p_parse_buffer(unsupported[0], -1,
 			"malformed-integer-union.asn", 1, A1P_NOFLAGS);
@@ -1855,6 +1939,7 @@ main(void) {
 	check_visible_string_size();
 	check_integer_value_range();
 	check_integer_permitted_value_sets();
+	check_integer_singletons();
 	check_opaque_contents_compatibility();
 	check_octet_string_size();
 	check_extensible_exact_size();

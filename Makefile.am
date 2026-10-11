@@ -119,3 +119,9 @@ EXTRA_DIST += docs/rrc-python-sdk-contract-and-closeout.md \
 EXTRA_DIST += docs/rrc-remaining-blockers-and-batch-plan.md \
  tools/rrc-blockers/study.py tools/rrc-blockers/inspect.c tools/rrc-blockers/study.json \
  tools/rrc-blockers/README.md tools/rrc-blockers/verification.json tools/rrc-blockers/review.md
+
+EXTRA_DIST += docs/rrc-singleton-integer-contract-and-closeout.md \
+ tools/rrc-singleton/check.py tools/rrc-singleton/singletons.asn1 \
+ tools/rrc-singleton/check_generated.cpp tools/rrc-singleton/README.md \
+ tools/rrc-singleton/readiness.json tools/rrc-singleton/verification.json \
+ tools/rrc-singleton/review.md

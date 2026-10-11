@@ -1,0 +1,17 @@
+SingletonCodec DEFINITIONS AUTOMATIC TAGS ::= BEGIN
+Zero ::= INTEGER (0)
+Four ::= INTEGER (4)
+Negative ::= INTEGER (-7)
+Minimum ::= INTEGER (-9223372036854775808)
+Maximum ::= INTEGER (9223372036854775807)
+UnsignedMaximum ::= INTEGER (18446744073709551615)
+Alias ::= Four
+Fields ::= SEQUENCE { direct INTEGER (4), named Alias, optional INTEGER (0) OPTIONAL }
+Pick ::= CHOICE { zero INTEGER (0), negative INTEGER (-7) }
+Defaulted ::= SEQUENCE { fixed INTEGER (4) DEFAULT 4, marker BOOLEAN }
+NamedList ::= SEQUENCE (SIZE (1..2)) OF Four
+Extensible ::= INTEGER (4, ...)
+TooHigh ::= INTEGER (18446744073709551616)
+TooLow ::= INTEGER (-9223372036854775809)
+InlineList ::= SEQUENCE (SIZE (1..2)) OF INTEGER (4)
+END

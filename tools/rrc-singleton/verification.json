@@ -1,0 +1,101 @@
+{
+  "aper_regression": {
+    "E1AP": {
+      "extraction_and_generation": "PASS",
+      "historical_headers_byte_identical": 432,
+      "messages": 72
+    },
+    "F1AP": {
+      "extraction_and_generation": "PASS",
+      "historical_headers_byte_identical": 948,
+      "messages": 158
+    },
+    "NGAP": {
+      "extraction_and_generation": "PASS",
+      "historical_headers_byte_identical": 393,
+      "messages": 131
+    }
+  },
+  "baseline_commit": "99784032a83ab55c3009800bdb31606eb6031000",
+  "batch": "RRC-P11",
+  "benchmark_run": false,
+  "branch": "feature/f1ap-cpp-aper",
+  "compiler": "gcc (Ubuntu 13.3.0-6ubuntu2~24.04) 13.3.0",
+  "contract": "closed nonextensible singleton INTEGER uses existing [v,v] signed/unsigned owned domain; borrowed AST unchanged",
+  "focused_generated_pass": 11,
+  "focused_rejected": 4,
+  "limitations": [
+    "SystemInformation has extraction/render and strict compilation only; no new wire qualification",
+    "P8/P9 SDK and qualification receipts remain unchanged; expanded delivery is deferred",
+    "Inline constrained collection elements and extensible singleton roots remain rejected"
+  ],
+  "merge": false,
+  "native_pass_total": 63,
+  "native_regressions": {
+    "libaper": {
+      "ERROR": 0,
+      "FAIL": 0,
+      "PASS": 10,
+      "TOTAL": 10,
+      "log_sha256": "64dd53a2436bdbaa10943b0d31973e6ac6cbd70aae3d719e4ef45c520387e404"
+    },
+    "libasn1parser": {
+      "ERROR": 0,
+      "FAIL": 0,
+      "PASS": 1,
+      "TOTAL": 1,
+      "log_sha256": "7e5e21619b2036dcf772754e1d36f6417d598f06354ee3201ade7ed1a354282d"
+    },
+    "libasn1typed": {
+      "ERROR": 0,
+      "FAIL": 0,
+      "PASS": 46,
+      "TOTAL": 46,
+      "log_sha256": "dcfc8a63a470549a6b791cd5a4c4e471036dca671dc1c2bb5e9c121f6d02796d"
+    },
+    "libngap": {
+      "ERROR": 0,
+      "FAIL": 0,
+      "PASS": 3,
+      "TOTAL": 3,
+      "log_sha256": "97a47e9b294a5bbec4ef6e3415f9602133e947a093f6b0f45e28dc2bad9b2702"
+    },
+    "libuper": {
+      "ERROR": 0,
+      "FAIL": 0,
+      "PASS": 3,
+      "TOTAL": 3,
+      "log_sha256": "3af18de7d89dc09343b74c90df7b7294bcbb41da2e5d8f23fb94797312ef99fa"
+    }
+  },
+  "new_real_message_wire_qualification": false,
+  "next_task": "RRC-P12: constrained primitive inline collection-element ownership and validation",
+  "preserved_baseline_blob_inventory_sha256": "22713ebb329c1517438d4d2392d1de07e0c475347018ff8c6c5e88e905e716a0",
+  "preserved_baseline_blobs": 2621,
+  "production_changes": [
+    "libasn1typed/asn1typed_extract.c"
+  ],
+  "readiness_summary": {
+    "BLOCKED_EXTRACTION": 15,
+    "BLOCKED_RENDER": 5,
+    "PASS": 65
+  },
+  "renderer_changes": false,
+  "runtime_changes": false,
+  "schema_changes": false,
+  "sdk_delivered_roots": 64,
+  "sdk_rebuild": false,
+  "source_sha256": {
+    "Makefile.am": "5c445076527d13d75fc3ef9526056e18053db112988281fa2fa8bb218dee86db",
+    "docs/rrc-singleton-integer-contract-and-closeout.md": "15cae35901f6a22d1ab966013b0209abb0a27dd5de163148480bfbaebc0b4c63",
+    "libasn1typed/asn1typed_extract.c": "400db3be201f36c31aa845355fed6454d66141c7fc762bce8e192cdf43d20e37",
+    "libasn1typed/check_asn1typed_extract.c": "3f8213e9a24d8cb37453b455948a0c21b126510a9665c8df6f9791f6633c6ad5",
+    "tools/rrc-singleton/README.md": "0849a2687d97208dfc6633448be44c4e6fa7d844f1c71bbd4a6895000b5b2a0d",
+    "tools/rrc-singleton/check.py": "8cd7d9acdb7810edb89c4415bd3a3e1faf99b6c94a1135edc5c83ec87c09ab54",
+    "tools/rrc-singleton/check_generated.cpp": "3f1218b71a725983a54420c107221199ab0302ad8d767155456dd0c9cdf47d74",
+    "tools/rrc-singleton/readiness.json": "42e83ac9fbd2c0e4cc50e28b61a7bc3b5ef61239929a6548ae5ed9193d025d47",
+    "tools/rrc-singleton/singletons.asn1": "f6e08bd1efbc2448eca6ac863615bce4cf7e609ac39ccfdf67f8c3b7d1978e9e"
+  },
+  "status": "VERIFIED_PENDING_INDEPENDENT_ACCEPTANCE",
+  "unchanged_accepted_rrc_headers": 64
+}
