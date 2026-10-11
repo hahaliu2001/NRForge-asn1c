@@ -8,3 +8,6 @@ target_compile_options(ngap_setup_consumer PRIVATE -Wall -Wextra -Werror -pedant
 set_target_properties(ngap_setup_consumer PROPERTIES CXX_EXTENSIONS OFF)
 enable_testing()
 add_test(NAME installed_three_outcomes COMMAND ngap_setup_consumer)
+
+set(NRFORGE_CONSUMER_LINKER gold CACHE STRING "Consumer linker")
+target_link_options(ngap_setup_consumer PRIVATE -fuse-ld=${NRFORGE_CONSUMER_LINKER} -Wl,-s)

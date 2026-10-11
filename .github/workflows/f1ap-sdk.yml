@@ -1,0 +1,70 @@
+name: F1AP installed SDK and NGAP coexistence
+on:
+  workflow_dispatch:
+  push:
+    branches: [feature/f1ap-cpp-aper]
+    paths: ['cmake/**', 'libaper/**', 'libngap/**', 'libasn1typed/**', 'tools/ngap-dispatch/**', 'tools/f1ap-sdk/**', 'tools/f1ap-sdk-consumer/**', 'tools/ngap-sdk/**', 'tools/ngap-sdk-consumer/**', 'tools/f1ap-wire-qualification/**', 'tools/f1ap-readiness/source-manifest.json', 'tools/full-pdu-qualification/**', 'tools/unified-ngap-qualification/**', 'tools/n11-envelope-qualification/**', '.github/workflows/f1ap-sdk.yml']
+  pull_request:
+    paths: ['cmake/**', 'libaper/**', 'libngap/**', 'libasn1typed/**', 'tools/ngap-dispatch/**', 'tools/f1ap-sdk/**', 'tools/f1ap-sdk-consumer/**', 'tools/ngap-sdk/**', 'tools/ngap-sdk-consumer/**', 'tools/f1ap-wire-qualification/**', 'tools/f1ap-readiness/source-manifest.json', 'tools/full-pdu-qualification/**', 'tools/unified-ngap-qualification/**', 'tools/n11-envelope-qualification/**', '.github/workflows/f1ap-sdk.yml']
+permissions:
+  contents: read
+concurrency:
+  group: f1ap-sdk-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  installed-consumer:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/checkout@v5
+        with:
+          repository: hahaliu2001/NRForge-RAN
+          ref: d6e514a33ec3695925c24aa292900514b371b074
+          path: frozen-schema
+          token: ${{ secrets.NRFORGE_SCHEMA_READ_TOKEN }}
+      - name: Install dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq autoconf automake libtool bison flex cmake binutils lld
+          python3 -m pip install pycrate==0.7.11
+      - name: Build generator and shared functional gates
+        run: |
+          autoreconf -iv
+          ./configure
+          for library in libasn1common libasn1parser libasn1fix libasn1print libasn1typed; do
+            make -C "$library" -j2
+          done
+          make -C tools asn1typed_ngap_dispatch
+          set -o pipefail
+          make -C libaper check | tee "$RUNNER_TEMP/libaper-check.log"
+          make -C libngap check | tee "$RUNNER_TEMP/libngap-check.log"
+          make -C libasn1typed check | tee "$RUNNER_TEMP/libasn1typed-check.log"
+      - name: Build and install both SDKs
+        run: |
+          python3 tools/f1ap-sdk/build.py --repo "$GITHUB_WORKSPACE" --asn1-root "$GITHUB_WORKSPACE/frozen-schema/src" --work "$RUNNER_TEMP/f1-work" --prefix "$RUNNER_TEMP/f1-install" --jobs 1
+          python3 tools/ngap-sdk/build.py --repo "$GITHUB_WORKSPACE" --asn1-root "$GITHUB_WORKSPACE/frozen-schema/src" --work "$RUNNER_TEMP/ng-work" --prefix "$RUNNER_TEMP/ng-install" --jobs 1
+      - name: Independent native fixture reproduction and installed consumers
+        run: |
+          python3 tools/f1ap-sdk-consumer/prepare.py --generated-root "$RUNNER_TEMP/f1-work/generated" --asn1-root "$GITHUB_WORKSPACE/frozen-schema/src" --work "$RUNNER_TEMP/f1-native"
+          git diff --exit-code -- tools/f1ap-sdk-consumer/f1_setup.cpp tools/f1ap-sdk-consumer/native-fixtures.json
+          python3 tools/f1ap-sdk-consumer/prepare_all.py --generated "$RUNNER_TEMP/f1-work/generated" --output "$RUNNER_TEMP/f1-slots"
+          python3 tools/f1ap-sdk-consumer/isolate.py --repo "$GITHUB_WORKSPACE" --schema "$GITHUB_WORKSPACE/frozen-schema/src" --f1-work "$RUNNER_TEMP/f1-work" --ng-work "$RUNNER_TEMP/ng-work" --f1-prefix "$RUNNER_TEMP/f1-install" --ng-prefix "$RUNNER_TEMP/ng-install" --all-slots "$RUNNER_TEMP/f1-slots" --work "$RUNNER_TEMP/isolated-consumers" --linker lld
+          python3 tools/f1ap-sdk/verify_seal.py --repo "$GITHUB_WORKSPACE" --generated "$RUNNER_TEMP/f1-work/generated" --build "$RUNNER_TEMP/f1-work/build" --work "$RUNNER_TEMP/f1-seal-negatives"
+          python3 tools/f1ap-sdk/record.py --repo "$GITHUB_WORKSPACE" --work "$RUNNER_TEMP/f1-work" --prefix "$RUNNER_TEMP/f1-install" --isolation "$RUNNER_TEMP/isolated-consumers" --seal-negatives "$RUNNER_TEMP/f1-seal-negatives" --functional-log "$RUNNER_TEMP/libaper-check.log" --functional-log "$RUNNER_TEMP/libngap-check.log" --functional-log "$RUNNER_TEMP/libasn1typed-check.log" --output "$RUNNER_TEMP/f1-sdk-evidence.json"
+      - name: Preserve evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: f1ap-sdk-evidence
+          path: |
+            ${{ runner.temp }}/f1-work/*.log
+            ${{ runner.temp }}/f1-work/build-summary.json
+            ${{ runner.temp }}/ng-work/*.log
+            ${{ runner.temp }}/ng-work/build-summary.json
+            ${{ runner.temp }}/isolated-consumers/**/*.log
+            ${{ runner.temp }}/isolated-consumers/*summary.json
+            ${{ runner.temp }}/f1-sdk-evidence.json
+            ${{ runner.temp }}/*-check.log
+            ${{ runner.temp }}/f1-seal-negatives/*.log
+            ${{ runner.temp }}/f1-seal-negatives/summary.json

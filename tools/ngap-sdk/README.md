@@ -49,3 +49,11 @@ This is a CI credential prerequisite; local builds accept the already available
 hash-verified frozen schema directory and do not need GitHub credentials.
 Wire qualification remains the finite accepted profile, not live vendor or RAN
 procedure validation.
+
+F1-P5 adds protocol-qualified installed internal includes and the public
+`<nrforge/ngap/...>` entry points alongside the legacy direct includes. For a
+consumer linking both `NRForge::ngap` and `NRForge::f1ap`, use qualified includes
+to avoid ambiguous same-named top-level headers. Package names, protocol
+namespaces, registries, archives, configuration fingerprints and install paths
+remain independent. The shared packaging helper is parameterized; production
+NGAP BODY/codec/PDU output remains unchanged.

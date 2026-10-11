@@ -10,8 +10,21 @@ import shutil
 import subprocess
 
 
+def copy_sdk_file(source, destination):
+    if Path(source).suffix == ".a":
+        try:
+            os.link(source, destination)
+            return destination
+        except OSError:
+            pass
+    return shutil.copy2(source, destination)
+
+
 def digest(path):
-    return hashlib.sha256(path.read_bytes()).hexdigest()
+    h = hashlib.sha256()
+    with path.open('rb') as stream:
+        for block in iter(lambda: stream.read(1 << 20), b''): h.update(block)
+    return h.hexdigest()
 
 
 def run(command, work, environment, log):
@@ -26,13 +39,14 @@ def main():
     parser.add_argument('--prefix', type=Path, required=True)
     parser.add_argument('--work', type=Path, required=True)
     parser.add_argument('--cmake', default='cmake')
+    parser.add_argument('--linker', default='gold')
     parser.add_argument('--output', type=Path, required=True)
     args = parser.parse_args()
     original = args.prefix.resolve()
     work = args.work.resolve()
     work.mkdir(parents=True, exist_ok=False)
     relocated = work / 'relocated-sdk'
-    shutil.copytree(original, relocated, symlinks=False)
+    shutil.copytree(original, relocated, symlinks=False, copy_function=copy_sdk_file)
     source = work / 'consumer'
     source.mkdir()
     for name in ('ng_setup.cpp', 'CMakeLists.txt'):
@@ -44,7 +58,7 @@ def main():
     flags = ['-DCMAKE_PREFIX_PATH=' + str(relocated),
              '-DCMAKE_FIND_USE_PACKAGE_REGISTRY=OFF',
              '-DCMAKE_FIND_USE_SYSTEM_PACKAGE_REGISTRY=OFF',
-             '-DCMAKE_EXPORT_COMPILE_COMMANDS=ON']
+             '-DCMAKE_EXPORT_COMPILE_COMMANDS=ON', '-DNRFORGE_CONSUMER_LINKER='+args.linker, '-DCMAKE_EXE_LINKER_FLAGS=-Wl,-s']
     configure = run([args.cmake, '-S', str(source), '-B', str(work / 'build')] + flags,
                     work, env, work / 'configure.log')
     if configure.returncode:
@@ -122,12 +136,12 @@ def main():
             raise RuntimeError('header mismatch must reach linker, not configure failure')
         wrong_build = run([args.cmake, '--build', str(work / 'wrong-library'), '--verbose'],
                           work, env, work / 'wrong-library-build.log')
-        if wrong_build.returncode == 0 or bad_token not in wrong_build.stdout or 'undefined reference' not in wrong_build.stdout:
+        if wrong_build.returncode == 0 or bad_token not in wrong_build.stdout or not any(text in wrong_build.stdout for text in ('undefined reference', 'undefined symbol')):
             raise RuntimeError('mismatched SDK headers/archive did not fail at link guard')
         for label, direct_build in direct_projects:
             result = run([args.cmake, '--build', str(direct_build)], work, env,
                          work / (label + '-mismatch.log'))
-            if result.returncode == 0 or bad_token not in result.stdout or 'undefined reference' not in result.stdout:
+            if result.returncode == 0 or bad_token not in result.stdout or not any(text in result.stdout for text in ('undefined reference', 'undefined symbol')):
                 raise RuntimeError('direct public header bypasses SDK link guard: ' + label)
     finally:
         header.write_bytes(header_bytes)

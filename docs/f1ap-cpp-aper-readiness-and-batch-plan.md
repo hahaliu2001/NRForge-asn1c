@@ -133,3 +133,31 @@ Evidence: [F1-P4 closeout](f1ap-cpp-aper-wire-qualification-closeout.md),
 `tools/f1ap-wire-qualification/qualification-summary.json`, and
 `tools/f1ap-wire-qualification/review.md`.
 Next: **F1-P5** C++ SDK delivery, then F1-P6 Python SDK; E1AP and RRC follow F1AP.
+
+## F1-P5 completion (2026-10-11)
+
+The independent F1AP C++ SDK 0.1.0 is accepted for all 158 messages and 94
+procedures. It reuses the qualified NGAP packaging machinery with separate
+`NRForgeF1AP` / `NRForge::f1ap` interfaces, provenance and header/library guards.
+Both protocols coinstall in one prefix and coexist in either include/link order.
+
+Actual relocated consumers pass with original source, schema, build and install
+inputs unavailable: all 158 finite F1AP typed slots, three independently sourced
+populated F1Setup complete-PDU outcomes, both complete registries (158/131), and
+both protocols' Setup outcomes in each coexistence order. Wrong fingerprint,
+wrong header/library identity and a genuine wrong-protocol archive are rejected.
+Actual seal negative checks and shared functional gates pass. Independent review
+accepts the reconciled actual archive, installed file and consumer evidence.
+
+The 792 F1-P4 qualified production generated files remain unchanged; the 4,728
+historical finite wire cases and their boundaries are retained rather than rerun
+or expanded. No frozen schema, codec semantics or historical qualification
+report was changed. NGAP retains qualified production output equality and its
+complete installed registry/consumer checks. No benchmark or binary ABI promise
+is included.
+
+Evidence: [F1-P5 closeout](f1ap-cpp-sdk-closeout.md),
+[SDK contract](f1ap-cpp-sdk-contract.md),
+`tools/f1ap-sdk/verification-summary.json`, and `tools/f1ap-sdk/review.md`.
+Next: **F1-P6**, the separate Python SDK task. E1AP remains a later independent
+protocol task; no merge is part of this acceptance.
