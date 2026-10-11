@@ -332,3 +332,9 @@ TESTS += check_asn1typed_inherited_alias
 check_asn1typed_inherited_alias_SOURCES = $(top_srcdir)/tools/rrc-inherited-alias/check_extract.c
 check_asn1typed_inherited_alias_CPPFLAGS = $(check_asn1typed_extract_CPPFLAGS) -DALIAS_FIXTURE=\"$(abs_top_srcdir)/tools/rrc-inherited-alias/aliases.asn1\"
 check_asn1typed_inherited_alias_LDADD = $(check_asn1typed_extract_LDADD)
+
+check_PROGRAMS += check_asn1typed_null_open
+TESTS += check_asn1typed_null_open
+check_asn1typed_null_open_SOURCES = $(top_srcdir)/tools/rrc-null-open/check_extract.c
+check_asn1typed_null_open_CPPFLAGS = $(check_asn1typed_extract_CPPFLAGS) -DNULL_FIXTURE=\"$(abs_top_srcdir)/tools/rrc-null-open/null.asn1\"
+check_asn1typed_null_open_LDADD = $(check_asn1typed_extract_LDADD)

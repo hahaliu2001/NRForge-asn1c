@@ -158,3 +158,9 @@ EXTRA_DIST += tools/rrc-inherited-alias/contract.md tools/rrc-inherited-alias/ch
  tools/rrc-inherited-alias/README.md tools/rrc-inherited-alias/readiness.json \
  tools/rrc-inherited-alias/verification.json tools/rrc-inherited-alias/review.md \
  docs/rrc-inherited-alias-closeout.md
+
+EXTRA_DIST += tools/rrc-null-open/contract.md tools/rrc-null-open/check.py \
+ tools/rrc-null-open/null.asn1 tools/rrc-null-open/check_extract.c \
+ tools/rrc-null-open/check_generated.cpp tools/rrc-null-open/README.md \
+ tools/rrc-null-open/readiness.json tools/rrc-null-open/verification.json \
+ tools/rrc-null-open/review.md docs/rrc-null-open-closeout.md

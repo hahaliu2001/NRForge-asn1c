@@ -1,0 +1,141 @@
+{
+  "aper_regression": {
+    "E1AP": {
+      "extraction_and_generation": "PASS",
+      "historical_headers_byte_identical": 432,
+      "messages": 72
+    },
+    "F1AP": {
+      "extraction_and_generation": "PASS",
+      "historical_headers_byte_identical": 948,
+      "messages": 158
+    },
+    "NGAP": {
+      "extraction_and_generation": "PASS",
+      "historical_headers_byte_identical": 393,
+      "messages": 131
+    }
+  },
+  "baseline_commit": "28ec9073b93605f3053510f4c64d6a2b65f07dc9",
+  "baseline_renderer_sha256": "b2030da6dacd0eabf282b3966779a0c6b0716ee23398b5524cb55fdbc09799d2",
+  "batch": "RRC-NULL-OPEN",
+  "benchmark_run": false,
+  "branch": "feature/f1ap-cpp-aper",
+  "compiler": "gcc (Ubuntu 13.3.0-6ubuntu2~24.04) 13.3.0",
+  "contract": "only direct NULL known-open SEQUENCE/CHOICE lambdas void-use io; named NULL and non-NULL stay byte-identical; strip-only marker restores all 85 immutable baseline headers",
+  "existing_parameter_default_allocation_failure_positions": 428,
+  "extractor_changes": false,
+  "focused_completion_modes": 3,
+  "focused_generated_roots": 6,
+  "focused_goldens": 12,
+  "generated_changes_only_void_io": true,
+  "limitations": [
+    "Newly rendered roots have strict compilation only; no new real-message wire qualification",
+    "P8/P9 SDK and qualification receipts remain unchanged; expanded delivery is deferred",
+    "Known explicit SIZE-addition metadata keeps its separate existing renderer block"
+  ],
+  "merge": false,
+  "native_pass_total": 71,
+  "native_regressions": {
+    "libaper": {
+      "ERROR": 0,
+      "FAIL": 0,
+      "PASS": 10,
+      "TOTAL": 10,
+      "log_sha256": "1158b75f5b24db73435460d958091a958ac126d5ec03c23bcb9f9aca6a961373"
+    },
+    "libasn1fix": {
+      "ERROR": 0,
+      "FAIL": 0,
+      "PASS": 2,
+      "TOTAL": 2,
+      "log_sha256": "704941a8dde278325d93360ca38a6d115e21d5039b440891e5b2f62a7cb0b606"
+    },
+    "libasn1parser": {
+      "ERROR": 0,
+      "FAIL": 0,
+      "PASS": 1,
+      "TOTAL": 1,
+      "log_sha256": "7e5e21619b2036dcf772754e1d36f6417d598f06354ee3201ade7ed1a354282d"
+    },
+    "libasn1typed": {
+      "ERROR": 0,
+      "FAIL": 0,
+      "PASS": 52,
+      "TOTAL": 52,
+      "log_sha256": "07d35facd4e3e5d3032cd43f73d766d04becc19dc73957351e0bb9543dd0d1fa"
+    },
+    "libngap": {
+      "ERROR": 0,
+      "FAIL": 0,
+      "PASS": 3,
+      "TOTAL": 3,
+      "log_sha256": "12dc1d2f7373ffbfb62133f4cbb73dc84aa68c32f2b7c5588dca2578d7771641"
+    },
+    "libuper": {
+      "ERROR": 0,
+      "FAIL": 0,
+      "PASS": 3,
+      "TOTAL": 3,
+      "log_sha256": "84ea6843252344c64aa517c47e3e88f61b76dc85da6c51c6666a4f9d23fcce9f"
+    }
+  },
+  "new_real_message_wire_qualification": false,
+  "new_strict_compile_results": {
+    "BCCH-DL-SCH-Message": "PASS",
+    "DL-CCCH-Message": "PASS",
+    "DL-DCCH-Message": "PASS",
+    "LocationMeasurementIndication": "PASS",
+    "LoggedMeasurementConfiguration-r16": "PASS",
+    "RRCReconfiguration": "PASS",
+    "RRCReconfigurationComplete": "PASS",
+    "RRCReconfigurationSidelink": "PASS",
+    "RRCReestablishment": "PASS",
+    "RRCRelease": "PASS",
+    "RRCResume": "PASS",
+    "RRCResumeComplete": "PASS",
+    "RRCSetup": "PASS",
+    "RemoteUEInformationSidelink-r17": "PASS",
+    "SCCH-Message": "PASS",
+    "SIB1": "PASS",
+    "UEInformationResponse-r16": "PASS",
+    "UL-DCCH-Message": "PASS"
+  },
+  "next_task": "RRC-P16 expanded finite wire qualification",
+  "preserved_base_blob_count": 2679,
+  "preserved_base_tree_inventory_sha256": "c1584e081bb793b85140cbe77b9bd3689455c9d938b7432ae9ab456a5203a521",
+  "production_changes": [
+    "libasn1typed/asn1typed_render_uper.c"
+  ],
+  "readiness_summary": {
+    "PASS": 85
+  },
+  "renderer_changes": true,
+  "runtime_changes": false,
+  "sanitizer": {
+    "address": "PASS",
+    "leak_scan": "NOT_RUN: environment cannot enumerate /proc tasks",
+    "scope": "current renderer and extractor directly instrumented",
+    "undefined": "PASS"
+  },
+  "schema_changes": false,
+  "sdk_delivered_roots": 64,
+  "sdk_rebuild": false,
+  "source_sha256": {
+    ".gitignore": "91f6495037bdfba30ba5aa5fc470bcee94a9580d00f9892b1dba4c40b9cc3409",
+    "Makefile.am": "2b894b4cbc43392d1828309edfd8f0acf5cb6b3f5df6c08fb2396ebfdc29706c",
+    "docs/rrc-null-open-closeout.md": "6ed7c8c009bc03f615e72adb1492483006d1893c97eb179dfd3799948d837f30",
+    "libasn1typed/Makefile.am": "cfc0ea0986574dd27fc3e3995f29d29189e6a9330ba76fbe6a2398bf72ea2180",
+    "libasn1typed/asn1typed_render_uper.c": "945589125af5c9fdfe9456d75524313cb12c726e4474206c828cab58aaf31677",
+    "tools/rrc-null-open/README.md": "95db1f74c71f2f3fe79e938fab19877fac0a68b3e87adfa98e7914f637ce0192",
+    "tools/rrc-null-open/check.py": "eb7b317a0c6a34dfc33f24476a9437cb0139810457272eb62805b05f9e36a6d2",
+    "tools/rrc-null-open/check_extract.c": "147f53d26c41136e5621df58161e0ad584c929f90b6c8d9dff3771fdebe8d101",
+    "tools/rrc-null-open/check_generated.cpp": "543905a93f84ed9fe79c9f2ed965295778129903f2cd0692f4c9487419236375",
+    "tools/rrc-null-open/contract.md": "8f4b161120b8920fbedc53b2c1b1270b2adf8365f70daccdaa5c5c117e0f72fd",
+    "tools/rrc-null-open/null.asn1": "9f71edc6fa7aff2e51da8b7cceee109f5294b00c241c9ee4d11fd8c74d0554b3",
+    "tools/rrc-null-open/readiness.json": "cf734a6ee28f43fc706b7eeb308bcb532d865749ac3b3c8b78b71bb23102a2a2"
+  },
+  "status": "VERIFIED_PENDING_INDEPENDENT_ACCEPTANCE",
+  "unchanged_accepted_rrc_headers": 83,
+  "wire_behavior_changes": false
+}

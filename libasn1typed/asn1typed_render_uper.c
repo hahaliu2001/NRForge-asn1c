@@ -667,6 +667,11 @@ static int field_put(struct buf *b, const struct plan *p, const struct link *l, 
     snprintf(expr, sizeof(expr), "%sv.f_%s%s", opt ? "(" : "", l->name, opt ? ".value())" : "");
     return member_put(b, p, l, expr);
 }
+/* A direct NULL payload emits no stream operation. Named NULL links still
+ * call their generated put/get function and therefore use the stream. */
+static int null_open_payload(const struct link *l) {
+    return l->node == SIZE_MAX && l->primitive == ASN1TYPED_PRIMITIVE_NULL;
+}
 static int sequence(struct buf *b, const struct plan *p, size_t i, int encode) {
     const asn1typed_type_t *t = p->nodes[i].type;
     size_t roots = t->ordinary_root_count, adds = t->ordinary_addition_count;
@@ -715,6 +720,7 @@ static int sequence(struct buf *b, const struct plan *p, size_t i, int encode) {
                 if (present(b, t, l, j))
                     return -1;
                 EMIT(")take(io.write_known_open([&](::nrforge::uper::Writer& io){\n");
+                if (null_open_payload(l)) EMIT("(void)io;\n");
                 if (field_put(b, p, l, optional(t, j)))
                     return -1;
                 EMIT("return ::nrforge::uper::Result<void>::success();}));\n");
@@ -748,7 +754,9 @@ static int sequence(struct buf *b, const struct plan *p, size_t i, int encode) {
                 EMIT("case %zu:v.f_%s=take(io.read_known_open<", j - roots, l->name);
                 if (spelling(b, p, l))
                     return -1;
-                EMIT(">([&](::nrforge::uper::Reader& io){return ::nrforge::uper::Result<");
+                EMIT(">([&](::nrforge::uper::Reader& io){");
+                if (null_open_payload(l)) EMIT("(void)io;");
+                EMIT("return ::nrforge::uper::Result<");
                 if (spelling(b, p, l))
                     return -1;
                 EMIT(">::success(");
@@ -775,8 +783,10 @@ static int choice(struct buf *b, const struct plan *p, size_t i, int encode) {
                  i, j, a->is_extension_addition ? "true" : "false",
                  a->is_extension_addition ? a->per_extension_index : a->per_root_index,
                  t->ordinary_root_count, t->is_extensible ? "true" : "false");
-            if (a->is_extension_addition)
+            if (a->is_extension_addition) {
                 EMIT("take(io.write_known_open([&](::nrforge::uper::Writer& io){\n");
+                if (null_open_payload(l)) EMIT("(void)io;\n");
+            }
             if (member_put(b, p, l, "item->value"))
                 return -1;
             if (a->is_extension_addition)
@@ -807,7 +817,9 @@ static int choice(struct buf *b, const struct plan *p, size_t i, int encode) {
                 EMIT("take(io.read_known_open<");
                 if (spelling(b, p, l))
                     return -1;
-                EMIT(">([&](::nrforge::uper::Reader& io){return ::nrforge::uper::Result<");
+                EMIT(">([&](::nrforge::uper::Reader& io){");
+                if (null_open_payload(l)) EMIT("(void)io;");
+                EMIT("return ::nrforge::uper::Result<");
                 if (spelling(b, p, l))
                     return -1;
                 EMIT(">::success(");

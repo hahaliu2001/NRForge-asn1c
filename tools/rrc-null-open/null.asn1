@@ -1,0 +1,9 @@
+NullOpen DEFINITIONS AUTOMATIC TAGS ::= BEGIN
+NamedNull ::= NULL
+SeqNull ::= SEQUENCE { root BOOLEAN, ..., added NULL }
+ChoiceNull ::= CHOICE { root BOOLEAN, ..., added NULL }
+SeqBool ::= SEQUENCE { root BOOLEAN, ..., added BOOLEAN }
+ChoiceBool ::= CHOICE { root BOOLEAN, ..., added BOOLEAN }
+SeqNamed ::= SEQUENCE { root BOOLEAN, ..., added NamedNull }
+ChoiceNamed ::= CHOICE { root BOOLEAN, ..., added NamedNull }
+END
