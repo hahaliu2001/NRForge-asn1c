@@ -17,7 +17,10 @@ int asn1typed_extract_module(asn1p_t *tree, const char *module_name,
  * output must be fresh/cleared. Owns root at types[0] and its supported named
  * and inline dependencies across imports; failure leaves out cleared. NULL
  * limits selects 4096 types, 65536 references, 262144 AST nodes. Non-NULL
- * limits require all positive members. Parameterized types remain rejected.
+ * limits require all positive members. Supports up to 64 ungoverned named
+ * ordinary type actuals per use; instances own their actual keys in types[].
+ * DEFAULT INTEGER/BOOLEAN/ENUMERATED fields retain owned scalar semantics.
+ * Other parameter/default shapes remain explicit semantic gaps.
  * Graph cycles are retained as owned references, not recursively expanded;
  * this is semantic extraction, not proof of renderer/wire support. */
 typedef struct asn1typed_graph_limits_s {

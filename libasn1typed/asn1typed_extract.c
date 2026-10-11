@@ -740,7 +740,7 @@ ordinary_reference_target(asn1p_t *tree, asn1p_expr_t *expr) {
     asn1p_xports_t *xp;
     const char *name;
     if(!expr || expr->expr_type != A1TC_REFERENCE) return NULL;
-    if(!expr->reference || !expr->module || expr->rhs_pspecs ||
+    if(!expr->reference || !expr->module ||
             !expr->reference->components || !expr->reference->comp_count ||
             expr->reference->comp_count > 2) return NULL;
     name = expr->reference->components[expr->reference->comp_count - 1].name;
@@ -766,19 +766,126 @@ ordinary_reference_target(asn1p_t *tree, asn1p_expr_t *expr) {
         if(!target && source) target = named_declaration(source, name);
     }
     if(!target || (target->meta_type != AMT_TYPE && target->meta_type != AMT_TYPEREF) ||
-            !target->Identifier || !target->module || !target->module->ModuleName ||
-            target->lhs_params || target->rhs_pspecs) return NULL;
+            !target->Identifier || !target->module || !target->module->ModuleName) return NULL;
     return target;
+}
+
+typedef struct ordinary_profile_s {
+    asn1p_expr_t *generic;
+    const asn1typed_type_ref_t *instance;
+} ordinary_profile_t;
+
+/* Bind only ungoverned, named ordinary type arguments. The explicit namespace
+ * identity is the key, not the fixer's spelling-based clone name. */
+static int ordinary_formal(const ordinary_profile_t *p, asn1p_expr_t *e) {
+    int i;
+    const char *name = reference_name(e);
+    if(!p || !p->generic || !name) return -1;
+    for(i = 0; i < p->generic->lhs_params->params_count; ++i)
+        if(!strcmp(name, p->generic->lhs_params->params[i].argument)) return i;
+    return -1;
+}
+static int ordinary_template_valid(asn1p_expr_t *g, size_t count) {
+    size_t i, j;
+    if(!g || !g->lhs_params || g->rhs_pspecs || !g->lhs_params->params ||
+            count != (size_t)g->lhs_params->params_count || !count || count > 64 ||
+            g->expr_type == A1TC_REFERENCE) return 0;
+    for(i = 0; i < count; ++i) {
+        const char *a = g->lhs_params->params[i].argument;
+        if(g->lhs_params->params[i].governor || !a || a[0] < 'A' || a[0] > 'Z') return 0;
+        for(j = 0; j < i; ++j) if(!strcmp(a, g->lhs_params->params[j].argument)) return 0;
+    }
+    return 1;
+}
+static char *ordinary_instance_key(const char *name, const asn1typed_type_actual_t *a, size_t n) {
+    size_t i, bytes = strlen(name) + 8;
+    char *key;
+    for(i = 0; i < n; ++i) {
+        size_t add = strlen(a[i].module) + strlen(a[i].source_name) + 2;
+        if(bytes > SIZE_MAX - add) return NULL;
+        bytes += add;
+    }
+    key = malloc(bytes);
+    if(!key) return NULL;
+    snprintf(key, bytes, "$type$%s", name);
+    for(i = 0; i < n; ++i) {
+        strcat(key, "$"); strcat(key, a[i].module); strcat(key, "$"); strcat(key, a[i].source_name);
+    }
+    return key;
+}
+static int ordinary_parameter_ref(asn1p_t *tree, asn1typed_type_ref_t *out,
+        asn1p_expr_t *use, const ordinary_profile_t *p) {
+    asn1p_expr_t *g = ordinary_reference_target(tree, use), *arg;
+    asn1typed_type_actual_t actuals[64] = {{0}};
+    size_t n = 0;
+    char *key;
+    int rc;
+    if(!g || !use->rhs_pspecs) return -1;
+    TQ_FOR(arg, &use->rhs_pspecs->members, next) {
+        asn1p_expr_t *target;
+        int formal;
+        if(n == 64 || arg->expr_type != A1TC_REFERENCE || arg->rhs_pspecs ||
+                arg->lhs_params || arg->constraints || arg->combined_constraints) return -1;
+        formal = ordinary_formal(p, arg);
+        if(formal >= 0) actuals[n] = p->instance->actuals[formal];
+        else {
+            target = ordinary_reference_target(tree, arg);
+            if(!target || target->lhs_params || (arg->reference->ref_expr && arg->reference->ref_expr != target)) return -1;
+            actuals[n].kind = ASN1TYPED_ACTUAL_TYPE_REFERENCE;
+            actuals[n].module = target->module->ModuleName; actuals[n].source_name = target->Identifier;
+        }
+        ++n;
+    }
+    if(!ordinary_template_valid(g, n)) return -1;
+    /* Fixed source uses must point to the exact declaration's specialization
+     * with these actual namespace identities. Unfixed template-internal uses
+     * may have no cache; substitution there is explicit in this profile. */
+    if(!use->reference) return -1;
+    if(use->reference->ref_expr) {
+        int i, found = 0;
+        for(i = 0; i < g->specializations.pspecs_count; ++i) {
+            asn1p_expr_t *rhs, *a;
+            size_t j = 0;
+            int equal = 1;
+            if(g->specializations.pspec[i].my_clone != use->reference->ref_expr) continue;
+            rhs = g->specializations.pspec[i].rhs_pspecs;
+            if(!rhs) return -1;
+            TQ_FOR(a, &rhs->members, next) {
+                asn1typed_type_actual_t actual = {0};
+                asn1p_expr_t *target;
+                int formal = ordinary_formal(p, a);
+                if(j >= n || a->expr_type != A1TC_REFERENCE || a->rhs_pspecs || a->constraints || a->combined_constraints) { equal = 0; break; }
+                if(formal >= 0) actual = p->instance->actuals[formal];
+                else {
+                    target = ordinary_reference_target(tree, a);
+                    if(!target || target->lhs_params) { equal = 0; break; }
+                    actual.module = target->module->ModuleName; actual.source_name = target->Identifier;
+                }
+                if(strcmp(actual.module, actuals[j].module) || strcmp(actual.source_name, actuals[j].source_name)) equal = 0;
+                ++j;
+            }
+            if(equal && j == n) found = 1;
+        }
+        if(!found) return -1;
+    } else if(!p->generic) return -1;
+    key = ordinary_instance_key(g->Identifier, actuals, n);
+    if(!key) return -1;
+    rc = asn1typed_type_ref_init_parameterized(out, g->module->ModuleName, key, actuals, n);
+    free(key); return rc;
 }
 
 static int
 put_profile_ref(asn1p_t *tree, asn1typed_type_ref_t *ref,
-        asn1p_expr_t *expr, int ordinary) {
+        asn1p_expr_t *expr, const ordinary_profile_t *ordinary) {
     asn1p_expr_t *target;
-    if(!ordinary || !expr || expr->expr_type != A1TC_REFERENCE)
-        return put_ref(ref, expr);
+    int formal;
+    if(!ordinary || !expr || expr->expr_type != A1TC_REFERENCE) return put_ref(ref, expr);
+    if(expr->rhs_pspecs) return ordinary_parameter_ref(tree, ref, expr, ordinary);
+    formal = ordinary_formal(ordinary, expr);
+    if(formal >= 0) return asn1typed_type_ref_init(ref,
+        ordinary->instance->actuals[formal].module, ordinary->instance->actuals[formal].source_name);
     target = ordinary_reference_target(tree, expr);
-    if(!target) return -1;
+    if(!target || target->lhs_params) return -1;
     return asn1typed_type_ref_init(ref, target->module->ModuleName, target->Identifier);
 }
 
@@ -874,8 +981,8 @@ populate_enumerated_items(asn1typed_type_t *out, asn1p_expr_t *body,
 }
 
 static int
-add_field_profile(asn1p_t *tree, asn1typed_type_t *type, asn1p_expr_t *field,
-		const char *file, const char *module, char *error, size_t error_size, int ordinary) {
+add_field_profile_raw(asn1p_t *tree, asn1typed_type_t *type, asn1p_expr_t *field,
+		const char *file, const char *module, char *error, size_t error_size, const ordinary_profile_t *ordinary) {
 	asn1typed_presence_e presence;
 	asn1typed_size_constraint_t field_size = {0};
 	asn1typed_integer_value_range_t field_value_range = {0};
@@ -889,12 +996,13 @@ add_field_profile(asn1p_t *tree, asn1typed_type_t *type, asn1p_expr_t *field,
 		return -1;
 	}
 	marker_flags = field->marker.flags;
-	if((marker_flags & EM_DEFAULT) == EM_DEFAULT) {
+	if(!ordinary && (marker_flags & EM_DEFAULT) == EM_DEFAULT) {
 		set_error(error, error_size, "%s.%s: DEFAULT presence is unsupported",
 			module, field->Identifier);
 		return -1;
 	}
-	presence = (marker_flags & EM_OPTIONAL) == EM_OPTIONAL ?
+	presence = ((marker_flags & EM_OPTIONAL) == EM_OPTIONAL ||
+        (ordinary && (marker_flags & EM_DEFAULT) == EM_DEFAULT)) ?
 		ASN1TYPED_PRESENCE_OPTIONAL : ASN1TYPED_PRESENCE_MANDATORY;
     if(inline_constructed(field)) {
         asn1typed_type_ref_t ref = {0};
@@ -973,7 +1081,7 @@ add_field_profile(asn1p_t *tree, asn1typed_type_t *type, asn1p_expr_t *field,
 	{
 		asn1typed_type_ref_t ref;
 		memset(&ref, 0, sizeof(ref));
-		if(field->rhs_pspecs ?
+		if(!ordinary && field->rhs_pspecs ?
 			put_parameterized_object_set_ref(tree, &ref, field,
 				error, error_size) : put_profile_ref(tree, &ref, field, ordinary)) {
 			if(field->rhs_pspecs) {
@@ -1012,9 +1120,62 @@ add_field_profile(asn1p_t *tree, asn1typed_type_t *type, asn1p_expr_t *field,
 	return 0;
 }
 
+static int ordinary_default(asn1p_expr_t *field, asn1typed_field_t *out, char *error, size_t size) {
+    asn1p_expr_t *body = terminal_type(field), *item;
+    asn1p_value_t *v = field->marker.default_value;
+    asn1typed_default_value_t d = {0};
+    if(!body || !v) goto bad;
+    if(body->expr_type == ASN_BASIC_INTEGER) {
+        asn1typed_integer_value_range_t r = {0};
+        size_t i;
+        int valid;
+        if(constraint_bound(v, &d.number) || (field->constraints ? extract_integer_use_range(field, &r) :
+            extract_integer_value_range(field->combined_constraints ? field->combined_constraints :
+                (body->combined_constraints ? body->combined_constraints : body->constraints), &r))) goto bad;
+        valid = !r.has_value_range || (!r.unsigned_bounds && d.number >= r.lower_bound && d.number <= r.upper_bound);
+        for(i = 0; !valid && i < r.tail_count; ++i)
+            valid = d.number >= r.tail[i].lower_bound && d.number <= r.tail[i].upper_bound;
+        if(r.unsigned_bounds) valid = d.number >= 0 && (uintmax_t)d.number >= r.unsigned_lower_bound && (uintmax_t)d.number <= r.unsigned_upper_bound;
+        free(r.tail); free(r.extension_additions);
+        if(!valid) goto bad;
+        d.kind = ASN1TYPED_DEFAULT_INTEGER;
+    } else if(body->expr_type == ASN_BASIC_BOOLEAN && !field->constraints && !field->combined_constraints) {
+        if(v->type != ATV_TRUE && v->type != ATV_FALSE) goto bad;
+        d.kind = ASN1TYPED_DEFAULT_BOOLEAN; d.number = v->type == ATV_TRUE;
+    } else if(body->expr_type == ASN_BASIC_ENUMERATED && !field->constraints && !field->combined_constraints) {
+        const char *symbol = v->type == ATV_REFERENCED && v->value.reference &&
+            v->value.reference->comp_count == 1 ? v->value.reference->components[0].name : NULL;
+        int found = 0;
+        TQ_FOR(item, &body->members, next) {
+            intmax_t number;
+            if(item->expr_type == A1TC_EXTENSIBLE || !item->Identifier || constraint_bound(item->value, &number)) continue;
+            if((symbol && !strcmp(symbol, item->Identifier)) || (v->type == ATV_INTEGER && !constraint_bound(v, &d.number) && d.number == number)) {
+                if(found++) goto bad;
+                d.number = number; d.enum_symbol = item->Identifier;
+            }
+        }
+        if(!found) goto bad;
+        d.kind = ASN1TYPED_DEFAULT_ENUMERATED;
+    } else goto bad;
+    if(asn1typed_default_value_copy(&out->default_value, &d)) goto bad;
+    out->presence = ASN1TYPED_PRESENCE_DEFAULT; return 0;
+bad:
+    set_error(error, size, "%s: unsupported or invalid DEFAULT scalar", field->Identifier); return -1;
+}
+static int add_field_profile(asn1p_t *tree, asn1typed_type_t *type, asn1p_expr_t *field,
+        const char *file, const char *module, char *error, size_t size, const ordinary_profile_t *ordinary) {
+    if(add_field_profile_raw(tree, type, field, file, module, error, size, ordinary)) return -1;
+    if(ordinary && (field->marker.flags & EM_DEFAULT) == EM_DEFAULT)
+        return ordinary_default(field, &type->fields[type->field_count - 1], error, size);
+    if(ordinary && field->marker.default_value) {
+        set_error(error, size, "%s: DEFAULT value without DEFAULT marker", field->Identifier); return -1;
+    }
+    return 0;
+}
+
 static int
 populate_type_profile(asn1p_t *tree, asn1typed_type_t *out, asn1p_expr_t *decl,
-		const char *file, char *error, size_t error_size, int ordinary) {
+		const char *file, char *error, size_t error_size, const ordinary_profile_t *ordinary) {
 	asn1p_expr_t *body = terminal_type(decl);
 	asn1p_expr_t *member;
 	if(!body) {
@@ -1024,8 +1185,9 @@ populate_type_profile(asn1p_t *tree, asn1typed_type_t *out, asn1p_expr_t *decl,
 	}
     /* Alias declaration location remains owned on out; inherited members and
      * enum items belong to the terminal body's source file. */
-    if(ordinary && body->module && body->module->source_file_name)
+    if(ordinary && body->module && body->module->source_file_name) {
         file = body->module->source_file_name;
+    }
 	switch(out->kind) {
 	case ASN1TYPED_TYPE_PRIMITIVE: {
 		asn1typed_primitive_kind_e primitive = primitive_from_expr(body);
@@ -1120,7 +1282,7 @@ populate_type_profile(asn1p_t *tree, asn1typed_type_t *out, asn1p_expr_t *decl,
             if(inline_constructed(member)) {
                 if(!inline_constructed_constraints_owned(member)) { set_error(error, error_size, "%s: unsupported inline constructed element constraints", decl->Identifier); return -1; }
                 rc = put_inline_constructed_ref(&ref, out, "@element");
-            } else if(member->rhs_pspecs) {
+            } else if(!ordinary && member->rhs_pspecs) {
                 rc = put_parameterized_object_set_ref(tree, &ref, member, error, error_size);
             } else {
                 if(reject_unowned_inline_constraint(member, decl->module->ModuleName,
@@ -1212,7 +1374,7 @@ populate_type_profile(asn1p_t *tree, asn1typed_type_t *out, asn1p_expr_t *decl,
                 if(rc) { set_error(error, error_size, "%s.%s: could not store inline ENUMERATED alternative", decl->Identifier, member->Identifier); return -1; }
             } else {
 			if(inline_constructed(member) ? put_inline_constructed_ref(&ref, out, member->Identifier) :
-                (member->rhs_pspecs ? put_parameterized_object_set_ref(tree, &ref,
+                (!ordinary && member->rhs_pspecs ? put_parameterized_object_set_ref(tree, &ref,
                     member, error, error_size) : put_profile_ref(tree, &ref, member, ordinary))) {
 				if(member->rhs_pspecs) {
 					free(alternative_value_range.tail); free(alternative_value_range.extension_additions);
@@ -2618,6 +2780,7 @@ physical_named_declaration(asn1p_t *tree, const char *module_name, const char *n
 static int
 ordinary_check_ast(asn1p_t *tree, asn1p_expr_t *node, const char *owner,
         const asn1typed_graph_limits_t *limits, size_t *nodes, unsigned depth,
+        const ordinary_profile_t *profile,
         char *error, size_t size) {
     asn1p_expr_t *child;
     if(depth > 128 || *nodes >= limits->max_ast_nodes) {
@@ -2625,15 +2788,35 @@ ordinary_check_ast(asn1p_t *tree, asn1p_expr_t *node, const char *owner,
         return -1;
     }
     ++*nodes;
-    if(node->lhs_params || node->rhs_pspecs) {
+    if(node->lhs_params && node != profile->generic) {
         set_error(error, size, "%s.%s: ordinary type parameters unsupported (%s)",
             owner, node->Identifier ? node->Identifier : "<anonymous>",
             node->reference ? asn1p_ref_string(node->reference) : "template");
         return -1;
     }
-    if(node->expr_type == A1TC_REFERENCE) {
+    if(profile->generic && node != profile->generic && inline_constructed(node)) {
+        set_error(error, size, "%s: inline constructed parameter body unsupported", owner); return -1;
+    }
+    if(ordinary_formal(profile, node) >= 0 && (node->constraints || node->combined_constraints ||
+            node->rhs_pspecs || node->marker.default_value)) {
+        set_error(error, size, "%s: constrained/default formal use unsupported", owner); return -1;
+    }
+    if(node->expr_type == A1TC_REFERENCE && ordinary_formal(profile, node) < 0) {
         asn1p_expr_t *target = ordinary_reference_target(tree, node);
-        if(!target || !node->reference || node->reference->ref_expr != target) {
+        asn1typed_type_ref_t test = {0};
+        if(node->rhs_pspecs) {
+            asn1p_expr_t *arg;
+            TQ_FOR(arg, &node->rhs_pspecs->members, next) {
+                if(*nodes >= limits->max_ast_nodes) {
+                    set_error(error, size, "%s: ordinary graph AST limit exceeded", owner); return -1;
+                }
+                ++*nodes;
+            }
+            if(ordinary_parameter_ref(tree, &test, node, profile)) {
+                set_error(error, size, "%s.%s: unsupported ordinary type actuals or inconsistent specialization cache", owner, node->Identifier ? node->Identifier : "<anonymous>"); return -1;
+            }
+            asn1typed_type_ref_clear(&test);
+        } else if(!target || target->lhs_params || !node->reference || (node->reference->ref_expr != target && !(profile->generic && !node->reference->ref_expr))) {
             set_error(error, size, "%s.%s: unresolved or inconsistent ordinary reference cache",
                 owner, node->Identifier ? node->Identifier : "<anonymous>");
             return -1;
@@ -2646,7 +2829,7 @@ ordinary_check_ast(asn1p_t *tree, asn1p_expr_t *node, const char *owner,
         return -1;
     }
     TQ_FOR(child, &node->members, next)
-        if(ordinary_check_ast(tree, child, owner, limits, nodes, depth + 1, error, size)) return -1;
+        if(ordinary_check_ast(tree, child, owner, limits, nodes, depth + 1, profile, error, size)) return -1;
     return 0;
 }
 
@@ -2662,9 +2845,9 @@ ordinary_add_dependency(asn1p_t *tree, asn1typed_module_t *out,
     char detail[1024] = {0};
     size_t i;
     unsigned hops;
-    if(ref->actual_count || ref->actuals) {
-        set_error(error, size, "ordinary graph does not accept parameterized references"); return -1;
-    }
+    ordinary_profile_t profile = {0};
+    asn1typed_type_ref_t binding = {0};
+    char generic_name[256];
     if(ref->kind == ASN1TYPED_REF_PRIMITIVE) return 0;
     if(ref->kind != ASN1TYPED_REF_NAMED || !ref->module || !ref->source_name) {
         set_error(error, size, "ordinary dependency has incomplete identity"); return -1;
@@ -2678,15 +2861,47 @@ ordinary_add_dependency(asn1p_t *tree, asn1typed_module_t *out,
     }
     TQ_FOR(m, &tree->modules, mod_next)
         if(m->ModuleName && !strcmp(m->ModuleName, ref->module)) { module = m; break; }
-    decl = module ? (strncmp(ref->source_name, "$inline$", 8) ?
-        named_declaration(module, ref->source_name) : inline_declaration(module, ref->source_name)) : NULL;
+    if(ref->actual_count) {
+        const char *end;
+        size_t n;
+        if(!ref->actuals || strncmp(ref->source_name, "$type$", 6) || !(end = strchr(ref->source_name + 6, '$'))) goto unsupported;
+        n = (size_t)(end - (ref->source_name + 6));
+        if(n >= sizeof(generic_name)) goto unsupported;
+        memcpy(generic_name, ref->source_name + 6, n); generic_name[n] = 0;
+        decl = module ? named_declaration(module, generic_name) : NULL;
+        if(!ordinary_template_valid(decl, ref->actual_count)) goto unsupported;
+        {
+            char *key = ordinary_instance_key(decl->Identifier, ref->actuals, ref->actual_count);
+            int equal = key && !strcmp(key, ref->source_name);
+            free(key);
+            if(!equal) goto unsupported;
+        }
+        for(i = 0; i < ref->actual_count; ++i)
+            if(ref->actuals[i].kind != ASN1TYPED_ACTUAL_TYPE_REFERENCE) goto unsupported;
+        profile.generic = decl; profile.instance = ref;
+    } else {
+        if(ref->actuals) goto unsupported;
+        decl = module ? (strncmp(ref->source_name, "$inline$", 8) ?
+            named_declaration(module, ref->source_name) : inline_declaration(module, ref->source_name)) : NULL;
+        if(decl && decl->lhs_params) goto unsupported;
+    }
     if(!decl || (decl->meta_type != AMT_TYPE && decl->meta_type != AMT_TYPEREF)) goto unsupported;
-    body = terminal_type(decl);
+    if(!ref->actual_count && decl->rhs_pspecs) {
+        if(ordinary_parameter_ref(tree, &binding, decl, &profile)) goto unsupported;
+        profile.generic = ordinary_reference_target(tree, decl);
+        profile.instance = &binding;
+        if(decl->constraints || decl->combined_constraints) goto unsupported;
+    }
+    body = profile.generic ? profile.generic : terminal_type(decl);
     if(!body || (kind = kind_of_type(body)) == (asn1typed_type_kind_e)-1) goto unsupported;
     /* Every layer of an alias must be supported. A constrained constructed
      * alias cannot silently borrow the unconstrained terminal shape. */
-    for(alias = decl, hops = 0; alias && hops < 128; ++hops) {
-        if(ordinary_check_ast(tree, alias, ref->source_name, limits, nodes, 0, detail, sizeof(detail))) goto detail_fail;
+    if(profile.generic) {
+        if(decl != body && ordinary_check_ast(tree, decl, ref->source_name, limits, nodes, 0, &profile, detail, sizeof(detail))) goto detail_fail;
+        if(ordinary_check_ast(tree, body, ref->source_name, limits, nodes, 0, &profile, detail, sizeof(detail))) goto detail_fail;
+        alias = body;
+    } else for(alias = decl, hops = 0; alias && hops < 128; ++hops) {
+        if(ordinary_check_ast(tree, alias, ref->source_name, limits, nodes, 0, &profile, detail, sizeof(detail))) goto detail_fail;
         if(alias == body) break;
         if(kind != ASN1TYPED_TYPE_PRIMITIVE &&
                 (alias->constraints || alias->combined_constraints)) {
@@ -2698,20 +2913,23 @@ ordinary_add_dependency(asn1p_t *tree, asn1typed_module_t *out,
     file = decl->module && decl->module->source_file_name ? decl->module->source_file_name : "<unknown>";
     if(asn1typed_module_add_type_identity(out, ref->module, ref->source_name, kind, file,
             decl->_lineno > 0 ? (unsigned)decl->_lineno : 0, &type)) {
-        set_error(error, size, "%s.%s: out of memory adding ordinary type", ref->module, ref->source_name); return -1;
+        set_error(detail, sizeof(detail), "out of memory adding ordinary type"); goto detail_fail;
     }
+    if(profile.instance && asn1typed_type_ref_copy(&type->ordinary_instance, profile.instance)) goto detail_fail;
     {
         /* An anonymous inline body needs its owned path in diagnostics. This
          * temporary shallow view is read-only and never retained in the IR. */
-        asn1p_expr_t view = *decl;
+        asn1p_expr_t view = *(profile.generic ? body : decl);
         view.Identifier = ref->source_name;
-        if(populate_type_profile(tree, type, &view, file, detail, sizeof(detail), 1)) goto detail_fail;
+        if(populate_type_profile(tree, type, &view, file, detail, sizeof(detail), &profile)) goto detail_fail;
     }
-    return 0;
+    asn1typed_type_ref_clear(&binding); return 0;
 detail_fail:
+    asn1typed_type_ref_clear(&binding);
     set_error(error, size, "%s.%s: %s", ref->module, ref->source_name,
         detail[0] ? detail : "unsupported ordinary semantic body or allocation failure"); return -1;
 unsupported:
+    asn1typed_type_ref_clear(&binding);
     set_error(error, size, "%s.%s: unresolved or unsupported ordinary declaration", ref->module, ref->source_name);
     return -1;
 }
@@ -2748,7 +2966,9 @@ asn1typed_extract_root_graph(asn1p_t *tree, const char *module_name,
     for(i = 0; i < pending.type_count; ++i) {
         size_t fields = pending.types[i].field_count;
         size_t alternatives = pending.types[i].alternative_count;
-        size_t count = fields + alternatives + (pending.types[i].kind == ASN1TYPED_TYPE_SEQUENCE_OF);
+        size_t element = pending.types[i].kind == ASN1TYPED_TYPE_SEQUENCE_OF;
+        size_t actuals = pending.types[i].ordinary_instance.actual_count;
+        size_t count = fields + alternatives + element + actuals;
         for(j = 0; j < count; ++j) {
             asn1typed_type_t *t = &pending.types[i];
             const asn1typed_type_ref_t *ref;
@@ -2760,13 +2980,18 @@ asn1typed_extract_root_graph(asn1p_t *tree, const char *module_name,
                 asn1typed_choice_alternative_t *a = &t->alternatives[j - fields];
                 if(a->inline_enumerated) continue;
                 ref = &a->type_ref;
-            } else ref = &t->element_type;
+            } else if(j < fields + alternatives + element) ref = &t->element_type;
+            else {
+                const asn1typed_type_actual_t *a = &t->ordinary_instance.actuals[j - fields - alternatives - element];
+                if(asn1typed_type_ref_init(&copy, a->module, a->source_name)) goto allocation;
+                ref = &copy;
+            }
             if(references >= limits->max_references) {
                 set_error(error, size, "%s.%s: ordinary graph reference limit exceeded",
-                    t->identity.module, t->identity.source_name); goto fail;
+                    t->identity.module, t->identity.source_name); asn1typed_type_ref_clear(&copy); goto fail;
             }
             ++references;
-            if(asn1typed_type_ref_copy(&copy, ref)) goto allocation;
+            if(ref != &copy && asn1typed_type_ref_copy(&copy, ref)) goto allocation;
             if(ordinary_add_dependency(tree, &pending, &copy, limits, &nodes, error, size)) {
                 asn1typed_type_ref_clear(&copy); goto fail;
             }

@@ -119,9 +119,49 @@ asn1typed_class_field_relation_copy(
 	return 0;
 }
 
+static int default_valid(const asn1typed_default_value_t *v) {
+    if(!v) return 0;
+    switch(v->kind) {
+    case ASN1TYPED_DEFAULT_NONE: return !v->number && !v->enum_symbol;
+    case ASN1TYPED_DEFAULT_INTEGER: return !v->enum_symbol;
+    case ASN1TYPED_DEFAULT_BOOLEAN: return !v->enum_symbol && (v->number == 0 || v->number == 1);
+    case ASN1TYPED_DEFAULT_ENUMERATED: return v->enum_symbol && v->enum_symbol[0];
+    default: return 0;
+    }
+}
+void asn1typed_default_value_clear(asn1typed_default_value_t *v) {
+    if(v) { free(v->enum_symbol); memset(v, 0, sizeof(*v)); }
+}
+int asn1typed_default_value_copy(asn1typed_default_value_t *out, const asn1typed_default_value_t *v) {
+    asn1typed_default_value_t p = {0};
+    if(!out || out == v) return -1;
+    memset(out, 0, sizeof(*out));
+    if(!default_valid(v)) return -1;
+    p.kind = v->kind; p.number = v->number;
+    if(v->enum_symbol && !(p.enum_symbol = asn1typed_strdup(v->enum_symbol))) return -1;
+    *out = p; return 0;
+}
+int asn1typed_default_value_equal(const asn1typed_default_value_t *a, const asn1typed_default_value_t *b) {
+    return default_valid(a) && default_valid(b) && a->kind == b->kind && a->number == b->number &&
+        (!a->enum_symbol || !strcmp(a->enum_symbol, b->enum_symbol));
+}
+int asn1typed_field_default_effective(const asn1typed_field_t *f, int present,
+        const asn1typed_default_value_t *v, asn1typed_default_value_t *out, int *suppress) {
+    if(!out || out == v || (f && out == &f->default_value)) return -1;
+    memset(out, 0, sizeof(*out));
+    if(suppress) *suppress = 0;
+    if(!f || !suppress || (present != 0 && present != 1) ||
+            f->presence != ASN1TYPED_PRESENCE_DEFAULT || !default_valid(&f->default_value) ||
+            f->default_value.kind == ASN1TYPED_DEFAULT_NONE ||
+            (present && (!default_valid(v) || v->kind != f->default_value.kind))) return -1;
+    if(asn1typed_default_value_copy(out, present ? v : &f->default_value)) return -1;
+    *suppress = asn1typed_default_value_equal(out, &f->default_value); return 0;
+}
+
 static void
 asn1typed_field_clear(asn1typed_field_t *field) {
 	if(!field) return;
+	asn1typed_default_value_clear(&field->default_value);
 	free(field->source_name);
 	free(field->ioc.symbolic_id);
 	asn1typed_type_ref_clear(&field->type);
@@ -238,12 +278,14 @@ asn1typed_field_copy(asn1typed_field_t *target,
 		(source->type_semantics == ASN1TYPED_FIELD_INLINE_ENUMERATED &&
 		 !asn1typed_inline_enum_field_valid(source)) ||
 		(source->type_semantics != ASN1TYPED_FIELD_INLINE_ENUMERATED &&
-		 source->inline_enumerated)) return -1;
+		 source->inline_enumerated) ||
+        ((source->presence == ASN1TYPED_PRESENCE_DEFAULT) != (source->default_value.kind != ASN1TYPED_DEFAULT_NONE))) return -1;
 	memset(target, 0, sizeof(*target));
 	target->source_name = asn1typed_strdup(source->source_name);
 	target->type_semantics = source->type_semantics;
 	target->size_constraint = source->size_constraint;
 	target->presence = source->presence;
+	if(asn1typed_default_value_copy(&target->default_value, &source->default_value)) goto fail;
 	target->ioc.criticality = source->ioc.criticality;
 	target->ioc.has_numeric_id = source->ioc.has_numeric_id;
 	target->ioc.numeric_id = source->ioc.numeric_id;
@@ -348,7 +390,8 @@ asn1typed_type_ref_init_parameterized(asn1typed_type_ref_t *ref,
 		sizeof(*ref->actuals));
 	if(!ref->actuals) goto fail;
 	for(i = 0; i < actual_count; ++i) {
-		if(actuals[i].kind != ASN1TYPED_ACTUAL_OBJECT_SET_REFERENCE ||
+		if((actuals[i].kind != ASN1TYPED_ACTUAL_OBJECT_SET_REFERENCE &&
+            actuals[i].kind != ASN1TYPED_ACTUAL_TYPE_REFERENCE) ||
 			!actuals[i].module || !actuals[i].source_name) goto fail;
 		ref->actual_count = i + 1;
 		ref->actuals[i].module = asn1typed_strdup(actuals[i].module);
@@ -433,6 +476,7 @@ void
 asn1typed_type_clear(asn1typed_type_t *type) {
 	size_t i;
 	if(!type) return;
+	asn1typed_type_ref_clear(&type->ordinary_instance);
 	free(type->identity.module);
 	free(type->identity.source_name);
 	asn1typed_source_location_clear(&type->location);
@@ -1053,7 +1097,7 @@ asn1typed_type_add_field_copy(asn1typed_type_t *type,
 	asn1typed_field_t field;
 	if(!type || type->kind != ASN1TYPED_TYPE_SEQUENCE || !source ||
 		source->presence < ASN1TYPED_PRESENCE_MANDATORY ||
-		source->presence > ASN1TYPED_PRESENCE_CONDITIONAL ||
+		source->presence > ASN1TYPED_PRESENCE_DEFAULT ||
 		asn1typed_field_copy(&field, source)) return -1;
 	if(asn1typed_reserve((void **)&type->fields, &type->field_capacity,
 			type->field_count + 1, sizeof(*type->fields))) {

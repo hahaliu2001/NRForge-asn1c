@@ -46,7 +46,8 @@ typedef enum asn1typed_wire_finalize_result_e {
 typedef enum asn1typed_presence_e {
 	ASN1TYPED_PRESENCE_MANDATORY,
 	ASN1TYPED_PRESENCE_OPTIONAL,
-	ASN1TYPED_PRESENCE_CONDITIONAL
+	ASN1TYPED_PRESENCE_CONDITIONAL,
+	ASN1TYPED_PRESENCE_DEFAULT
 } asn1typed_presence_e;
 
 /* Built-in ASN.1 primitive semantics, independent of any target language. */
@@ -121,7 +122,8 @@ typedef enum asn1typed_ref_kind_e {
 } asn1typed_ref_kind_e;
 
 typedef enum asn1typed_actual_kind_e {
-	ASN1TYPED_ACTUAL_OBJECT_SET_REFERENCE
+	ASN1TYPED_ACTUAL_OBJECT_SET_REFERENCE,
+	ASN1TYPED_ACTUAL_TYPE_REFERENCE
 } asn1typed_actual_kind_e;
 
 typedef struct asn1typed_type_actual_s {
@@ -188,6 +190,21 @@ typedef struct asn1typed_ioc_metadata_s {
 
 typedef struct asn1typed_type_s asn1typed_type_t;
 
+/* P3 scalar DEFAULT values are owned independently of the parser. Enum values
+ * retain both source symbol and assigned ASN.1 number, never a wire index. */
+typedef enum asn1typed_default_kind_e {
+    ASN1TYPED_DEFAULT_NONE, ASN1TYPED_DEFAULT_INTEGER,
+    ASN1TYPED_DEFAULT_BOOLEAN, ASN1TYPED_DEFAULT_ENUMERATED
+} asn1typed_default_kind_e;
+typedef struct asn1typed_default_value_s {
+    asn1typed_default_kind_e kind;
+    intmax_t number;
+    char *enum_symbol;
+} asn1typed_default_value_t;
+void asn1typed_default_value_clear(asn1typed_default_value_t *);
+int asn1typed_default_value_copy(asn1typed_default_value_t *, const asn1typed_default_value_t *);
+int asn1typed_default_value_equal(const asn1typed_default_value_t *, const asn1typed_default_value_t *);
+
 typedef struct asn1typed_field_s {
 	/* IOC compatibility: T3's identity with one conventional id- removed.
 	 * New naming consumers should use ioc.symbolic_id for IOC fields.
@@ -204,6 +221,7 @@ typedef struct asn1typed_field_s {
 	int has_class_field_relation;
 	asn1typed_class_field_relation_t class_field_relation;
 	asn1typed_presence_e presence;
+	asn1typed_default_value_t default_value;
 	asn1typed_source_location_t location;
 	asn1typed_ioc_metadata_t ioc;
 } asn1typed_field_t;
@@ -236,6 +254,8 @@ typedef struct asn1typed_choice_alternative_s {
 } asn1typed_choice_alternative_t;
 
 struct asn1typed_type_s {
+	/* Ordinary instance key; empty on non-specialized declarations. */
+	asn1typed_type_ref_t ordinary_instance;
 	asn1typed_type_identity_t identity;
 	asn1typed_type_kind_e kind;
 	asn1typed_primitive_kind_e primitive_kind;
@@ -269,6 +289,14 @@ struct asn1typed_type_s {
 	/* Extraction owns a terminal CHOICE marker; known additions remain rejected. */
 	int choice_root_only_extension_owned;
 };
+
+/* Reconstruct an absent DEFAULT or copy a present scalar. suppress is true
+ * exactly when the effective scalar equals the declared default. No wire I/O.
+ * Present values must already satisfy their ASN.1 field domain; this helper
+ * checks scalar storage/kind, not ranges or enum membership.
+ * out must be fresh/cleared; failure leaves it empty. */
+int asn1typed_field_default_effective(const asn1typed_field_t *, int present,
+    const asn1typed_default_value_t *value, asn1typed_default_value_t *out, int *suppress);
 
 /* N9 opt-in physical IOC tables. Zero-initialized evidence is unavailable. */
 typedef struct asn1typed_ioc_dispatch_row_s {

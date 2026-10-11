@@ -1,0 +1,33 @@
+ParamA DEFINITIONS AUTOMATIC TAGS ::= BEGIN
+IMPORTS Shared, Offset, RemoteBox FROM ParamB;
+Base ::= INTEGER (0..9)
+SetupRelease { T } ::= CHOICE { release NULL, setup T }
+Box { T } ::= SEQUENCE { value T }
+Pair { T, U } ::= SEQUENCE { first T, second U }
+Forward { T } ::= SEQUENCE { child Box { T } }
+Root ::= SEQUENCE {
+ a SetupRelease { Base }, b SetupRelease { Shared }, c SetupRelease { Base },
+ d SetupRelease { ParamB.Base }, pair Pair { Base, Shared }, imported RemoteBox { Base }, alias Nested
+}
+Nested ::= Forward { Base }
+NoUse { T } ::= SEQUENCE { flag BOOLEAN }
+Unused ::= NoUse { Shared }
+BadBuiltin ::= Box { BOOLEAN }
+Defaults ::= SEQUENCE {
+ count Base DEFAULT 3,
+ flag BOOLEAN DEFAULT TRUE,
+ offset Offset DEFAULT dB0,
+ inline ENUMERATED { off(-1), on(7) } DEFAULT on,
+ maybe BOOLEAN OPTIONAL,
+ plain INTEGER
+}
+BadString ::= SEQUENCE { value OCTET STRING DEFAULT '00'H }
+InlineBox { T } ::= SEQUENCE { nested SEQUENCE { item T } }
+BadInline ::= InlineBox { Base }
+END
+ParamB DEFINITIONS AUTOMATIC TAGS ::= BEGIN
+Shared ::= Base
+Base ::= INTEGER (10..20)
+Offset ::= ENUMERATED { dBminus1(-1), dB0(0), dB1(1) }
+RemoteBox { T } ::= SEQUENCE { value T }
+END

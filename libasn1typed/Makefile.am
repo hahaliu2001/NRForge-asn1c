@@ -278,3 +278,11 @@ check_asn1typed_root_graph_CPPFLAGS = $(check_asn1typed_extract_CPPFLAGS) -DROOT
 check_asn1typed_root_graph_LDADD = $(check_asn1typed_extract_LDADD)
 check_asn1typed_root_graph_LDFLAGS = -Wl,--wrap=malloc -Wl,--wrap=calloc -Wl,--wrap=realloc
 EXTRA_DIST += fixtures/ordinary-root-graph.asn1
+
+check_PROGRAMS += check_asn1typed_parameters_default
+TESTS += check_asn1typed_parameters_default
+check_asn1typed_parameters_default_SOURCES = check_asn1typed_parameters_default.c
+check_asn1typed_parameters_default_CPPFLAGS = $(check_asn1typed_extract_CPPFLAGS) -DPARAM_DEFAULT_FIXTURE=\"$(abs_srcdir)/fixtures/ordinary-parameters-default.asn1\"
+check_asn1typed_parameters_default_LDADD = $(check_asn1typed_extract_LDADD)
+check_asn1typed_parameters_default_LDFLAGS = -Wl,--wrap=malloc -Wl,--wrap=calloc -Wl,--wrap=realloc
+EXTRA_DIST += fixtures/ordinary-parameters-default.asn1

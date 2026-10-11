@@ -77,3 +77,41 @@ PYTHONDONTWRITEBYTECODE=1 python3 tools/rrc-readiness/check_aper_regression.py \
 The APER regression work directory must be new. Its report records the current
 extractor and baseline file hashes; it does not rebuild installed SDKs or rerun
 their complete wire corpus. RRC generated compile and UPER remain NOT_RUN.
+
+## RRC-P3 named type arguments and DEFAULT
+
+The P3 semantic contract is in
+`../../docs/rrc-cpp-uper-p3-parameters-default-closeout.md`. P1/P2 evidence remains
+historical. Build `root_probe_p3.c` with the include/library command above, then:
+
+```sh
+PYTHONDONTWRITEBYTECODE=1 python3 tools/rrc-readiness/record_p3.py \
+  --asn1-root /path/to/frozen/src --probe /tmp/rrc-p3-root-probe \
+  --work /tmp/rrc-p3-check --check
+make -C libasn1typed check
+```
+
+The recorder accounts for the same 80 roots, plus five separately counted
+DEFAULT seeds with 13 distinct fields. Specialization references serialize all
+actual identities; their bodies and actual types must belong to the owned graph.
+`check_asn1typed_parameters_default` exercises parameter/cache/default semantics
+and exhaustive allocation-failure rollback, without generating code or wire data.
+
+For the accepted APER artifact comparison, link a fresh coverage probe and use
+`check_aper_regression_p3.py` with the same arguments as the P2 command. The
+work directory must be new. It guards extractor/core/header input hashes and
+records all 361 message families and 1773 historical header comparisons. The P3
+verification and independent review receipts distinguish these checks from
+NOT_RUN UPER and installed-SDK qualification.
+
+To audit all 338 frozen actual-site identities and the type shapes of all 20
+DEFAULT sites, run the P1 probe/scanner `--check` with a fresh probe, then:
+
+```sh
+PYTHONDONTWRITEBYTECODE=1 python3 tools/rrc-readiness/audit_p3_inputs.py \
+  --asn1-root /path/to/frozen/src --ast /tmp/rrc-fixed-ast.json --check
+```
+
+`input-shapes-rrc-p3.json` reports 264 distinct instance keys and 15 ENUMERATED /
+five INTEGER DEFAULT source fields. It does not qualify all instance closures
+or all DEFAULT values.

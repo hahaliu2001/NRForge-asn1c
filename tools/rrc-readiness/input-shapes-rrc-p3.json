@@ -1,0 +1,5227 @@
+{
+  "batch": "RRC-P3",
+  "baseline": "e7b5b95ee70200cf110923c9262cd27cc1c01d08",
+  "fixed_source_ast_sha256": "41f3524fdc7bdad93083f3a2892b6060a2492ca36418e2134ea32332061ba2f7",
+  "named_actual_sites": 338,
+  "distinct_named_instance_keys": 264,
+  "default_sites": 20,
+  "default_scalar_kinds": {
+    "ENUMERATED": 15,
+    "INTEGER": 5
+  },
+  "actual_sites": [
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "LocationMeasurementIndication-IEs",
+      "member": "measurementIndication",
+      "line": 507,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "LocationMeasurementInfo"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$LocationMeasurementInfo"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "LoggedMeasurementConfiguration-r16-IEs",
+      "member": "bt-NameList-r16",
+      "line": 529,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "BT-NameList-r16"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$BT-NameList-r16"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "LoggedMeasurementConfiguration-r16-IEs",
+      "member": "wlan-NameList-r16",
+      "line": 530,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "WLAN-NameList-r16"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$WLAN-NameList-r16"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "LoggedMeasurementConfiguration-r16-IEs",
+      "member": "sensor-NameList-r16",
+      "line": 531,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "Sensor-NameList-r16"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$Sensor-NameList-r16"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "RRCReestablishment-v1700-IEs",
+      "member": "sl-L2RemoteUE-Config-r17",
+      "line": 861,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "SL-L2RemoteUE-Config-r17"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$SL-L2RemoteUE-Config-r17"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "RRCReconfiguration-v1560-IEs",
+      "member": "mrdc-SecondaryCellGroupConfig",
+      "line": 952,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "MRDC-SecondaryCellGroupConfig"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$MRDC-SecondaryCellGroupConfig"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "RRCReconfiguration-v1610-IEs",
+      "member": "bap-Config-r16",
+      "line": 959,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "BAP-Config-r16"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$BAP-Config-r16"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "RRCReconfiguration-v1610-IEs",
+      "member": "t316-r16",
+      "line": 963,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "T316-r16"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$T316-r16"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "RRCReconfiguration-v1610-IEs",
+      "member": "needForGapsConfigNR-r16",
+      "line": 964,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "NeedForGapsConfigNR-r16"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$NeedForGapsConfigNR-r16"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "RRCReconfiguration-v1610-IEs",
+      "member": "onDemandSIB-Request-r16",
+      "line": 965,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "OnDemandSIB-Request-r16"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$OnDemandSIB-Request-r16"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "RRCReconfiguration-v1610-IEs",
+      "member": "sl-ConfigDedicatedNR-r16",
+      "line": 967,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "SL-ConfigDedicatedNR-r16"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$SL-ConfigDedicatedNR-r16"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "RRCReconfiguration-v1610-IEs",
+      "member": "sl-ConfigDedicatedEUTRA-Info-r16",
+      "line": 968,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "SL-ConfigDedicatedEUTRA-Info-r16"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$SL-ConfigDedicatedEUTRA-Info-r16"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "RRCReconfiguration-v1700-IEs",
+      "member": "sl-L2RelayUE-Config-r17",
+      "line": 975,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "SL-L2RelayUE-Config-r17"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$SL-L2RelayUE-Config-r17"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "RRCReconfiguration-v1700-IEs",
+      "member": "sl-L2RemoteUE-Config-r17",
+      "line": 976,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "SL-L2RemoteUE-Config-r17"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$SL-L2RemoteUE-Config-r17"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "RRCReconfiguration-v1700-IEs",
+      "member": "needForGapNCSG-ConfigNR-r17",
+      "line": 978,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "NeedForGapNCSG-ConfigNR-r17"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$NeedForGapNCSG-ConfigNR-r17"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "RRCReconfiguration-v1700-IEs",
+      "member": "needForGapNCSG-ConfigEUTRA-r17",
+      "line": 979,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "NeedForGapNCSG-ConfigEUTRA-r17"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$NeedForGapNCSG-ConfigEUTRA-r17"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "RRCReconfiguration-v1700-IEs",
+      "member": "musim-GapConfig-r17",
+      "line": 980,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "MUSIM-GapConfig-r17"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$MUSIM-GapConfig-r17"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "RRCReconfiguration-v1700-IEs",
+      "member": "ul-GapFR2-Config-r17",
+      "line": 981,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "UL-GapFR2-Config-r17"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$UL-GapFR2-Config-r17"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "RRCReconfiguration-v1700-IEs",
+      "member": "ue-TxTEG-RequestUL-TDOA-Config-r17",
+      "line": 984,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "UE-TxTEG-RequestUL-TDOA-Config-r17"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$UE-TxTEG-RequestUL-TDOA-Config-r17"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "RRCReconfiguration-v1800-IEs",
+      "member": "aerial-Config-r18",
+      "line": 990,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "Aerial-Config-r18"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$Aerial-Config-r18"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "RRCReconfiguration-v1800-IEs",
+      "member": "sl-IndirectPathAddChange-r18",
+      "line": 991,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "SL-IndirectPathAddChange-r18"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$SL-IndirectPathAddChange-r18"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "RRCReconfiguration-v1800-IEs",
+      "member": "n3c-IndirectPathAddChange-r18",
+      "line": 992,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "N3C-IndirectPathAddChange-r18"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$N3C-IndirectPathAddChange-r18"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "RRCReconfiguration-v1800-IEs",
+      "member": "n3c-IndirectPathConfigRelay-r18",
+      "line": 993,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "N3C-IndirectPathConfigRelay-r18"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$N3C-IndirectPathConfigRelay-r18"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "RRCReconfiguration-v1800-IEs",
+      "member": "srs-PosResourceSetAggBW-CombinationList-r18",
+      "line": 995,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "SRS-PosResourceSetAggBW-CombinationList-r18"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$SRS-PosResourceSetAggBW-CombinationList-r18"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "RRCReconfiguration-v1800-IEs",
+      "member": "ltm-Config-r18",
+      "line": 996,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "LTM-Config-r18"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$LTM-Config-r18"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "RRCReconfiguration-v16k0-IEs",
+      "member": "sl-ConfigDedicatedNR-v16k0",
+      "line": 1013,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "SL-ConfigDedicatedNR-v16k0"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$SL-ConfigDedicatedNR-v16k0"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "RRCRelease-v1610-IEs",
+      "member": "measIdleConfig-r16",
+      "line": 1185,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "MeasIdleConfigDedicated-r16"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$MeasIdleConfigDedicated-r16"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "SuspendConfig",
+      "member": "sdt-Config-r17",
+      "line": 1227,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "SDT-Config-r17"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$SDT-Config-r17"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "SuspendConfig",
+      "member": "srs-PosRRC-Inactive-r17",
+      "line": 1228,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "SRS-PosRRC-Inactive-r17"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$SRS-PosRRC-Inactive-r17"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "SuspendConfig",
+      "member": "ncd-SSB-RedCapInitialBWP-SDT-r17",
+      "line": 1232,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "NonCellDefiningSSB-r17"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$NonCellDefiningSSB-r17"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "SuspendConfig",
+      "member": "srs-PosRRC-InactiveEnhanced-r18",
+      "line": 1236,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "SRS-PosRRC-InactiveEnhanced-r18"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$SRS-PosRRC-InactiveEnhanced-r18"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "SuspendConfig",
+      "member": "multicastConfigInactive-r18",
+      "line": 1238,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "MulticastConfigInactive-r18"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$MulticastConfigInactive-r18"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "SDT-Config-r17",
+      "member": "sdt-MAC-PHY-CG-Config-r17",
+      "line": 1300,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "SDT-CG-Config-r17"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$SDT-CG-Config-r17"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "SDT-MAC-PHY-CG-Config-r17",
+      "member": "cg-SDT-ConfigInitialBWP-NUL-r17",
+      "line": 1310,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "BWP-UplinkDedicatedSDT-r17"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$BWP-UplinkDedicatedSDT-r17"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "SDT-MAC-PHY-CG-Config-r17",
+      "member": "cg-SDT-ConfigInitialBWP-SUL-r17",
+      "line": 1311,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "BWP-UplinkDedicatedSDT-r17"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$BWP-UplinkDedicatedSDT-r17"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "SDT-MAC-PHY-CG-Config-r17",
+      "member": "cg-SDT-TA-ValidationConfig-r17",
+      "line": 1315,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "CG-SDT-TA-ValidationConfig-r17"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$CG-SDT-TA-ValidationConfig-r17"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "BWP-DownlinkDedicatedSDT-r17",
+      "member": "pdcch-Config-r17",
+      "line": 1334,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "PDCCH-Config"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$PDCCH-Config"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "BWP-DownlinkDedicatedSDT-r17",
+      "member": "pdsch-Config-r17",
+      "line": 1335,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "PDSCH-Config"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$PDSCH-Config"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "BWP-UplinkDedicatedSDT-r17",
+      "member": "pusch-Config-r17",
+      "line": 1340,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "PUSCH-Config"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$PUSCH-Config"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "SRS-PosRRC-InactiveEnhancedConfig-r18",
+      "member": "srs-PosRRC-InactiveAggBW-ConfigList-r18",
+      "line": 1383,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "SRS-PosRRC-InactiveAggBW-ConfigList-r18"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$SRS-PosRRC-InactiveAggBW-ConfigList-r18"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "SRS-PosRRC-InactiveEnhancedConfig-r18",
+      "member": "srs-PosTx-Hopping-r18",
+      "line": 1384,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "SRS-PosTx-Hopping-r18"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$SRS-PosTx-Hopping-r18"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "SRS-PosRRC-InactiveEnhancedConfig-r18",
+      "member": "srs-PosRRC-InactiveValidityAreaPreConfigList-r18",
+      "line": 1385,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "SRS-PosRRC-InactiveValidityAreaPreConfigList-r18"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$SRS-PosRRC-InactiveValidityAreaPreConfigList-r18"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "SRS-PosRRC-InactiveEnhancedConfig-r18",
+      "member": "srs-PosRRC-InactiveValidityAreaNonPreConfig-r18",
+      "line": 1386,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "SRS-PosRRC-InactiveValidityAreaConfig-r18"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$SRS-PosRRC-InactiveValidityAreaConfig-r18"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "SRS-PosRRC-InactiveEnhancedConfig-r18",
+      "member": "srs-PosRRC-InactiveAggBW-AdditionalCarriers-r18",
+      "line": 1389,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "SRS-PosRRC-InactiveAggBW-AdditionalCarriers-r18"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$SRS-PosRRC-InactiveAggBW-AdditionalCarriers-r18"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "SRS-PosRRC-InactiveValidityAreaConfig-r18",
+      "member": "srs-PosRRC-InactiveAggBW-AdditionalCarriersPerVA-r18",
+      "line": 1420,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "SRS-PosRRC-InactiveAggBW-AdditionalCarriers-r18"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$SRS-PosRRC-InactiveAggBW-AdditionalCarriers-r18"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "SRS-PosRRC-InactiveValidityAreaConfig-r18",
+      "member": "srs-PosRRC-InactiveAggBW-ConfigListPerVA-r18",
+      "line": 1422,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "SRS-PosRRC-InactiveAggBW-ConfigList-r18"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$SRS-PosRRC-InactiveAggBW-ConfigList-r18"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "RRCResume-v1610-IEs",
+      "member": "needForGapsConfigNR-r16",
+      "line": 1488,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "NeedForGapsConfigNR-r16"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$NeedForGapsConfigNR-r16"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "RRCResume-v1700-IEs",
+      "member": "sl-ConfigDedicatedNR-r17",
+      "line": 1493,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "SL-ConfigDedicatedNR-r16"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$SL-ConfigDedicatedNR-r16"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "RRCResume-v1700-IEs",
+      "member": "sl-L2RemoteUE-Config-r17",
+      "line": 1494,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "SL-L2RemoteUE-Config-r17"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$SL-L2RemoteUE-Config-r17"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "RRCResume-v1700-IEs",
+      "member": "needForGapNCSG-ConfigNR-r17",
+      "line": 1495,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "NeedForGapNCSG-ConfigNR-r17"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$NeedForGapNCSG-ConfigNR-r17"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "RRCResume-v1700-IEs",
+      "member": "needForGapNCSG-ConfigEUTRA-r17",
+      "line": 1496,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "NeedForGapNCSG-ConfigEUTRA-r17"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$NeedForGapNCSG-ConfigEUTRA-r17"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "Aerial-Config-r18",
+      "member": "flightPathUpdateDistanceThr-r18",
+      "line": 4460,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "FlightPathUpdateDistanceThr-r18"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$FlightPathUpdateDistanceThr-r18"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "Aerial-Config-r18",
+      "member": "flightPathUpdateTimeThr-r18",
+      "line": 4461,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "FlightPathUpdateTimeThr-r18"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$FlightPathUpdateTimeThr-r18"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "BeamFailureRecoveryConfig",
+      "member": "candidateBeamRSListExt-v1610",
+      "line": 4589,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "CandidateBeamRSListExt-r16"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$CandidateBeamRSListExt-r16"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "BWP-DownlinkCommon",
+      "member": "pdcch-ConfigCommon",
+      "line": 4712,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "PDCCH-ConfigCommon"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$PDCCH-ConfigCommon"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "BWP-DownlinkCommon",
+      "member": "pdsch-ConfigCommon",
+      "line": 4713,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "PDSCH-ConfigCommon"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$PDSCH-ConfigCommon"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "BWP-DownlinkDedicated",
+      "member": "pdcch-Config",
+      "line": 4721,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "PDCCH-Config"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$PDCCH-Config"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "BWP-DownlinkDedicated",
+      "member": "pdsch-Config",
+      "line": 4722,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "PDSCH-Config"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$PDSCH-Config"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "BWP-DownlinkDedicated",
+      "member": "sps-Config",
+      "line": 4723,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "SPS-Config"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$SPS-Config"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "BWP-DownlinkDedicated",
+      "member": "radioLinkMonitoringConfig",
+      "line": 4724,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "RadioLinkMonitoringConfig"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$RadioLinkMonitoringConfig"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "BWP-DownlinkDedicated",
+      "member": "beamFailureRecoverySCellConfig-r16",
+      "line": 4730,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "BeamFailureRecoveryRSConfig-r16"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$BeamFailureRecoveryRSConfig-r16"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "BWP-DownlinkDedicated",
+      "member": "sl-PDCCH-Config-r16",
+      "line": 4731,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "PDCCH-Config"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$PDCCH-Config"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "BWP-DownlinkDedicated",
+      "member": "sl-V2X-PDCCH-Config-r16",
+      "line": 4732,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "PDCCH-Config"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$PDCCH-Config"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "BWP-DownlinkDedicated",
+      "member": "beamFailureRecoverySpCellConfig-r17",
+      "line": 4736,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "BeamFailureRecoveryRSConfig-r16"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$BeamFailureRecoveryRSConfig-r16"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "BWP-DownlinkDedicated",
+      "member": "cfr-ConfigMulticast-r17",
+      "line": 4738,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "CFR-ConfigMulticast-r17"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$CFR-ConfigMulticast-r17"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "BWP-DownlinkDedicated",
+      "member": "tci-InDCI-r18",
+      "line": 4745,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "TCI-InDCI-r18"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$TCI-InDCI-r18"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "BWP-UplinkCommon",
+      "member": "rach-ConfigCommon",
+      "line": 4786,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "RACH-ConfigCommon"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$RACH-ConfigCommon"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "BWP-UplinkCommon",
+      "member": "pusch-ConfigCommon",
+      "line": 4787,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "PUSCH-ConfigCommon"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$PUSCH-ConfigCommon"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "BWP-UplinkCommon",
+      "member": "pucch-ConfigCommon",
+      "line": 4788,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "PUCCH-ConfigCommon"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$PUCCH-ConfigCommon"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "BWP-UplinkCommon",
+      "member": "rach-ConfigCommonIAB-r16",
+      "line": 4791,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "RACH-ConfigCommon"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$RACH-ConfigCommon"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "BWP-UplinkCommon",
+      "member": "msgA-ConfigCommon-r16",
+      "line": 4793,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "MsgA-ConfigCommon-r16"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$MsgA-ConfigCommon-r16"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "BWP-UplinkCommon",
+      "member": "additionalRACH-ConfigList-r17",
+      "line": 4797,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "AdditionalRACH-ConfigList-r17"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$AdditionalRACH-ConfigList-r17"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "BWP-UplinkDedicated",
+      "member": "pucch-Config",
+      "line": 4828,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "PUCCH-Config"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$PUCCH-Config"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "BWP-UplinkDedicated",
+      "member": "pusch-Config",
+      "line": 4829,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "PUSCH-Config"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$PUSCH-Config"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "BWP-UplinkDedicated",
+      "member": "configuredGrantConfig",
+      "line": 4830,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "ConfiguredGrantConfig"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$ConfiguredGrantConfig"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "BWP-UplinkDedicated",
+      "member": "srs-Config",
+      "line": 4831,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "SRS-Config"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$SRS-Config"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "BWP-UplinkDedicated",
+      "member": "beamFailureRecoveryConfig",
+      "line": 4832,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "BeamFailureRecoveryConfig"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$BeamFailureRecoveryConfig"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "BWP-UplinkDedicated",
+      "member": "sl-PUCCH-Config-r16",
+      "line": 4835,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "PUCCH-Config"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$PUCCH-Config"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "BWP-UplinkDedicated",
+      "member": "pucch-ConfigurationList-r16",
+      "line": 4839,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "PUCCH-ConfigurationList-r16"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$PUCCH-ConfigurationList-r16"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "BWP-UplinkDedicated",
+      "member": "lbt-FailureRecoveryConfig-r16",
+      "line": 4840,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "LBT-FailureRecoveryConfig-r16"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$LBT-FailureRecoveryConfig-r16"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "BWP-UplinkDedicated",
+      "member": "pucch-ConfigurationListMulticast1-r17",
+      "line": 4854,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "PUCCH-ConfigurationList-r16"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$PUCCH-ConfigurationList-r16"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "BWP-UplinkDedicated",
+      "member": "pucch-ConfigurationListMulticast2-r17",
+      "line": 4855,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "PUCCH-ConfigurationList-r16"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$PUCCH-ConfigurationList-r16"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "BWP-UplinkDedicated",
+      "member": "pucch-ConfigMulticast1-r17",
+      "line": 4858,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "PUCCH-Config"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$PUCCH-Config"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "BWP-UplinkDedicated",
+      "member": "pucch-ConfigMulticast2-r17",
+      "line": 4859,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "PUCCH-Config"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$PUCCH-Config"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "CellGroupConfig",
+      "member": "ncr-FwdConfig-r18",
+      "line": 5076,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "NCR-FwdConfig-r18"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$NCR-FwdConfig-r18"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "CellGroupConfig",
+      "member": "autonomousDenialParameters-r18",
+      "line": 5077,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "AutonomousDenialParameters-r18"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$AutonomousDenialParameters-r18"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "CellGroupConfig",
+      "member": "uplinkTxSwitchingMoreBands-r18",
+      "line": 5080,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "UplinkTxSwitchingMoreBands-r18"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$UplinkTxSwitchingMoreBands-r18"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "SpCellConfig",
+      "member": "rlf-TimersAndConstants",
+      "line": 5088,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "RLF-TimersAndConstants"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$RLF-TimersAndConstants"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "SpCellConfig",
+      "member": "deactivatedSCG-Config-r17",
+      "line": 5100,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "DeactivatedSCG-Config-r17"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$DeactivatedSCG-Config-r17"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "SCellConfig",
+      "member": "sCellSIB20-r17",
+      "line": 5149,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "SCellSIB20-r17"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$SCellSIB20-r17"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "SCellConfig",
+      "member": "plmn-IdentityInfoList-r17",
+      "line": 5152,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "PLMN-IdentityInfoList"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$PLMN-IdentityInfoList"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "SCellConfig",
+      "member": "npn-IdentityInfoList-r17",
+      "line": 5153,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "NPN-IdentityInfoList-r16"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$NPN-IdentityInfoList-r16"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "ConditionalReconfiguration-r16",
+      "member": "scpac-ReferenceConfiguration-r18",
+      "line": 5689,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "ReferenceConfiguration-r18"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$ReferenceConfiguration-r18"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "ConfiguredGrantConfig",
+      "member": "uci-OnPUSCH",
+      "line": 5717,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "CG-UCI-OnPUSCH"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$CG-UCI-OnPUSCH"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "ConfiguredGrantConfig",
+      "member": "cg-betaOffsetsCrossPri0-r17",
+      "line": 5807,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "BetaOffsetsCrossPriSelCG-r17"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$BetaOffsetsCrossPriSelCG-r17"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "ConfiguredGrantConfig",
+      "member": "cg-betaOffsetsCrossPri1-r17",
+      "line": 5808,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "BetaOffsetsCrossPriSelCG-r17"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$BetaOffsetsCrossPriSelCG-r17"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "CSI-MeasConfig",
+      "member": "aperiodicTriggerStateList",
+      "line": 6132,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "CSI-AperiodicTriggerStateList"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$CSI-AperiodicTriggerStateList"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "CSI-MeasConfig",
+      "member": "semiPersistentOnPUSCH-TriggerStateList",
+      "line": 6133,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "CSI-SemiPersistentOnPUSCH-TriggerStateList"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$CSI-SemiPersistentOnPUSCH-TriggerStateList"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "DMRS-DownlinkConfig",
+      "member": "phaseTrackingRS",
+      "line": 6680,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "PTRS-DownlinkConfig"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$PTRS-DownlinkConfig"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "DMRS-UplinkConfig",
+      "member": "phaseTrackingRS",
+      "line": 6696,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "PTRS-UplinkConfig"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$PTRS-UplinkConfig"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "DMRS-UplinkConfig",
+      "member": "dmrs-UplinkTransformPrecoding-r16",
+      "line": 6712,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "DMRS-UplinkTransformPrecoding-r16"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$DMRS-UplinkTransformPrecoding-r16"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "LTM-Config-r18",
+      "member": "ltm-ReferenceConfiguration-r18",
+      "line": 7409,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "ReferenceConfiguration-r18"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$ReferenceConfiguration-r18"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "MAC-CellGroupConfig",
+      "member": "drx-Config",
+      "line": 7517,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "DRX-Config"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$DRX-Config"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "MAC-CellGroupConfig",
+      "member": "phr-Config",
+      "line": 7521,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "PHR-Config"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$PHR-Config"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "MAC-CellGroupConfig",
+      "member": "dataInactivityTimer",
+      "line": 7526,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "DataInactivityTimer"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$DataInactivityTimer"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "MAC-CellGroupConfig",
+      "member": "drx-ConfigSecondaryGroup-r16",
+      "line": 7533,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "DRX-ConfigSecondaryGroup-r16"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$DRX-ConfigSecondaryGroup-r16"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "MAC-CellGroupConfig",
+      "member": "drx-ConfigSL-r17",
+      "line": 7541,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "DRX-ConfigSL-r17"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$DRX-ConfigSL-r17"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "MAC-CellGroupConfig",
+      "member": "drx-ConfigExt-v1700",
+      "line": 7542,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "DRX-ConfigExt-v1700"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$DRX-ConfigExt-v1700"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "MAC-CellGroupConfig",
+      "member": "tar-Config-r17",
+      "line": 7546,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "TAR-Config-r17"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$TAR-Config-r17"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "MAC-CellGroupConfig",
+      "member": "drx-ConfigExt2-v1800",
+      "line": 7561,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "DRX-ConfigExt2-v1800"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$DRX-ConfigExt2-v1800"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "MAC-CellGroupConfig",
+      "member": "tar-Config-r18",
+      "line": 7565,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "TAR-Config-r18"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$TAR-Config-r18"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "MBS-RNTI-SpecificConfig-r17",
+      "member": "drx-ConfigPTM-r17",
+      "line": 7577,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "DRX-ConfigPTM-r17"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$DRX-ConfigPTM-r17"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "MeasConfig",
+      "member": "effectiveMeasWindowConfig-r18",
+      "line": 7615,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "MeasWindowConfig-r18"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$MeasWindowConfig-r18"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "MeasGapConfig",
+      "member": "gapFR2",
+      "line": 7629,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "GapConfig"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$GapConfig"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "MeasGapConfig",
+      "member": "gapFR1",
+      "line": 7632,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "GapConfig"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$GapConfig"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "MeasGapConfig",
+      "member": "gapUE",
+      "line": 7633,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "GapConfig"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$GapConfig"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "MeasGapSharingConfig",
+      "member": "gapSharingFR2",
+      "line": 7701,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "MeasGapSharingScheme"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$MeasGapSharingScheme"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "MeasGapSharingConfig",
+      "member": "gapSharingFR1",
+      "line": 7704,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "MeasGapSharingScheme"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$MeasGapSharingScheme"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "MeasGapSharingConfig",
+      "member": "gapSharingUE",
+      "line": 7705,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "MeasGapSharingScheme"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$MeasGapSharingScheme"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "CLI-ResourceConfig-r16",
+      "member": "srs-ResourceConfig-r16",
+      "line": 7825,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "SRS-ResourceListConfigCLI-r16"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$SRS-ResourceListConfigCLI-r16"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "CLI-ResourceConfig-r16",
+      "member": "rssi-ResourceConfig-r16",
+      "line": 7826,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "RSSI-ResourceListConfigCLI-r16"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$RSSI-ResourceListConfigCLI-r16"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "MeasObjectNR",
+      "member": "rmtc-Config-r16",
+      "line": 7939,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "RMTC-Config-r16"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$RMTC-Config-r16"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "MeasObjectNR",
+      "member": "t312-r16",
+      "line": 7940,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "T312-r16"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$T312-r16"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "ReferenceSignalConfig",
+      "member": "csi-rs-ResourceConfigMobility",
+      "line": 7968,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "CSI-RS-ResourceConfigMobility"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$CSI-RS-ResourceConfigMobility"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "SSB-ConfigMobility",
+      "member": "ssb-ToMeasure",
+      "line": 7972,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "SSB-ToMeasure"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$SSB-ToMeasure"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "SSB-ConfigMobility",
+      "member": "ssb-PositionQCL-Cells-r17",
+      "line": 7984,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "SSB-PositionQCL-CellList-r17"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$SSB-PositionQCL-CellList-r17"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "SSB-ConfigMobility",
+      "member": "ssb-ToMeasureAltitudeBasedList-r18",
+      "line": 7991,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "SSB-ToMeasureAltitudeBasedList-r18"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$SSB-ToMeasureAltitudeBasedList-r18"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "NCR-FwdConfig-r18",
+      "member": "aperiodicFwdConfig-r18",
+      "line": 8755,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "NCR-AperiodicFwdConfig-r18"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$NCR-AperiodicFwdConfig-r18"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PDCCH-Config",
+      "member": "downlinkPreemption",
+      "line": 9389,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "DownlinkPreemption"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$DownlinkPreemption"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PDCCH-Config",
+      "member": "tpc-PUSCH",
+      "line": 9390,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "PUSCH-TPC-CommandConfig"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$PUSCH-TPC-CommandConfig"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PDCCH-Config",
+      "member": "tpc-PUCCH",
+      "line": 9391,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "PUCCH-TPC-CommandConfig"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$PUCCH-TPC-CommandConfig"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PDCCH-Config",
+      "member": "tpc-SRS",
+      "line": 9392,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "SRS-TPC-CommandConfig"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$SRS-TPC-CommandConfig"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PDCCH-Config",
+      "member": "uplinkCancellation-r16",
+      "line": 9398,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "UplinkCancellation-r16"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$UplinkCancellation-r16"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PDCCH-ServingCellConfig",
+      "member": "slotFormatIndicator",
+      "line": 9507,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "SlotFormatIndicator"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$SlotFormatIndicator"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PDCCH-ServingCellConfig",
+      "member": "availabilityIndicator-r16",
+      "line": 9510,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "AvailabilityIndicator-r16"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$AvailabilityIndicator-r16"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PDCP-Config",
+      "member": "discardTimerExt-r16",
+      "line": 9582,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "DiscardTimerExt-r16"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$DiscardTimerExt-r16"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PDCP-Config",
+      "member": "ethernetHeaderCompression-r16",
+      "line": 9587,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "EthernetHeaderCompression-r16"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$EthernetHeaderCompression-r16"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PDCP-Config",
+      "member": "uplinkDataCompression-r17",
+      "line": 9591,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "UplinkDataCompression-r17"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$UplinkDataCompression-r17"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PDCP-Config",
+      "member": "discardTimerExt2-r17",
+      "line": 9592,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "DiscardTimerExt2-r17"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$DiscardTimerExt2-r17"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PDCP-Config",
+      "member": "discardTimerForLowImportance-r18",
+      "line": 9597,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "DiscardTimerForLowImportance-r18"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$DiscardTimerForLowImportance-r18"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PDSCH-Config",
+      "member": "dmrs-DownlinkForPDSCH-MappingTypeA",
+      "line": 9643,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "DMRS-DownlinkConfig"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$DMRS-DownlinkConfig"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PDSCH-Config",
+      "member": "dmrs-DownlinkForPDSCH-MappingTypeB",
+      "line": 9644,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "DMRS-DownlinkConfig"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$DMRS-DownlinkConfig"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PDSCH-Config",
+      "member": "pdsch-TimeDomainAllocationList",
+      "line": 9650,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "PDSCH-TimeDomainResourceAllocationList"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$PDSCH-TimeDomainResourceAllocationList"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PDSCH-Config",
+      "member": "p-ZP-CSI-RS-ResourceSet",
+      "line": 9682,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "ZP-CSI-RS-ResourceSet"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$ZP-CSI-RS-ResourceSet"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PDSCH-Config",
+      "member": "maxMIMO-Layers-r16",
+      "line": 9686,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "MaxMIMO-LayersDL-r16"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$MaxMIMO-LayersDL-r16"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PDSCH-Config",
+      "member": "minimumSchedulingOffsetK0-r16",
+      "line": 9687,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "MinSchedulingOffsetK0-Values-r16"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$MinSchedulingOffsetK0-Values-r16"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PDSCH-Config",
+      "member": "dmrs-DownlinkForPDSCH-MappingTypeA-DCI-1-2-r16",
+      "line": 9695,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "DMRS-DownlinkConfig"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$DMRS-DownlinkConfig"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PDSCH-Config",
+      "member": "dmrs-DownlinkForPDSCH-MappingTypeB-DCI-1-2-r16",
+      "line": 9696,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "DMRS-DownlinkConfig"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$DMRS-DownlinkConfig"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PDSCH-Config",
+      "member": "pdsch-TimeDomainAllocationListDCI-1-2-r16",
+      "line": 9701,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "PDSCH-TimeDomainResourceAllocationList-r16"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$PDSCH-TimeDomainResourceAllocationList-r16"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PDSCH-Config",
+      "member": "pdsch-TimeDomainAllocationList-r16",
+      "line": 9724,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "PDSCH-TimeDomainResourceAllocationList-r16"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$PDSCH-TimeDomainResourceAllocationList-r16"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PDSCH-Config",
+      "member": "repetitionSchemeConfig-r16",
+      "line": 9725,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "RepetitionSchemeConfig-r16"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$RepetitionSchemeConfig-r16"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PDSCH-Config",
+      "member": "repetitionSchemeConfig-v1630",
+      "line": 9728,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "RepetitionSchemeConfig-v1630"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$RepetitionSchemeConfig-v1630"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PDSCH-Config",
+      "member": "dummy",
+      "line": 9747,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "Dummy-TDRA-List"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$Dummy-TDRA-List"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PDSCH-Config",
+      "member": "minimumSchedulingOffsetK0-r17",
+      "line": 9749,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "MinSchedulingOffsetK0-Values-r17"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$MinSchedulingOffsetK0-Values-r17"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PDSCH-Config",
+      "member": "pdsch-TimeDomainAllocationListForMultiPDSCH-r17",
+      "line": 9759,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "MultiPDSCH-TDRA-List-r17"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$MultiPDSCH-TDRA-List-r17"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PDSCH-Config",
+      "member": "advancedReceiver-MU-MIMO-r18",
+      "line": 9762,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "AdvancedReceiver-MU-MIMO-r18"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$AdvancedReceiver-MU-MIMO-r18"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PDSCH-Config",
+      "member": "pdsch-ConfigDCI-1-3-r18",
+      "line": 9763,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "PDSCH-ConfigDCI-1-3-r18"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$PDSCH-ConfigDCI-1-3-r18"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PDSCH-Config",
+      "member": "pdsch-ConfigDCI-1-3-v1860",
+      "line": 9766,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "PDSCH-ConfigDCI-1-3-v1860"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$PDSCH-ConfigDCI-1-3-v1860"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PDSCH-ServingCellConfig",
+      "member": "codeBlockGroupTransmission",
+      "line": 9806,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "PDSCH-CodeBlockGroupTransmission"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$PDSCH-CodeBlockGroupTransmission"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PDSCH-ServingCellConfig",
+      "member": "pdsch-CodeBlockGroupTransmissionList-r16",
+      "line": 9816,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "PDSCH-CodeBlockGroupTransmissionList-r16"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$PDSCH-CodeBlockGroupTransmissionList-r16"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PDSCH-ServingCellConfig",
+      "member": "downlinkHARQ-FeedbackDisabled-r17",
+      "line": 9819,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "DownlinkHARQ-FeedbackDisabled-r17"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$DownlinkHARQ-FeedbackDisabled-r17"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PHR-Config",
+      "member": "mpe-Reporting-FR2-r16",
+      "line": 9889,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "MPE-Config-FR2-r16"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$MPE-Config-FR2-r16"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PHR-Config",
+      "member": "mpe-Reporting-FR2-r17",
+      "line": 9892,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "MPE-Config-FR2-r17"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$MPE-Config-FR2-r17"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PhysicalCellGroupConfig",
+      "member": "cs-RNTI",
+      "line": 9930,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "RNTI-Value"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$RNTI-Value"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PhysicalCellGroupConfig",
+      "member": "pdcch-BlindDetection",
+      "line": 9940,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "PDCCH-BlindDetection"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$PDCCH-BlindDetection"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PhysicalCellGroupConfig",
+      "member": "dcp-Config-r16",
+      "line": 9943,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "DCP-Config-r16"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$DCP-Config-r16"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PhysicalCellGroupConfig",
+      "member": "pdsch-HARQ-ACK-CodebookList-r16",
+      "line": 9959,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "PDSCH-HARQ-ACK-CodebookList-r16"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$PDSCH-HARQ-ACK-CodebookList-r16"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PhysicalCellGroupConfig",
+      "member": "pdcch-BlindDetectionCA-CombIndicator-r16",
+      "line": 9961,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "PDCCH-BlindDetectionCA-CombIndicator-r16"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$PDCCH-BlindDetectionCA-CombIndicator-r16"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PhysicalCellGroupConfig",
+      "member": "pdcch-BlindDetection2-r16",
+      "line": 9962,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "PDCCH-BlindDetection2-r16"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$PDCCH-BlindDetection2-r16"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PhysicalCellGroupConfig",
+      "member": "pdcch-BlindDetection3-r16",
+      "line": 9963,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "PDCCH-BlindDetection3-r16"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$PDCCH-BlindDetection3-r16"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PhysicalCellGroupConfig",
+      "member": "multicastConfig-r17",
+      "line": 10002,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "MulticastConfig-r17"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$MulticastConfig-r17"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PhysicalCellGroupConfig",
+      "member": "pdcch-BlindDetectionCA-CombIndicator-r17",
+      "line": 10003,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "PDCCH-BlindDetectionCA-CombIndicator-r17"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$PDCCH-BlindDetectionCA-CombIndicator-r17"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PhysicalCellGroupConfig",
+      "member": "pdcch-BlindDetection4-r17",
+      "line": 10012,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "PDCCH-BlindDetection4-r17"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$PDCCH-BlindDetection4-r17"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PhysicalCellGroupConfig",
+      "member": "cellDTRX-DCI-config-r18",
+      "line": 10020,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "CellDTRX-DCI-config-r18"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$CellDTRX-DCI-config-r18"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "MulticastConfig-r17",
+      "member": "pdsch-HARQ-ACK-CodebookListMulticast-r17",
+      "line": 10072,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "PDSCH-HARQ-ACK-CodebookList-r16"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$PDSCH-HARQ-ACK-CodebookList-r16"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PUCCH-Config",
+      "member": "format1",
+      "line": 10178,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "PUCCH-FormatConfig"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$PUCCH-FormatConfig"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PUCCH-Config",
+      "member": "format2",
+      "line": 10179,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "PUCCH-FormatConfig"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$PUCCH-FormatConfig"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PUCCH-Config",
+      "member": "format3",
+      "line": 10180,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "PUCCH-FormatConfig"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$PUCCH-FormatConfig"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PUCCH-Config",
+      "member": "format4",
+      "line": 10181,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "PUCCH-FormatConfig"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$PUCCH-FormatConfig"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PUCCH-Config",
+      "member": "dl-DataToUL-ACK-r16",
+      "line": 10196,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "DL-DataToUL-ACK-r16"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$DL-DataToUL-ACK-r16"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PUCCH-Config",
+      "member": "ul-AccessConfigListDCI-1-1-r16",
+      "line": 10197,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "UL-AccessConfigListDCI-1-1-r16"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$UL-AccessConfigListDCI-1-1-r16"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PUCCH-Config",
+      "member": "dl-DataToUL-ACK-DCI-1-2-r16",
+      "line": 10202,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "DL-DataToUL-ACK-DCI-1-2-r16"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$DL-DataToUL-ACK-DCI-1-2-r16"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PUCCH-Config",
+      "member": "sps-PUCCH-AN-List-r16",
+      "line": 10217,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "SPS-PUCCH-AN-List-r16"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$SPS-PUCCH-AN-List-r16"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PUCCH-Config",
+      "member": "format0-r17",
+      "line": 10222,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "PUCCH-FormatConfig"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$PUCCH-FormatConfig"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PUCCH-Config",
+      "member": "format2Ext-r17",
+      "line": 10223,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "PUCCH-FormatConfigExt-r17"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$PUCCH-FormatConfigExt-r17"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PUCCH-Config",
+      "member": "format3Ext-r17",
+      "line": 10224,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "PUCCH-FormatConfigExt-r17"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$PUCCH-FormatConfigExt-r17"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PUCCH-Config",
+      "member": "format4Ext-r17",
+      "line": 10225,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "PUCCH-FormatConfigExt-r17"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$PUCCH-FormatConfigExt-r17"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PUCCH-Config",
+      "member": "ul-AccessConfigListDCI-1-2-r17",
+      "line": 10226,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "UL-AccessConfigListDCI-1-2-r17"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$UL-AccessConfigListDCI-1-2-r17"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PUCCH-Config",
+      "member": "dl-DataToUL-ACK-r17",
+      "line": 10234,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "DL-DataToUL-ACK-r17"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$DL-DataToUL-ACK-r17"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PUCCH-Config",
+      "member": "dl-DataToUL-ACK-DCI-1-2-r17",
+      "line": 10235,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "DL-DataToUL-ACK-DCI-1-2-r17"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$DL-DataToUL-ACK-DCI-1-2-r17"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PUCCH-Config",
+      "member": "ul-AccessConfigListDCI-1-1-r17",
+      "line": 10236,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "UL-AccessConfigListDCI-1-1-r17"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$UL-AccessConfigListDCI-1-1-r17"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PUCCH-Config",
+      "member": "dmrs-BundlingPUCCH-Config-r17",
+      "line": 10239,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "DMRS-BundlingPUCCH-Config-r17"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$DMRS-BundlingPUCCH-Config-r17"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PUCCH-Config",
+      "member": "dl-DataToUL-ACK-v1700",
+      "line": 10240,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "DL-DataToUL-ACK-v1700"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$DL-DataToUL-ACK-v1700"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PUCCH-Config",
+      "member": "dl-DataToUL-ACK-MulticastDCI-Format4-1-r17",
+      "line": 10241,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "DL-DataToUL-ACK-MulticastDCI-Format4-1-r17"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$DL-DataToUL-ACK-MulticastDCI-Format4-1-r17"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PUCCH-Config",
+      "member": "sps-PUCCH-AN-ListMulticast-r17",
+      "line": 10242,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "SPS-PUCCH-AN-List-r16"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$SPS-PUCCH-AN-List-r16"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PUCCH-ResourceExt-v1610",
+      "member": "dl-DataToUL-ACK-r18",
+      "line": 10310,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "DL-DataToUL-ACK-r18"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$DL-DataToUL-ACK-r18"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PUCCH-ResourceExt-v1610",
+      "member": "dl-DataToUL-ACK-DCI-1-2-r18",
+      "line": 10311,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "DL-DataToUL-ACK-DCI-1-2-r18"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$DL-DataToUL-ACK-DCI-1-2-r18"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PUCCH-PowerControl",
+      "member": "pathlossReferenceRSs-v1610",
+      "line": 10432,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "PathlossReferenceRSs-v1610"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$PathlossReferenceRSs-v1610"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PUSCH-Config",
+      "member": "dmrs-UplinkForPUSCH-MappingTypeA",
+      "line": 10525,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "DMRS-UplinkConfig"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$DMRS-UplinkConfig"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PUSCH-Config",
+      "member": "dmrs-UplinkForPUSCH-MappingTypeB",
+      "line": 10526,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "DMRS-UplinkConfig"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$DMRS-UplinkConfig"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PUSCH-Config",
+      "member": "pusch-TimeDomainAllocationList",
+      "line": 10532,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "PUSCH-TimeDomainResourceAllocationList"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$PUSCH-TimeDomainResourceAllocationList"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PUSCH-Config",
+      "member": "uci-OnPUSCH",
+      "line": 10541,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "UCI-OnPUSCH"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$UCI-OnPUSCH"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PUSCH-Config",
+      "member": "minimumSchedulingOffsetK2-r16",
+      "line": 10545,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "MinSchedulingOffsetK2-Values-r16"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$MinSchedulingOffsetK2-Values-r16"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PUSCH-Config",
+      "member": "ul-AccessConfigListDCI-0-1-r16",
+      "line": 10546,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "UL-AccessConfigListDCI-0-1-r16"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$UL-AccessConfigListDCI-0-1-r16"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PUSCH-Config",
+      "member": "dmrs-UplinkForPUSCH-MappingTypeA-DCI-0-2-r16",
+      "line": 10552,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "DMRS-UplinkConfig"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$DMRS-UplinkConfig"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PUSCH-Config",
+      "member": "dmrs-UplinkForPUSCH-MappingTypeB-DCI-0-2-r16",
+      "line": 10553,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "DMRS-UplinkConfig"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$DMRS-UplinkConfig"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PUSCH-Config",
+      "member": "frequencyHoppingOffsetListsDCI-0-2-r16",
+      "line": 10558,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "FrequencyHoppingOffsetListsDCI-0-2-r16"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$FrequencyHoppingOffsetListsDCI-0-2-r16"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PUSCH-Config",
+      "member": "uci-OnPUSCH-ListDCI-0-2-r16",
+      "line": 10570,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "UCI-OnPUSCH-ListDCI-0-2-r16"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$UCI-OnPUSCH-ListDCI-0-2-r16"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PUSCH-Config",
+      "member": "pusch-TimeDomainAllocationListDCI-0-2-r16",
+      "line": 10571,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "PUSCH-TimeDomainResourceAllocationList-r16"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$PUSCH-TimeDomainResourceAllocationList-r16"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PUSCH-Config",
+      "member": "pusch-TimeDomainAllocationListDCI-0-1-r16",
+      "line": 10575,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "PUSCH-TimeDomainResourceAllocationList-r16"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$PUSCH-TimeDomainResourceAllocationList-r16"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PUSCH-Config",
+      "member": "uci-OnPUSCH-ListDCI-0-1-r16",
+      "line": 10581,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "UCI-OnPUSCH-ListDCI-0-1-r16"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$UCI-OnPUSCH-ListDCI-0-1-r16"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PUSCH-Config",
+      "member": "pusch-PowerControl-v1610",
+      "line": 10584,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "PUSCH-PowerControl-v1610"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$PUSCH-PowerControl-v1610"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PUSCH-Config",
+      "member": "pusch-TimeDomainAllocationListForMultiPUSCH-r16",
+      "line": 10586,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "PUSCH-TimeDomainResourceAllocationList-r16"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$PUSCH-TimeDomainResourceAllocationList-r16"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PUSCH-Config",
+      "member": "ul-AccessConfigListDCI-0-2-r17",
+      "line": 10591,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "UL-AccessConfigListDCI-0-2-r17"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$UL-AccessConfigListDCI-0-2-r17"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PUSCH-Config",
+      "member": "betaOffsetsCrossPri0-r17",
+      "line": 10592,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "BetaOffsetsCrossPriSel-r17"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$BetaOffsetsCrossPriSel-r17"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PUSCH-Config",
+      "member": "betaOffsetsCrossPri1-r17",
+      "line": 10593,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "BetaOffsetsCrossPriSel-r17"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$BetaOffsetsCrossPriSel-r17"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PUSCH-Config",
+      "member": "betaOffsetsCrossPri0DCI-0-2-r17",
+      "line": 10594,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "BetaOffsetsCrossPriSelDCI-0-2-r17"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$BetaOffsetsCrossPriSelDCI-0-2-r17"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PUSCH-Config",
+      "member": "betaOffsetsCrossPri1DCI-0-2-r17",
+      "line": 10595,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "BetaOffsetsCrossPriSelDCI-0-2-r17"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$BetaOffsetsCrossPriSelDCI-0-2-r17"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PUSCH-Config",
+      "member": "ul-AccessConfigListDCI-0-1-r17",
+      "line": 10600,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "UL-AccessConfigListDCI-0-1-r17"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$UL-AccessConfigListDCI-0-1-r17"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PUSCH-Config",
+      "member": "minimumSchedulingOffsetK2-r17",
+      "line": 10601,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "MinSchedulingOffsetK2-Values-r17"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$MinSchedulingOffsetK2-Values-r17"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PUSCH-Config",
+      "member": "dmrs-BundlingPUSCH-Config-r17",
+      "line": 10603,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "DMRS-BundlingPUSCH-Config-r17"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$DMRS-BundlingPUSCH-Config-r17"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PUSCH-Config",
+      "member": "codebookTypeUL-r18",
+      "line": 10614,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "CodebookTypeUL-r18"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$CodebookTypeUL-r18"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PUSCH-Config",
+      "member": "pusch-ConfigDCI-0-3-r18",
+      "line": 10618,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "PUSCH-ConfigDCI-0-3-r18"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$PUSCH-ConfigDCI-0-3-r18"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PUSCH-ConfigDCI-0-3-r18",
+      "member": "uci-OnPUSCH-ListDCI-0-3-r18",
+      "line": 10708,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "UCI-OnPUSCH-ListDCI-0-1-r16"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$UCI-OnPUSCH-ListDCI-0-1-r16"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PUSCH-ServingCellConfig",
+      "member": "codeBlockGroupTransmission",
+      "line": 10820,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "PUSCH-CodeBlockGroupTransmission"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$PUSCH-CodeBlockGroupTransmission"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PUSCH-ServingCellConfig",
+      "member": "maxMIMO-LayersDCI-0-2-r16",
+      "line": 10829,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "MaxMIMO-LayersDCI-0-2-r16"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$MaxMIMO-LayersDCI-0-2-r16"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PUSCH-ServingCellConfig",
+      "member": "uplinkHARQ-mode-r17",
+      "line": 10833,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "UplinkHARQ-mode-r17"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$UplinkHARQ-mode-r17"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "RepetitionSchemeConfig-r16",
+      "member": "fdm-TDM-r16",
+      "line": 11456,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "FDM-TDM-r16"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$FDM-TDM-r16"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "RepetitionSchemeConfig-r16",
+      "member": "slotBased-r16",
+      "line": 11457,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "SlotBased-r16"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$SlotBased-r16"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "RepetitionSchemeConfig-v1630",
+      "member": "slotBased-v1630",
+      "line": 11461,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "SlotBased-v1630"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$SlotBased-v1630"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "EventTriggerConfigInterRAT",
+      "member": "includeBT-Meas-r16",
+      "line": 11589,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "BT-NameList-r16"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$BT-NameList-r16"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "EventTriggerConfigInterRAT",
+      "member": "includeWLAN-Meas-r16",
+      "line": 11590,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "WLAN-NameList-r16"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$WLAN-NameList-r16"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "EventTriggerConfigInterRAT",
+      "member": "includeSensor-Meas-r16",
+      "line": 11591,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "Sensor-NameList-r16"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$Sensor-NameList-r16"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PeriodicalReportConfigInterRAT",
+      "member": "includeBT-Meas-r16",
+      "line": 11612,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "BT-NameList-r16"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$BT-NameList-r16"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PeriodicalReportConfigInterRAT",
+      "member": "includeWLAN-Meas-r16",
+      "line": 11613,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "WLAN-NameList-r16"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$WLAN-NameList-r16"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PeriodicalReportConfigInterRAT",
+      "member": "includeSensor-Meas-r16",
+      "line": 11614,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "Sensor-NameList-r16"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$Sensor-NameList-r16"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "EventTriggerConfig",
+      "member": "includeBT-Meas-r16",
+      "line": 11900,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "BT-NameList-r16"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$BT-NameList-r16"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "EventTriggerConfig",
+      "member": "includeWLAN-Meas-r16",
+      "line": 11901,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "WLAN-NameList-r16"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$WLAN-NameList-r16"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "EventTriggerConfig",
+      "member": "includeSensor-Meas-r16",
+      "line": 11902,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "Sensor-NameList-r16"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$Sensor-NameList-r16"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PeriodicalReportConfig",
+      "member": "includeBT-Meas-r16",
+      "line": 11932,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "BT-NameList-r16"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$BT-NameList-r16"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PeriodicalReportConfig",
+      "member": "includeWLAN-Meas-r16",
+      "line": 11933,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "WLAN-NameList-r16"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$WLAN-NameList-r16"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PeriodicalReportConfig",
+      "member": "includeSensor-Meas-r16",
+      "line": 11934,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "Sensor-NameList-r16"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$Sensor-NameList-r16"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PeriodicalReportConfig",
+      "member": "ul-DelayValueConfig-r16",
+      "line": 11935,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "UL-DelayValueConfig-r16"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$UL-DelayValueConfig-r16"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PeriodicalReportConfig",
+      "member": "ul-ExcessDelayConfig-r17",
+      "line": 11939,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "UL-ExcessDelayConfig-r17"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$UL-ExcessDelayConfig-r17"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "ServingCellConfig",
+      "member": "pdcch-ServingCellConfig",
+      "line": 12685,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "PDCCH-ServingCellConfig"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$PDCCH-ServingCellConfig"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "ServingCellConfig",
+      "member": "pdsch-ServingCellConfig",
+      "line": 12686,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "PDSCH-ServingCellConfig"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$PDSCH-ServingCellConfig"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "ServingCellConfig",
+      "member": "csi-MeasConfig",
+      "line": 12687,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "CSI-MeasConfig"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$CSI-MeasConfig"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "ServingCellConfig",
+      "member": "lte-CRS-ToMatchAround",
+      "line": 12698,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "RateMatchPatternLTE-CRS"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$RateMatchPatternLTE-CRS"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "ServingCellConfig",
+      "member": "dormantBWP-Config-r16",
+      "line": 12706,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "DormantBWP-Config-r16"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$DormantBWP-Config-r16"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "ServingCellConfig",
+      "member": "dummy2",
+      "line": 12713,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "DummyJ"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$DummyJ"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "ServingCellConfig",
+      "member": "lte-CRS-PatternList1-r16",
+      "line": 12717,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "LTE-CRS-PatternList-r16"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$LTE-CRS-PatternList-r16"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "ServingCellConfig",
+      "member": "lte-CRS-PatternList2-r16",
+      "line": 12718,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "LTE-CRS-PatternList-r16"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$LTE-CRS-PatternList-r16"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "ServingCellConfig",
+      "member": "channelAccessConfig-r16",
+      "line": 12728,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "ChannelAccessConfig-r16"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$ChannelAccessConfig-r16"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "ServingCellConfig",
+      "member": "nr-dl-PRS-PDC-Info-r17",
+      "line": 12731,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "NR-DL-PRS-PDC-Info-r17"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$NR-DL-PRS-PDC-Info-r17"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "ServingCellConfig",
+      "member": "semiStaticChannelAccessConfigUE-r17",
+      "line": 12732,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "SemiStaticChannelAccessConfigUE-r17"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$SemiStaticChannelAccessConfigUE-r17"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "ServingCellConfig",
+      "member": "mimoParam-r17",
+      "line": 12733,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "MIMOParam-r17"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$MIMOParam-r17"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "ServingCellConfig",
+      "member": "lte-NeighCellsCRS-AssistInfoList-r17",
+      "line": 12741,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "LTE-NeighCellsCRS-AssistInfoList-r17"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$LTE-NeighCellsCRS-AssistInfoList-r17"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "ServingCellConfig",
+      "member": "lte-CRS-PatternList3-r18",
+      "line": 12753,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "LTE-CRS-PatternList-r16"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$LTE-CRS-PatternList-r16"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "ServingCellConfig",
+      "member": "lte-CRS-PatternList4-r18",
+      "line": 12754,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "LTE-CRS-PatternList-r16"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$LTE-CRS-PatternList-r16"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "ServingCellConfig",
+      "member": "cellDTX-DRX-Config-r18",
+      "line": 12758,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "CellDTX-DRX-Config-r18"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$CellDTX-DRX-Config-r18"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "ServingCellConfig",
+      "member": "mimoParam-v1850",
+      "line": 12765,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "MIMOParam-v1850"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$MIMOParam-v1850"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "UplinkConfig",
+      "member": "pusch-ServingCellConfig",
+      "line": 12780,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "PUSCH-ServingCellConfig"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$PUSCH-ServingCellConfig"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "UplinkConfig",
+      "member": "carrierSwitching",
+      "line": 12781,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "SRS-CarrierSwitching"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$SRS-CarrierSwitching"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "UplinkConfig",
+      "member": "uplinkTxSwitching-r16",
+      "line": 12792,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "UplinkTxSwitching-r16"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$UplinkTxSwitching-r16"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "UplinkConfig",
+      "member": "srs-PosTx-Hopping-r18",
+      "line": 12796,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "SRS-PosTx-Hopping-r18"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$SRS-PosTx-Hopping-r18"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "DormantBWP-Config-r16",
+      "member": "withinActiveTimeConfig-r16",
+      "line": 12833,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "WithinActiveTimeConfig-r16"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$WithinActiveTimeConfig-r16"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "DormantBWP-Config-r16",
+      "member": "outsideActiveTimeConfig-r16",
+      "line": 12834,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "OutsideActiveTimeConfig-r16"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$OutsideActiveTimeConfig-r16"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "ServingCellConfigCommon",
+      "member": "lte-CRS-ToMatchAround",
+      "line": 12943,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "RateMatchPatternLTE-CRS"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$RateMatchPatternLTE-CRS"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "SRS-ResourceSet",
+      "member": "pathlossReferenceRSList-r16",
+      "line": 13386,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "PathlossReferenceRSList-r16"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$PathlossReferenceRSList-r16"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "SRS-Resource",
+      "member": "spatialRelationInfo-PDC-r17",
+      "line": 13497,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "SpatialRelationInfo-PDC-r17"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$SpatialRelationInfo-PDC-r17"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "SRS-PosTx-Hopping-r18",
+      "member": "srs-PosUplinkTransmissionWindowConfig-r18",
+      "line": 13771,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "SRS-PosUplinkTransmissionWindowConfig-r18"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$SRS-PosUplinkTransmissionWindowConfig-r18"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "SSB-MTC3-r16",
+      "member": "ssb-ToMeasure-r16",
+      "line": 13865,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "SSB-ToMeasure"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$SSB-ToMeasure"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "MeasConfigAppLayer-r17",
+      "member": "ran-VisibleParameters-r17",
+      "line": 22367,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "RAN-VisibleParameters-r17"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$RAN-VisibleParameters-r17"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "MeasConfigAppLayer-r17",
+      "member": "appLayerIdleInactiveConfig-r18",
+      "line": 22372,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "AppLayerIdleInactiveConfig-r18"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$AppLayerIdleInactiveConfig-r18"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "OtherConfig-v1540",
+      "member": "overheatingAssistanceConfig",
+      "line": 22650,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "OverheatingAssistanceConfig"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$OverheatingAssistanceConfig"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "OtherConfig-v1610",
+      "member": "idc-AssistanceConfig-r16",
+      "line": 22655,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "IDC-AssistanceConfig-r16"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$IDC-AssistanceConfig-r16"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "OtherConfig-v1610",
+      "member": "drx-PreferenceConfig-r16",
+      "line": 22656,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "DRX-PreferenceConfig-r16"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$DRX-PreferenceConfig-r16"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "OtherConfig-v1610",
+      "member": "maxBW-PreferenceConfig-r16",
+      "line": 22657,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "MaxBW-PreferenceConfig-r16"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$MaxBW-PreferenceConfig-r16"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "OtherConfig-v1610",
+      "member": "maxCC-PreferenceConfig-r16",
+      "line": 22658,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "MaxCC-PreferenceConfig-r16"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$MaxCC-PreferenceConfig-r16"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "OtherConfig-v1610",
+      "member": "maxMIMO-LayerPreferenceConfig-r16",
+      "line": 22659,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "MaxMIMO-LayerPreferenceConfig-r16"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$MaxMIMO-LayerPreferenceConfig-r16"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "OtherConfig-v1610",
+      "member": "minSchedulingOffsetPreferenceConfig-r16",
+      "line": 22660,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "MinSchedulingOffsetPreferenceConfig-r16"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$MinSchedulingOffsetPreferenceConfig-r16"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "OtherConfig-v1610",
+      "member": "releasePreferenceConfig-r16",
+      "line": 22661,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "ReleasePreferenceConfig-r16"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$ReleasePreferenceConfig-r16"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "OtherConfig-v1610",
+      "member": "btNameList-r16",
+      "line": 22663,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "BT-NameList-r16"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$BT-NameList-r16"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "OtherConfig-v1610",
+      "member": "wlanNameList-r16",
+      "line": 22664,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "WLAN-NameList-r16"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$WLAN-NameList-r16"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "OtherConfig-v1610",
+      "member": "sensorNameList-r16",
+      "line": 22665,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "Sensor-NameList-r16"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$Sensor-NameList-r16"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "OtherConfig-v1700",
+      "member": "musim-GapAssistanceConfig-r17",
+      "line": 22672,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "MUSIM-GapAssistanceConfig-r17"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$MUSIM-GapAssistanceConfig-r17"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "OtherConfig-v1700",
+      "member": "musim-LeaveAssistanceConfig-r17",
+      "line": 22673,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "MUSIM-LeaveAssistanceConfig-r17"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$MUSIM-LeaveAssistanceConfig-r17"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "OtherConfig-v1700",
+      "member": "successHO-Config-r17",
+      "line": 22674,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "SuccessHO-Config-r17"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$SuccessHO-Config-r17"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "OtherConfig-v1700",
+      "member": "rlm-RelaxationReportingConfig-r17",
+      "line": 22678,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "RLM-RelaxationReportingConfig-r17"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$RLM-RelaxationReportingConfig-r17"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "OtherConfig-v1700",
+      "member": "bfd-RelaxationReportingConfig-r17",
+      "line": 22679,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "BFD-RelaxationReportingConfig-r17"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$BFD-RelaxationReportingConfig-r17"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "OtherConfig-v1700",
+      "member": "scg-DeactivationPreferenceConfig-r17",
+      "line": 22680,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "SCG-DeactivationPreferenceConfig-r17"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$SCG-DeactivationPreferenceConfig-r17"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "OtherConfig-v1700",
+      "member": "rrm-MeasRelaxationReportingConfig-r17",
+      "line": 22681,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "RRM-MeasRelaxationReportingConfig-r17"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$RRM-MeasRelaxationReportingConfig-r17"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "OtherConfig-v1700",
+      "member": "propDelayDiffReportConfig-r17",
+      "line": 22682,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "PropDelayDiffReportConfig-r17"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$PropDelayDiffReportConfig-r17"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "OtherConfig-v1800",
+      "member": "idc-AssistanceConfig-v1800",
+      "line": 22686,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "IDC-AssistanceConfig-v1800"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$IDC-AssistanceConfig-v1800"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "OtherConfig-v1800",
+      "member": "multiRx-PreferenceReportingConfigFR2-r18",
+      "line": 22687,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "MultiRx-PreferenceReportingConfigFR2-r18"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$MultiRx-PreferenceReportingConfigFR2-r18"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "OtherConfig-v1800",
+      "member": "ul-TrafficInfoReportingConfig-r18",
+      "line": 22689,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "UL-TrafficInfoReportingConfig-r18"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$UL-TrafficInfoReportingConfig-r18"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "OtherConfig-v1800",
+      "member": "successPSCell-Config-r18",
+      "line": 22691,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "SuccessPSCell-Config-r18"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$SuccessPSCell-Config-r18"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "OtherConfig-v1800",
+      "member": "musim-CapabilityRestrictionConfig-r18",
+      "line": 22694,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "MUSIM-CapabilityRestrictionConfig-r18"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$MUSIM-CapabilityRestrictionConfig-r18"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "IDC-AssistanceConfig-v1800",
+      "member": "idc-FDM-AssistanceConfig-r18",
+      "line": 22702,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "IDC-FDM-AssistanceConfig-r18"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$IDC-FDM-AssistanceConfig-r18"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "SL-BWP-Config-r16",
+      "member": "sl-BWP-PoolConfigPS-r17",
+      "line": 22965,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "SL-BWP-PoolConfig-r16"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$SL-BWP-PoolConfig-r16"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "SL-BWP-Config-r16",
+      "member": "sl-BWP-DiscPoolConfig-r17",
+      "line": 22966,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "SL-BWP-DiscPoolConfig-r17"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$SL-BWP-DiscPoolConfig-r17"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "SL-BWP-Config-r16",
+      "member": "sl-BWP-PoolConfigA2X-r18",
+      "line": 22969,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "SL-BWP-PoolConfig-r16"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$SL-BWP-PoolConfig-r16"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "SL-BWP-Config-r16",
+      "member": "sl-BWP-PRS-PoolConfig-r18",
+      "line": 22970,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "SL-BWP-PRS-PoolConfig-r18"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$SL-BWP-PRS-PoolConfig-r18"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "SL-BWP-Generic-r16",
+      "member": "sl-PSBCH-Config-r16",
+      "line": 22978,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "SL-PSBCH-Config-r16"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$SL-PSBCH-Config-r16"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "SL-BWP-Generic-r16",
+      "member": "sl-Unlicensed-r18",
+      "line": 22982,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "SL-Unlicensed-r18"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$SL-Unlicensed-r18"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "SL-Unlicensed-r18",
+      "member": "sl-LBT-FailureRecoveryConfig-r18",
+      "line": 22987,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "SL-LBT-FailureRecoveryConfig-r18"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$SL-LBT-FailureRecoveryConfig-r18"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "SL-ConfigDedicatedNR-r16",
+      "member": "sl-PHY-MAC-RLC-Config-v1700",
+      "line": 23167,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "SL-PHY-MAC-RLC-Config-v1700"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$SL-PHY-MAC-RLC-Config-v1700"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "SL-ConfigDedicatedNR-r16",
+      "member": "sl-DiscConfig-r17",
+      "line": 23168,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "SL-DiscConfig-r17"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$SL-DiscConfig-r17"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "SL-PHY-MAC-RLC-Config-r16",
+      "member": "sl-ScheduledConfig-r16",
+      "line": 23188,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "SL-ScheduledConfig-r16"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$SL-ScheduledConfig-r16"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "SL-PHY-MAC-RLC-Config-r16",
+      "member": "sl-UE-SelectedConfig-r16",
+      "line": 23189,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "SL-UE-SelectedConfig-r16"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$SL-UE-SelectedConfig-r16"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "SL-PHY-MAC-RLC-Config-r16",
+      "member": "sl-CSI-SchedulingRequestId-r16",
+      "line": 23196,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "SchedulingRequestId"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$SchedulingRequestId"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "SL-PHY-MAC-RLC-Config-v1700",
+      "member": "sl-LBT-SchedulingRequestId-r18",
+      "line": 23214,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "SchedulingRequestId"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$SchedulingRequestId"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "SL-PHY-MAC-RLC-Config-v1700",
+      "member": "sl-SCCH-CarrierSetConfig-r18",
+      "line": 23218,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "SL-SCCH-CarrierSetConfigList-r18"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$SL-SCCH-CarrierSetConfigList-r18"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "SL-PHY-MAC-RLC-Config-v1700",
+      "member": "sl-PRS-SchedulingRequestId-r18",
+      "line": 23219,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "SchedulingRequestId"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$SchedulingRequestId"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "SL-DiscConfig-r17",
+      "member": "sl-RelayUE-Config-r17",
+      "line": 23224,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "SL-RelayUE-Config-r17"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$SL-RelayUE-Config-r17"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "SL-DiscConfig-r17",
+      "member": "sl-RemoteUE-Config-r17",
+      "line": 23225,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "SL-RemoteUE-Config-r17"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$SL-RemoteUE-Config-r17"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "SL-DiscConfig-v1800",
+      "member": "sl-RelayUE-ConfigU2U-r18",
+      "line": 23229,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "SL-RelayUE-ConfigU2U-r18"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$SL-RelayUE-ConfigU2U-r18"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "SL-DiscConfig-v1800",
+      "member": "sl-RemoteUE-ConfigU2U-r18",
+      "line": 23230,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "SL-RemoteUE-ConfigU2U-r18"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$SL-RemoteUE-ConfigU2U-r18"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "SL-DiscConfig-v1830",
+      "member": "sl-RemoteUE-ConfigU2U-v1830",
+      "line": 23243,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "SL-RemoteUE-ConfigU2U-v1830"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$SL-RemoteUE-ConfigU2U-v1830"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "SL-DiscConfig-v1840",
+      "member": "sl-RelayUE-ConfigU2U-v1840",
+      "line": 23247,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "SL-RelayUE-ConfigU2U-v1840"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$SL-RelayUE-ConfigU2U-v1840"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "SL-PRS-ResourcePool-r18",
+      "member": "sl-PRS-PSCCH-Config-r18",
+      "line": 23808,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "SL-PSCCH-ConfigDedicatedSL-PRS-RP-r18"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$SL-PSCCH-ConfigDedicatedSL-PRS-RP-r18"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "SL-ResourcePool-r16",
+      "member": "sl-PSCCH-Config-r16",
+      "line": 24123,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "SL-PSCCH-Config-r16"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$SL-PSCCH-Config-r16"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "SL-ResourcePool-r16",
+      "member": "sl-PSSCH-Config-r16",
+      "line": 24124,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "SL-PSSCH-Config-r16"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$SL-PSSCH-Config-r16"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "SL-ResourcePool-r16",
+      "member": "sl-PSFCH-Config-r16",
+      "line": 24125,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "SL-PSFCH-Config-r16"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$SL-PSFCH-Config-r16"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "SL-ResourcePool-r16",
+      "member": "sl-PBPS-CPS-Config-r17",
+      "line": 24156,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "SL-PBPS-CPS-Config-r17"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$SL-PBPS-CPS-Config-r17"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "SL-ResourcePool-r16",
+      "member": "sl-InterUE-CoordinationConfig-r17",
+      "line": 24157,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "SL-InterUE-CoordinationConfig-r17"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$SL-InterUE-CoordinationConfig-r17"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "SL-ResourcePool-r16",
+      "member": "sl-CPE-StartingPositionsPSCCH-PSSCH-InitiateCOT-List-r18",
+      "line": 24161,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "SL-CPE-StartingPositionsPSCCH-PSSCH-List-r18"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$SL-CPE-StartingPositionsPSCCH-PSSCH-List-r18"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "SL-ResourcePool-r16",
+      "member": "sl-CPE-StartingPositionsPSCCH-PSSCH-WithinCOT-List-r18",
+      "line": 24164,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "SL-CPE-StartingPositionsPSCCH-PSSCH-List-r18"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$SL-CPE-StartingPositionsPSCCH-PSSCH-List-r18"
+    },
+    {
+      "module": "PC5-RRC-Definitions",
+      "owner": "RemoteUEInformationSidelink-r17-IEs",
+      "member": "sl-RequestedSIB-List-r17",
+      "line": 197,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "PC5-RRC-Definitions",
+        "SL-RequestedSIB-List-r17"
+      ],
+      "instance_key": "$type$SetupRelease$PC5-RRC-Definitions$SL-RequestedSIB-List-r17"
+    },
+    {
+      "module": "PC5-RRC-Definitions",
+      "owner": "RemoteUEInformationSidelink-r17-IEs",
+      "member": "sl-PagingInfo-RemoteUE-r17",
+      "line": 198,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "PC5-RRC-Definitions",
+        "SL-PagingInfo-RemoteUE-r17"
+      ],
+      "instance_key": "$type$SetupRelease$PC5-RRC-Definitions$SL-PagingInfo-RemoteUE-r17"
+    },
+    {
+      "module": "PC5-RRC-Definitions",
+      "owner": "RemoteUEInformationSidelink-v1800-IEs",
+      "member": "sl-RequestedPosSIB-List-r18",
+      "line": 204,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "PC5-RRC-Definitions",
+        "SL-RequestedPosSIB-List-r18"
+      ],
+      "instance_key": "$type$SetupRelease$PC5-RRC-Definitions$SL-RequestedPosSIB-List-r18"
+    },
+    {
+      "module": "PC5-RRC-Definitions",
+      "owner": "RRCReconfigurationSidelink-r16-IEs",
+      "member": "sl-MeasConfig-r16",
+      "line": 256,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "SL-MeasConfig-r16"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$SL-MeasConfig-r16"
+    },
+    {
+      "module": "PC5-RRC-Definitions",
+      "owner": "RRCReconfigurationSidelink-r16-IEs",
+      "member": "sl-CSI-RS-Config-r16",
+      "line": 257,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "PC5-RRC-Definitions",
+        "SL-CSI-RS-Config-r16"
+      ],
+      "instance_key": "$type$SetupRelease$PC5-RRC-Definitions$SL-CSI-RS-Config-r16"
+    },
+    {
+      "module": "PC5-RRC-Definitions",
+      "owner": "RRCReconfigurationSidelink-v1700-IEs",
+      "member": "sl-DRX-ConfigUC-PC5-r17",
+      "line": 265,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "SL-DRX-ConfigUC-r17"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$SL-DRX-ConfigUC-r17"
+    },
+    {
+      "module": "PC5-RRC-Definitions",
+      "owner": "RRCReconfigurationSidelink-v1700-IEs",
+      "member": "sl-LatencyBoundIUC-Report-r17",
+      "line": 266,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "PC5-RRC-Definitions",
+        "SL-LatencyBoundIUC-Report-r17"
+      ],
+      "instance_key": "$type$SetupRelease$PC5-RRC-Definitions$SL-LatencyBoundIUC-Report-r17"
+    },
+    {
+      "module": "PC5-RRC-Definitions",
+      "owner": "RRCReconfigurationSidelink-v1800-IEs",
+      "member": "sl-SFN-DFN-Offset-r18",
+      "line": 273,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "PC5-RRC-Definitions",
+        "SL-SFN-DFN-Offset-r18"
+      ],
+      "instance_key": "$type$SetupRelease$PC5-RRC-Definitions$SL-SFN-DFN-Offset-r18"
+    },
+    {
+      "module": "NR-InterNodeDefinitions",
+      "owner": "MeasConfigMN",
+      "member": "measGapConfig",
+      "line": 774,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "GapConfig"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$GapConfig"
+    },
+    {
+      "module": "NR-InterNodeDefinitions",
+      "owner": "MeasConfigMN",
+      "member": "measGapConfigFR2",
+      "line": 778,
+      "template": [
+        "NR-RRC-Definitions",
+        "SetupRelease"
+      ],
+      "actual": [
+        "NR-RRC-Definitions",
+        "GapConfig"
+      ],
+      "instance_key": "$type$SetupRelease$NR-RRC-Definitions$GapConfig"
+    }
+  ],
+  "default_fields": [
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "InterFreqCarrierFreqInfo",
+      "member": "q-OffsetFreq",
+      "line": 3663,
+      "scalar_kind": "ENUMERATED"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "Q-OffsetRangeList",
+      "member": "rsrpOffsetSSB",
+      "line": 7996,
+      "scalar_kind": "ENUMERATED"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "Q-OffsetRangeList",
+      "member": "rsrqOffsetSSB",
+      "line": 7997,
+      "scalar_kind": "ENUMERATED"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "Q-OffsetRangeList",
+      "member": "sinrOffsetSSB",
+      "line": 7998,
+      "scalar_kind": "ENUMERATED"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "Q-OffsetRangeList",
+      "member": "rsrpOffsetCSI-RS",
+      "line": 7999,
+      "scalar_kind": "ENUMERATED"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "Q-OffsetRangeList",
+      "member": "rsrqOffsetCSI-RS",
+      "line": 8000,
+      "scalar_kind": "ENUMERATED"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "Q-OffsetRangeList",
+      "member": "sinrOffsetCSI-RS",
+      "line": 8001,
+      "scalar_kind": "ENUMERATED"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PDCP-Config",
+      "member": "maxCID",
+      "line": 9530,
+      "scalar_kind": "INTEGER"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "PDCP-Config",
+      "member": "maxCID",
+      "line": 9545,
+      "scalar_kind": "INTEGER"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "FilterConfig",
+      "member": "filterCoefficientRSRP",
+      "line": 10949,
+      "scalar_kind": "ENUMERATED"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "FilterConfig",
+      "member": "filterCoefficientRSRQ",
+      "line": 10950,
+      "scalar_kind": "ENUMERATED"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "FilterConfig",
+      "member": "filterCoefficientRS-SINR",
+      "line": 10951,
+      "scalar_kind": "ENUMERATED"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "FilterConfigCLI-r16",
+      "member": "filterCoefficientSRS-RSRP-r16",
+      "line": 10955,
+      "scalar_kind": "ENUMERATED"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "FilterConfigCLI-r16",
+      "member": "filterCoefficientCLI-RSSI-r16",
+      "line": 10956,
+      "scalar_kind": "ENUMERATED"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "QuantityConfigUTRA-FDD-r16",
+      "member": "filterCoefficientRSCP-r16",
+      "line": 10960,
+      "scalar_kind": "ENUMERATED"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "QuantityConfigUTRA-FDD-r16",
+      "member": "filterCoefficientEcNO-r16",
+      "line": 10961,
+      "scalar_kind": "ENUMERATED"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "SL-QuantityConfig-r16",
+      "member": "sl-FilterCoefficientDMRS-r16",
+      "line": 23965,
+      "scalar_kind": "ENUMERATED"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "MRB-PDCP-ConfigBroadcast-r17",
+      "member": "maxCID-r17",
+      "line": 24703,
+      "scalar_kind": "INTEGER"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "owner": "MRB-PDCP-ConfigMulticast-r18",
+      "member": "maxCID-r18",
+      "line": 24752,
+      "scalar_kind": "INTEGER"
+    },
+    {
+      "module": "NR-Sidelink-Preconf",
+      "owner": "SidelinkPreconfigNR-r16",
+      "member": "sl-MaxCID-r16",
+      "line": 56,
+      "scalar_kind": "INTEGER"
+    }
+  ],
+  "scope": "All frozen source site shapes and explicit namespace identities; no per-site closure, codec or wire qualification"
+}

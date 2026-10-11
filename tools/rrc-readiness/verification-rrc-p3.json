@@ -1,0 +1,125 @@
+{
+  "batch": "RRC-P3",
+  "baseline": "e7b5b95ee70200cf110923c9262cd27cc1c01d08",
+  "date": "2026-10-11",
+  "compiler": "GCC 13.3.0 Ubuntu 13.3.0-6ubuntu2~24.04",
+  "python": "3.12.14",
+  "strict_focused_and_probe_build": {
+    "flags": "-std=gnu11 -Wall -Wextra -Werror -DHAVE_CONFIG_H",
+    "result": "PASS"
+  },
+  "focused_parameters_default": {
+    "result": "PASS",
+    "allocation_failure_positions": {
+      "parameter_graph": 366,
+      "default_graph": 62,
+      "inherited_ordinary_graph": 140
+    },
+    "coverage": [
+      "actual namespace identity and ordered multi-argument keys",
+      "repeated instance reuse",
+      "imported template and qualified same-name actual",
+      "nested forwarding and parameterized alias",
+      "unused actual closure and reference budget",
+      "actual AST-node budget",
+      "stale actual identity/cache and specialization cache",
+      "governed and wrong-arity formals",
+      "unsupported built-in actual and inline template body",
+      "invalid integer/boolean/enum defaults",
+      "owned field/default deep copy",
+      "absent reconstruction and validated-present scalar equality/suppression after tree deletion"
+    ]
+  },
+  "suites": {
+    "typed": {
+      "command": "make -C libasn1typed -j2 check",
+      "PASS": 44,
+      "FAIL": 0
+    },
+    "aper_runtime": {
+      "command": "make -C libaper check",
+      "PASS": 10,
+      "FAIL": 0
+    },
+    "protocol_pdu": {
+      "command": "make -C libngap check",
+      "PASS": 3,
+      "FAIL": 0
+    }
+  },
+  "rrc_matrix": {
+    "command": "PYTHONDONTWRITEBYTECODE=1 python3 tools/rrc-readiness/record_p3.py --asn1-root <frozen-schema-root> --probe <fresh-root-probe> --work <work-directory> --check",
+    "authenticated_modules": 6,
+    "selected_roots": 80,
+    "PASS": 45,
+    "FAIL": 35,
+    "channels": {
+      "PASS": 5,
+      "FAIL": 7
+    },
+    "payloads": {
+      "PASS": 40,
+      "FAIL": 26
+    },
+    "bare_seeds_overlapping_payloads": {
+      "PASS": 1,
+      "FAIL": 3
+    },
+    "additional_default_seed_roots": 5,
+    "unique_default_fields_in_seeds": 13,
+    "tree_deleted_before_serialization": true,
+    "owned_reference_and_actual_closure": "PASS",
+    "byte_identical_reproduction": "PASS",
+    "raw_owned_graph_sha256": "80da0792f1a12c9150e3393171724b9a387f296b8332144202b67b8603d3a2b3",
+    "report_sha256": "98f6416ca6b1e87b83f27327e857b21e8121fbc6a81d104d972c7aae9ddca68f"
+  },
+  "frozen_input_shapes": {
+    "command": "PYTHONDONTWRITEBYTECODE=1 python3 tools/rrc-readiness/audit_p3_inputs.py --asn1-root <frozen-schema-root> --ast <fresh-P1-fixed-ast> --check",
+    "named_actual_sites": 338,
+    "distinct_module_qualified_instance_keys": 264,
+    "default_source_sites": 20,
+    "default_scalar_types": {
+      "ENUMERATED": 15,
+      "INTEGER": 5
+    },
+    "result": "PASS",
+    "report_sha256": "f57e9bf8a81ca3589bb1e87574520abbae0f5755016a30cd05f6b82b42f8b49e",
+    "scope": "Source shape and explicit namespace identity audit; not 264 complete instance graphs or 20 default value qualifications"
+  },
+  "p1_regression": {
+    "result": "PASS; freshly linked P1 probe and scanner --check preserve committed report",
+    "raw_fixed_ast_sha256": "41f3524fdc7bdad93083f3a2892b6060a2492ca36418e2134ea32332061ba2f7"
+  },
+  "sanitizers": {
+    "address_and_undefined_behavior": "PASS; final focused test and 85 root probes",
+    "instrumented_scope": "changed extractor and typed core; remaining static parser/fixer/libraries ordinary build",
+    "flags": "-g -O1 -fsanitize=address,undefined -fno-omit-frame-pointer",
+    "ASAN_OPTIONS": "detect_leaks=0",
+    "leak_scan": "NOT_RUN; P2 established environment unreadable /proc limitation",
+    "final_focused_added_negative_cases": "PASS; stale argument cache and actual dependency/AST budget rejection recompiled and rerun after the full suite"
+  },
+  "aper_artifact_regression": {
+    "command": "PYTHONDONTWRITEBYTECODE=1 python3 tools/rrc-readiness/check_aper_regression_p3.py --asn1-root <frozen-schema-root> --probe <fresh-final-source-coverage-probe> --work <new-work-directory> --output tools/rrc-readiness/aper-regression-rrc-p3.json",
+    "receipt": "tools/rrc-readiness/aper-regression-rrc-p3.json",
+    "messages": 361,
+    "historical_header_hashes": 1773,
+    "result": "PASS",
+    "discarded_run": "An earlier run matched every header but input hash guard rejected a header comment change; no receipt accepted from that run",
+    "limitations": "NGAP historical BODY hashes only; no new all-message C++ compile or wire/SDK campaign",
+    "receipt_sha256": "04fa228bf7a0caa54716e3d6a3b238cdb1febe8679dbd36ebab186a1513919b1"
+  },
+  "present_default_values": "Caller must validate ASN.1 field domain before invoking default_effective; helper validates scalar storage/kind and performs copy/reconstruction/equality only",
+  "remaining_first_gaps": {
+    "sequence_additions_groups": 29,
+    "inline_constraints": 3,
+    "choice_additions": 2,
+    "constrained_constructed_alias": 1
+  },
+  "cpp_generation": "NOT_RUN",
+  "cpp_compile": "NOT_RUN",
+  "new_uper_wire_qualification": "NOT_RUN",
+  "sdk_rebuild": "NOT_RUN",
+  "performance_benchmark": "NOT_RUN",
+  "merge": "NOT_RUN",
+  "scope": "Ordinary named type specialization and scalar DEFAULT ownership; legacy profile0 extraction/rendering retained; frozen schema and historical bare fixtures unchanged"
+}
