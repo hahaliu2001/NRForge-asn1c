@@ -5,7 +5,7 @@ ACLOCAL_AMFLAGS = -I m4
 CODE_COVERAGE_IGNORE_PATTERN="tests/*" "lex.yy.c" "y.tab.c" "asn1p_l.l" "asn1p_y.y"
 
 SUBDIRS =                       \
-    libaper libngap libasn1common libasn1typed libasn1parser \
+    libaper libuper libngap libasn1common libasn1typed libasn1parser \
     libasn1fix libasn1print     \
     libasn1compiler             \
     asn1-tools asn1c tools skeletons  \
@@ -69,3 +69,9 @@ EXTRA_DIST += python/CMakeLists.txt \
 EXTRA_DIST += python/tests/test_generator.py
 
 EXTRA_DIST += docs/ngap-python-sdk-contract-and-closeout.md python/verification-summary.json
+
+EXTRA_DIST += docs/rrc-cpp-uper-p5-runtime-closeout.md \
+ tools/uper-qualification/README.md tools/uper-qualification/requirements.txt \
+ tools/uper-qualification/probe.cpp tools/uper-qualification/qualify.py \
+ tools/uper-qualification/qualification.json tools/uper-qualification/verification-rrc-p5.json \
+ tools/uper-qualification/review-rrc-p5.md

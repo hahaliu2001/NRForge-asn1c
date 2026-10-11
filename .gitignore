@@ -207,3 +207,6 @@ asn1c/tmp/
 /libasn1typed/check_asn1typed_unsigned_render
 
 /libngap/check_e1ap_pdu
+
+/libuper/check_uper_runtime
+/libuper/check_uper_coexistence

@@ -389,6 +389,7 @@ asn1-tools/Makefile                         \
 libasn1compiler/Makefile                    \
 libngap/Makefile                            \
 libaper/Makefile                            \
+libuper/Makefile                            \
 libasn1common/Makefile                      \
 libasn1typed/Makefile                       \
 libasn1parser/Makefile                      \
