@@ -17,6 +17,91 @@ static int asn1f_check_duplicate(arg_t *arg);
 static int asn1f_apply_unique_index(arg_t *arg);
 static int phase_1_1(arg_t *arg, int prm2);
 
+/* Later modules (and phase-II lookups) can fork earlier templates after their
+ * module-local tag pass. Finish only CHOICEs in actual specialization trees;
+ * never process the unbound generic or rerun constructed transformations. */
+static size_t specialization_count(asn1p_t *asn) {
+    asn1p_module_t *m; asn1p_expr_t *e;
+    size_t count = 0;
+    TQ_FOR(m, &asn->modules, mod_next) TQ_FOR(e, &m->members, next)
+        count += (size_t)e->specializations.pspecs_count;
+    return count;
+}
+
+static int complete_choice_tags(arg_t *arg) {
+    int ret;
+    if(arg->expr->expr_type != ASN_CONSTR_CHOICE) return 0;
+    ret = asn1f_fix_constr_tag(arg, 1);
+    if(ret < 0) return ret;
+    /* Automatic tagging rewrites every member, so preserve completed bodies. */
+    if(arg->expr->auto_tags_OK) return ret;
+    ret = asn1f_fix_constr_tag(arg, 0);
+    if(ret < 0) return ret;
+    return asn1f_fix_constr_autotag(arg);
+}
+
+static int warm_choice_tags(arg_t *arg) {
+    asn1p_expr_t *member;
+    if(arg->expr->expr_type != ASN_CONSTR_CHOICE) return 0;
+    TQ_FOR(member, &arg->expr->members, next) {
+        struct asn1p_type_tag_s tag;
+        if(member->expr_type == A1TC_EXTENSIBLE) continue;
+        /* Same lookup as distinct validation. An untagged CHOICE need not have
+         * a single outer tag; lookup here only discovers further instances. */
+        (void)asn1f_fetch_outmost_tag(arg->asn, arg->ns, arg->mod,
+                                    member, &tag, AFT_IMAGINARY_ANY);
+    }
+    return 0;
+}
+
+static int validate_choice_tags(arg_t *arg) {
+    return arg->expr->expr_type == ASN_CONSTR_CHOICE
+        ? asn1f_check_constr_tags_distinct(arg) : 0;
+}
+
+static int walk_specialization_choices(arg_t *arg, int (*callback)(arg_t *)) {
+    asn1p_expr_t *generic;
+    int rvalue = 0, ret, i;
+    TQ_FOR(arg->mod, &arg->asn->modules, mod_next) {
+        arg->ns = asn1_namespace_new_from_module(arg->mod, 0);
+        if(!arg->ns) return -1;
+        TQ_FOR(generic, &arg->mod->members, next) {
+            if(!generic->lhs_params || generic->spec_index != -1 ||
+                    (generic->_mark & TM_ENCODING_INSTRUCTION)) continue;
+            /* Callbacks may grow/reallocate this array. Keep only clone pointers
+             * during a call and reload the array for the next iteration. */
+            for(i = 0; i < generic->specializations.pspecs_count; ++i) {
+                arg->expr = generic->specializations.pspec[i].my_clone;
+                ret = asn1f_recurse_expr(arg, callback);
+                RET2RVAL(ret, rvalue);
+            }
+        }
+        asn1_namespace_free(arg->ns);
+        arg->ns = 0;
+    }
+    return rvalue;
+}
+
+static int finish_specialization_choice_tags(arg_t *arg) {
+    size_t before;
+    int ret;
+    do {
+        /* Resolve tag dependencies and complete all newly discovered clones
+         * globally before checking distinctness. */
+        do {
+            before = specialization_count(arg->asn);
+            ret = walk_specialization_choices(arg, complete_choice_tags);
+            if(ret) return ret;
+            ret = walk_specialization_choices(arg, warm_choice_tags);
+            if(ret) return ret;
+        } while(before != specialization_count(arg->asn));
+        before = specialization_count(arg->asn);
+        ret = walk_specialization_choices(arg, validate_choice_tags);
+        if(ret) return ret; /* Never turn a real diagnostic into success. */
+    } while(before != specialization_count(arg->asn));
+    return 0;
+}
+
 arg_t a1f_replace_me_with_proper_interface_arg;
 
 /*
@@ -118,6 +203,10 @@ asn1f_process(asn1p_t *asn, enum asn1f_flags flags,
         asn1_namespace_free(arg.ns);
         arg.ns = 0;
     }
+
+    ret = finish_specialization_choice_tags(&arg);
+    if(ret == -1) fatals++;
+    if(ret == 1) warnings++;
 
 	a1f_replace_me_with_proper_interface_arg = (arg_t){
 		.eh = arg.eh,

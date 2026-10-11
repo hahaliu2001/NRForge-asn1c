@@ -314,3 +314,9 @@ TESTS += check_asn1typed_fixed_choice
 check_asn1typed_fixed_choice_SOURCES = $(top_srcdir)/tools/rrc-fixed-choice/check_extract.c
 check_asn1typed_fixed_choice_CPPFLAGS = $(check_asn1typed_extract_CPPFLAGS) -DCHOICE_FIXTURE=\"$(abs_top_srcdir)/tools/rrc-fixed-choice/choices.asn1\"
 check_asn1typed_fixed_choice_LDADD = $(check_asn1typed_extract_LDADD)
+
+check_PROGRAMS += check_asn1typed_late_choice
+TESTS += check_asn1typed_late_choice
+check_asn1typed_late_choice_SOURCES = $(top_srcdir)/tools/rrc-late-choice/check_fix.c
+check_asn1typed_late_choice_CPPFLAGS = $(check_asn1typed_extract_CPPFLAGS) -DLATE_FIXTURE=\"$(abs_top_srcdir)/tools/rrc-late-choice/late.asn1\"
+check_asn1typed_late_choice_LDADD = $(check_asn1typed_extract_LDADD)

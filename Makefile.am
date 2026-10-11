@@ -138,3 +138,10 @@ EXTRA_DIST += docs/rrc-fixed-choice-tag-transfer-contract-and-closeout.md \
  tools/rrc-fixed-choice/check_generated.cpp tools/rrc-fixed-choice/README.md \
  tools/rrc-fixed-choice/readiness.json tools/rrc-fixed-choice/verification.json \
  tools/rrc-fixed-choice/review.md
+
+EXTRA_DIST += tools/rrc-late-choice/contract.md tools/rrc-late-choice/check.py \
+ tools/rrc-late-choice/late.asn1 tools/rrc-late-choice/check_fix.c \
+ tools/rrc-late-choice/check_instances.c tools/rrc-late-choice/check_generated.cpp \
+ tools/rrc-late-choice/README.md tools/rrc-late-choice/readiness.json \
+ tools/rrc-late-choice/verification.json tools/rrc-late-choice/review.md \
+ docs/rrc-late-choice-tag-completion-closeout.md

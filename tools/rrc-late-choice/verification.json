@@ -1,0 +1,196 @@
+{
+  "aper_regression": {
+    "E1AP": {
+      "extraction_and_generation": "PASS",
+      "historical_headers_byte_identical": 432,
+      "messages": 72
+    },
+    "F1AP": {
+      "extraction_and_generation": "PASS",
+      "historical_headers_byte_identical": 948,
+      "messages": 158
+    },
+    "NGAP": {
+      "extraction_and_generation": "PASS",
+      "historical_headers_byte_identical": 393,
+      "messages": 131
+    }
+  },
+  "baseline_commit": "698ba246456d785a6c72ab3e39c0a821813e767c",
+  "batch": "RRC-P13-B",
+  "benchmark_run": false,
+  "branch": "feature/f1ap-cpp-aper",
+  "compiler": "gcc (Ubuntu 13.3.0-6ubuntu2~24.04) 13.3.0",
+  "contract": "complete fixed specialization CHOICE subtrees under template-owner namespace using existing fixer rules; converge late specialization discovery before distinct-tag validation; preserve generic source and already-tagged CHOICE members; no extractor tag synthesis",
+  "existing_parameter_default_allocation_failure_positions": 428,
+  "focused_completion_modes": 3,
+  "focused_generated_roots": 7,
+  "focused_goldens": 14,
+  "limitations": [
+    "LocationMeasurementIndication renderer output has an existing NULL-extension unused-io warning and fails strict compilation",
+    "Newly rendered roots have strict compilation only; no new real-message wire qualification",
+    "P8/P9 SDK and qualification receipts remain unchanged; expanded delivery is deferred",
+    "Tags are completed by existing fixer rules; extraction has no tag synthesis"
+  ],
+  "merge": false,
+  "native_pass_total": 68,
+  "native_regressions": {
+    "libaper": {
+      "ERROR": 0,
+      "FAIL": 0,
+      "PASS": 10,
+      "TOTAL": 10,
+      "log_sha256": "64dd53a2436bdbaa10943b0d31973e6ac6cbd70aae3d719e4ef45c520387e404"
+    },
+    "libasn1fix": {
+      "ERROR": 0,
+      "FAIL": 0,
+      "PASS": 2,
+      "TOTAL": 2,
+      "log_sha256": "9b84a02cf8cffd7dcc1efd1e7da0c6c3cd9ec87d0f58955fff64e907ee41d578"
+    },
+    "libasn1parser": {
+      "ERROR": 0,
+      "FAIL": 0,
+      "PASS": 1,
+      "TOTAL": 1,
+      "log_sha256": "7e5e21619b2036dcf772754e1d36f6417d598f06354ee3201ade7ed1a354282d"
+    },
+    "libasn1typed": {
+      "ERROR": 0,
+      "FAIL": 0,
+      "PASS": 49,
+      "TOTAL": 49,
+      "log_sha256": "3d07448318556f9ac5d0c86af3f772a0ddb40d658df9d19df418711d82f4b28c"
+    },
+    "libngap": {
+      "ERROR": 0,
+      "FAIL": 0,
+      "PASS": 3,
+      "TOTAL": 3,
+      "log_sha256": "97a47e9b294a5bbec4ef6e3415f9602133e947a093f6b0f45e28dc2bad9b2702"
+    },
+    "libuper": {
+      "ERROR": 0,
+      "FAIL": 0,
+      "PASS": 3,
+      "TOTAL": 3,
+      "log_sha256": "3af18de7d89dc09343b74c90df7b7294bcbb41da2e5d8f23fb94797312ef99fa"
+    }
+  },
+  "new_real_message_wire_qualification": false,
+  "new_strict_compile_results": {
+    "BCCH-DL-SCH-Message": "PASS",
+    "DL-CCCH-Message": "PASS",
+    "LocationMeasurementIndication": "BLOCKED_EXISTING_RENDERER",
+    "LoggedMeasurementConfiguration-r16": "PASS",
+    "RRCReconfigurationSidelink": "PASS",
+    "RRCReestablishment": "PASS",
+    "RRCSetup": "PASS",
+    "RemoteUEInformationSidelink-r17": "PASS",
+    "SCCH-Message": "PASS",
+    "SIB1": "PASS"
+  },
+  "next_task": "RRC-P14: opaque CONTAINING; separate NULL-extension renderer warning fix remains recorded",
+  "preserved_base_blob_count": 2647,
+  "preserved_base_tree_inventory_sha256": "610a48c1381854187a9692cd36a65e3fabc223171a298ef4fbb6d57fbbb555ee",
+  "production_changes": [
+    "libasn1fix/asn1fix.c"
+  ],
+  "readiness_summary": {
+    "BLOCKED_EXTRACTION": 8,
+    "PASS": 77
+  },
+  "renderer_changes": false,
+  "runtime_changes": false,
+  "sanitizer": {
+    "address": "PASS",
+    "leak_scan": "NOT_RUN: environment cannot enumerate /proc tasks",
+    "scope": "current fixer scheduling, tag helpers and focused test directly instrumented",
+    "undefined": "PASS"
+  },
+  "schema_changes": false,
+  "sdk_delivered_roots": 64,
+  "sdk_rebuild": false,
+  "source_sha256": {
+    ".gitignore": "877520eeb0b88b1b355a6b4d629f11baf40aca43fd9917216957d99d8fdf96b7",
+    "Makefile.am": "e8038a91739e2b6dc26c4579f0e004cc2852c4a04ee354d0a59919662c0d3482",
+    "docs/rrc-late-choice-tag-completion-closeout.md": "674f988e5937e88d3202e560c908dd9d3f6e57af9823aa3b8e232ae0db722b23",
+    "libasn1fix/asn1fix.c": "56e1f90817e2fd8a0369c8beb9d8652fbd4120870c88939c6ba5b1b8aa782ca6",
+    "libasn1typed/Makefile.am": "3044f125ed17b485b88e0096c3b7988c14a72ee33113a9a33195240771dfe0c8",
+    "tools/rrc-late-choice/README.md": "8e328b0cb910ef80bc540f77ae699ca01687b9a392c0ee6912fa72390299c0ff",
+    "tools/rrc-late-choice/check.py": "4e9bbe3bf4caba8a162e753a2820e10aac86d6ea609e5d1b57b1c0c610216d34",
+    "tools/rrc-late-choice/check_fix.c": "aebbb694df9a546dd0eb866ce597b90ddef89a348234dcb27cf7816ec8d2c16c",
+    "tools/rrc-late-choice/check_generated.cpp": "4b5dc86d9946b8c6f29575cdca431bf8e574c82d9447a7d0a5e8cb97bfce70cc",
+    "tools/rrc-late-choice/check_instances.c": "0eab7fe671e66fc384ccaee8986987ae97916d3b4289ca32052a9d2d8b866389",
+    "tools/rrc-late-choice/contract.md": "05190cd218a3c543d169b06935a9330de46aad87e4921f1d9df48c0e84a20934",
+    "tools/rrc-late-choice/late.asn1": "407bd353cc62144113b817999ddae7546c331a5b6e834e079e68858f929cfffa",
+    "tools/rrc-late-choice/readiness.json": "f6935c4609ab9742ce7dbaf483ed9221411fa42cf1517bc8c3ab1194c43d6b5b"
+  },
+  "status": "VERIFIED_PENDING_INDEPENDENT_ACCEPTANCE",
+  "tag_instances": {
+    "instances": [
+      {
+        "actual": "LocationMeasurementInfo",
+        "module": "NR-RRC-Definitions",
+        "root_occurrences": 1,
+        "tagged": true
+      },
+      {
+        "actual": "SL-L2RemoteUE-Config-r17",
+        "module": "NR-RRC-Definitions",
+        "root_occurrences": 1,
+        "tagged": true
+      },
+      {
+        "actual": "SL-DRX-ConfigUC-r17",
+        "module": "NR-RRC-Definitions",
+        "root_occurrences": 2,
+        "tagged": true
+      },
+      {
+        "actual": "SL-MeasConfig-r16",
+        "module": "NR-RRC-Definitions",
+        "root_occurrences": 2,
+        "tagged": true
+      },
+      {
+        "actual": "SL-CSI-RS-Config-r16",
+        "module": "PC5-RRC-Definitions",
+        "root_occurrences": 2,
+        "tagged": true
+      },
+      {
+        "actual": "SL-LatencyBoundIUC-Report-r17",
+        "module": "PC5-RRC-Definitions",
+        "root_occurrences": 2,
+        "tagged": true
+      },
+      {
+        "actual": "SL-PagingInfo-RemoteUE-r17",
+        "module": "PC5-RRC-Definitions",
+        "root_occurrences": 2,
+        "tagged": true
+      },
+      {
+        "actual": "SL-RequestedPosSIB-List-r18",
+        "module": "PC5-RRC-Definitions",
+        "root_occurrences": 2,
+        "tagged": true
+      },
+      {
+        "actual": "SL-RequestedSIB-List-r17",
+        "module": "PC5-RRC-Definitions",
+        "root_occurrences": 2,
+        "tagged": true
+      },
+      {
+        "actual": "SL-SFN-DFN-Offset-r18",
+        "module": "PC5-RRC-Definitions",
+        "root_occurrences": 2,
+        "tagged": true
+      }
+    ]
+  },
+  "unchanged_accepted_rrc_headers": 74
+}

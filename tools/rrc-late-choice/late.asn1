@@ -1,0 +1,37 @@
+Templates DEFINITIONS AUTOMATIC TAGS ::= BEGIN
+Pick { T } ::= CHOICE { none NULL, item T }
+Outer { T } ::= SEQUENCE { inner Pick { T } }
+InlineChoice { T } ::= SEQUENCE { inner CHOICE { none NULL, item T } }
+NestedActual { T } ::= CHOICE { none NULL, item Pick { T } }
+ExtPick { T } ::= CHOICE { none NULL, item T, ..., added BOOLEAN }
+Manual { T } ::= CHOICE { none [7] NULL, item [2] T }
+Mixed { T } ::= CHOICE { none [APPLICATION 7] NULL, item T }
+ChoiceArg ::= CHOICE { no NULL, yes BOOLEAN }
+NestedChoice { T } ::= CHOICE { wrapped SEQUENCE { value T }, flag BOOLEAN }
+END
+Consumer DEFINITIONS AUTOMATIC TAGS ::= BEGIN
+IMPORTS Pick, Outer, InlineChoice, NestedChoice, NestedActual, ExtPick, Manual, Mixed, ChoiceArg FROM Templates;
+Local ::= INTEGER (0..3)
+Late ::= Pick { Local }
+Nested ::= Outer { Local }
+InlineNested ::= NestedChoice { Local }
+InlineUse ::= InlineChoice { Local }
+NestedActualUse ::= NestedActual { Local }
+ExtUse ::= ExtPick { Local }
+ManualUse ::= Manual { Local }
+MixedUse ::= Mixed { Local }
+ChoiceUse ::= Pick { ChoiceArg }
+END
+OwnerExplicit DEFINITIONS EXPLICIT TAGS ::= BEGIN
+EChoice { T } ::= CHOICE { empty [9] NULL, data [2] T }
+END
+OwnerImplicit DEFINITIONS IMPLICIT TAGS ::= BEGIN
+IChoice { T } ::= CHOICE { empty NULL, data T }
+END
+Later DEFINITIONS IMPLICIT TAGS ::= BEGIN
+IMPORTS Pick FROM Templates;
+Other ::= INTEGER (4..7)
+Qualified ::= Templates.Pick { Later.Other }
+ExplicitUse ::= OwnerExplicit.EChoice { Other }
+ImplicitUse ::= OwnerImplicit.IChoice { Other }
+END
