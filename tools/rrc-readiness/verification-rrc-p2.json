@@ -1,0 +1,95 @@
+{
+  "batch": "RRC-P2",
+  "baseline": "21eac8aaba515dce8e03aecb78de3799035dff3c",
+  "date": "2026-10-11",
+  "compiler": "GCC 13.3.0 Ubuntu 13.3.0-6ubuntu2~24.04",
+  "python": "3.12.14",
+  "strict_focused_and_probe_build": {
+    "flags": "-std=gnu11 -Wall -Wextra -Werror -DHAVE_CONFIG_H",
+    "result": "PASS"
+  },
+  "focused_root_graph": {
+    "result": "PASS",
+    "allocation_failure_positions": 140,
+    "coverage": [
+      "owned output after tree deletion",
+      "local/imported/module-qualified references and alias identity",
+      "terminal-body field provenance",
+      "stale reference cache rejection",
+      "nested inline closure",
+      "self/mutual cycles",
+      "all three budgets and invalid zero limits",
+      "unsupported parameters/default/extensions/constrained alias",
+      "opaque CONTAINING",
+      "transactional output rollback"
+    ]
+  },
+  "suites": {
+    "typed": {
+      "command": "make -C libasn1typed -j2 check",
+      "PASS": 43,
+      "FAIL": 0
+    },
+    "aper_runtime": {
+      "command": "make -C libaper check",
+      "PASS": 10,
+      "FAIL": 0
+    },
+    "protocol_pdu": {
+      "command": "make -C libngap check",
+      "PASS": 3,
+      "FAIL": 0
+    }
+  },
+  "rrc_matrix": {
+    "command": "PYTHONDONTWRITEBYTECODE=1 python3 tools/rrc-readiness/record_p2.py --asn1-root <frozen-schema-root> --probe <fresh-final-source-root-probe> --work <work-directory> --check",
+    "authenticated_modules": 6,
+    "selected_roots": 80,
+    "PASS": 44,
+    "FAIL": 36,
+    "channels": {
+      "PASS": 5,
+      "FAIL": 7
+    },
+    "payloads": {
+      "PASS": 39,
+      "FAIL": 27
+    },
+    "bare_seeds_overlapping_payloads": {
+      "PASS": 1,
+      "FAIL": 3
+    },
+    "tree_deleted_before_serialization": true,
+    "owned_closure_validation": "PASS",
+    "byte_identical_reproduction": "PASS",
+    "raw_owned_graph_sha256": "c732d89c12d9d09601d303170f96e8a651593375fe16d82481122a3cd11778e1",
+    "report_sha256": "8d67018a602ea8e68f230af71aecf54a4255f83d269e85156293e989b2832f2c"
+  },
+  "p1_regression": {
+    "result": "PASS; final-source fresh probe and scanner --check byte-identical",
+    "raw_fixed_ast_sha256": "41f3524fdc7bdad93083f3a2892b6060a2492ca36418e2134ea32332061ba2f7"
+  },
+  "sanitizers": {
+    "address_and_undefined_behavior": "PASS; focused test and all 80 root probes",
+    "instrumented_scope": "changed extractor and common typed core; remaining parser/fixer/static libraries ordinary build",
+    "flags": "-g -O1 -fsanitize=address,undefined -fno-omit-frame-pointer",
+    "ASAN_OPTIONS": "detect_leaks=0",
+    "leak_scan": "BLOCKED; LeakSanitizer cannot read /proc/2/task in this environment"
+  },
+  "aper_artifact_regression": {
+    "command": "python3 tools/rrc-readiness/check_aper_regression.py --asn1-root <frozen-schema-root> --probe <fresh-final-source-coverage-probe> --work <new-work-directory> --output tools/rrc-readiness/aper-regression-rrc-p2.json",
+    "receipt": "tools/rrc-readiness/aper-regression-rrc-p2.json",
+    "messages": 361,
+    "historical_header_hashes": 1773,
+    "result": "PASS",
+    "limitations": "NGAP historical BODY hashes only; no new all-message C++ compile or wire/SDK campaign"
+  },
+  "mtc_exit_expectation": "NOT_MET; complete MeasurementTimingConfiguration graph reaches MeasTiming SEQUENCE additions; retained as future P4 gate, no partial graph published",
+  "cpp_generation": "NOT_RUN",
+  "cpp_compile": "NOT_RUN",
+  "new_uper_wire_qualification": "NOT_RUN",
+  "sdk_rebuild": "NOT_RUN",
+  "performance_benchmark": "NOT_RUN",
+  "merge": "NOT_RUN",
+  "scope": "Ordinary opt-in root graph API, focused tests and reproducible frozen-root evidence; existing profile0 API behavior preserved; no schema or fixture edits"
+}

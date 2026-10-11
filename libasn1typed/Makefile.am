@@ -270,3 +270,11 @@ check_asn1typed_unsigned_render_CPPFLAGS = $(check_asn1typed_extract_CPPFLAGS) -
 check_asn1typed_unsigned_render_LDADD = $(check_asn1typed_extract_LDADD)
 TESTS += check_asn1typed_unsigned_generated.sh
 EXTRA_DIST += check_asn1typed_unsigned_generated.sh check_asn1typed_unsigned_generated.cpp fixtures/unsigned-integers-e1p2.asn1
+
+check_PROGRAMS += check_asn1typed_root_graph
+TESTS += check_asn1typed_root_graph
+check_asn1typed_root_graph_SOURCES = check_asn1typed_root_graph.c
+check_asn1typed_root_graph_CPPFLAGS = $(check_asn1typed_extract_CPPFLAGS) -DROOT_GRAPH_FIXTURE=\"$(abs_srcdir)/fixtures/ordinary-root-graph.asn1\"
+check_asn1typed_root_graph_LDADD = $(check_asn1typed_extract_LDADD)
+check_asn1typed_root_graph_LDFLAGS = -Wl,--wrap=malloc -Wl,--wrap=calloc -Wl,--wrap=realloc
+EXTRA_DIST += fixtures/ordinary-root-graph.asn1

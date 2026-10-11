@@ -727,6 +727,61 @@ put_ref(asn1typed_type_ref_t *ref, asn1p_expr_t *expr) {
 	return -1;
 }
 
+/* Ordinary references use the source module's explicit namespace: local
+ * declarations, named IMPORTS, or a two-component module-qualified reference.
+ * No global same-name fallback and no terminal ref_expr cache. This narrow
+ * fixed-tree lookup avoids the legacy namespace allocator's unchecked OOM path.
+ * OID-renamed imports and longer/object-class references remain unsupported. */
+static asn1p_expr_t *named_declaration(asn1p_module_t *, const char *);
+static asn1p_expr_t *
+ordinary_reference_target(asn1p_t *tree, asn1p_expr_t *expr) {
+    asn1p_module_t *source = NULL, *m;
+    asn1p_expr_t *target = NULL;
+    asn1p_xports_t *xp;
+    const char *name;
+    if(!expr || expr->expr_type != A1TC_REFERENCE) return NULL;
+    if(!expr->reference || !expr->module || expr->rhs_pspecs ||
+            !expr->reference->components || !expr->reference->comp_count ||
+            expr->reference->comp_count > 2) return NULL;
+    name = expr->reference->components[expr->reference->comp_count - 1].name;
+    if(!name) return NULL;
+    if(expr->reference->comp_count == 2) {
+        const char *module = expr->reference->components[0].name;
+        if(!module) return NULL;
+        TQ_FOR(m, &tree->modules, mod_next)
+            if(m->ModuleName && !strcmp(m->ModuleName, module)) { source = m; break; }
+        target = source ? named_declaration(source, name) : NULL;
+    } else {
+        target = named_declaration(expr->module, name);
+        if(!target) TQ_FOR(xp, &expr->module->imports, xp_next) {
+            asn1p_expr_t *imported;
+            TQ_FOR(imported, &xp->xp_members, next) {
+                if(!imported->Identifier || strcmp(imported->Identifier, name)) continue;
+                if(source || !xp->fromModuleName || xp->identifier.oid || xp->identifier.value) return NULL;
+                TQ_FOR(m, &tree->modules, mod_next)
+                    if(m->ModuleName && !strcmp(m->ModuleName, xp->fromModuleName)) { source = m; break; }
+                if(!source) return NULL;
+            }
+        }
+        if(!target && source) target = named_declaration(source, name);
+    }
+    if(!target || (target->meta_type != AMT_TYPE && target->meta_type != AMT_TYPEREF) ||
+            !target->Identifier || !target->module || !target->module->ModuleName ||
+            target->lhs_params || target->rhs_pspecs) return NULL;
+    return target;
+}
+
+static int
+put_profile_ref(asn1p_t *tree, asn1typed_type_ref_t *ref,
+        asn1p_expr_t *expr, int ordinary) {
+    asn1p_expr_t *target;
+    if(!ordinary || !expr || expr->expr_type != A1TC_REFERENCE)
+        return put_ref(ref, expr);
+    target = ordinary_reference_target(tree, expr);
+    if(!target) return -1;
+    return asn1typed_type_ref_init(ref, target->module->ModuleName, target->Identifier);
+}
+
 /* Anonymous constructed bodies receive collision-free owned source keys. '$'
  * cannot occur in an ASN.1 identifier; the path remains parser-independent. */
 static int inline_constructed(const asn1p_expr_t *e) {
@@ -819,8 +874,8 @@ populate_enumerated_items(asn1typed_type_t *out, asn1p_expr_t *body,
 }
 
 static int
-add_field(asn1p_t *tree, asn1typed_type_t *type, asn1p_expr_t *field,
-		const char *file, const char *module, char *error, size_t error_size) {
+add_field_profile(asn1p_t *tree, asn1typed_type_t *type, asn1p_expr_t *field,
+		const char *file, const char *module, char *error, size_t error_size, int ordinary) {
 	asn1typed_presence_e presence;
 	asn1typed_size_constraint_t field_size = {0};
 	asn1typed_integer_value_range_t field_value_range = {0};
@@ -920,7 +975,7 @@ add_field(asn1p_t *tree, asn1typed_type_t *type, asn1p_expr_t *field,
 		memset(&ref, 0, sizeof(ref));
 		if(field->rhs_pspecs ?
 			put_parameterized_object_set_ref(tree, &ref, field,
-				error, error_size) : put_ref(&ref, field)) {
+				error, error_size) : put_profile_ref(tree, &ref, field, ordinary)) {
 			if(field->rhs_pspecs) {
 				free(field_value_range.tail); free(field_value_range.extension_additions);
 				return -1;
@@ -958,8 +1013,8 @@ add_field(asn1p_t *tree, asn1typed_type_t *type, asn1p_expr_t *field,
 }
 
 static int
-populate_type(asn1p_t *tree, asn1typed_type_t *out, asn1p_expr_t *decl,
-		const char *file, char *error, size_t error_size) {
+populate_type_profile(asn1p_t *tree, asn1typed_type_t *out, asn1p_expr_t *decl,
+		const char *file, char *error, size_t error_size, int ordinary) {
 	asn1p_expr_t *body = terminal_type(decl);
 	asn1p_expr_t *member;
 	if(!body) {
@@ -967,6 +1022,10 @@ populate_type(asn1p_t *tree, asn1typed_type_t *out, asn1p_expr_t *decl,
 			decl->Identifier);
 		return -1;
 	}
+    /* Alias declaration location remains owned on out; inherited members and
+     * enum items belong to the terminal body's source file. */
+    if(ordinary && body->module && body->module->source_file_name)
+        file = body->module->source_file_name;
 	switch(out->kind) {
 	case ASN1TYPED_TYPE_PRIMITIVE: {
 		asn1typed_primitive_kind_e primitive = primitive_from_expr(body);
@@ -1018,8 +1077,8 @@ populate_type(asn1p_t *tree, asn1typed_type_t *out, asn1p_expr_t *decl,
 			}
 			{
 				size_t before = out->field_count;
-				if(add_field(tree, out, member, file, decl->module->ModuleName,
-						error, error_size)) return -1;
+				if(add_field_profile(tree, out, member, file, decl->module->ModuleName,
+						error, error_size, ordinary)) return -1;
 				if(out->field_count <= before || out->field_count - before != 1 || physical_roots == SIZE_MAX)
 					one_to_one = 0;
 				else ++physical_roots;
@@ -1066,7 +1125,7 @@ populate_type(asn1p_t *tree, asn1typed_type_t *out, asn1p_expr_t *decl,
             } else {
                 if(reject_unowned_inline_constraint(member, decl->module->ModuleName,
                         decl->Identifier, error, error_size)) return -1;
-                rc = put_ref(&ref, member);
+                rc = put_profile_ref(tree, &ref, member, ordinary);
             }
             if(rc) { if(error && error_size && !error[0]) set_error(error, error_size, "%s: unsupported collection reference or allocation failure", decl->Identifier); return -1; }
             /* Transfer the complete reference, including object-set actuals. */
@@ -1154,7 +1213,7 @@ populate_type(asn1p_t *tree, asn1typed_type_t *out, asn1p_expr_t *decl,
             } else {
 			if(inline_constructed(member) ? put_inline_constructed_ref(&ref, out, member->Identifier) :
                 (member->rhs_pspecs ? put_parameterized_object_set_ref(tree, &ref,
-                    member, error, error_size) : put_ref(&ref, member))) {
+                    member, error, error_size) : put_profile_ref(tree, &ref, member, ordinary))) {
 				if(member->rhs_pspecs) {
 					free(alternative_value_range.tail); free(alternative_value_range.extension_additions);
 					return -1;
@@ -1222,6 +1281,17 @@ populate_type(asn1p_t *tree, asn1typed_type_t *out, asn1p_expr_t *decl,
 		set_error(error, error_size, "%s: unsupported ASN.1 type", decl->Identifier);
 		return -1;
 	}
+}
+
+static int
+add_field(asn1p_t *tree, asn1typed_type_t *type, asn1p_expr_t *field,
+        const char *file, const char *module, char *error, size_t size) {
+    return add_field_profile(tree, type, field, file, module, error, size, 0);
+}
+static int
+populate_type(asn1p_t *tree, asn1typed_type_t *out, asn1p_expr_t *decl,
+        const char *file, char *error, size_t size) {
+    return populate_type_profile(tree, out, decl, file, error, size, 0);
 }
 
 static int close_inline_dependencies(asn1p_t *, asn1typed_module_t *, char *, size_t);
@@ -2541,6 +2611,176 @@ physical_named_declaration(asn1p_t *tree, const char *module_name, const char *n
 		if(module->ModuleName && !strcmp(module->ModuleName, module_name)) return named_declaration(module, name);
 	return NULL;
 }
+
+/* Ordinary graphs never enter the IOC specialization/materialization path.
+ * Validate the borrowed subtree before population; budgets charge repeated
+ * alias-body visits too. The finite AST depth guard bounds C recursion. */
+static int
+ordinary_check_ast(asn1p_t *tree, asn1p_expr_t *node, const char *owner,
+        const asn1typed_graph_limits_t *limits, size_t *nodes, unsigned depth,
+        char *error, size_t size) {
+    asn1p_expr_t *child;
+    if(depth > 128 || *nodes >= limits->max_ast_nodes) {
+        set_error(error, size, "%s: ordinary graph AST limit exceeded", owner);
+        return -1;
+    }
+    ++*nodes;
+    if(node->lhs_params || node->rhs_pspecs) {
+        set_error(error, size, "%s.%s: ordinary type parameters unsupported (%s)",
+            owner, node->Identifier ? node->Identifier : "<anonymous>",
+            node->reference ? asn1p_ref_string(node->reference) : "template");
+        return -1;
+    }
+    if(node->expr_type == A1TC_REFERENCE) {
+        asn1p_expr_t *target = ordinary_reference_target(tree, node);
+        if(!target || !node->reference || node->reference->ref_expr != target) {
+            set_error(error, size, "%s.%s: unresolved or inconsistent ordinary reference cache",
+                owner, node->Identifier ? node->Identifier : "<anonymous>");
+            return -1;
+        }
+    }
+    if((node->expr_type == ASN_CONSTR_SEQUENCE || node->expr_type == ASN_CONSTR_CHOICE) &&
+            (node->constraints || node->combined_constraints)) {
+        set_error(error, size, "%s.%s: ordinary constructed constraints unsupported",
+            owner, node->Identifier ? node->Identifier : "<anonymous>");
+        return -1;
+    }
+    TQ_FOR(child, &node->members, next)
+        if(ordinary_check_ast(tree, child, owner, limits, nodes, depth + 1, error, size)) return -1;
+    return 0;
+}
+
+static int
+ordinary_add_dependency(asn1p_t *tree, asn1typed_module_t *out,
+        const asn1typed_type_ref_t *ref, const asn1typed_graph_limits_t *limits,
+        size_t *nodes, char *error, size_t size) {
+    asn1p_module_t *module = NULL, *m;
+    asn1p_expr_t *decl, *body, *alias;
+    asn1typed_type_t *type;
+    asn1typed_type_kind_e kind;
+    const char *file;
+    char detail[1024] = {0};
+    size_t i;
+    unsigned hops;
+    if(ref->actual_count || ref->actuals) {
+        set_error(error, size, "ordinary graph does not accept parameterized references"); return -1;
+    }
+    if(ref->kind == ASN1TYPED_REF_PRIMITIVE) return 0;
+    if(ref->kind != ASN1TYPED_REF_NAMED || !ref->module || !ref->source_name) {
+        set_error(error, size, "ordinary dependency has incomplete identity"); return -1;
+    }
+    for(i = 0; i < out->type_count; ++i)
+        if(!strcmp(out->types[i].identity.module, ref->module) &&
+                !strcmp(out->types[i].identity.source_name, ref->source_name)) return 0;
+    if(out->type_count >= limits->max_types) {
+        set_error(error, size, "%s.%s: ordinary graph type limit exceeded", ref->module, ref->source_name);
+        return -1;
+    }
+    TQ_FOR(m, &tree->modules, mod_next)
+        if(m->ModuleName && !strcmp(m->ModuleName, ref->module)) { module = m; break; }
+    decl = module ? (strncmp(ref->source_name, "$inline$", 8) ?
+        named_declaration(module, ref->source_name) : inline_declaration(module, ref->source_name)) : NULL;
+    if(!decl || (decl->meta_type != AMT_TYPE && decl->meta_type != AMT_TYPEREF)) goto unsupported;
+    body = terminal_type(decl);
+    if(!body || (kind = kind_of_type(body)) == (asn1typed_type_kind_e)-1) goto unsupported;
+    /* Every layer of an alias must be supported. A constrained constructed
+     * alias cannot silently borrow the unconstrained terminal shape. */
+    for(alias = decl, hops = 0; alias && hops < 128; ++hops) {
+        if(ordinary_check_ast(tree, alias, ref->source_name, limits, nodes, 0, detail, sizeof(detail))) goto detail_fail;
+        if(alias == body) break;
+        if(kind != ASN1TYPED_TYPE_PRIMITIVE &&
+                (alias->constraints || alias->combined_constraints)) {
+            set_error(detail, sizeof(detail), "constrained ordinary alias unsupported"); goto detail_fail;
+        }
+        alias = referenced_type(alias);
+    }
+    if(alias != body) goto unsupported;
+    file = decl->module && decl->module->source_file_name ? decl->module->source_file_name : "<unknown>";
+    if(asn1typed_module_add_type_identity(out, ref->module, ref->source_name, kind, file,
+            decl->_lineno > 0 ? (unsigned)decl->_lineno : 0, &type)) {
+        set_error(error, size, "%s.%s: out of memory adding ordinary type", ref->module, ref->source_name); return -1;
+    }
+    {
+        /* An anonymous inline body needs its owned path in diagnostics. This
+         * temporary shallow view is read-only and never retained in the IR. */
+        asn1p_expr_t view = *decl;
+        view.Identifier = ref->source_name;
+        if(populate_type_profile(tree, type, &view, file, detail, sizeof(detail), 1)) goto detail_fail;
+    }
+    return 0;
+detail_fail:
+    set_error(error, size, "%s.%s: %s", ref->module, ref->source_name,
+        detail[0] ? detail : "unsupported ordinary semantic body or allocation failure"); return -1;
+unsupported:
+    set_error(error, size, "%s.%s: unresolved or unsupported ordinary declaration", ref->module, ref->source_name);
+    return -1;
+}
+
+int
+asn1typed_extract_root_graph(asn1p_t *tree, const char *module_name,
+        const char *root_name, const asn1typed_graph_limits_t *limits,
+        asn1typed_module_t *out, char *error, size_t size) {
+    const asn1typed_graph_limits_t defaults = {4096, 65536, 262144};
+    asn1typed_module_t pending = {0};
+    asn1typed_type_ref_t root_ref = {0};
+    asn1p_expr_t *root;
+    size_t i, j, nodes = 0, references = 0;
+    if(error && size) error[0] = 0;
+    if(out) memset(out, 0, sizeof(*out));
+    if(!limits) limits = &defaults;
+    if(!tree || !module_name || !root_name || !out || !limits->max_types ||
+            !limits->max_references || !limits->max_ast_nodes) {
+        set_error(error, size, "invalid ordinary root graph arguments or limits"); return -1;
+    }
+    root = physical_named_declaration(tree, module_name, root_name);
+    if(!root || !root->module) {
+        set_error(error, size, "%s.%s: ordinary root not found", module_name, root_name); return -1;
+    }
+    if(asn1typed_module_init(&pending, module_name,
+            root->module->source_file_name ? root->module->source_file_name : "<unknown>",
+            root->_lineno > 0 ? (unsigned)root->_lineno : 0) ||
+            asn1typed_type_ref_init(&root_ref, module_name, root_name)) goto allocation;
+    pending.tag_default = module_tag_default(root->module);
+    if(ordinary_add_dependency(tree, &pending, &root_ref, limits, &nodes, error, size)) goto fail;
+    asn1typed_type_ref_clear(&root_ref);
+    /* Breadth-first source/member order; no types[] pointer survives an append.
+     * Repeated identities (including cycles) return without re-expansion. */
+    for(i = 0; i < pending.type_count; ++i) {
+        size_t fields = pending.types[i].field_count;
+        size_t alternatives = pending.types[i].alternative_count;
+        size_t count = fields + alternatives + (pending.types[i].kind == ASN1TYPED_TYPE_SEQUENCE_OF);
+        for(j = 0; j < count; ++j) {
+            asn1typed_type_t *t = &pending.types[i];
+            const asn1typed_type_ref_t *ref;
+            asn1typed_type_ref_t copy = {0};
+            if(j < fields) {
+                if(t->fields[j].type_semantics == ASN1TYPED_FIELD_INLINE_ENUMERATED) continue;
+                ref = &t->fields[j].type;
+            } else if(j < fields + alternatives) {
+                asn1typed_choice_alternative_t *a = &t->alternatives[j - fields];
+                if(a->inline_enumerated) continue;
+                ref = &a->type_ref;
+            } else ref = &t->element_type;
+            if(references >= limits->max_references) {
+                set_error(error, size, "%s.%s: ordinary graph reference limit exceeded",
+                    t->identity.module, t->identity.source_name); goto fail;
+            }
+            ++references;
+            if(asn1typed_type_ref_copy(&copy, ref)) goto allocation;
+            if(ordinary_add_dependency(tree, &pending, &copy, limits, &nodes, error, size)) {
+                asn1typed_type_ref_clear(&copy); goto fail;
+            }
+            asn1typed_type_ref_clear(&copy);
+        }
+    }
+    *out = pending; return 0;
+allocation:
+    set_error(error, size, "out of memory owning ordinary root graph");
+fail:
+    asn1typed_type_ref_clear(&root_ref);
+    asn1typed_module_clear(&pending); return -1;
+}
+
 static int
 physical_class_shape(asn1p_expr_t *class_expr, const char **selected, int *has_presence) {
 	asn1p_expr_t *member;

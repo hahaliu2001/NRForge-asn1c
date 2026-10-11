@@ -1,0 +1,33 @@
+GraphA DEFINITIONS AUTOMATIC TAGS ::= BEGIN
+IMPORTS Shared, RemoteWrap FROM GraphB;
+Root ::= SEQUENCE {
+    local Base,
+    remote Shared,
+    wrapper RemoteWrap,
+    pick CHOICE { number Shared, nothing NULL, nested SEQUENCE { flag BOOLEAN } },
+    list SEQUENCE (SIZE (0..4)) OF Shared,
+    chain Node OPTIONAL
+}
+Base ::= INTEGER (0..3)
+AliasRoot ::= Shared
+Qualified ::= SEQUENCE { value GraphB.Shared }
+WrapAlias ::= RemoteWrap
+Node ::= SEQUENCE { next Node OPTIONAL, value Base }
+Left ::= SEQUENCE { right Right OPTIONAL }
+Right ::= SEQUENCE { left Left OPTIONAL }
+Contained ::= SEQUENCE { data OCTET STRING (CONTAINING BadDefault) }
+BadDefault ::= SEQUENCE { value INTEGER DEFAULT 3 }
+BadExtension ::= SEQUENCE { value BOOLEAN, ..., later INTEGER OPTIONAL }
+BadAlias ::= RemoteWrap (WITH COMPONENTS { value PRESENT })
+Box { T } ::= SEQUENCE { item T }
+BadActual ::= SEQUENCE { boxed Box { Base } }
+RootOnly ::= SEQUENCE { flag BOOLEAN, ... }
+Unsupported ::= REAL
+END
+
+GraphB DEFINITIONS AUTOMATIC TAGS ::= BEGIN
+Shared ::= Base
+Base ::= INTEGER (10..20)
+RemoteWrap ::= SEQUENCE { value Base }
+Hidden ::= INTEGER (30..40)
+END

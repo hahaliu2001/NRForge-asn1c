@@ -1,0 +1,38 @@
+{
+  "batch": "RRC-P2",
+  "baseline": "21eac8aaba515dce8e03aecb78de3799035dff3c",
+  "scope": "All 361 APER message BODY and target-envelope extraction/generation; historical BODY hashes and F1AP/E1AP envelope hashes",
+  "profiles": {
+    "F1AP": {
+      "messages": 158,
+      "extraction_and_generation": "PASS",
+      "historical_headers_byte_identical": 948
+    },
+    "NGAP": {
+      "messages": 131,
+      "extraction_and_generation": "PASS",
+      "historical_headers_byte_identical": 393
+    },
+    "E1AP": {
+      "messages": 72,
+      "extraction_and_generation": "PASS",
+      "historical_headers_byte_identical": 432
+    }
+  },
+  "input_sha256": {
+    "libasn1typed/asn1typed_extract.c": "a3ac9a1aaa360d524035a960643eb2dad8fc5efd005882315a8722051e59edbb",
+    "libasn1typed/asn1typed_extract.h": "d6fcf7e031328853fc579cd58565a5410414cc594325259195fe0e40fea8ce23",
+    "tools/asn1typed_codec_coverage.c": "6817edaeaabe9d5532475a78cb63d5f40efe62ff6f45118a899f03bc8c6489f4",
+    "tools/rrc-readiness/check_aper_regression.py": "0aa9f128559131d2e8e146921867ecb1e5d8f7047e6b7eb58400543ba345a9aa",
+    "tools/f1ap-readiness/readiness-f1-p3.json": "c244994cb60b84ab01f55e71d5a3448c0742b019ae59676c6a41dfa58562369c",
+    "tools/f1ap-readiness/f1ap-rel18.modules": "0d30af33c5950c01fa21694ecb37c017b33d2936497dc2a7f8a5dd978612ad99",
+    "tools/f1ap-readiness/ngap-regression-f1-p3.json": "71fa7215a9b96ad8a0244e05d32688c6a310af66057fa74152eefca43d9e7b9d",
+    "tools/qualification/ngap-rel18.modules": "1623b9ec62622d31785740a57a56a10d1687c20ae3787da80617c3b09dd8b597",
+    "tools/e1ap-readiness/readiness-e1-p2.json": "0275eeedd4aaf6c9da37c8fd99621db6685b30ff133d36c24ae0cc2e97eda835",
+    "tools/e1ap-readiness/e1ap-rel18.modules": "11faf379c1b6a3f1ca74d7d05dfdb1b2f44f196827cb1125f2e283f364f60596"
+  },
+  "limitations": [
+    "NGAP historical evidence has BODY hashes only; NGAP envelopes generated but no historical byte comparison",
+    "No new all-message C++ compile, wire qualification or SDK rebuild"
+  ]
+}

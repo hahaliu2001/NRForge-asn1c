@@ -36,3 +36,44 @@ This is not an instantiated reachable graph or evidence of generated coverage.
 it does not add, refresh or decode the external fixtures. `verification.json`
 records checks performed in this batch. The independent review receipt records
 the exact reviewed file snapshot, excluding itself.
+
+## RRC-P2 ordinary root graph
+
+The P1 files remain historical evidence. See
+`../../docs/rrc-cpp-uper-p2-root-graph-contract-and-closeout.md` for the new API,
+budgets, measured blockers and correction to the proposed MTC expectation.
+`readiness-rrc-p2.json` is the deduplicated 80-root ordinary extraction matrix.
+The probe deletes the fixed tree before serializing successful graphs; failed
+roots have no partial graph. It invokes no renderer or wire codec.
+
+Build `root_probe.c` with the same command above, replacing the source and output
+binary names, then run:
+
+```sh
+PYTHONDONTWRITEBYTECODE=1 python3 tools/rrc-readiness/record_p2.py \
+  --asn1-root /path/to/frozen/src --probe /tmp/rrc-root-probe \
+  --work /tmp/rrc-p2-check --check
+make -C libasn1typed check
+```
+
+The focused `check_asn1typed_root_graph` test is part of Automake's suite and
+injects every allocation failure in its extraction path. It includes imported
+aliases, same-named declarations in different modules, cyclic dependencies,
+opaque contained payloads and failure rollback; it performs no generation.
+The fixture uses the fixer's `A1F_COMPOUND_NAMES` for its deliberate name clash.
+
+`check_aper_regression.py` uses a freshly linked
+`tools/asn1typed_codec_coverage.c` probe and authenticates all three frozen APER
+sources. It regenerates all 361 message BODY/envelope families and compares
+available historical hashes (1773 headers). To reproduce it, compile that source
+using the same include/library list, then run:
+
+```sh
+PYTHONDONTWRITEBYTECODE=1 python3 tools/rrc-readiness/check_aper_regression.py \
+  --asn1-root /path/to/frozen/src --probe /tmp/aper-coverage-probe \
+  --work /tmp/rrc-p2-aper-check --output /tmp/aper-regression.json
+```
+
+The APER regression work directory must be new. Its report records the current
+extractor and baseline file hashes; it does not rebuild installed SDKs or rerun
+their complete wire corpus. RRC generated compile and UPER remain NOT_RUN.
