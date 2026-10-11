@@ -160,3 +160,20 @@ This is integration readiness. Independent populated complete-PDU wire
 qualification is E1-P4, installable C++ SDK delivery E1-P5, Python delivery
 E1-P6. No application mandatory-IE policy, all-value codec coverage, live
 interoperability, SDK release or benchmark is inferred.
+
+
+## E1-P4 finite full-PDU qualification
+
+The independent frozen-source campaign matched 1,341 complete PDU vectors for
+all 72 messages / 40 procedures and all 317 declared top-level IE row occurrences.
+It covers nine full unsigned64 boundaries on six selected UL/DL paths, 3,824
+physical/resource checks, 696 root receive-only slots and 18 unknown outer
+extension policy cases. Exact candidate review and the lossless accepted profile
+are recorded in `tools/e1ap-wire-qualification/`; see the
+[E1-P4 contract and closeout](e1ap-cpp-aper-wire-qualification-contract-and-closeout.md).
+
+This is a finite complete-PDU agreement profile. Unreached typed sizes and
+fragmentation, nested combinations, future typed extensions, contained/vendor
+semantics, application policy and live interoperability remain unqualified.
+Shared production sources are unchanged and historical NGAP/F1AP evidence is
+retained. Next: **E1-P5**, installable C++ SDK delivery; Python follows as E1-P6.

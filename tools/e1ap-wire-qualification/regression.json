@@ -1,0 +1,41 @@
+{
+  "scope": "unchanged production and retained generator/wire evidence; no new NGAP/F1AP wire campaign",
+  "baseline_commit": "4ef7a5ebbd5ca4f902beddd1a967459a9e060659",
+  "production_changes": false,
+  "retained_sha256": {
+    "tools/e1ap-readiness/generator-regression-e1-p3.json": "28e63b6d03d019c6e22536228e70ecb423e713f70cfeea63eb443726c92556be",
+    "tools/e1ap-readiness/verification-e1-p3.json": "fe047d3a2f3fbd5856d8f9780701816a60a3e279076834c4c7a1eae6831f813d",
+    "tools/f1ap-wire-qualification/accepted-profile.json": "621e7814a91d747a751acd8618a21318ced6cc700ca193148efe0ea2e9173062",
+    "tools/f1ap-wire-qualification/qualification-summary.json": "66539202f2892c21727baf957e4acd4fd29fc4ae79b7d343d46325e8e751576a",
+    "tools/unified-ngap-qualification/accepted-profile.json": "2eedaa7f086284c9c477e66fc933a5cbe70d3dd5feef3b9250921c3965fe4ecf",
+    "tools/unified-ngap-qualification/qualification-summary.json": "0316563c3da35a9ab27d5290e9086f517e9f8dbaa496f17fce4d3d30d2d11f3b"
+  },
+  "prior_full_generator_regression": {
+    "ngap": {
+      "messages": 131,
+      "byte_exact_files": 658
+    },
+    "f1ap": {
+      "messages": 158,
+      "byte_exact_files": 793
+    },
+    "all_retained_input_fingerprints_match": true
+  },
+  "pdu_tests": {
+    "check_ngap_pdu": {
+      "status": "PASS",
+      "sha256": "2d72882317d157979949f7780d30e23ef71ebd5998b6d1c181a0f7a3791ec0d5",
+      "stdout": "PASS unified PDU identity, ownership, dispatch, receive-only and allocation guards\n"
+    },
+    "check_f1ap_pdu": {
+      "status": "PASS",
+      "sha256": "4ebe0c68da769248fa2208ad4a3ff6d961d7150359cf6131e3fe92bd2b939bd3",
+      "stdout": "PASS independent F1AP profile: three roles, no extension bit, fourth-root rejection and owned dispatch\n"
+    },
+    "check_e1ap_pdu": {
+      "status": "PASS",
+      "sha256": "409dc765f85d1ced1995ffe142faf3fde8d3fff2fc93295a7af9a87b1076b91f",
+      "stdout": "PASS E1AP PDU identity, ownership, dispatch, receive-only and allocation guards\n"
+    }
+  }
+}

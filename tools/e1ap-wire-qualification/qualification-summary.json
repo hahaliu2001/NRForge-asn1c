@@ -1,0 +1,126 @@
+{
+  "status": "ACCEPTED_FINITE_E1AP_WIRE_PROFILE",
+  "phase": "E1-P4",
+  "baseline_commit": "4ef7a5ebbd5ca4f902beddd1a967459a9e060659",
+  "independent_review_sha256": "a4fdb3ae7fe5d3bfcf692f5420dc86e63d974269c5f3b08076d81def1f0c7aed",
+  "profile_file": "accepted-profile.json",
+  "profile_storage_format": "nrforge-e1ap-lossless-profile-envelope-v1; expand and verify before --accepted-profile",
+  "profile_storage_sha256": "dda6465ee4df7cf11cf4e6630afb8668a51558bceb155abcdd07dedfc8454d25",
+  "profile_bytes": 9189085,
+  "profile_sha256": "a947696d4aa505409c1df8972c8d0b44c5a41c93d73b6963e2f653af56eb8d2b",
+  "executable_sha256": "a7bd81fb516fda3b5cd4bb538a11c0613a460faa0fe6b95a4993a56e8b5b2268",
+  "counts": {
+    "messages": 72,
+    "procedures": 40,
+    "roles": {
+      "0": 40,
+      "1": 20,
+      "2": 12
+    },
+    "cases": 1341,
+    "physical_and_resource_checks": 3824,
+    "receive_only_policy_slots": 696,
+    "outer_extension_policy_cases": 18,
+    "linked_executables": 1
+  },
+  "coverage": {
+    "declared_row_occurrences": 317,
+    "covered_row_occurrences": 317,
+    "missing_row_occurrences": 0,
+    "unsigned64_boundary_values": [
+      0,
+      1,
+      255,
+      256,
+      65535,
+      65536,
+      9223372036854775807,
+      9223372036854775808,
+      18446744073709551615
+    ],
+    "unsigned64_path_values": {
+      "DataUsageReport.protocolIEs[2].value.Data-Usage-Report-List[0].dRB-Usage-Report-List[0].usageCountDL": [
+        0,
+        1,
+        255,
+        256,
+        65535,
+        65536,
+        9223372036854775807,
+        9223372036854775808,
+        18446744073709551615
+      ],
+      "DataUsageReport.protocolIEs[2].value.Data-Usage-Report-List[0].dRB-Usage-Report-List[0].usageCountUL": [
+        0,
+        1,
+        255,
+        256,
+        65535,
+        65536,
+        9223372036854775807,
+        9223372036854775808,
+        18446744073709551615
+      ],
+      "MRDC-DataUsageReport.protocolIEs[2].value.PDU-Session-Resource-Data-Usage-List[0].mRDC-Usage-Information.data-Usage-per-PDU-Session-Report.pDU-session-Timed-Report-List[0].usageCountDL": [
+        0,
+        1,
+        255,
+        256,
+        65535,
+        65536,
+        9223372036854775807,
+        9223372036854775808,
+        18446744073709551615
+      ],
+      "MRDC-DataUsageReport.protocolIEs[2].value.PDU-Session-Resource-Data-Usage-List[0].mRDC-Usage-Information.data-Usage-per-PDU-Session-Report.pDU-session-Timed-Report-List[0].usageCountUL": [
+        0,
+        1,
+        255,
+        256,
+        65535,
+        65536,
+        9223372036854775807,
+        9223372036854775808,
+        18446744073709551615
+      ],
+      "MRDC-DataUsageReport.protocolIEs[2].value.PDU-Session-Resource-Data-Usage-List[0].mRDC-Usage-Information.data-Usage-per-QoS-Flow-List[0].qoS-Flow-Timed-Report-List[0].usageCountDL": [
+        0,
+        1,
+        255,
+        256,
+        65535,
+        65536,
+        9223372036854775807,
+        9223372036854775808,
+        18446744073709551615
+      ],
+      "MRDC-DataUsageReport.protocolIEs[2].value.PDU-Session-Resource-Data-Usage-List[0].mRDC-Usage-Information.data-Usage-per-QoS-Flow-List[0].qoS-Flow-Timed-Report-List[0].usageCountUL": [
+        0,
+        1,
+        255,
+        256,
+        65535,
+        65536,
+        9223372036854775807,
+        9223372036854775808,
+        18446744073709551615
+      ]
+    }
+  },
+  "distinct_choice_selections": 43,
+  "repeated_nested_optional_omission_entries": 3384,
+  "unsigned64_boundary_cases": 81,
+  "wire_octet_range": [
+    13,
+    594
+  ],
+  "unresolved_disagreements": 0,
+  "production_changes": false,
+  "limitations": [
+    "Finite populated values and selected root/extension semantics; not exhaustive PER/ASN.1 or live vendor interoperability.",
+    "Conditional application rules and mandatory-IE procedure/state policy are outside the wire profile.",
+    "Nested optional omissions are explicit in traces; sizes, combinations and fragmentation not reached by these cases remain unqualified.",
+    "Opaque contained RRC/NAS and private vendor payload interpretation are outside scope.",
+    "Unknown outer additions are receive-only opaque; no typed sender or future extension semantics claim."
+  ]
+}
