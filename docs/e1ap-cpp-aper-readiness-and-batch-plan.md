@@ -204,3 +204,19 @@ See [E1-P5 SDK contract](e1ap-cpp-sdk-contract.md),
 independent `review.md`. E1-P4 finite qualification limits remain unchanged;
 no benchmark, ABI promise, live interoperability or remote CI PASS is claimed.
 Next scope: **E1-P6 — Python SDK delivery**.
+
+## E1-P6 — Python SDK delivery closeout
+
+The `nrforge-e1ap` 0.1.0 / `nrforge_e1ap` CPython 3.12 Linux x86-64 wheel
+covers all 72 messages and 40 procedures using the unchanged sealed E1-P5
+archive. Clean installation and physically isolated external consumers passed:
+10 E1AP methods (1,341 inherited vectors, six Setup outcomes, six uint64 field
+paths and six three-protocol import orders), nine F1AP methods and 12 NGAP
+methods. All three protocol seal suites and the distribution/profile refusal
+passed; NGAP/F1AP generated bindings match the E1-P5 baseline byte-for-byte.
+Final sdist inventory is verified; no successful full clean extracted final
+sdist build is claimed. See `docs/e1ap-python-sdk-contract-and-closeout.md`,
+`tools/e1ap-python/verification-summary.json` and independent acceptance in
+`tools/e1ap-python/review.md`. No benchmark, codec/schema change, exhaustive
+value or live interoperability claim was added. The E1-P1–E1-P6 batch plan is
+closed; RRC follows only under its own separately authorized study.

@@ -1,5 +1,10 @@
 #include "bindings.hpp"
-#ifdef NRFORGE_PYTHON_F1AP
+#if defined(NRFORGE_PYTHON_E1AP)
+#define NRFORGE_PYTHON_REGISTRY e1ap_registry_state
+#define NRFORGE_PYTHON_ENCODE encode_e1ap_pdu
+#define NRFORGE_PYTHON_DECODE decode_e1ap_pdu
+#define NRFORGE_PYTHON_MESSAGE_COUNT 72
+#elif defined(NRFORGE_PYTHON_F1AP)
 #define NRFORGE_PYTHON_REGISTRY f1ap_registry_state
 #define NRFORGE_PYTHON_ENCODE encode_f1ap_pdu
 #define NRFORGE_PYTHON_DECODE decode_f1ap_pdu

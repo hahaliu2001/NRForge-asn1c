@@ -163,7 +163,7 @@ def verify_installed_sdk(prefix, expected_fingerprint=None, profile="ngap"):
     The CMake package supplies the independently read expected fingerprint; every
     exposed header is still checked against the recorded original source hash.
     """
-    if profile not in ("ngap", "f1ap"): raise ValueError("unsupported protocol profile")
+    if profile not in ("ngap", "f1ap", "e1ap"): raise ValueError("unsupported protocol profile")
     provenance_path = prefix / f'share/nrforge-{profile}/sdk-provenance.json'
     provenance_bytes = provenance_path.read_bytes()
     def unique_object(pairs):
@@ -180,7 +180,7 @@ def verify_installed_sdk(prefix, expected_fingerprint=None, profile="ngap"):
         raise ValueError('SDK fingerprint differs from CMake package')
     include = prefix / f'include/nrforge/{profile}'
     qualified = (prefix / f'include/nrforge/{profile}/{profile}.hpp').read_bytes().startswith(f'#include <nrforge/{profile}/sdk_version.hpp>\n'.encode())
-    pdu_headers = (['pdu.hpp', 'pdu_declarations.inc'] if qualified else ['pdu.hpp']) if profile == 'ngap' else ['f1ap_pdu.hpp', 'pdu_declarations.inc']
+    pdu_headers = (['pdu.hpp', 'pdu_declarations.inc'] if qualified else ['pdu.hpp']) if profile == 'ngap' else [profile + '_pdu.hpp', 'pdu_declarations.inc']
     expected = {'sdk_version.hpp', profile + '.hpp', 'runtime.hpp', 'sequence_extensions.hpp', *pdu_headers}
     original = {profile + '.hpp': provenance['generated_inputs'][profile + '.hpp'],
                 'runtime.hpp': provenance['source_hashes']['libaper/runtime.hpp'],
@@ -189,7 +189,7 @@ def verify_installed_sdk(prefix, expected_fingerprint=None, profile="ngap"):
     for name, digest in provenance['generated_inputs'].items():
         if re.fullmatch(r'messages/' + IDENT + r'(?:_types)?\.hpp', name) and not name.endswith(('_mapping.hpp', '_codec.hpp')):
             expected.add(name); original[name] = digest
-    if len(expected) != ((268 if qualified else 267) if profile == 'ngap' else 322): raise ValueError('incomplete SDK public header inventory')
+    if len(expected) != ((268 if qualified else 267) if profile == 'ngap' else {'f1ap': 322, 'e1ap': 150}[profile]): raise ValueError('incomplete SDK public header inventory')
     actual = {p.relative_to(include).as_posix() for p in include.rglob('*') if p.is_file()}
     if actual != expected: raise ValueError('SDK public header inventory mismatch')
     texts, header_hashes = {}, {}
@@ -253,7 +253,7 @@ def generate(prefix, output, expected_fingerprint=None, profile="ngap"):
     public_texts, sdk_receipt = verify_installed_sdk(prefix, expected_fingerprint, profile)
     include = prefix / f'include/nrforge/{profile}'
     headers = sorted((include / 'messages').glob('*_types.hpp'))
-    count = 131 if profile == 'ngap' else 158
+    count = {'ngap': 131, 'f1ap': 158, 'e1ap': 72}[profile]
     if len(headers) != count: raise ValueError(f'expected complete {count} message SDK, got {len(headers)}')
     rendered, metadata = {}, {}
     for header in headers:
@@ -295,7 +295,7 @@ def generate(prefix, output, expected_fingerprint=None, profile="ngap"):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--profile', choices=('ngap', 'f1ap'), default='ngap')
+    parser.add_argument('--profile', choices=('ngap', 'f1ap', 'e1ap'), default='ngap')
     parser.add_argument('--sdk-prefix', type=Path, required=True)
     parser.add_argument('--output', type=Path)
     parser.add_argument('--verify-only', action='store_true')

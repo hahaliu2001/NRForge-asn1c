@@ -1,7 +1,11 @@
 #ifndef NRFORGE_PYTHON_CONVERSION_HPP
 #define NRFORGE_PYTHON_CONVERSION_HPP
 #include <pybind11/pybind11.h>
-#ifdef NRFORGE_PYTHON_F1AP
+#if defined(NRFORGE_PYTHON_E1AP)
+#include <e1ap.hpp>
+#define NRFORGE_PYTHON_PROTOCOL e1ap
+#define NRFORGE_PYTHON_PACKAGE "nrforge_e1ap"
+#elif defined(NRFORGE_PYTHON_F1AP)
 #include <f1ap.hpp>
 #define NRFORGE_PYTHON_PROTOCOL f1ap
 #define NRFORGE_PYTHON_PACKAGE "nrforge_f1ap"
