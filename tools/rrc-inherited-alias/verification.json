@@ -1,0 +1,155 @@
+{
+  "aper_regression": {
+    "E1AP": {
+      "extraction_and_generation": "PASS",
+      "historical_headers_byte_identical": 432,
+      "messages": 72
+    },
+    "F1AP": {
+      "extraction_and_generation": "PASS",
+      "historical_headers_byte_identical": 948,
+      "messages": 158
+    },
+    "NGAP": {
+      "extraction_and_generation": "PASS",
+      "historical_headers_byte_identical": 393,
+      "messages": 131
+    }
+  },
+  "baseline_commit": "fc2877dd5c52b52c3f8dbe7134ae50fc3192a28a",
+  "batch": "RRC-P15",
+  "benchmark_run": false,
+  "branch": "feature/f1ap-cpp-aper",
+  "compiler": "gcc (Ubuntu 13.3.0-6ubuntu2~24.04) 13.3.0",
+  "contract": "ordinary constructed alias without declared restrictions; each inherited effective SIZE equals clean terminal declared/effective semantics in all seven owned fields; retain bounds, element identity and declaration/member locations; AST read-only",
+  "existing_parameter_default_allocation_failure_positions": 428,
+  "focused_completion_modes": 3,
+  "focused_generated_roots": 10,
+  "focused_goldens": 22,
+  "limitations": [
+    "LocationMeasurementIndication renderer output has an existing NULL-extension unused-io warning and fails strict compilation",
+    "Newly rendered roots have strict compilation only; no new real-message wire qualification",
+    "P8/P9 SDK and qualification receipts remain unchanged; expanded delivery is deferred",
+    "Declared constructed restrictions remain unsupported; explicit SIZE-addition metadata keeps existing renderer block",
+    "UL-DCCH-Message inherits two NULL-extension unused-io renderer errors; known explicit SIZE-addition codec support remains unavailable"
+  ],
+  "merge": false,
+  "native_pass_total": 70,
+  "native_regressions": {
+    "libaper": {
+      "ERROR": 0,
+      "FAIL": 0,
+      "PASS": 10,
+      "TOTAL": 10,
+      "log_sha256": "1158b75f5b24db73435460d958091a958ac126d5ec03c23bcb9f9aca6a961373"
+    },
+    "libasn1fix": {
+      "ERROR": 0,
+      "FAIL": 0,
+      "PASS": 2,
+      "TOTAL": 2,
+      "log_sha256": "704941a8dde278325d93360ca38a6d115e21d5039b440891e5b2f62a7cb0b606"
+    },
+    "libasn1parser": {
+      "ERROR": 0,
+      "FAIL": 0,
+      "PASS": 1,
+      "TOTAL": 1,
+      "log_sha256": "7e5e21619b2036dcf772754e1d36f6417d598f06354ee3201ade7ed1a354282d"
+    },
+    "libasn1typed": {
+      "ERROR": 0,
+      "FAIL": 0,
+      "PASS": 51,
+      "TOTAL": 51,
+      "log_sha256": "41419014ce4821b84a9b653cfe30527596c1e668749e3c0f9cdb92df4c7ed46f"
+    },
+    "libngap": {
+      "ERROR": 0,
+      "FAIL": 0,
+      "PASS": 3,
+      "TOTAL": 3,
+      "log_sha256": "12dc1d2f7373ffbfb62133f4cbb73dc84aa68c32f2b7c5588dca2578d7771641"
+    },
+    "libuper": {
+      "ERROR": 0,
+      "FAIL": 0,
+      "PASS": 3,
+      "TOTAL": 3,
+      "log_sha256": "84ea6843252344c64aa517c47e3e88f61b76dc85da6c51c6666a4f9d23fcce9f"
+    }
+  },
+  "new_real_message_wire_qualification": false,
+  "new_strict_compile_results": {
+    "BCCH-DL-SCH-Message": "PASS",
+    "DL-CCCH-Message": "PASS",
+    "DL-DCCH-Message": "PASS",
+    "LocationMeasurementIndication": "BLOCKED_EXISTING_RENDERER",
+    "LoggedMeasurementConfiguration-r16": "PASS",
+    "RRCReconfiguration": "PASS",
+    "RRCReconfigurationComplete": "PASS",
+    "RRCReconfigurationSidelink": "PASS",
+    "RRCReestablishment": "PASS",
+    "RRCRelease": "PASS",
+    "RRCResume": "PASS",
+    "RRCResumeComplete": "PASS",
+    "RRCSetup": "PASS",
+    "RemoteUEInformationSidelink-r17": "PASS",
+    "SCCH-Message": "PASS",
+    "SIB1": "PASS",
+    "UEInformationResponse-r16": "PASS",
+    "UL-DCCH-Message": "BLOCKED_EXISTING_RENDERER"
+  },
+  "next_task": "repair existing NULL-extension renderer compile block separately, then RRC-P16 expanded finite wire qualification",
+  "preserved_base_blob_count": 2668,
+  "preserved_base_tree_inventory_sha256": "565cc3889a707efe6b909f8335cba09de554e505fd895d2e707e1f53b5ca6b6e",
+  "production_changes": [
+    "libasn1typed/asn1typed_extract.c"
+  ],
+  "readiness_summary": {
+    "PASS": 85
+  },
+  "real_alias_closures": {
+    "element": "NR-RRC-Definitions.VisitedCellInfo-r16",
+    "owned_after_ast_destruction": true,
+    "roots": [
+      "VisitedCellInfoList-r16",
+      "MobilityHistoryReport-r16",
+      "UEInformationResponse-r16",
+      "UL-DCCH-Message"
+    ],
+    "size": [
+      1,
+      16
+    ],
+    "status": "PASS"
+  },
+  "renderer_changes": false,
+  "runtime_changes": false,
+  "sanitizer": {
+    "address": "PASS",
+    "leak_scan": "NOT_RUN: environment cannot enumerate /proc tasks",
+    "scope": "current extractor and focused ownership test directly instrumented",
+    "undefined": "PASS"
+  },
+  "schema_changes": false,
+  "sdk_delivered_roots": 64,
+  "sdk_rebuild": false,
+  "source_sha256": {
+    ".gitignore": "e702047b2b04e67e484959e0ebc120c682772e42ecabb6e1972a29ac4054b72c",
+    "Makefile.am": "614bb7d5949c92e0831aa3ede87fd3c655606f201b984d6cbd12a0d6184a8f20",
+    "docs/rrc-inherited-alias-closeout.md": "e8abd90e7ad372e298e6b96dc9fb7381f02ae7e5e0e625d7b6b5ef31a544ea01",
+    "libasn1typed/Makefile.am": "c7e531f82a5bc680c34d4c9abe7196bbd8fa72c154ca0c5f40fbd2c3b36bbee6",
+    "libasn1typed/asn1typed_extract.c": "71f846faccf94c3639134529a744b963aed446fdee6e1ba63fb5c2cc56be1f99",
+    "tools/rrc-inherited-alias/README.md": "0ca69a69ea873bdf430623d6b3074ada435d9607596d8a17859d23eed96132ce",
+    "tools/rrc-inherited-alias/aliases.asn1": "b22144a64a45d0c50df0d6a3535d1aac34dfead1f4b19ceb99be8e80eac3a464",
+    "tools/rrc-inherited-alias/check.py": "4dcfb16b8321e0ecf0fc92dc6bd9e7224170ff1c3cb1619b05aac2384b6088a9",
+    "tools/rrc-inherited-alias/check_extract.c": "d04bb56560029e251bb5c5102b25d94fa2a188fc64517ad1396ba1e661dd614c",
+    "tools/rrc-inherited-alias/check_generated.cpp": "202328487a5bc18db1c0de8cf7ef43ce620a3dd083dfccba03b8f62460eaa560",
+    "tools/rrc-inherited-alias/check_real.c": "037230b9ccc84bdeb252773a9addff1f63c97353576c7bf40655ce03ad5aa5bc",
+    "tools/rrc-inherited-alias/contract.md": "d7ed825086d3f71bad09cac6d71d4baab8df6ed82f185f1abc57525d8fab5bfe",
+    "tools/rrc-inherited-alias/readiness.json": "4a31d0d149d3171c813211782e19aa84ea7b9b3b5c3d60321c34d85965267017"
+  },
+  "status": "VERIFIED_PENDING_INDEPENDENT_ACCEPTANCE",
+  "unchanged_accepted_rrc_headers": 83
+}

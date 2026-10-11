@@ -326,3 +326,9 @@ TESTS += check_asn1typed_opaque_contents
 check_asn1typed_opaque_contents_SOURCES = $(top_srcdir)/tools/rrc-opaque-contents/check_extract.c
 check_asn1typed_opaque_contents_CPPFLAGS = $(check_asn1typed_extract_CPPFLAGS) -DOPAQUE_FIXTURE=\"$(abs_top_srcdir)/tools/rrc-opaque-contents/opaque.asn1\"
 check_asn1typed_opaque_contents_LDADD = $(check_asn1typed_extract_LDADD)
+
+check_PROGRAMS += check_asn1typed_inherited_alias
+TESTS += check_asn1typed_inherited_alias
+check_asn1typed_inherited_alias_SOURCES = $(top_srcdir)/tools/rrc-inherited-alias/check_extract.c
+check_asn1typed_inherited_alias_CPPFLAGS = $(check_asn1typed_extract_CPPFLAGS) -DALIAS_FIXTURE=\"$(abs_top_srcdir)/tools/rrc-inherited-alias/aliases.asn1\"
+check_asn1typed_inherited_alias_LDADD = $(check_asn1typed_extract_LDADD)

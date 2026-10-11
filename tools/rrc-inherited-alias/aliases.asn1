@@ -1,0 +1,30 @@
+Owner DEFINITIONS AUTOMATIC TAGS ::= BEGIN
+Tiny ::= INTEGER (0..3)
+List ::= SEQUENCE (SIZE(1..3)) OF Tiny
+Alias ::= List
+Chain ::= Alias
+TupleList ::= SEQUENCE (SIZE(1..2)) OF SEQUENCE { flag BOOLEAN, singleton INTEGER (4) }
+TupleAlias ::= TupleList
+ExtList ::= SEQUENCE (SIZE(1..2, ...)) OF Tiny
+ExtAlias ::= ExtList
+UnboundedList ::= SEQUENCE OF Tiny
+UnboundedAlias ::= UnboundedList
+Struct ::= SEQUENCE { flag BOOLEAN }
+StructAlias ::= Struct
+Pick ::= CHOICE { empty NULL, value Tiny }
+PickAlias ::= Pick
+Restricted ::= List (SIZE(1..2))
+Hidden ::= Restricted
+EqualDeclared ::= List (SIZE(1..3))
+BadStruct ::= Struct (WITH COMPONENTS { flag PRESENT })
+Wide ::= SEQUENCE (SIZE(0..5)) OF Tiny
+Narrow ::= SEQUENCE (SIZE(1..2)) OF Tiny
+AdditionList ::= SEQUENCE (SIZE(1..2, ..., 3)) OF Tiny
+AdditionAlias ::= AdditionList
+WrongExt ::= SEQUENCE (SIZE(1..2, ..., 4..5)) OF Tiny
+END
+Consumer DEFINITIONS AUTOMATIC TAGS ::= BEGIN
+IMPORTS List FROM Owner;
+LocalTiny ::= INTEGER (10..13)
+RemoteAlias ::= List
+END

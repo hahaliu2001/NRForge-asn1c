@@ -217,3 +217,4 @@ asn1c/tmp/
 /libasn1typed/check_asn1typed_late_choice
 
 /libasn1typed/check_asn1typed_opaque_contents
+/libasn1typed/check_asn1typed_inherited_alias

@@ -3025,6 +3025,47 @@ ordinary_check_ast(asn1p_t *tree, asn1p_expr_t *node, const char *owner,
 }
 
 static int
+ordinary_inherited_size(const asn1p_constraint_t *constraint,
+        asn1typed_size_constraint_t *out) {
+    if(constraint && !use_size_tree_clean(constraint, 0)) return -1;
+    if(extract_size_constraint(constraint, out, 1) ||
+            (out->has_size_constraint && out->lower_bound < 0)) return -1;
+    return 0;
+}
+
+static int
+ordinary_size_equal(const asn1typed_size_constraint_t *a,
+        const asn1typed_size_constraint_t *b) {
+    return a->has_size_constraint == b->has_size_constraint &&
+        a->lower_bound == b->lower_bound && a->upper_bound == b->upper_bound &&
+        a->is_extensible == b->is_extensible &&
+        a->has_extension_addition == b->has_extension_addition &&
+        a->extension_lower_bound == b->extension_lower_bound &&
+        a->extension_upper_bound == b->extension_upper_bound;
+}
+
+/* No new declared restriction is supported on a constructed alias. The
+ * fixer's inherited SIZE is usable only when every alias layer agrees with
+ * the terminal list, including root and known extension-addition bounds. */
+static int
+ordinary_alias_constraints(asn1p_expr_t *alias, asn1p_expr_t *body,
+        asn1typed_type_kind_e kind) {
+    asn1typed_size_constraint_t inherited = {0}, terminal = {0}, declared = {0};
+    const asn1p_constraint_t *effective;
+    if(alias->constraints) return -1;
+    if(kind != ASN1TYPED_TYPE_SEQUENCE_OF)
+        return alias->combined_constraints ? -1 : 0;
+    effective = body->combined_constraints ? body->combined_constraints : body->constraints;
+    if(ordinary_inherited_size(effective, &terminal) ||
+            ordinary_inherited_size(alias->combined_constraints, &inherited) ||
+            !ordinary_size_equal(&terminal, &inherited)) return -1;
+    if(body->constraints &&
+            (ordinary_inherited_size(body->constraints, &declared) ||
+             !ordinary_size_equal(&terminal, &declared))) return -1;
+    return 0;
+}
+
+static int
 ordinary_add_dependency(asn1p_t *tree, asn1typed_module_t *out,
         const asn1typed_type_ref_t *ref, const asn1typed_graph_limits_t *limits,
         size_t *nodes, char *error, size_t size) {
@@ -3098,7 +3139,7 @@ ordinary_add_dependency(asn1p_t *tree, asn1typed_module_t *out,
         if(ordinary_check_ast(tree, alias, ref->source_name, limits, nodes, 0, &profile, detail, sizeof(detail))) goto detail_fail;
         if(alias == body) break;
         if(kind != ASN1TYPED_TYPE_PRIMITIVE &&
-                (alias->constraints || alias->combined_constraints)) {
+                ordinary_alias_constraints(alias, body, kind)) {
             set_error(detail, sizeof(detail), "constrained ordinary alias unsupported"); goto detail_fail;
         }
         alias = referenced_type(alias);
