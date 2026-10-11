@@ -115,3 +115,33 @@ PYTHONDONTWRITEBYTECODE=1 python3 tools/rrc-readiness/audit_p3_inputs.py \
 `input-shapes-rrc-p3.json` reports 264 distinct instance keys and 15 ENUMERATED /
 five INTEGER DEFAULT source fields. It does not qualify all instance closures
 or all DEFAULT values.
+
+## RRC-P4 ordinary extension structure
+
+See `../../docs/rrc-cpp-uper-p4-extensions-closeout.md`. P1–P3 reports remain
+historical. Build `root_probe_p4.c` with the include/library command above, then:
+
+```sh
+PYTHONDONTWRITEBYTECODE=1 python3 tools/rrc-readiness/record_p4.py \
+  --asn1-root /path/to/frozen/src --probe /tmp/rrc-p4-root-probe \
+  --work /tmp/rrc-p4-check --check
+make -C libasn1typed check
+make -C libasn1parser check
+```
+
+The probe validates owned extension structure after tree deletion. The recorder
+checks all 80 roots plus the five existing DEFAULT seeds, complete dependency
+closure, one slot per SEQUENCE group, independent group bodies, root/addition
+indexes and policies. It checks the 634 explicit SEQUENCE wrappers against the
+640 lexical bracket pairs (six are CHOICE alternative lists). It records full
+owned type bodies once under `owned_type_inventory`; each root's `types` is its
+ordered module/name membership list. Identical identities across closures must
+have identical bodies. Missing CHOICE root tag mappings stay in a separate
+ledger; semantic success is not a wire qualification claim.
+
+`check_asn1typed_extensions` covers nested groups, future CHOICE branches,
+parser provenance, budgets, every allocation failure and legacy-renderer
+rejection. For full APER artifact comparison use a freshly linked coverage probe
+and `check_aper_regression_p4.py`, with the same CLI arguments as P3. Its new work
+directory and guarded input hashes prevent accepting stale or mid-change runs.
+No RRC UPER runtime, generated C++ or installed SDK test is invoked by P4.

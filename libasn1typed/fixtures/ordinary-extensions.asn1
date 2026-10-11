@@ -1,0 +1,19 @@
+Extensions DEFINITIONS AUTOMATIC TAGS ::= BEGIN
+Root ::= SEQUENCE {
+    first INTEGER (0..7),
+    second BOOLEAN OPTIONAL,
+    ...,
+    direct BOOLEAN,
+    [[ required BOOLEAN, optional INTEGER (0..3) OPTIONAL,
+       nested SEQUENCE { flag BOOLEAN, ..., [[ inside BOOLEAN, fallback INTEGER DEFAULT 2 ]] } ]],
+    other INTEGER DEFAULT 1,
+    [[ final BOOLEAN OPTIONAL ]]
+}
+Alias ::= Root
+RootOnly ::= SEQUENCE { flag BOOLEAN, ... }
+EmptyRoot ::= SEQUENCE { ..., later BOOLEAN }
+Pick ::= CHOICE { high [9] BOOLEAN, low [2] NULL, ..., later [7] INTEGER, future [1] BOOLEAN }
+PickFuture ::= CHOICE { high [9] BOOLEAN, low [2] NULL, ..., [[ later [7] INTEGER, future [1] BOOLEAN ]], [[ newest [0] NULL ]] }
+NestedPick ::= SEQUENCE { pick Pick, ... , [[ wrapped SEQUENCE { pick PickFuture } ]] }
+NoTags ::= CHOICE { first BOOLEAN, second NULL, ..., later INTEGER }
+END

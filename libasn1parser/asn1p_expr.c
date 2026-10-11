@@ -34,7 +34,8 @@ asn1p_expr_compare(const asn1p_expr_t *a, const asn1p_expr_t *b) {
         return -1;
     }
 
-    if(a->meta_type != b->meta_type || a->expr_type != b->expr_type) {
+    if(a->meta_type != b->meta_type || a->expr_type != b->expr_type ||
+       a->is_extension_addition_group != b->is_extension_addition_group) {
         return -1;
     }
 
@@ -192,6 +193,7 @@ asn1p_expr_clone_impl(asn1p_expr_t *expr, int skip_extensions, asn1p_expr_t *(*r
 	 */
 	CLCOPY(meta_type);
 	CLCOPY(expr_type);
+	CLCOPY(is_extension_addition_group);
 	CLCOPY(tag);
 	CLCOPY(encoding_control.encoding_type);
 	CLCOPY(marker.flags);		/* OPTIONAL/DEFAULT */

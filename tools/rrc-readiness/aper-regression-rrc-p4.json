@@ -1,0 +1,43 @@
+{
+  "batch": "RRC-P4",
+  "baseline": "97d099f4edfb2d463bd564dc5cec8e586a81c8e4",
+  "scope": "All 361 APER message BODY and target-envelope extraction/generation; historical BODY hashes and F1AP/E1AP envelope hashes",
+  "profiles": {
+    "F1AP": {
+      "messages": 158,
+      "extraction_and_generation": "PASS",
+      "historical_headers_byte_identical": 948
+    },
+    "NGAP": {
+      "messages": 131,
+      "extraction_and_generation": "PASS",
+      "historical_headers_byte_identical": 393
+    },
+    "E1AP": {
+      "messages": 72,
+      "extraction_and_generation": "PASS",
+      "historical_headers_byte_identical": 432
+    }
+  },
+  "input_sha256": {
+    "libasn1typed/asn1typed_extract.c": "61b17820d5d6a6ec54f60410aea14eb736d97ba34d6593c851b7cc15e8aa1bf7",
+    "libasn1typed/asn1typed_extract.h": "190670b8691dba5774a3b07048184bfc8d4ced10385da8af871a9fec0ce0254c",
+    "libasn1typed/asn1typed.c": "f1748c06645d5981203e8241ba8c76e6503df6f6e28cc5539340fe66bf71aaf1",
+    "libasn1typed/asn1typed.h": "1565690a926f1c9cb0f1d188046b264f2c680cbf7c74936c788a4b7bf75f0268",
+    "libasn1parser/asn1p_expr.c": "8c532d9d5f5adc841e3b4a2b2ca536614e394d824007dad32cd11907b9c7f083",
+    "libasn1parser/asn1p_expr.h": "f82a1ae2cdeb0f9e0b33cad4d161d8656ab565f7a8f23ea075bc9964d6049c7e",
+    "libasn1parser/asn1p_y.y": "8d9af145b9bd679ef938fc47b48fc8c9e071174589944c5ef1c0c03a7e5079ed",
+    "tools/asn1typed_codec_coverage.c": "6817edaeaabe9d5532475a78cb63d5f40efe62ff6f45118a899f03bc8c6489f4",
+    "tools/rrc-readiness/check_aper_regression_p4.py": "a3d38c527ad837681d6de71ecb0ab593bddc33dd171e44caad6b21534ed15350",
+    "tools/f1ap-readiness/readiness-f1-p3.json": "c244994cb60b84ab01f55e71d5a3448c0742b019ae59676c6a41dfa58562369c",
+    "tools/f1ap-readiness/f1ap-rel18.modules": "0d30af33c5950c01fa21694ecb37c017b33d2936497dc2a7f8a5dd978612ad99",
+    "tools/f1ap-readiness/ngap-regression-f1-p3.json": "71fa7215a9b96ad8a0244e05d32688c6a310af66057fa74152eefca43d9e7b9d",
+    "tools/qualification/ngap-rel18.modules": "1623b9ec62622d31785740a57a56a10d1687c20ae3787da80617c3b09dd8b597",
+    "tools/e1ap-readiness/readiness-e1-p2.json": "0275eeedd4aaf6c9da37c8fd99621db6685b30ff133d36c24ae0cc2e97eda835",
+    "tools/e1ap-readiness/e1ap-rel18.modules": "11faf379c1b6a3f1ca74d7d05dfdb1b2f44f196827cb1125f2e283f364f60596"
+  },
+  "limitations": [
+    "NGAP historical evidence has BODY hashes only; NGAP envelopes generated but no historical byte comparison",
+    "No new all-message C++ compile, wire qualification or SDK rebuild"
+  ]
+}

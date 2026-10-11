@@ -238,6 +238,8 @@ typedef struct asn1p_expr_s {
 		} flags;
 		asn1p_value_t *default_value;	/* For EM_DEFAULT case */
 	} marker;
+	/* Explicit grammar provenance for [[ ... ]]; never infer from anonymity. */
+	int is_extension_addition_group;
 	int unique;	/* UNIQUE */
 	int ref_cnt;	/* reference count */
 

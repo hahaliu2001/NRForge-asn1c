@@ -286,3 +286,11 @@ check_asn1typed_parameters_default_CPPFLAGS = $(check_asn1typed_extract_CPPFLAGS
 check_asn1typed_parameters_default_LDADD = $(check_asn1typed_extract_LDADD)
 check_asn1typed_parameters_default_LDFLAGS = -Wl,--wrap=malloc -Wl,--wrap=calloc -Wl,--wrap=realloc
 EXTRA_DIST += fixtures/ordinary-parameters-default.asn1
+
+check_PROGRAMS += check_asn1typed_extensions
+TESTS += check_asn1typed_extensions
+check_asn1typed_extensions_SOURCES = check_asn1typed_extensions.c
+check_asn1typed_extensions_CPPFLAGS = $(check_asn1typed_extract_CPPFLAGS) -DEXTENSIONS_FIXTURE=\"$(abs_srcdir)/fixtures/ordinary-extensions.asn1\"
+check_asn1typed_extensions_LDADD = $(check_asn1typed_extract_LDADD)
+check_asn1typed_extensions_LDFLAGS = -Wl,--wrap=malloc -Wl,--wrap=calloc -Wl,--wrap=realloc
+EXTRA_DIST += fixtures/ordinary-extensions.asn1

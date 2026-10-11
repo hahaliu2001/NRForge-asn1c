@@ -1,0 +1,133 @@
+{
+  "batch": "RRC-P4",
+  "baseline": "97d099f4edfb2d463bd564dc5cec8e586a81c8e4",
+  "branch": "feature/f1ap-cpp-aper",
+  "source_and_fixture_policy": "Six frozen RRC modules authenticated before probes; four historical bare fixtures unchanged. No schema edits or source normalization.",
+  "checks": {
+    "strict_focused_build": "PASS: GNU C11 -Wall -Wextra -Werror; direct final typed core, extractor and parser expression sources",
+    "focused_extensions": "PASS: nested groups, explicit provenance, CHOICE bracket lists/future branches, local validation including ERROR and UNAVAILABLE cleanup, legacy renderer rejection",
+    "allocation_failure_rollback": {
+      "Root": 83,
+      "NestedPick": 79,
+      "inherited_P3_parameter": 366,
+      "inherited_P3_default": 62,
+      "inherited_P2_root": 139
+    },
+    "typed_suite": {
+      "pass": 45,
+      "total": 45
+    },
+    "parser_suite": {
+      "pass": 1,
+      "total": 1
+    },
+    "aper_runtime_suite": {
+      "pass": 10,
+      "total": 10
+    },
+    "pdu_suite": {
+      "pass": 3,
+      "total": 3
+    },
+    "final_focused_refresh": "PASS after additional bracket-list/legacy-renderer assertions; no production-source changes after full suites",
+    "asan_ubsan": {
+      "status": "PASS",
+      "scope": "Final focused test and all 85 requested RRC roots; exact normalized matrix --check",
+      "instrumented": "typed core/extractor, parser expression clone/compare, developer-tree glue for root probe",
+      "ordinary_build": "Remaining parser including generated grammar, fixer and remaining libraries/renderers",
+      "ASAN_OPTIONS": "detect_leaks=0",
+      "UBSAN_OPTIONS": "halt_on_error=1",
+      "leak_scan": "NOT_RUN"
+    },
+    "p1_historical_report_check": "PASS: fresh probe/scanner --check preserves original report bytes",
+    "p1_raw_ast_sha256": "41f3524fdc7bdad93083f3a2892b6060a2492ca36418e2134ea32332061ba2f7",
+    "frozen_rrc_matrix": {
+      "PASS": 64,
+      "FAIL": 16
+    },
+    "roles": {
+      "channel": {
+        "PASS": 8,
+        "FAIL": 4
+      },
+      "payload": {
+        "PASS": 54,
+        "FAIL": 12
+      },
+      "bare_seed": {
+        "PASS": 3,
+        "FAIL": 1
+      }
+    },
+    "raw_owned_graphs_sha256": "f7c5b0220f688a7cafd12983caf463da8d154340cb6c15bc958e51adfdaf8b0a",
+    "source_sequence_groups": 634,
+    "source_lexical_bracket_pairs": 640,
+    "source_choice_bracket_lists": 6,
+    "owned_extension_evidence": {
+      "source_sequence_groups": 634,
+      "source_lexical_bracket_pairs": 640,
+      "source_choice_bracket_lists": 6,
+      "unique_extensible_sequences": 100,
+      "unique_addition_groups": 46,
+      "unique_extensible_choices": 16,
+      "unavailable_choice_mappings": [
+        "NR-RRC-Definitions.$type$SetupRelease$NR-RRC-Definitions$LocationMeasurementInfo",
+        "NR-RRC-Definitions.$type$SetupRelease$NR-RRC-Definitions$SL-L2RemoteUE-Config-r17",
+        "NR-RRC-Definitions.$type$SetupRelease$NR-RRC-Definitions$SL-MeasConfig-r16",
+        "NR-RRC-Definitions.$type$SetupRelease$PC5-RRC-Definitions$SL-CSI-RS-Config-r16",
+        "NR-RRC-Definitions.$type$SetupRelease$NR-RRC-Definitions$SL-DRX-ConfigUC-r17",
+        "NR-RRC-Definitions.$type$SetupRelease$PC5-RRC-Definitions$SL-LatencyBoundIUC-Report-r17",
+        "NR-RRC-Definitions.$type$SetupRelease$PC5-RRC-Definitions$SL-SFN-DFN-Offset-r18",
+        "NR-RRC-Definitions.$type$SetupRelease$PC5-RRC-Definitions$SL-RequestedSIB-List-r17",
+        "NR-RRC-Definitions.$type$SetupRelease$PC5-RRC-Definitions$SL-PagingInfo-RemoteUE-r17",
+        "NR-RRC-Definitions.$type$SetupRelease$PC5-RRC-Definitions$SL-RequestedPosSIB-List-r18"
+      ],
+      "unknown_sequence_policy": "skip unknown open additions after framing validation (runtime NOT_RUN)",
+      "unknown_choice_policy": "preserve unknown extension index and opaque payload (runtime NOT_RUN)"
+    },
+    "default_seeds": {
+      "roots": 5,
+      "unique_default_fields": 13,
+      "status": "PASS"
+    },
+    "aper_artifact_regression": {
+      "status": "PASS",
+      "message_families": 361,
+      "historical_headers": 1773,
+      "profiles": {
+        "F1AP": {
+          "messages": 158,
+          "extraction_and_generation": "PASS",
+          "historical_headers_byte_identical": 948
+        },
+        "NGAP": {
+          "messages": 131,
+          "extraction_and_generation": "PASS",
+          "historical_headers_byte_identical": 393
+        },
+        "E1AP": {
+          "messages": 72,
+          "extraction_and_generation": "PASS",
+          "historical_headers_byte_identical": 432
+        }
+      },
+      "source_hash_guard": "PASS: final production inputs unchanged throughout run"
+    },
+    "diff_check": "PASS"
+  },
+  "limitations": [
+    "64/80 semantic closures; 16 retained constraint/alias failures, no partial graphs or optional filtering",
+    "Ten ordinary SetupRelease mappings still lack source root tag evidence; successful extraction is not CHOICE wire qualification",
+    "Unknown SEQUENCE skip and CHOICE opaque-preservation are owned policy contracts only; framing/runtime NOT_RUN",
+    "NGAP historical headers cover BODY only; envelopes generated without historical comparison",
+    "No new all-message C++ compile/wire corpus or sealed SDK rebuild"
+  ],
+  "not_run": [
+    "RRC C++ generation/compile",
+    "RRC UPER runtime/wire qualification",
+    "RRC installed C++/Python SDK",
+    "performance benchmark",
+    "merge"
+  ],
+  "independent_review": "Final receipt records exact source/evidence snapshot and verdict before commit/push"
+}

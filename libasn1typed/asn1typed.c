@@ -285,6 +285,9 @@ asn1typed_field_copy(asn1typed_field_t *target,
 	target->type_semantics = source->type_semantics;
 	target->size_constraint = source->size_constraint;
 	target->presence = source->presence;
+    target->component_role = source->component_role;
+    target->has_per_component_index = source->has_per_component_index;
+    target->per_component_index = source->per_component_index;
 	if(asn1typed_default_value_copy(&target->default_value, &source->default_value)) goto fail;
 	target->ioc.criticality = source->ioc.criticality;
 	target->ioc.has_numeric_id = source->ioc.has_numeric_id;
@@ -1312,12 +1315,15 @@ asn1typed_type_add_choice_alternative(asn1typed_type_t *type,
 			&type->alternative_capacity, type->alternative_count + 1,
 			sizeof(*type->alternatives))) goto fail;
 	type->alternatives[type->alternative_count++] = alternative;
+	type->has_valid_ordinary_extension_structure = 0;
 	type->has_valid_per_root_mapping = 0;
 	{
 		size_t i;
 		for(i = 0; i < type->alternative_count; ++i) {
 			type->alternatives[i].has_per_root_index = 0;
 			type->alternatives[i].per_root_index = 0;
+            type->alternatives[i].has_per_extension_index = 0;
+            type->alternatives[i].per_extension_index = 0;
 		}
 	}
 	return 0;
@@ -1333,10 +1339,13 @@ static void
 choice_wire_mapping_invalidate(asn1typed_type_t *choice) {
 	size_t i;
 	if(!choice) return;
+	choice->has_valid_ordinary_extension_structure = 0;
 	choice->has_valid_per_root_mapping = 0;
 	for(i = 0; i < choice->alternative_count; ++i) {
 		choice->alternatives[i].has_per_root_index = 0;
 		choice->alternatives[i].per_root_index = 0;
+        choice->alternatives[i].has_per_extension_index = 0;
+        choice->alternatives[i].per_extension_index = 0;
 	}
 }
 
@@ -1745,6 +1754,7 @@ sequence_extension_storage_valid(const asn1typed_type_t *type) {
 }
 static void
 sequence_extension_invalidate(asn1typed_type_t *type) {
+	type->has_valid_ordinary_extension_structure = 0;
 	type->sequence_extension_evidence = ASN1TYPED_WIRE_EVIDENCE_UNAVAILABLE;
 	type->sequence_root_field_count = 0;
 	type->sequence_known_addition_count = 0;
@@ -1818,4 +1828,130 @@ asn1typed_sequence_extension_structure_finalize(asn1typed_type_t *type,
 	if(check) return check < 0 ? ASN1TYPED_WIRE_FINALIZE_ERROR : ASN1TYPED_WIRE_FINALIZE_UNAVAILABLE;
 	type->has_valid_sequence_extension_structure = 1;
 	return ASN1TYPED_WIRE_FINALIZE_OK;
+}
+
+/* Ordinary P4 structure is independent of the legacy root-only APER gate. */
+static int
+ordinary_extension_check(const asn1typed_type_t *t, int indexes, char *error, size_t size) {
+    size_t i, j, count;
+#define ORD_BAD(msg) do { if(error && size) snprintf(error, size, "%s", msg); return -1; } while(0)
+    if(error && size) error[0] = 0;
+    if(!t || t->ordinary_structure_owned != 1 ||
+       (t->kind != ASN1TYPED_TYPE_SEQUENCE && t->kind != ASN1TYPED_TYPE_CHOICE)) ORD_BAD("ordinary extension structure requires owned SEQUENCE/CHOICE");
+    if(t->is_extensible != 0 && t->is_extensible != 1) ORD_BAD("invalid ordinary extensibility");
+    count = t->kind == ASN1TYPED_TYPE_SEQUENCE ? t->field_count : t->alternative_count;
+    if(t->ordinary_root_count > count || t->ordinary_addition_count != count - t->ordinary_root_count ||
+       (!t->is_extensible && t->ordinary_addition_count)) ORD_BAD("ordinary root/addition count mismatch");
+    if(t->unknown_extension_policy != (!t->is_extensible ? ASN1TYPED_UNKNOWN_EXTENSION_NONE :
+       t->kind == ASN1TYPED_TYPE_SEQUENCE ? ASN1TYPED_UNKNOWN_SEQUENCE_SKIP : ASN1TYPED_UNKNOWN_CHOICE_PRESERVE_OPAQUE)) ORD_BAD("ordinary unknown extension policy mismatch");
+    if(t->kind == ASN1TYPED_TYPE_SEQUENCE) {
+        if(!sequence_extension_storage_valid(t)) ORD_BAD("invalid ordinary SEQUENCE storage");
+        for(i = 0; i < count; ++i) {
+            const asn1typed_field_t *f = &t->fields[i];
+            int root = i < t->ordinary_root_count;
+            if(!f->source_name || !f->source_name[0] ||
+               (root ? f->component_role != ASN1TYPED_COMPONENT_ROOT :
+                f->component_role != ASN1TYPED_COMPONENT_ADDITION && f->component_role != ASN1TYPED_COMPONENT_GROUP)) ORD_BAD("ordinary SEQUENCE component role mismatch");
+            if(f->component_role == ASN1TYPED_COMPONENT_GROUP &&
+               (f->presence != ASN1TYPED_PRESENCE_OPTIONAL || f->type_semantics != ASN1TYPED_FIELD_FIXED_TYPE ||
+                f->type.kind != ASN1TYPED_REF_NAMED || !f->type.module || !f->type.source_name ||
+                strncmp(f->type.source_name, "$inline$", 8) || f->inline_enumerated || f->type.actual_count)) ORD_BAD("invalid owned SEQUENCE addition group reference");
+            if(indexes && (f->has_per_component_index != 1 || f->per_component_index !=
+               (root ? i : i - t->ordinary_root_count))) ORD_BAD("ordinary SEQUENCE component index mismatch");
+            for(j = 0; j < i; ++j)
+                if(!strcmp(f->source_name, t->fields[j].source_name)) ORD_BAD("duplicate ordinary SEQUENCE component name");
+        }
+    } else {
+        if(!count || !t->ordinary_root_count || count > t->alternative_capacity || !t->alternatives) ORD_BAD("invalid ordinary CHOICE storage/root count");
+        for(i = 0; i < count; ++i) {
+            const asn1typed_choice_alternative_t *a = &t->alternatives[i];
+            int root = i < t->ordinary_root_count;
+            size_t rank = 0;
+            if(!a->source_name || !a->source_name[0] || a->is_extension_addition != !root) ORD_BAD("ordinary CHOICE component role mismatch");
+            for(j = 0; j < i; ++j)
+                if(!strcmp(a->source_name, t->alternatives[j].source_name)) ORD_BAD("duplicate ordinary CHOICE name");
+            if(!root) {
+                if(indexes && (a->has_per_root_index || a->per_root_index ||
+                   a->has_per_extension_index != 1 || a->per_extension_index != i - t->ordinary_root_count)) ORD_BAD("ordinary CHOICE extension index mismatch");
+                continue;
+            }
+            if(a->wire_evidence != ASN1TYPED_WIRE_EVIDENCE_RESOLVED ||
+               a->effective_tag_class < ASN1TYPED_TAG_CLASS_UNIVERSAL ||
+               a->effective_tag_class > ASN1TYPED_TAG_CLASS_PRIVATE || a->effective_tag_number < 0) ORD_BAD("ordinary CHOICE root tags unavailable");
+            for(j = 0; j < t->ordinary_root_count; ++j) {
+                const asn1typed_choice_alternative_t *b = &t->alternatives[j];
+                if(i != j && a->effective_tag_class == b->effective_tag_class && a->effective_tag_number == b->effective_tag_number) ORD_BAD("duplicate ordinary CHOICE root tags");
+                if(wire_tag_precedes(b, a)) ++rank;
+            }
+            if(indexes && (a->has_per_root_index != 1 || a->per_root_index != rank ||
+               a->has_per_extension_index || a->per_extension_index)) ORD_BAD("ordinary CHOICE root index mismatch");
+        }
+    }
+#undef ORD_BAD
+    return 0;
+}
+
+int
+asn1typed_ordinary_extension_structure_validate(const asn1typed_type_t *t, char *error, size_t size) {
+    if(ordinary_extension_check(t, 1, error, size)) return -1;
+    if(t->has_valid_ordinary_extension_structure != 1) {
+        if(error && size) snprintf(error, size, "ordinary extension structure not finalized");
+        return -1;
+    }
+    return 0;
+}
+
+asn1typed_wire_finalize_result_e
+asn1typed_ordinary_extension_structure_finalize(asn1typed_type_t *t, char *error, size_t size) {
+    size_t i, j;
+    /* Invalidate before rejecting kind/storage. Corrupt storage is not walked
+     * beyond its declared capacity; flags on the type always become invalid. */
+    if(t) {
+        t->has_valid_ordinary_extension_structure = 0;
+        t->has_valid_per_root_mapping = 0;
+        if(t->fields) for(i = 0; i < t->field_count && i < t->field_capacity; ++i) {
+            t->fields[i].has_per_component_index = 0; t->fields[i].per_component_index = 0;
+        }
+        if(t->alternatives) for(i = 0; i < t->alternative_count && i < t->alternative_capacity; ++i) {
+            t->alternatives[i].has_per_root_index = 0; t->alternatives[i].per_root_index = 0;
+            t->alternatives[i].has_per_extension_index = 0; t->alternatives[i].per_extension_index = 0;
+        }
+    }
+    if(!t || (t->kind != ASN1TYPED_TYPE_SEQUENCE && t->kind != ASN1TYPED_TYPE_CHOICE) ||
+       t->field_count > t->field_capacity || (t->field_count && !t->fields) ||
+       t->alternative_count > t->alternative_capacity || (t->alternative_count && !t->alternatives)) {
+        if(error && size) snprintf(error, size, "invalid ordinary structure storage/kind");
+        return ASN1TYPED_WIRE_FINALIZE_ERROR;
+    }
+    t->has_valid_ordinary_extension_structure = 0;
+    for(i = 0; i < t->field_count; ++i) {
+        t->fields[i].has_per_component_index = 0; t->fields[i].per_component_index = 0;
+    }
+    if(t->kind == ASN1TYPED_TYPE_CHOICE) choice_wire_mapping_invalidate(t);
+    for(i = 0; i < t->alternative_count; ++i) {
+        t->alternatives[i].has_per_extension_index = 0; t->alternatives[i].per_extension_index = 0;
+    }
+    if(ordinary_extension_check(t, 0, error, size)) return ASN1TYPED_WIRE_FINALIZE_UNAVAILABLE;
+    if(t->kind == ASN1TYPED_TYPE_SEQUENCE) {
+        for(i = 0; i < t->field_count; ++i) {
+            t->fields[i].has_per_component_index = 1;
+            t->fields[i].per_component_index = i < t->ordinary_root_count ? i : i - t->ordinary_root_count;
+        }
+    } else {
+        for(i = 0; i < t->alternative_count; ++i) {
+            asn1typed_choice_alternative_t *a = &t->alternatives[i];
+            if(i < t->ordinary_root_count) {
+                size_t rank = 0;
+                for(j = 0; j < t->ordinary_root_count; ++j)
+                    if(wire_tag_precedes(&t->alternatives[j], a)) ++rank;
+                a->has_per_root_index = 1; a->per_root_index = rank;
+            } else {
+                a->has_per_extension_index = 1; a->per_extension_index = i - t->ordinary_root_count;
+            }
+        }
+        /* Root-only legacy validation never accepts known additions. */
+        t->has_valid_per_root_mapping = t->ordinary_addition_count == 0;
+    }
+    t->has_valid_ordinary_extension_structure = 1;
+    return ASN1TYPED_WIRE_FINALIZE_OK;
 }

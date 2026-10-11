@@ -1367,6 +1367,7 @@ ComponentTypeLists:
 		$4->meta_type = AMT_TYPE;
 		$4->expr_type = ASN_CONSTR_SEQUENCE;
 		$4->marker.flags |= EM_OPTIONAL;
+		$4->is_extension_addition_group = 1;
 		asn1p_expr_add($$, $4);
 	}
 	| ComponentTypeLists TOK_VBracketLeft ComponentTypeLists TOK_VBracketRight {
@@ -1374,6 +1375,7 @@ ComponentTypeLists:
 		$3->meta_type = AMT_TYPE;
 		$3->expr_type = ASN_CONSTR_SEQUENCE;
 		$3->marker.flags |= EM_OPTIONAL;
+		$3->is_extension_addition_group = 1;
 		asn1p_expr_add($$, $3);
 	}
 	;

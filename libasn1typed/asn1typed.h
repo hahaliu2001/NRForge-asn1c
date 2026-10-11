@@ -205,7 +205,23 @@ void asn1typed_default_value_clear(asn1typed_default_value_t *);
 int asn1typed_default_value_copy(asn1typed_default_value_t *, const asn1typed_default_value_t *);
 int asn1typed_default_value_equal(const asn1typed_default_value_t *, const asn1typed_default_value_t *);
 
+/* P4 ordinary component structure. A group is one outer addition and owns a
+ * named anonymous SEQUENCE dependency; its inner presence is not flattened. */
+typedef enum asn1typed_component_role_e {
+    ASN1TYPED_COMPONENT_ROOT, ASN1TYPED_COMPONENT_ADDITION,
+    ASN1TYPED_COMPONENT_GROUP
+} asn1typed_component_role_e;
+typedef enum asn1typed_unknown_extension_policy_e {
+    ASN1TYPED_UNKNOWN_EXTENSION_NONE,
+    ASN1TYPED_UNKNOWN_SEQUENCE_SKIP,
+    ASN1TYPED_UNKNOWN_CHOICE_PRESERVE_OPAQUE
+} asn1typed_unknown_extension_policy_e;
+
 typedef struct asn1typed_field_s {
+    asn1typed_component_role_e component_role;
+    int has_per_component_index;
+    /* Separate zero-based root field order / outer extension bitmap order. */
+    size_t per_component_index;
 	/* IOC compatibility: T3's identity with one conventional id- removed.
 	 * New naming consumers should use ioc.symbolic_id for IOC fields.
 	 */
@@ -237,6 +253,9 @@ typedef struct asn1typed_enum_item_s {
 } asn1typed_enum_item_t;
 
 typedef struct asn1typed_choice_alternative_s {
+    int is_extension_addition;
+    int has_per_extension_index;
+    size_t per_extension_index;
 	/* Owned inline ENUMERATED payload; type_ref must be empty when present. */
 	asn1typed_type_t *inline_enumerated;
 	char *source_name;
@@ -254,6 +273,13 @@ typedef struct asn1typed_choice_alternative_s {
 } asn1typed_choice_alternative_t;
 
 struct asn1typed_type_s {
+    /* Ordinary-only structure: counts are physical fields / alternatives.
+     * Legacy APER setters/renderers do not interpret known additions/groups. */
+    int ordinary_structure_owned;
+    size_t ordinary_root_count;
+    size_t ordinary_addition_count;
+    asn1typed_unknown_extension_policy_e unknown_extension_policy;
+    int has_valid_ordinary_extension_structure;
 	/* Ordinary instance key; empty on non-specialized declarations. */
 	asn1typed_type_ref_t ordinary_instance;
 	asn1typed_type_identity_t identity;
@@ -491,6 +517,14 @@ asn1typed_wire_finalize_result_e asn1typed_sequence_extension_structure_finalize
 		asn1typed_type_t *, char *, size_t);
 int asn1typed_sequence_extension_structure_validate(const asn1typed_type_t *,
 		char *, size_t);
+/* P4 checks owned counts, component roles/indexes, group references and policy.
+ * CHOICE root indexes require unique resolved tags; extension indexes follow
+ * declaration order. Unavailable root tags return UNAVAILABLE, never guessed.
+ * Finalize clears valid flags on failure and index flags within accessible
+ * count/capacity bounds (corrupt storage must be repaired before use). No wire I/O. */
+asn1typed_wire_finalize_result_e asn1typed_ordinary_extension_structure_finalize(
+    asn1typed_type_t *, char *, size_t);
+int asn1typed_ordinary_extension_structure_validate(const asn1typed_type_t *, char *, size_t);
 void asn1typed_type_clear(asn1typed_type_t *type);
 int asn1typed_field_set_ioc(asn1typed_field_t *field,
 		const char *symbolic_id, asn1typed_criticality_e criticality,

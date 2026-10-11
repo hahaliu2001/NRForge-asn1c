@@ -106,7 +106,10 @@ int main(void) {
     REQUIRE(again.types[0].fields[0].presence == ASN1TYPED_PRESENCE_DEFAULT);
     REQUIRE(again.types[0].fields[0].default_value.number == 3);
     asn1typed_module_clear(&again);
-    rejected(tree, "BadExtension", NULL, "after extension marker");
+    REQUIRE(!asn1typed_extract_root_graph(tree, "GraphA", "BadExtension", NULL, &again, error, sizeof(error)));
+    REQUIRE(again.types[0].ordinary_root_count == 1 && again.types[0].ordinary_addition_count == 1);
+    REQUIRE(!asn1typed_ordinary_extension_structure_validate(&again.types[0], error, sizeof(error)));
+    asn1typed_module_clear(&again);
     rejected(tree, "BadAlias", NULL, "constrained ordinary alias");
     REQUIRE(!asn1typed_extract_root_graph(tree, "GraphA", "BadActual", NULL, &again, error, sizeof(error)));
     REQUIRE(again.types[1].ordinary_instance.actual_count == 1);

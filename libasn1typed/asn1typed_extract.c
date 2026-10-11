@@ -1216,46 +1216,48 @@ populate_type_profile(asn1p_t *tree, asn1typed_type_t *out, asn1p_expr_t *decl,
 		return 0;
 	}
 	case ASN1TYPED_TYPE_SEQUENCE: {
-		int saw_extension_marker = 0;
-		size_t physical_roots = 0;
-		int one_to_one = 1;
-		TQ_FOR(member, &body->members, next) {
-			if(member->expr_type == A1TC_EXTENSIBLE) {
-				if(saw_extension_marker) {
-					set_error(error, error_size,
-						"%s: multiple SEQUENCE extension markers are unsupported",
-						decl->Identifier);
-					return -1;
-				}
-				saw_extension_marker = 1;
-				out->is_extensible = 1;
-				continue;
-			}
-			if(saw_extension_marker) {
-				set_error(error, error_size,
-					"%s: SEQUENCE component after extension marker is unsupported",
-					decl->Identifier);
-				return -1;
-			}
-			{
-				size_t before = out->field_count;
-				if(add_field_profile(tree, out, member, file, decl->module->ModuleName,
-						error, error_size, ordinary)) return -1;
-				if(out->field_count <= before || out->field_count - before != 1 || physical_roots == SIZE_MAX)
-					one_to_one = 0;
-				else ++physical_roots;
-			}
-		}
-		if(saw_extension_marker) {
-			if(!one_to_one) asn1typed_sequence_set_extension_unsupported(out);
-			else if(asn1typed_sequence_set_extension_structure(out, physical_roots, 0) ||
-				asn1typed_sequence_extension_structure_finalize(out, error, error_size) != ASN1TYPED_WIRE_FINALIZE_OK) {
-				if(error && error_size && !error[0]) set_error(error, error_size, "could not finalize owned SEQUENCE extension structure");
-				return -1;
-			}
-		}
-		return 0;
-	}
+        int extended = 0;
+        size_t roots = 0, additions = 0;
+        TQ_FOR(member, &body->members, next) {
+            asn1typed_field_t *field;
+            if(member->expr_type == A1TC_EXTENSIBLE) {
+                if(extended) { set_error(error, error_size, "%s: multiple SEQUENCE extension markers are unsupported", decl->Identifier); return -1; }
+                extended = out->is_extensible = 1;
+                continue;
+            }
+            if(extended && !ordinary) { set_error(error, error_size, "%s: SEQUENCE component after extension marker is unsupported", decl->Identifier); return -1; }
+            if(member->is_extension_addition_group) {
+                asn1typed_type_ref_t ref = {0};
+                char key[64];
+                if(!ordinary || !extended) { set_error(error, error_size, "%s: extension addition group outside additions", decl->Identifier); return -1; }
+                snprintf(key, sizeof(key), "@group%zu", additions);
+                if(put_inline_constructed_ref(&ref, out, key) ||
+                   asn1typed_type_add_field_ref(out, key, &ref, ASN1TYPED_PRESENCE_OPTIONAL, file, member->_lineno)) {
+                    asn1typed_type_ref_clear(&ref); return -1;
+                }
+                asn1typed_type_ref_clear(&ref);
+            } else if(add_field_profile(tree, out, member, file, decl->module->ModuleName, error, error_size, ordinary)) return -1;
+            field = &out->fields[out->field_count - 1];
+            if(ordinary) {
+                field->component_role = !extended ? ASN1TYPED_COMPONENT_ROOT :
+                    member->is_extension_addition_group ? ASN1TYPED_COMPONENT_GROUP : ASN1TYPED_COMPONENT_ADDITION;
+            }
+            if(extended) ++additions; else ++roots;
+        }
+        if(ordinary) {
+            out->ordinary_structure_owned = 1;
+            out->ordinary_root_count = roots; out->ordinary_addition_count = additions;
+            out->unknown_extension_policy = extended ? ASN1TYPED_UNKNOWN_SEQUENCE_SKIP : ASN1TYPED_UNKNOWN_EXTENSION_NONE;
+            if(asn1typed_ordinary_extension_structure_finalize(out, error, error_size) != ASN1TYPED_WIRE_FINALIZE_OK) return -1;
+        }
+        /* Retain the old root-only evidence for legacy renderers. */
+        if(extended && !additions &&
+           (asn1typed_sequence_set_extension_structure(out, roots, 0) ||
+            asn1typed_sequence_extension_structure_finalize(out, error, error_size) != ASN1TYPED_WIRE_FINALIZE_OK)) return -1;
+        /* Legacy setter invalidates ordinary evidence, so finalize it last. */
+        if(ordinary && asn1typed_ordinary_extension_structure_finalize(out, error, error_size) != ASN1TYPED_WIRE_FINALIZE_OK) return -1;
+        return 0;
+    }
 	case ASN1TYPED_TYPE_SEQUENCE_OF:
 		{
 			asn1typed_size_constraint_t size_constraint = {0};
@@ -1301,23 +1303,29 @@ populate_type_profile(asn1p_t *tree, asn1typed_type_t *out, asn1p_expr_t *decl,
 	case ASN1TYPED_TYPE_CHOICE:
 		{
 			asn1typed_wire_finalize_result_e finalize_result;
+            int extended = 0;
             TQ_FOR(member, &body->members, next) {
                 if(member->expr_type == A1TC_EXTENSIBLE) {
-                    if(TQ_NEXT(member, next) || out->choice_root_only_extension_owned) {
-                        set_error(error, error_size, "%s: CHOICE extension marker/additions are unsupported", decl->Identifier);
-                        return -1;
+                    if(extended || (!ordinary && TQ_NEXT(member, next))) {
+                        set_error(error, error_size, "%s: CHOICE extension marker/additions are unsupported", decl->Identifier); return -1;
                     }
-                    out->is_extensible = 1;
-                    out->choice_root_only_extension_owned = 1;
-                }
+                    extended = out->is_extensible = 1;
+                } else if(extended) ++out->ordinary_addition_count;
+                else ++out->ordinary_root_count;
             }
+            if(ordinary && !out->ordinary_root_count) {
+                set_error(error, error_size, "%s: CHOICE requires a root alternative", decl->Identifier); return -1;
+            }
+            if(!ordinary) out->ordinary_root_count = out->ordinary_addition_count = 0;
+            if(out->is_extensible && !out->ordinary_addition_count) out->choice_root_only_extension_owned = 1;
+            extended = 0;
 		TQ_FOR(member, &body->members, next) {
 			asn1typed_type_ref_t ref;
 			asn1typed_size_constraint_t alternative_size = {0};
 			asn1typed_integer_value_range_t alternative_value_range = {0};
 			const asn1typed_size_constraint_t *size_ptr = NULL;
 			const asn1typed_integer_value_range_t *value_range_ptr = NULL;
-            if(member->expr_type == A1TC_EXTENSIBLE) continue;
+            if(member->expr_type == A1TC_EXTENSIBLE) { extended = 1; continue; }
 			if(!member->Identifier) {
 				set_error(error, error_size,
 					"%s: unnamed CHOICE alternative at line %d",
@@ -1398,6 +1406,7 @@ populate_type_profile(asn1p_t *tree, asn1typed_type_t *out, asn1p_expr_t *decl,
             }
 			{
 				size_t alternative_index = out->alternative_count - 1;
+                if(ordinary) out->alternatives[alternative_index].is_extension_addition = extended;
 				asn1typed_tag_class_e tag_class =
 					owned_tag_class(member->tag.tag_class);
 				if(tag_class != ASN1TYPED_TAG_CLASS_UNKNOWN &&
@@ -1426,8 +1435,11 @@ populate_type_profile(asn1p_t *tree, asn1typed_type_t *out, asn1p_expr_t *decl,
 				decl->Identifier);
 			return -1;
 		}
-		finalize_result = asn1typed_choice_wire_evidence_finalize(out,
-			error, error_size);
+        if(ordinary) {
+            out->ordinary_structure_owned = 1;
+            out->unknown_extension_policy = out->is_extensible ? ASN1TYPED_UNKNOWN_CHOICE_PRESERVE_OPAQUE : ASN1TYPED_UNKNOWN_EXTENSION_NONE;
+            finalize_result = asn1typed_ordinary_extension_structure_finalize(out, error, error_size);
+        } else finalize_result = asn1typed_choice_wire_evidence_finalize(out, error, error_size);
 		if(finalize_result == ASN1TYPED_WIRE_FINALIZE_ERROR) {
 			if(!error || !error_size || !error[0])
 				set_error(error, error_size,
@@ -1563,7 +1575,16 @@ static asn1p_expr_t *inline_declaration(asn1p_module_t *module, const char *name
             if(body) {
                 if(!strcmp(token, "@element") && body->expr_type == ASN_CONSTR_SEQUENCE_OF)
                     node = TQ_FIRST(&body->members);
-                else TQ_FOR(member, &body->members, next)
+                else if(!strncmp(token, "@group", 6)) {
+                    size_t ordinal = 0; int extended = 0;
+                    char expected[64];
+                    TQ_FOR(member, &body->members, next) {
+                        if(member->expr_type == A1TC_EXTENSIBLE) { extended = 1; continue; }
+                        if(!extended) continue;
+                        snprintf(expected, sizeof(expected), "@group%zu", ordinal++);
+                        if(member->is_extension_addition_group && !strcmp(token, expected)) { node = member; break; }
+                    }
+                } else TQ_FOR(member, &body->members, next)
                     if(member->Identifier && !strcmp(member->Identifier, token)) { node = member; break; }
             }
         }
@@ -2788,6 +2809,12 @@ ordinary_check_ast(asn1p_t *tree, asn1p_expr_t *node, const char *owner,
         return -1;
     }
     ++*nodes;
+    if(node->is_extension_addition_group &&
+       (node->is_extension_addition_group != 1 || node->expr_type != ASN_CONSTR_SEQUENCE ||
+        node->Identifier || node->marker.flags != EM_OPTIONAL || node->marker.default_value ||
+        node->lhs_params || node->rhs_pspecs || !TQ_FIRST(&node->members))) {
+        set_error(error, size, "%s: malformed extension addition group", owner); return -1;
+    }
     if(node->lhs_params && node != profile->generic) {
         set_error(error, size, "%s.%s: ordinary type parameters unsupported (%s)",
             owner, node->Identifier ? node->Identifier : "<anonymous>",
