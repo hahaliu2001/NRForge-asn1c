@@ -215,3 +215,5 @@ asn1c/tmp/
 /libasn1typed/check_asn1typed_collection_elements
 /libasn1typed/check_asn1typed_fixed_choice
 /libasn1typed/check_asn1typed_late_choice
+
+/libasn1typed/check_asn1typed_opaque_contents

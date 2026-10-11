@@ -320,3 +320,9 @@ TESTS += check_asn1typed_late_choice
 check_asn1typed_late_choice_SOURCES = $(top_srcdir)/tools/rrc-late-choice/check_fix.c
 check_asn1typed_late_choice_CPPFLAGS = $(check_asn1typed_extract_CPPFLAGS) -DLATE_FIXTURE=\"$(abs_top_srcdir)/tools/rrc-late-choice/late.asn1\"
 check_asn1typed_late_choice_LDADD = $(check_asn1typed_extract_LDADD)
+
+check_PROGRAMS += check_asn1typed_opaque_contents
+TESTS += check_asn1typed_opaque_contents
+check_asn1typed_opaque_contents_SOURCES = $(top_srcdir)/tools/rrc-opaque-contents/check_extract.c
+check_asn1typed_opaque_contents_CPPFLAGS = $(check_asn1typed_extract_CPPFLAGS) -DOPAQUE_FIXTURE=\"$(abs_top_srcdir)/tools/rrc-opaque-contents/opaque.asn1\"
+check_asn1typed_opaque_contents_LDADD = $(check_asn1typed_extract_LDADD)

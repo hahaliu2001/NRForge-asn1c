@@ -583,6 +583,27 @@ use_size_tree_clean(const asn1p_constraint_t *c, unsigned depth) {
 		if(!use_size_tree_clean(c->elements[i], depth + 1)) return 0;
 	return 1;
 }
+/* Detect Contents at every primitive alias layer before the regular SIZE
+ * fallback. Otherwise a plain terminal OCTET STRING could conceal Contents
+ * declared on an intermediate alias when outer fixed evidence is missing. */
+static int
+opaque_contents_declaration(asn1p_expr_t *decl, asn1p_expr_t *body) {
+    asn1p_expr_t *alias = decl;
+    const asn1p_constraint_t *effective = decl->combined_constraints ?
+        decl->combined_constraints : decl->constraints;
+    int seen = 0, valid = is_opaque_contents_constraint(effective);
+    unsigned hops;
+    for(hops = 0; alias && hops < 128; ++hops) {
+        if(is_opaque_contents_constraint(alias->constraints) ||
+                is_opaque_contents_constraint(alias->combined_constraints)) seen = 1;
+        if((alias->constraints && !is_opaque_contents_constraint(alias->constraints)) ||
+                (alias->combined_constraints && !is_opaque_contents_constraint(alias->combined_constraints))) valid = 0;
+        if(alias == body) return seen ? (valid ? 1 : -1) : 0;
+        alias = referenced_type(alias);
+    }
+    return -1;
+}
+
 static int
 extract_effective_use_size(const asn1p_constraint_t *c,
 		asn1typed_size_constraint_t *out, int named) {
@@ -1313,6 +1334,18 @@ populate_type_profile(asn1p_t *tree, asn1typed_type_t *out, asn1p_expr_t *decl,
 				decl->Identifier);
 			return -1;
 		}
+		/* ContentsConstraint qualifies only the carrier bytes. Do not follow
+		 * its payload reference, including self-contained RRC response types.
+		 * Both declared and effective trees must be exact; mixed SIZE/value
+		 * clauses must never disappear through this compatibility path. */
+		if(primitive == ASN1TYPED_PRIMITIVE_OCTET_STRING) {
+			int opaque = opaque_contents_declaration(decl, body);
+			if(opaque < 0) {
+				set_error(error, error_size, "%s: unsupported opaque primitive constraint", decl->Identifier);
+				return -1;
+			}
+			if(opaque) return 0;
+		}
 		if((primitive == ASN1TYPED_PRIMITIVE_INTEGER ?
 			extract_integer_value_range(constraint, &value_range) :
 			extract_size_constraint(constraint, &size_constraint,
@@ -1459,7 +1492,12 @@ populate_type_profile(asn1p_t *tree, asn1typed_type_t *out, asn1p_expr_t *decl,
 							member->Identifier, error, error_size)) return -1;
 					return -1;
 				}
-				if(primitive_accepts_exact_size(primitive)) {
+				if(primitive == ASN1TYPED_PRIMITIVE_OCTET_STRING &&
+					is_opaque_contents_constraint(member->constraints) &&
+					(!member->combined_constraints ||
+					 is_opaque_contents_constraint(member->combined_constraints))) {
+					/* Same opaque ownership boundary as SEQUENCE fields. */
+				} else if(primitive_accepts_exact_size(primitive)) {
 					if(extract_octet_bit_use_size(member, &alternative_size)) {
 						set_error(error, error_size, "%s.%s: inline constrained type is unsupported", decl->Identifier, member->Identifier);
 						return -1;

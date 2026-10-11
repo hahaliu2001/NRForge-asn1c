@@ -1,0 +1,137 @@
+{
+  "aper_regression": {
+    "E1AP": {
+      "extraction_and_generation": "PASS",
+      "historical_headers_byte_identical": 432,
+      "messages": 72
+    },
+    "F1AP": {
+      "extraction_and_generation": "PASS",
+      "historical_headers_byte_identical": 948,
+      "messages": 158
+    },
+    "NGAP": {
+      "extraction_and_generation": "PASS",
+      "historical_headers_byte_identical": 393,
+      "messages": 131
+    }
+  },
+  "baseline_commit": "9c5f18a18cdc68d335a1365995ff0a1c11250261",
+  "batch": "RRC-P14",
+  "benchmark_run": false,
+  "branch": "feature/f1ap-cpp-aper",
+  "compiler": "gcc (Ubuntu 13.3.0-6ubuntu2~24.04) 13.3.0",
+  "contract": "exact opaque OCTET STRING ContentsConstraint for named primitive and CHOICE contexts; check full alias chain and effective evidence before SIZE fallback; own bytes without contained dependency or nested decode; reject mixed and malformed shapes",
+  "existing_parameter_default_allocation_failure_positions": 428,
+  "focused_completion_modes": 3,
+  "focused_generated_roots": 7,
+  "focused_goldens": 16,
+  "limitations": [
+    "LocationMeasurementIndication renderer output has an existing NULL-extension unused-io warning and fails strict compilation",
+    "Newly rendered roots have strict compilation only; no new real-message wire qualification",
+    "P8/P9 SDK and qualification receipts remain unchanged; expanded delivery is deferred",
+    "Carrier bytes qualify only opaque framing; no contained payload dependency or nested codec qualification"
+  ],
+  "merge": false,
+  "native_pass_total": 69,
+  "native_regressions": {
+    "libaper": {
+      "ERROR": 0,
+      "FAIL": 0,
+      "PASS": 10,
+      "TOTAL": 10,
+      "log_sha256": "1158b75f5b24db73435460d958091a958ac126d5ec03c23bcb9f9aca6a961373"
+    },
+    "libasn1fix": {
+      "ERROR": 0,
+      "FAIL": 0,
+      "PASS": 2,
+      "TOTAL": 2,
+      "log_sha256": "704941a8dde278325d93360ca38a6d115e21d5039b440891e5b2f62a7cb0b606"
+    },
+    "libasn1parser": {
+      "ERROR": 0,
+      "FAIL": 0,
+      "PASS": 1,
+      "TOTAL": 1,
+      "log_sha256": "7e5e21619b2036dcf772754e1d36f6417d598f06354ee3201ade7ed1a354282d"
+    },
+    "libasn1typed": {
+      "ERROR": 0,
+      "FAIL": 0,
+      "PASS": 50,
+      "TOTAL": 50,
+      "log_sha256": "92cd3778daf67b0f45d61e5a08476805681534b8eb8ab23f8a40ad305717d86e"
+    },
+    "libngap": {
+      "ERROR": 0,
+      "FAIL": 0,
+      "PASS": 3,
+      "TOTAL": 3,
+      "log_sha256": "12dc1d2f7373ffbfb62133f4cbb73dc84aa68c32f2b7c5588dca2578d7771641"
+    },
+    "libuper": {
+      "ERROR": 0,
+      "FAIL": 0,
+      "PASS": 3,
+      "TOTAL": 3,
+      "log_sha256": "84ea6843252344c64aa517c47e3e88f61b76dc85da6c51c6666a4f9d23fcce9f"
+    }
+  },
+  "new_real_message_wire_qualification": false,
+  "new_strict_compile_results": {
+    "BCCH-DL-SCH-Message": "PASS",
+    "DL-CCCH-Message": "PASS",
+    "DL-DCCH-Message": "PASS",
+    "LocationMeasurementIndication": "BLOCKED_EXISTING_RENDERER",
+    "LoggedMeasurementConfiguration-r16": "PASS",
+    "RRCReconfiguration": "PASS",
+    "RRCReconfigurationComplete": "PASS",
+    "RRCReconfigurationSidelink": "PASS",
+    "RRCReestablishment": "PASS",
+    "RRCRelease": "PASS",
+    "RRCResume": "PASS",
+    "RRCResumeComplete": "PASS",
+    "RRCSetup": "PASS",
+    "RemoteUEInformationSidelink-r17": "PASS",
+    "SCCH-Message": "PASS",
+    "SIB1": "PASS"
+  },
+  "next_task": "RRC-P15: constructed alias inherited constraints; separate NULL-extension renderer warning fix remains recorded",
+  "preserved_base_blob_count": 2658,
+  "preserved_base_tree_inventory_sha256": "2d94fe9ae246c2526f4ec9dd97b7a77218312a3665c7aaca79f687e4c3fb4823",
+  "production_changes": [
+    "libasn1typed/asn1typed_extract.c"
+  ],
+  "readiness_summary": {
+    "BLOCKED_EXTRACTION": 2,
+    "PASS": 83
+  },
+  "renderer_changes": false,
+  "runtime_changes": false,
+  "sanitizer": {
+    "address": "PASS",
+    "leak_scan": "NOT_RUN: environment cannot enumerate /proc tasks",
+    "scope": "current extractor and focused ownership test directly instrumented",
+    "undefined": "PASS"
+  },
+  "schema_changes": false,
+  "sdk_delivered_roots": 64,
+  "sdk_rebuild": false,
+  "source_sha256": {
+    ".gitignore": "9c314a10d1452f711e5ea28865b7a79ebe67d7fb99925e0cd7f996c560f78efc",
+    "Makefile.am": "242acba24c236aa37c7daf8129904e7699e6f4be4d0a20dfa8a5fe6ab53e85e8",
+    "docs/rrc-opaque-contents-closeout.md": "de6a67e3e31b3957d2c12e48b1c9b7c64fe3e784113cd70900d8340477388d2e",
+    "libasn1typed/Makefile.am": "6e78dc32175e12f03ef1232bcb21218957e9e80762b1319ddccb2bdbfaa4fe0d",
+    "libasn1typed/asn1typed_extract.c": "fcd3d3b4385fbd62685857de14f1a93f7e3080aaf748dbfaa898f97d4c03a368",
+    "tools/rrc-opaque-contents/README.md": "9817feff357aca6a118264f7b0f7c0d1c7fcc6cf6a1e8dda4025900271be1b49",
+    "tools/rrc-opaque-contents/check.py": "d1a1719e92177344c2bfc73aa8f3b26238ce8eebeaad107e907da82539003e54",
+    "tools/rrc-opaque-contents/check_extract.c": "961f54803e1da92d1310c7240f04aa0ddb2dd0da5d7e01f537d5b01fb7b598ac",
+    "tools/rrc-opaque-contents/check_generated.cpp": "5239e54898a9fd9f0142e58558681ce3aa5619d7daa612db68945c3f2e2abbdc",
+    "tools/rrc-opaque-contents/contract.md": "7e48ddb667e7aa0e5b6a84d52bfa358be72aea71afdc33c412b725ab8f5dccad",
+    "tools/rrc-opaque-contents/opaque.asn1": "08fde09bbc315127e59063db30e6228706631d1d864643956be810d14cd8e5d1",
+    "tools/rrc-opaque-contents/readiness.json": "a9896985ce199f12dd15a4f3c7dd08ec13790f0b160830a73740aab00f148597"
+  },
+  "status": "VERIFIED_PENDING_INDEPENDENT_ACCEPTANCE",
+  "unchanged_accepted_rrc_headers": 77
+}

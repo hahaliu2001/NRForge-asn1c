@@ -1,0 +1,19 @@
+Opaque DEFINITIONS AUTOMATIC TAGS ::= BEGIN
+Inner ::= INTEGER (0..3)
+Base ::= OCTET STRING
+Payload ::= Base (CONTAINING Inner)
+Alias ::= Payload
+Restricted ::= Payload (SIZE(1..3))
+Indirect ::= Restricted
+InlineChoice ::= CHOICE { empty NULL, payload OCTET STRING (CONTAINING Inner) }
+NamedChoice ::= CHOICE { empty NULL, payload Payload }
+Carrier ::= SEQUENCE { required Payload, optional OCTET STRING (CONTAINING Inner) OPTIONAL }
+Self ::= OCTET STRING (CONTAINING Self)
+UnsupportedInner ::= REAL
+UnsupportedPayload ::= OCTET STRING (CONTAINING UnsupportedInner)
+Sized ::= OCTET STRING (SIZE(1..3))
+Mixed ::= OCTET STRING (SIZE(1..3)) (CONTAINING Inner)
+BadChoice ::= CHOICE { empty NULL, payload OCTET STRING (SIZE(1..3)) (CONTAINING Inner) }
+BadSequence ::= SEQUENCE { payload OCTET STRING (SIZE(1..3)) (CONTAINING Inner) }
+Bits ::= BIT STRING (CONTAINING Inner)
+END

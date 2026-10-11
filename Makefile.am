@@ -145,3 +145,9 @@ EXTRA_DIST += tools/rrc-late-choice/contract.md tools/rrc-late-choice/check.py \
  tools/rrc-late-choice/README.md tools/rrc-late-choice/readiness.json \
  tools/rrc-late-choice/verification.json tools/rrc-late-choice/review.md \
  docs/rrc-late-choice-tag-completion-closeout.md
+
+EXTRA_DIST += tools/rrc-opaque-contents/contract.md tools/rrc-opaque-contents/check.py \
+ tools/rrc-opaque-contents/opaque.asn1 tools/rrc-opaque-contents/check_extract.c \
+ tools/rrc-opaque-contents/check_generated.cpp tools/rrc-opaque-contents/README.md \
+ tools/rrc-opaque-contents/readiness.json tools/rrc-opaque-contents/verification.json \
+ tools/rrc-opaque-contents/review.md docs/rrc-opaque-contents-closeout.md
