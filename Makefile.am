@@ -115,3 +115,7 @@ EXTRA_DIST += docs/rrc-python-sdk-contract-and-closeout.md \
  tools/rrc-python/run_installed.py \
  tools/rrc-python/verification-summary.json \
  tools/rrc-python/review.md
+
+EXTRA_DIST += docs/rrc-remaining-blockers-and-batch-plan.md \
+ tools/rrc-blockers/study.py tools/rrc-blockers/inspect.c tools/rrc-blockers/study.json \
+ tools/rrc-blockers/README.md tools/rrc-blockers/verification.json tools/rrc-blockers/review.md

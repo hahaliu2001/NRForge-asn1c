@@ -1,0 +1,80 @@
+{
+  "baseline_commit": "6cf38c3e6d8ab09d8298214b182eb8757c7aab80",
+  "batch": "RRC-P10",
+  "benchmark_run": false,
+  "branch": "feature/f1ap-cpp-aper",
+  "codec_changes": false,
+  "compiler": "gcc (Ubuntu 13.3.0-6ubuntu2~24.04) 13.3.0",
+  "fixed_choice_instances": {
+    "all_clones": 264,
+    "all_tagged_clones": 256,
+    "all_untagged_clones": 8,
+    "matched_fixed_tagged": 2,
+    "matched_fixed_untagged": 8,
+    "missing_owned": 10
+  },
+  "generator_scope": "extract/render inspection only; no C++ generated-header compilation or new wire qualification",
+  "log_sha256": {
+    "p10-recheck.log": "c726ae91054363a88c7d4338f1c0b4138992b87ad137e20858ec92e8b2034ee3",
+    "p10-study-matched.log": "c726ae91054363a88c7d4338f1c0b4138992b87ad137e20858ec92e8b2034ee3"
+  },
+  "merge": false,
+  "named_seeds": 15,
+  "next_task": "RRC-P11: closed nonextensible singleton INTEGER normalization; no predicted message unlock count",
+  "only_existing_file_change": "Makefile.am distribution entries",
+  "preserved_baseline_blob_inventory_sha256": "2b43705162329d824fccb5a954f99919700b103ad76aa11c07fbd0bafa142821",
+  "preserved_baseline_blobs": 2616,
+  "producer_inputs_checked": 129,
+  "qualification_changes": false,
+  "read_only": true,
+  "repeated_probe_binary_sha256": {
+    "ast": "619444a0f4cdcbc46512591dfaa05008734e2d988b511401be1fdea39ce456fc",
+    "graph": "7e0ce6b340fb05ed617e1b6de4bedd41077509e1bbf9c4b464e76ecdac29287c",
+    "inspect": "a3426df687260af99b545dda37326b9eb79e56081b87a4f11ff94f5a985c6d8c",
+    "matrix": "afa14b64fb2e722e7608e4800bc8aeed705e7bbaae8359adf72eae902ba7ab71"
+  },
+  "repeated_raw_sha256": {
+    "ast.json": "41f3524fdc7bdad93083f3a2892b6060a2492ca36418e2134ea32332061ba2f7",
+    "fixed.json": "1256dceef5166cd8a1801b4ec7691df69436ca7fc0f5d48d120530122b7d7e67",
+    "graphs.json": "432f9366f024d0cc1d3d5024b6d0a53d88c33d8448ff4a61c9be1c7b45c453db",
+    "matrix.json": "269e776d365a3ce1ea24d804b70313914bc6f9292544719b25e091dc4560e945",
+    "seeds.json": "73cbc37dc91d2218e41b63ac46f8a86a120fa03bcdb5f805ced5956c7fc40abe"
+  },
+  "repeated_report_byte_identical": true,
+  "schema_changes": false,
+  "sdk_changes": false,
+  "source_authority_sha256": "72e0ad18d185f88180039ae6edb1dac15340f4f9839b24c91596fbf28dfdaac7",
+  "source_sha256": {
+    "Makefile.am": "bbb72b6c1f1da91e4df8a75866a10098a9ebbd7792b87eb76d98f3479068bd3e",
+    "docs/rrc-remaining-blockers-and-batch-plan.md": "7d41e296f02fcba9ad80b59853dcbdc73db15dbfc7df894adf06e1530173e617",
+    "tools/rrc-blockers/README.md": "12d2112d699f8c495025f9f1f5c14d3a2e375829480d2d23ce433ff98d66fd9e",
+    "tools/rrc-blockers/inspect.c": "4c40973cf347975f3d9ab35b85254f85b7233370bce4cab607427ab43369cdf6",
+    "tools/rrc-blockers/study.json": "62d99eca6a69e4112d30663a0861dfc635ebaf593953ec776a5d9de08f01e0f0",
+    "tools/rrc-blockers/study.py": "686daf8050eb3ff9a9dca636081e43e45db24959913a04dc6117426b4ec59d81"
+  },
+  "source_shape_candidates": 309,
+  "static_unresolved_references": 0,
+  "status": "VERIFIED_PENDING_INDEPENDENT_ACCEPTANCE",
+  "strict_c_flags": [
+    "-std=gnu11",
+    "-Wall",
+    "-Wextra",
+    "-Werror",
+    "-DHAVE_CONFIG_H"
+  ],
+  "summary": {
+    "blocked_extraction": 16,
+    "blocked_render": 5,
+    "first_failure_families": {
+      "constrained_collection_element": 5,
+      "constructed_alias": 1,
+      "opaque_containing_context": 6,
+      "parameterized_choice_tags": 5,
+      "singleton_integer": 4
+    },
+    "requested": 85,
+    "source_type_declarations": 2630,
+    "supported": 64,
+    "unchanged_supported_header_hashes": 64
+  }
+}
