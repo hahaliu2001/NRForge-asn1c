@@ -177,3 +177,30 @@ fragmentation, nested combinations, future typed extensions, contained/vendor
 semantics, application policy and live interoperability remain unqualified.
 Shared production sources are unchanged and historical NGAP/F1AP evidence is
 retained. Next: **E1-P5**, installable C++ SDK delivery; Python follows as E1-P6.
+
+
+## E1-P5 installed C++ SDK delivery
+
+E1AP C++ source SDK 0.1.0 delivers the complete frozen 72-message / 40-procedure
+registry through `NRForgeE1AP` and `NRForge::e1ap`, with protocol-qualified public
+headers, separate archive/provenance, source/schema/generated locks and an exact
+header/library fingerprint guard. The full archive link gate and install receipt
+pass; 76 production ELF objects and all 72 registration definitions reconcile.
+
+Final relocated consumers pass all 72 installed public slots and six populated
+native-reference Setup outcomes in both CU-CP/CU-UP directions while original
+source/schema/build/install paths are unavailable. Seal mutation negatives,
+wrong-profile core archives, direct-header identity negatives and two core
+coexistence orders pass. Explicit rejected empty fixtures stand in for the
+unbuilt historical NGAP/F1AP generated registries; complete historical SDK
+coinstallation is not claimed. Independent repeated generation preserves 516
+sealed public/production files and identity, while all 362 qualified E1-P4
+production outputs remain unchanged. Full NGAP/F1AP generation nonregression
+preserves 658/793 files and logical manifests for 131/158 messages; shared
+functional gates pass 10/3/42 tests.
+
+See [E1-P5 SDK contract](e1ap-cpp-sdk-contract.md),
+[E1-P5 closeout](e1ap-cpp-sdk-closeout.md), `tools/e1ap-sdk/` receipts and
+independent `review.md`. E1-P4 finite qualification limits remain unchanged;
+no benchmark, ABI promise, live interoperability or remote CI PASS is claimed.
+Next scope: **E1-P6 — Python SDK delivery**.

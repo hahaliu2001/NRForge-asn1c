@@ -1,0 +1,80 @@
+name: E1AP installed C++ SDK
+on:
+  workflow_dispatch:
+  push:
+    branches: [feature/f1ap-cpp-aper]
+    paths: ['cmake/**', 'libaper/**', 'libngap/**', 'libasn1typed/**', 'tools/ngap-dispatch/**', 'tools/e1ap-sdk/**', 'tools/e1ap-sdk-consumer/**', 'tools/ngap-sdk/**', 'tools/ngap-sdk-consumer/**', 'tools/e1ap-wire-qualification/**', 'tools/e1ap-readiness/source-manifest.json', 'tools/full-pdu-qualification/**', 'tools/unified-ngap-qualification/**', 'tools/n11-envelope-qualification/**', '.github/workflows/e1ap-sdk.yml']
+  pull_request:
+    paths: ['cmake/**', 'libaper/**', 'libngap/**', 'libasn1typed/**', 'tools/ngap-dispatch/**', 'tools/e1ap-sdk/**', 'tools/e1ap-sdk-consumer/**', 'tools/ngap-sdk/**', 'tools/ngap-sdk-consumer/**', 'tools/e1ap-wire-qualification/**', 'tools/e1ap-readiness/source-manifest.json', 'tools/full-pdu-qualification/**', 'tools/unified-ngap-qualification/**', 'tools/n11-envelope-qualification/**', '.github/workflows/e1ap-sdk.yml']
+permissions:
+  contents: read
+concurrency:
+  group: e1ap-sdk-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  installed-consumer:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: actions/checkout@v5
+        with:
+          repository: hahaliu2001/NRForge-RAN
+          ref: d6e514a33ec3695925c24aa292900514b371b074
+          path: frozen-schema
+          token: ${{ secrets.NRFORGE_SCHEMA_READ_TOKEN }}
+      - name: Install dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq autoconf automake libtool bison flex cmake binutils lld
+          python3 -m pip install pycrate==0.7.11
+      - name: Build generator and shared functional gates
+        run: |
+          autoreconf -iv
+          ./configure --disable-shared
+          for library in libasn1common libasn1parser libasn1fix libasn1print libasn1typed; do
+            make -C "$library" -j2
+          done
+          make -C tools asn1typed_ngap_dispatch
+          set -o pipefail
+          make -C libaper check | tee "$RUNNER_TEMP/libaper-check.log"
+          make -C libngap check | tee "$RUNNER_TEMP/libngap-check.log"
+          make -C libasn1typed check | tee "$RUNNER_TEMP/libasn1typed-check.log"
+      - name: Build and install E1AP SDK
+        run: |
+          python3 tools/e1ap-sdk/build.py --repo "$GITHUB_WORKSPACE" --asn1-root "$GITHUB_WORKSPACE/frozen-schema/src" --work "$RUNNER_TEMP/e1-work" --prefix "$RUNNER_TEMP/e1-install" --jobs 1
+      - name: Reproducible generation and historical protocol regression
+        run: |
+          mkdir "$RUNNER_TEMP/e1-repeat"
+          tools/asn1typed_ngap_dispatch tools/e1ap-readiness/e1ap-rel18.modules "$GITHUB_WORKSPACE/frozen-schema/src" "$RUNNER_TEMP/e1-work/messages.txt" "$RUNNER_TEMP/e1-repeat" --e1ap
+          python3 tools/ngap-dispatch/seal_sdk.py --repo "$GITHUB_WORKSPACE" --generated "$RUNNER_TEMP/e1-repeat" --profile e1ap
+          python3 tools/e1ap-sdk/check_reproducibility.py --generated "$RUNNER_TEMP/e1-work/generated" --repeat "$RUNNER_TEMP/e1-repeat" --output "$RUNNER_TEMP/e1-reproducibility.json"
+          git show 96a4449b3dbd2d3c1911a9d5af5f087ad1c899a2:tools/ngap-dispatch/generate.c > "$RUNNER_TEMP/baseline-generate.c"
+          gcc -DHAVE_CONFIG_H -I. -Ilibasn1common -Ilibasn1parser -Ilibasn1fix -Ilibasn1typed -Itools "$RUNNER_TEMP/baseline-generate.c" tools/developer_tree.o libasn1typed/.libs/libasn1typed_extract.a libasn1typed/.libs/libasn1typed.a libasn1fix/.libs/libasn1fix.a libasn1parser/.libs/libasn1parser.a libasn1common/.libs/libasn1common.a -lm -o "$RUNNER_TEMP/baseline-generator"
+          python3 tools/e1ap-sdk/check_regression.py --asn1-root "$GITHUB_WORKSPACE/frozen-schema/src" --baseline-generator "$RUNNER_TEMP/baseline-generator" --work "$RUNNER_TEMP/e1-regression" --output "$RUNNER_TEMP/e1-regression.json"
+      - name: Independent native fixture reproduction and installed consumers
+        run: |
+          python3 tools/e1ap-sdk-consumer/prepare.py --generated-root "$RUNNER_TEMP/e1-work/generated" --asn1-root "$GITHUB_WORKSPACE/frozen-schema/src" --work "$RUNNER_TEMP/e1-native"
+          git diff --exit-code -- tools/e1ap-sdk-consumer/e1_setup.cpp tools/e1ap-sdk-consumer/native-fixtures.json
+          python3 tools/e1ap-sdk-consumer/prepare_all.py --generated "$RUNNER_TEMP/e1-work/generated" --output "$RUNNER_TEMP/e1-slots"
+          python3 tools/e1ap-sdk-consumer/isolate.py --repo "$GITHUB_WORKSPACE" --schema "$GITHUB_WORKSPACE/frozen-schema/src" --sdk-work "$RUNNER_TEMP/e1-work" --prefix "$RUNNER_TEMP/e1-install" --all-slots "$RUNNER_TEMP/e1-slots" --work "$RUNNER_TEMP/isolated-consumers" --linker lld
+          python3 tools/e1ap-sdk/verify_seal.py --repo "$GITHUB_WORKSPACE" --generated "$RUNNER_TEMP/e1-work/generated" --build "$RUNNER_TEMP/e1-work/build" --work "$RUNNER_TEMP/e1-seal-negatives"
+          python3 tools/e1ap-sdk/record.py --repo "$GITHUB_WORKSPACE" --work "$RUNNER_TEMP/e1-work" --prefix "$RUNNER_TEMP/e1-install" --isolation "$RUNNER_TEMP/isolated-consumers" --seal-negatives "$RUNNER_TEMP/e1-seal-negatives" --functional-log "$RUNNER_TEMP/libaper-check.log" --functional-log "$RUNNER_TEMP/libngap-check.log" --functional-log "$RUNNER_TEMP/libasn1typed-check.log" --reproducibility "$RUNNER_TEMP/e1-reproducibility.json" --regression "$RUNNER_TEMP/e1-regression.json" --output "$RUNNER_TEMP/e1-sdk-evidence.json"
+      - name: Preserve evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e1ap-sdk-evidence
+          path: |
+            ${{ runner.temp }}/e1-work/*.log
+            ${{ runner.temp }}/e1-work/build-summary.json
+            ${{ runner.temp }}/isolated-consumers/**/*.log
+            ${{ runner.temp }}/isolated-consumers/*summary.json
+            ${{ runner.temp }}/e1-sdk-evidence.json
+            ${{ runner.temp }}/e1-reproducibility.json
+            ${{ runner.temp }}/e1-regression.json
+            ${{ runner.temp }}/*-check.log
+            ${{ runner.temp }}/e1-seal-negatives/*.log
+            ${{ runner.temp }}/e1-seal-negatives/summary.json

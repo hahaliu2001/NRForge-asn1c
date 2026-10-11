@@ -26,14 +26,14 @@ def main():
     parser.add_argument('--repo', type=Path, required=True)
     parser.add_argument('--generated', type=Path, required=True)
     parser.add_argument('--version', default='0.1.0')
-    parser.add_argument('--profile', choices=('ngap', 'f1ap'), default='ngap')
+    parser.add_argument('--profile', choices=('ngap', 'f1ap', 'e1ap'), default='ngap')
     args = parser.parse_args()
     if args.version != '0.1.0':
         raise ValueError('only the current SDK contract version 0.1.0 is supported')
     repo, generated = args.repo.resolve(), args.generated.resolve()
     profile = args.profile
-    core_header = "f1ap_pdu.hpp" if profile == "f1ap" else "pdu.hpp"
-    core_source = "f1ap_pdu.cpp" if profile == "f1ap" else "pdu.cpp"
+    core_header = profile + "_pdu.hpp" if profile != "ngap" else "pdu.hpp"
+    core_source = profile + "_pdu.cpp" if profile != "ngap" else "pdu.cpp"
     sealed_names = {'sdk-lock.cmake', 'sdk-provenance.json', 'sdk_version.hpp',
                     'sdk_identity.cpp', 'sdk_link_check.cpp', 'sdk-public'}
     if any((generated / name).exists() for name in sealed_names):
@@ -43,12 +43,12 @@ def main():
         raise ValueError('missing successful owned/deterministic generation evidence')
     if manifest.get('parse') != 'PASS' or manifest.get('fix') != 'PASS':
         raise ValueError('missing parse/fix success')
-    authority_path = repo / ('tools/f1ap-readiness/source-manifest.json' if profile == 'f1ap' else 'tools/n11-envelope-qualification/source-manifest.json')
+    authority_path = repo / ('tools/' + profile + '-readiness/source-manifest.json' if profile != 'ngap' else 'tools/n11-envelope-qualification/source-manifest.json')
     authority = json.loads(authority_path.read_text())
     release = authority.get('release', authority.get('standard'))
     if manifest['schema']['pdu_type'] != profile.upper() + '-PDU':
         raise ValueError('protocol identity mismatch')
-    if manifest['message_count'] != (158 if profile == 'f1ap' else 131) or len(manifest['schema']['procedures']) != (94 if profile == 'f1ap' else 81):
+    if manifest['message_count'] != {'ngap': 131, 'f1ap': 158, 'e1ap': 72}[profile] or len(manifest['schema']['procedures']) != {'ngap': 81, 'f1ap': 94, 'e1ap': 40}[profile]:
         raise ValueError('incomplete frozen protocol registry')
     root = Path(manifest['source_inputs']['asn1_root']).resolve()
     module_paths = [row['path'] for row in authority['modules']]

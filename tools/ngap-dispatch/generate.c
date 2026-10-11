@@ -242,7 +242,7 @@ static int build_file(const char *dir,const struct message *rows,size_t count) {
     if(!strcmp(profile,"e1ap")) {
         fprintf(f,"cmake_minimum_required(VERSION 3.20)\nproject(nrforge_e1ap_dispatch LANGUAGES CXX)\nset(NRFORGE_SOURCE_ROOT \"\" CACHE PATH \"NRForge-asn1c source directory\")\nif(NOT EXISTS \"${NRFORGE_SOURCE_ROOT}/libngap/e1ap_pdu.cpp\")\n  message(FATAL_ERROR \"Set NRFORGE_SOURCE_ROOT to NRForge-asn1c\")\nendif()\nadd_library(nrforge_e1ap STATIC\n  \"${NRFORGE_SOURCE_ROOT}/libngap/e1ap_pdu.cpp\"\n  \"${NRFORGE_SOURCE_ROOT}/libaper/runtime.cpp\"\n  registry.cpp\n");
         for(i=0;i<count;++i) fprintf(f,"  adapters/%s.cpp\n",rows[i].name);
-        fprintf(f,")\ntarget_compile_features(nrforge_e1ap PUBLIC cxx_std_20)\ntarget_include_directories(nrforge_e1ap PUBLIC \"${CMAKE_CURRENT_SOURCE_DIR}\" \"${NRFORGE_SOURCE_ROOT}/libngap\" \"${NRFORGE_SOURCE_ROOT}/libaper\")\n");
+        fprintf(f,")\nif(EXISTS \"${CMAKE_CURRENT_SOURCE_DIR}/sdk-lock.cmake\")\n  include(\"${NRFORGE_SOURCE_ROOT}/cmake/NrforgeNgapSdk.cmake\")\n  nrforge_verify_sdk_lock()\n  target_sources(nrforge_e1ap PRIVATE sdk_identity.cpp)\n  nrforge_package_sdk(nrforge_e1ap e1ap)\nelse()\ntarget_compile_features(nrforge_e1ap PUBLIC cxx_std_20)\ntarget_include_directories(nrforge_e1ap PUBLIC \"${CMAKE_CURRENT_SOURCE_DIR}\" \"${NRFORGE_SOURCE_ROOT}/libngap\" \"${NRFORGE_SOURCE_ROOT}/libaper\")\nendif()\n");
         return finish_file(f);
     }
     if(!strcmp(profile,"f1ap")) {
