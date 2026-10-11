@@ -82,3 +82,10 @@ EXTRA_DIST += tools/rrc-uper/probe.c tools/rrc-uper/generate.py tools/rrc-uper/c
  tools/rrc-uper/review-rrc-p6.md docs/rrc-cpp-uper-compound-contract-and-closeout.md
 EXTRA_DIST += tools/rrc-uper/observe_oracles.py tools/rrc-uper/oracle-observation.json \
  tools/rrc-uper/aper-regression-rrc-p6.json
+EXTRA_DIST += tools/rrc-wire-qualification/qualify.py tools/rrc-wire-qualification/native_values.py \
+ tools/rrc-wire-qualification/semantic_bridge.py tools/rrc-wire-qualification/audit_reference.py \
+ tools/rrc-wire-qualification/compound.asn1 tools/rrc-wire-qualification/requirements.txt \
+ tools/rrc-wire-qualification/README.md tools/rrc-wire-qualification/qualification.json \
+ tools/rrc-wire-qualification/qualification-sanitized.json tools/rrc-wire-qualification/reference-boundary.json \
+ tools/rrc-wire-qualification/verification.json tools/rrc-wire-qualification/review.md \
+ docs/rrc-cpp-uper-p7-wire-qualification-closeout.md

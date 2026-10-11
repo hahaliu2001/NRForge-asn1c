@@ -1,0 +1,154 @@
+{
+  "batch": "RRC-P7",
+  "baseline_commit": "e3d7f359f7dac56bfe6d4f461b1c6991665dc912",
+  "branch": "feature/f1ap-cpp-aper",
+  "checks_status": "PASS",
+  "full_rrc_wire_coverage": false,
+  "installed_sdk": false,
+  "source_sha256": {
+    "tools/rrc-wire-qualification/README.md": "97fba8c7816ee9080633cfc029a48fc66876f3a11380816ace2889ed42a1d4f6",
+    "tools/rrc-wire-qualification/audit_reference.py": "97602c4c99c7cb99ea1ff61418dbcf482af2bf60a26ecc52f654565dc3804ae4",
+    "tools/rrc-wire-qualification/compound.asn1": "8e7c003886a90dd2fb7a1b0e2920e1da5e6a7a5a1979165d035362d8122f4831",
+    "tools/rrc-wire-qualification/native_values.py": "98dadeefd5c35456116847ced35f0d58c066dbfc8b7eafc58bc02e88feb81179",
+    "tools/rrc-wire-qualification/qualification-sanitized.json": "9c9de29172819ee2755397305d2b0e9670cb056794d0110b8ef3be055a73338d",
+    "tools/rrc-wire-qualification/qualification.json": "7bd8487677f88f1197101b1bff2e02058318542442b88290eccdf2f4aeb499c2",
+    "tools/rrc-wire-qualification/qualify.py": "9a54ac313d8db4b166ac89c956c392e9494ee909c948a1f231ffcd5f889c3e8f",
+    "tools/rrc-wire-qualification/reference-boundary.json": "c7d74a7e2824a523dc9487e57e43379fc15568e4d4a2de1e3ebf7f83167ff0b6",
+    "tools/rrc-wire-qualification/requirements.txt": "22ecf9e5d3cfe843a1616e5f343c2988bed2ac5cb47f7071cb2a584dfea3ee7c",
+    "tools/rrc-wire-qualification/semantic_bridge.py": "b06f66868489947f97853eb105952bdc7d6938b34224870c262a7608f9694e8f",
+    "Makefile.am": "0c74f8145edb1f9b4378a6b4454fd19f26d619df18b569f0621fbc7d3314ae3c",
+    "docs/rrc-cpp-uper-p7-wire-qualification-closeout.md": "b09eb43ae9d1fad1a39adf316759c2f7d68da17c72818970da4a34b7607c754f"
+  },
+  "compiler": "c++ (Ubuntu 13.3.0-6ubuntu2~24.04) 13.3.0",
+  "checks": [
+    {
+      "command": "make -j4 -C libuper check",
+      "total": 3,
+      "passed": 3,
+      "status": "PASS",
+      "test_suite_sha256": "438761a907595109785a4cdac87fd1372b4351101d2f7355eac11edf010c51f8",
+      "command_log_sha256": "54f48b339396db9f46928b2c2ced171870bca3f101d1053c7175514b6823b500"
+    },
+    {
+      "command": "make -j4 -C libaper check",
+      "total": 10,
+      "passed": 10,
+      "status": "PASS",
+      "test_suite_sha256": "a519b95aec2fd007c8c7e6529d417f021d901da1dbbf3719a05442fd6818d453",
+      "command_log_sha256": "fdae10b200cf840f1ea9f15dd02478e10fc72f484a638ab5fdebcd1fe4b8c1a5"
+    },
+    {
+      "command": "make -j4 -C libngap check",
+      "total": 3,
+      "passed": 3,
+      "status": "PASS",
+      "test_suite_sha256": "8d59fbbd402b2a7578dcc7670592be1ef2c12adc8b9206a780a9e6ed9ce61598",
+      "command_log_sha256": "eb2cefe2b7a9fa79a6d97473678bb4c4d649e9fec86975e6080161bac9e2bf45"
+    },
+    {
+      "command": "make -j4 -C libasn1typed check",
+      "total": 46,
+      "passed": 46,
+      "status": "PASS",
+      "test_suite_sha256": "485cf687a1696e4454bae616b7551f1473174a3186ff5a8800bdd8c4960e502b",
+      "command_log_sha256": "958534d96bbaad347bcad21b2af935444c5ccbee59fda95c65ee2e4a99b1bbe8"
+    },
+    {
+      "command": "make -j4 -C libasn1parser check",
+      "total": 1,
+      "passed": 1,
+      "status": "PASS",
+      "test_suite_sha256": "96ff31b3c4e7566430187e3808318ca3453589431bdad93687ca4e844e6549e1",
+      "command_log_sha256": "fad228827fc3252e2d1d813dbb1983efa01313ae4603e6a4e5981f19fe629922"
+    }
+  ],
+  "finite_wire": {
+    "qualified_real_roots": 64,
+    "selected_real_roots": 59,
+    "default_seed_roots": 5,
+    "qualified_channel_roots": 7,
+    "independent_cases": 202,
+    "negative_checks": 6049
+  },
+  "sanitizer_scope": {
+    "profile": "59 separately owned compound cases only, plus P6 C++ focused nested/generated allocation rollback",
+    "counts": {
+      "qualified_real_roots": 0,
+      "selected_real_roots": 0,
+      "default_seed_roots": 0,
+      "qualified_channel_roots": 0,
+      "independent_cases": 59,
+      "negative_checks": 3551
+    },
+    "leak_inspection": false,
+    "renderer_allocation_injection_sanitized": false
+  },
+  "fresh_generation": {
+    "requested_roots": 85,
+    "selected_pass": 59,
+    "blocked_extraction": 16,
+    "blocked_choice_evidence": 5,
+    "default_seed_pass": 5,
+    "strict_headers": 64,
+    "all_sealed_header_hashes_match": true,
+    "matrix_report_sha256": "f8881db5dcab1204180c39442ef681f368851bf23b34265d75e03df262dd4f17",
+    "log_sha256": "d497dd035d4e70bd1b25bd131d77d55699b7843f96c5cc9a3529ef2f647f44ef"
+  },
+  "fresh_focused": [
+    {
+      "sanitized": false,
+      "result": {
+        "status": "PASS",
+        "strict_cpp20": true,
+        "sanitized": false,
+        "generated_header_sha256": "1a60d02c3b73549597409219f38f06eb1366a35e58710f40b2e469ac1a1ea439",
+        "scope": "Synthetic compound behavior and inherited P4 mapping; independent full RRC wire is P7."
+      },
+      "log_sha256": "8ab5f0f3c45d73104cb9d20c320428e93d2aa8dd1afb1cbbd8cd197452d39ee4",
+      "renderer_allocation_positions": 1068,
+      "nested_cpp_allocation_failures": {
+        "encode": 5,
+        "decode": 2
+      },
+      "generated_cpp_allocation_failures": {
+        "encode": 7,
+        "decode": 5
+      }
+    },
+    {
+      "sanitized": true,
+      "result": {
+        "status": "PASS",
+        "strict_cpp20": true,
+        "sanitized": true,
+        "generated_header_sha256": "1a60d02c3b73549597409219f38f06eb1366a35e58710f40b2e469ac1a1ea439",
+        "scope": "Synthetic compound behavior and inherited P4 mapping; independent full RRC wire is P7."
+      },
+      "log_sha256": "8ab5f0f3c45d73104cb9d20c320428e93d2aa8dd1afb1cbbd8cd197452d39ee4",
+      "renderer_allocation_positions": 1068,
+      "nested_cpp_allocation_failures": {
+        "encode": 5,
+        "decode": 2
+      },
+      "generated_cpp_allocation_failures": {
+        "encode": 7,
+        "decode": 5
+      }
+    }
+  ],
+  "preserved_baseline": {
+    "all_baseline_blobs_checked": true,
+    "unchanged_files": 2569,
+    "git_blob_map_sha256": "b42589114bcd7242525c212e82b2f4be81ca8e57de16d44c1fa14463ee88c599",
+    "sole_changed_baseline_file": "Makefile.am (EXTRA_DIST entries only)",
+    "production_codec_changes": false
+  },
+  "regression_boundary": {
+    "aper_361_message_regeneration": "NOT_RUN in test-only P7; P6 evidence retained unchanged",
+    "p6_aper_evidence_sha256": "f6c9499b1cb43e381575f9253ee0037a526c8515a667f9bb01cd105a1cee0f1e",
+    "p8_installed_sdk": "NOT_RUN",
+    "benchmark": "NOT_RUN",
+    "merge": "NOT_RUN"
+  },
+  "independent_review": "Pending exact canonical snapshot review; approval recorded separately in review.md"
+}

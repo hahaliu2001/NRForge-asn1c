@@ -1,0 +1,25 @@
+RrcWireFixture DEFINITIONS AUTOMATIC TAGS ::= BEGIN
+Counter ::= INTEGER (0..31)
+Mode ::= ENUMERATED { off(9), on(-1), ..., extra(12) }
+Numbers ::= SEQUENCE (SIZE (0..3)) OF Counter
+Large ::= SEQUENCE (SIZE (0..65536)) OF NULL
+ExtList ::= SEQUENCE (SIZE (1..3, ...)) OF Counter
+Octets ::= OCTET STRING
+Bits ::= BIT STRING (SIZE (1..9, ...))
+Pick ::= CHOICE { nothing NULL, first Counter, ..., later Numbers, future BOOLEAN }
+Body ::= SEQUENCE {
+ counter Counter DEFAULT 3, mode Mode DEFAULT off, flag BOOLEAN OPTIONAL,
+ small Numbers, extList ExtList, octets Octets, bits Bits,
+ ..., added Counter OPTIONAL,
+ [[ required Counter, maybe BOOLEAN OPTIONAL, fallback Counter DEFAULT 2 ]]
+}
+Root ::= CHOICE { body Body, chunk Large, pick Pick, ..., later Body }
+FutureBody ::= SEQUENCE {
+ counter Counter DEFAULT 3, mode Mode DEFAULT off, flag BOOLEAN OPTIONAL,
+ small Numbers, extList ExtList, octets Octets, bits Bits,
+ ..., added Counter OPTIONAL,
+ [[ required Counter, maybe BOOLEAN OPTIONAL, fallback Counter DEFAULT 2 ]],
+ newValue OCTET STRING OPTIONAL
+}
+FutureRoot ::= CHOICE { body FutureBody, chunk Large, pick Pick, ..., later Body, newer OCTET STRING }
+END

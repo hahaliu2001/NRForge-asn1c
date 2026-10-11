@@ -1,0 +1,96 @@
+{
+  "batch": "RRC-P7",
+  "status": "NORMATIVE_MAPPING_PASS_REFERENCE_LIMITATION_RESOLVED",
+  "native_independent_pass_for_reversed_tags": false,
+  "normative_expected_hex": "40",
+  "semantic_bits": 5,
+  "actual_cpp_receipt": "40 5",
+  "normative_rules": [
+    {
+      "clause": "X.680 (02/2021) 29.2",
+      "rule": "Any textual tag on a CHOICE alternative suppresses automatic tagging for the AlternativeTypeLists."
+    },
+    {
+      "clause": "X.680 (02/2021) 31.2.4",
+      "rule": "Omitted tag class in [0] / [2] is context-specific."
+    },
+    {
+      "clause": "X.691 (02/2021) 10.2 and 23.2",
+      "rule": "CHOICE root alternatives use canonical outermost tag order: nothing [0] precedes first [2]."
+    }
+  ],
+  "primary_sources": [
+    "https://www.itu.int/rec/T-REC-X.680-202102-I/en",
+    "https://www.itu.int/rec/T-REC-X.691-202102-I/en"
+  ],
+  "bit_derivation": "Root extension=0, canonical root pick index=2 => 10, Pick extension=0, canonical nothing index=0 => 0: 01000 => 40 with zero padding.",
+  "oracle_observation": {
+    "status": "EXPLORATORY_ONLY",
+    "full_wire_qualification": false,
+    "fixture_sha256": "cbdbdcfe5c5d1abc53a7b0727996d2e5757006dcb57cf71f84ea5eea5bd2639c",
+    "asn1tools_version": "0.167.0",
+    "pycrate_version": "0.7.11",
+    "pycrate_limitation": "Original parameter formal T triggers compiler assertion; only Box { Counter } explicitly expanded to BoxCounter; oracle implementation unmodified.",
+    "expanded_schema_sha256": "cab30350dc3757e5d201815a2b12c0da95ad1894fa69b99f9359f1860b9d993e",
+    "cases": [
+      {
+        "case": "minimal",
+        "generated_focused_hex": "01044403",
+        "generated_semantic_bits": 32,
+        "asn1tools_hex": "01044403",
+        "pycrate_hex": "01044403",
+        "byte_match": true
+      },
+      {
+        "case": "group",
+        "generated_focused_hex": "1ff30444820443201c05200b58e0",
+        "generated_semantic_bits": 110,
+        "asn1tools_hex": "1ff30444820443201c05200b58e0",
+        "pycrate_hex": "1ff30444820443201c05200b58e0",
+        "byte_match": true
+      },
+      {
+        "case": "choice_root",
+        "generated_focused_hex": "40",
+        "generated_semantic_bits": 5,
+        "asn1tools_hex": "48",
+        "pycrate_hex": "48",
+        "byte_match": false
+      },
+      {
+        "case": "choice_extension",
+        "generated_focused_hex": "500028c0",
+        "generated_semantic_bits": 27,
+        "asn1tools_hex": "500028c0",
+        "pycrate_hex": "500028c0",
+        "byte_match": true
+      },
+      {
+        "case": "root_extension",
+        "generated_focused_hex": "800408222018",
+        "generated_semantic_bits": 48,
+        "asn1tools_hex": "800408222018",
+        "pycrate_hex": "800408222018",
+        "byte_match": true
+      }
+    ],
+    "discrepancy": "AUTOMATIC TAGS Pick first [2] Counter / nothing [0] NULL: inherited owned canonical root mapping selects nothing index0; both reference codecs emit declaration-order-compatible index1. Generated Root.pick/nothing is 40 (5 semantic bits); references emit 48.",
+    "next_gate": "RRC-P7: independently audit X.691 10.2/23.2 and X.680 automatic/explicit tag rules and each oracle implementation before claiming this case independently qualified. Do not replace validated mapping with declaration order."
+  },
+  "implementation_audit": [
+    {
+      "version": "asn1tools0.167.0",
+      "sha256": "54ad278bc4f6e079c442df51ea469050ff10f7c835600ade2c1390a16847286a",
+      "finding": "PER CHOICE compile_members(flat_additions=True) omits sort_by_tag; unlike SET compilation, declaration order remains."
+    },
+    {
+      "version": "pycrate0.7.11",
+      "sha256": "ba5fdcb15fe1212e0d9f1a187a09215d6f2a35e167fa981e72efc0cf9e64228e",
+      "finding": "CHOICE._to_per uses self._root.index(ident); the original tagged fixture keeps declaration order."
+    }
+  ],
+  "original_fixture_sha256": "cbdbdcfe5c5d1abc53a7b0727996d2e5757006dcb57cf71f84ea5eea5bd2639c",
+  "generated_header_sha256": "1a60d02c3b73549597409219f38f06eb1366a35e58710f40b2e469ac1a1ea439",
+  "audit_source_sha256": "97602c4c99c7cb99ea1ff61418dbcf482af2bf60a26ecc52f654565dc3804ae4",
+  "policy": "No codec mapping change, no oracle patch, no frozen source reorder. This tagged case is normatively verified and explicitly excluded from native wire PASS. Actual frozen profile closures separately audited for compatible tag order."
+}
