@@ -106,8 +106,8 @@ def parse_header(text, namespace):
     return declarations
 
 
-def render(stem, declarations):
-    namespace = 'nrforge::ngap::messages::' + stem
+def render(stem, declarations, profile="ngap"):
+    namespace = 'nrforge::' + profile + '::messages::' + stem
     qual = lambda name: '::' + namespace + '::' + name
     converted = [d for d in declarations if d['kind'] in ('struct', 'enum')]
     out = ['// Generated solely from installed public SDK headers.', '#include "conversion.hpp"',
@@ -149,13 +149,13 @@ def render(stem, declarations):
         out.append('}')
     body = '::' + namespace + '::Body'
     out += [f'bool body_is_{stem}(const Pdu& pdu) {{ return pdu.body_if<{body}>() != nullptr; }}',
-            f'const std::string& body_name_{stem}() {{', f'    static const std::string name = [] {{ auto pdu = unwrap(::nrforge::ngap::make_ngap_pdu({body}{{}})); return std::string(pdu.message_info()->message); }}();', '    return name;', '}',
+            f'const std::string& body_name_{stem}() {{', f'    static const std::string name = [] {{ auto pdu = unwrap(::nrforge::{profile}::make_{profile}_pdu({body}{{}})); return std::string(pdu.message_info()->message); }}();', '    return name;', '}',
             f'py::object body_to_{stem}(const Pdu& pdu, ConversionBudget& budget) {{', f'    const auto* body = pdu.body_if<{body}>();', '    if (!body) throw py::type_error("PDU body type mismatch");', f'    return Convert<{body}>::to(*body, budget);', '}',
-            f'Pdu body_from_{stem}(py::handle value, std::optional<Criticality> criticality, ConversionBudget& budget) {{', f'    auto body = Convert<{body}>::from(value, budget);', '    return unwrap(::nrforge::ngap::make_ngap_pdu(std::move(body), criticality));', '}', '} // namespace nrforge::python_sdk', '']
+            f'Pdu body_from_{stem}(py::handle value, std::optional<Criticality> criticality, ConversionBudget& budget) {{', f'    auto body = Convert<{body}>::from(value, budget);', f'    return unwrap(::nrforge::{profile}::make_{profile}_pdu(std::move(body), criticality));', '}', '} // namespace nrforge::python_sdk', '']
     return '\n'.join(out)
 
 
-def verify_installed_sdk(prefix, expected_fingerprint=None):
+def verify_installed_sdk(prefix, expected_fingerprint=None, profile="ngap"):
     """Bind declaration parsing to the installed sealed SDK public inputs.
 
     Installed provenance omits the location-normalized manifest used to create
@@ -163,7 +163,8 @@ def verify_installed_sdk(prefix, expected_fingerprint=None):
     The CMake package supplies the independently read expected fingerprint; every
     exposed header is still checked against the recorded original source hash.
     """
-    provenance_path = prefix / 'share/nrforge-ngap/sdk-provenance.json'
+    if profile not in ("ngap", "f1ap"): raise ValueError("unsupported protocol profile")
+    provenance_path = prefix / f'share/nrforge-{profile}/sdk-provenance.json'
     provenance_bytes = provenance_path.read_bytes()
     def unique_object(pairs):
         result = {}
@@ -177,20 +178,22 @@ def verify_installed_sdk(prefix, expected_fingerprint=None):
     if provenance['version'] != '0.1.0': raise ValueError('unsupported SDK version')
     if expected_fingerprint is not None and provenance['fingerprint'] != expected_fingerprint:
         raise ValueError('SDK fingerprint differs from CMake package')
-    include = prefix / 'include/nrforge/ngap'
-    expected = {'sdk_version.hpp', 'ngap.hpp', 'runtime.hpp', 'pdu.hpp', 'sequence_extensions.hpp'}
-    original = {'ngap.hpp': provenance['generated_inputs']['ngap.hpp'],
+    include = prefix / f'include/nrforge/{profile}'
+    qualified = (prefix / f'include/nrforge/{profile}/{profile}.hpp').read_bytes().startswith(f'#include <nrforge/{profile}/sdk_version.hpp>\n'.encode())
+    pdu_headers = (['pdu.hpp', 'pdu_declarations.inc'] if qualified else ['pdu.hpp']) if profile == 'ngap' else ['f1ap_pdu.hpp', 'pdu_declarations.inc']
+    expected = {'sdk_version.hpp', profile + '.hpp', 'runtime.hpp', 'sequence_extensions.hpp', *pdu_headers}
+    original = {profile + '.hpp': provenance['generated_inputs'][profile + '.hpp'],
                 'runtime.hpp': provenance['source_hashes']['libaper/runtime.hpp'],
-                'pdu.hpp': provenance['source_hashes']['libngap/pdu.hpp'],
                 'sequence_extensions.hpp': provenance['source_hashes']['libaper/sequence_extensions.hpp']}
+    original.update({name: provenance['source_hashes']['libngap/' + name] for name in pdu_headers})
     for name, digest in provenance['generated_inputs'].items():
         if re.fullmatch(r'messages/' + IDENT + r'(?:_types)?\.hpp', name) and not name.endswith(('_mapping.hpp', '_codec.hpp')):
             expected.add(name); original[name] = digest
-    if len(expected) != 267: raise ValueError('incomplete SDK public header inventory')
+    if len(expected) != ((268 if qualified else 267) if profile == 'ngap' else 322): raise ValueError('incomplete SDK public header inventory')
     actual = {p.relative_to(include).as_posix() for p in include.rglob('*') if p.is_file()}
     if actual != expected: raise ValueError('SDK public header inventory mismatch')
     texts, header_hashes = {}, {}
-    guard = b'#include <sdk_version.hpp>\n'
+    guard = (f'#include <nrforge/{profile}/sdk_version.hpp>\n'.encode() if qualified else b'#include <sdk_version.hpp>\n')
     for name in sorted(expected):
         path = include / name
         if path.is_symlink() or not path.resolve().is_relative_to(include.resolve()):
@@ -198,9 +201,29 @@ def verify_installed_sdk(prefix, expected_fingerprint=None):
         data = path.read_bytes(); header_hashes[name] = hashlib.sha256(data).hexdigest()
         if name != 'sdk_version.hpp':
             if not data.startswith(guard): raise ValueError('SDK public header guard missing: ' + name)
-            if hashlib.sha256(data[len(guard):]).hexdigest() != original[name]:
+            content = data[len(guard):].decode('utf-8')
+            if qualified:
+                def original_include(match):
+                    included = match[1]
+                    if included not in expected: raise ValueError('unknown qualified include')
+                    if name in pdu_headers or (name.startswith('messages/') and included.startswith('messages/')):
+                        return '#include "' + Path(included).name + '"'
+                    return '#include <' + included + '>'
+                content = re.sub(r'#include <nrforge/' + profile + r'/([^>]+)>', original_include, content)
+                def installed_include(match):
+                    included = match[1]
+                    candidate = included if included in expected else str(Path(name).parent / included)
+                    if candidate in expected:
+                        return '#include <nrforge/' + profile + '/' + candidate + '>'
+                    return match[0]
+                canonical = re.sub(r'#include [<"]([^>"]+)[>"]', installed_include, content)
+                if guard + canonical.encode() != data:
+                    raise ValueError('noncanonical SDK installed include rewrite: ' + name)
+            if hashlib.sha256(content.encode()).hexdigest() != original[name]:
                 raise ValueError('SDK public header hash mismatch: ' + name)
         texts[name] = data.decode('utf-8')
+        if qualified and name.startswith('messages/'):
+            texts[name] = texts[name].replace(f'nrforge/{profile}/', '')
     version = texts['sdk_version.hpp']
     identity = re.search(r'inline constexpr SdkIdentity header_sdk_identity\{\s*(.*?)\s*\};', version, re.S)
     values = re.findall(r'"([^"\n]*)"', identity[1]) if identity else []
@@ -209,9 +232,9 @@ def verify_installed_sdk(prefix, expected_fingerprint=None):
     symbol = 'sdk_require_' + provenance['fingerprint']
     if f'void {symbol}() noexcept;' not in version or f'{symbol}(); return true;' not in version:
         raise ValueError('SDK version header link guard mismatch')
-    expected_version = ('#ifndef NRFORGE_NGAP_SDK_VERSION_HPP\n'
-                        '#define NRFORGE_NGAP_SDK_VERSION_HPP\n#include <string_view>\n'
-                        'namespace nrforge::ngap {\nstruct SdkIdentity {\n'
+    expected_version = (f'#ifndef NRFORGE_{profile.upper()}_SDK_VERSION_HPP\n'
+                        f'#define NRFORGE_{profile.upper()}_SDK_VERSION_HPP\n#include <string_view>\n'
+                        'namespace nrforge::' + profile + ' {\nstruct SdkIdentity {\n'
                         '    std::string_view version, fingerprint, schema_sha256, runtime_sha256, source_revision;\n'
                         '};\nconst SdkIdentity& sdk_identity() noexcept;\n'
                         'inline constexpr SdkIdentity header_sdk_identity{\n')
@@ -226,21 +249,22 @@ def verify_installed_sdk(prefix, expected_fingerprint=None):
     return texts, receipt
 
 
-def generate(prefix, output, expected_fingerprint=None):
-    public_texts, sdk_receipt = verify_installed_sdk(prefix, expected_fingerprint)
-    include = prefix / 'include/nrforge/ngap'
+def generate(prefix, output, expected_fingerprint=None, profile="ngap"):
+    public_texts, sdk_receipt = verify_installed_sdk(prefix, expected_fingerprint, profile)
+    include = prefix / f'include/nrforge/{profile}'
     headers = sorted((include / 'messages').glob('*_types.hpp'))
-    if len(headers) != 131: raise ValueError(f'expected complete 131 message SDK, got {len(headers)}')
+    count = 131 if profile == 'ngap' else 158
+    if len(headers) != count: raise ValueError(f'expected complete {count} message SDK, got {len(headers)}')
     rendered, metadata = {}, {}
     for header in headers:
-        stem = header.name.removesuffix('_types.hpp'); ns = 'nrforge::ngap::messages::' + stem
+        stem = header.name.removesuffix('_types.hpp'); ns = 'nrforge::' + profile + '::messages::' + stem
         public = public_texts['messages/' + stem + '.hpp']
         body_match = re.search(r'using Body = ::' + re.escape(ns) + r'::(' + IDENT + r');', public)
         if not body_match: raise ValueError('unrecognized public Body alias: ' + stem)
         declarations = parse_header(public_texts['messages/' + header.name], ns)
         if body_match[1] not in {x['name'] for x in declarations}: raise ValueError('Body missing')
         metadata[stem] = {'body': body_match[1], 'declarations': declarations, 'header_sha256': sdk_receipt['public_header_sha256']['messages/' + header.name]}
-        rendered[stem + '.cpp'] = render(stem, declarations)
+        rendered[stem + '.cpp'] = render(stem, declarations, profile)
     stems = list(metadata)
     h = ['#pragma once', '#include "conversion.hpp"', 'namespace nrforge::python_sdk {']
     for stem in stems:
@@ -251,7 +275,7 @@ def generate(prefix, output, expected_fingerprint=None):
     for stem in stems: dispatch.append(f'    if (body_is_{stem}(pdu)) return body_to_{stem}(pdu, budget);')
     dispatch += ['    throw py::type_error("PDU has no registered typed body");', '}', 'Pdu from_body(const std::string& name, py::handle value, std::optional<Criticality> criticality, ConversionBudget& budget) {']
     for stem in stems: dispatch.append(f'    if (name == body_name_{stem}()) return body_from_{stem}(value, criticality, budget);')
-    dispatch += ['    throw py::value_error("unknown NGAP message name");', '}', 'py::dict message_schema() {', '    py::dict result;']
+    dispatch += [f'    throw py::value_error("unknown {profile.upper()} message name");', '}', 'py::dict message_schema() {', '    py::dict result;']
     for stem in stems:
         # JSON text is parsed by Python's standard library, not schema tools.
         data = json.dumps(metadata[stem], separators=(',', ':'))
@@ -271,15 +295,16 @@ def generate(prefix, output, expected_fingerprint=None):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--profile', choices=('ngap', 'f1ap'), default='ngap')
     parser.add_argument('--sdk-prefix', type=Path, required=True)
     parser.add_argument('--output', type=Path)
     parser.add_argument('--verify-only', action='store_true')
     parser.add_argument('--expected-fingerprint')
     args = parser.parse_args()
     if args.verify_only:
-        _, receipt = verify_installed_sdk(args.sdk_prefix.resolve(), args.expected_fingerprint)
+        _, receipt = verify_installed_sdk(args.sdk_prefix.resolve(), args.expected_fingerprint, args.profile)
         print(json.dumps({'status': 'PASS', 'fingerprint': receipt['fingerprint'],
                           'public_header_count': len(receipt['public_header_sha256'])}, sort_keys=True))
     else:
         if args.output is None: parser.error('--output is required for generation')
-        print(json.dumps(generate(args.sdk_prefix.resolve(), args.output.resolve(), args.expected_fingerprint), sort_keys=True))
+        print(json.dumps(generate(args.sdk_prefix.resolve(), args.output.resolve(), args.expected_fingerprint, args.profile), sort_keys=True))

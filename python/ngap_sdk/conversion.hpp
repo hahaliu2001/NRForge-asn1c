@@ -1,7 +1,15 @@
 #ifndef NRFORGE_PYTHON_CONVERSION_HPP
 #define NRFORGE_PYTHON_CONVERSION_HPP
 #include <pybind11/pybind11.h>
+#ifdef NRFORGE_PYTHON_F1AP
+#include <f1ap.hpp>
+#define NRFORGE_PYTHON_PROTOCOL f1ap
+#define NRFORGE_PYTHON_PACKAGE "nrforge_f1ap"
+#else
 #include <ngap.hpp>
+#define NRFORGE_PYTHON_PROTOCOL ngap
+#define NRFORGE_PYTHON_PACKAGE "nrforge_ngap"
+#endif
 #include <sequence_extensions.hpp>
 #include <algorithm>
 #include <limits>
@@ -9,8 +17,8 @@
 #include <type_traits>
 namespace nrforge::python_sdk {
 namespace py = pybind11;
-using Pdu = ::nrforge::ngap::Pdu;
-using Criticality = ::nrforge::ngap::Criticality;
+using Pdu = ::nrforge::NRFORGE_PYTHON_PROTOCOL::Pdu;
+using Criticality = ::nrforge::NRFORGE_PYTHON_PROTOCOL::Criticality;
 inline const char* error_name(::nrforge::aper::ErrorCode code) {
     using E=::nrforge::aper::ErrorCode;
     switch(code) {
@@ -23,7 +31,7 @@ inline const char* error_name(::nrforge::aper::ErrorCode code) {
     return "invalid_state";
 }
 [[noreturn]] inline void codec_error(::nrforge::aper::Error error) {
-    auto cls=py::module_::import("nrforge_ngap").attr("CodecError");
+    auto cls=py::module_::import(NRFORGE_PYTHON_PACKAGE).attr("CodecError");
     auto value=cls(error_name(error.code),py::int_(error.bit_offset));
     PyErr_SetObject(cls.ptr(),value.ptr());
     throw py::error_already_set();

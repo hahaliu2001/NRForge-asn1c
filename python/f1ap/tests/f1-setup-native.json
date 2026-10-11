@@ -1,0 +1,403 @@
+{
+  "oracle": "pycrate 0.7.11",
+  "source_authority": {
+    "repository": "hahaliu2001/NRForge-RAN",
+    "commit": "d6e514a33ec3695925c24aa292900514b371b074",
+    "standard": "TS 38.473 V18.10.0 Release 18",
+    "modules": [
+      {
+        "path": "f1/asn1/F1AP-PDU-Descriptions.asn",
+        "size": 33889,
+        "git_blob": "d327e94dc497bdea67ae3d81add6b48be62759c4",
+        "sha256": "05d2b865a5d3666409299f9e976fea8aee5d9d1eba3b4b032222d156f8eebff3"
+      },
+      {
+        "path": "f1/asn1/F1AP-PDU-Contents.asn",
+        "size": 252590,
+        "git_blob": "e493be8be7b2868aada8171c688b6cdbfa22f136",
+        "sha256": "dfb42164b9565d32d39f437934224a3234b37ddb3d4d9572ad4e1c189ec21284"
+      },
+      {
+        "path": "f1/asn1/F1AP-IEs.asn",
+        "size": 326088,
+        "git_blob": "1a9b39c9cd4a7772d4de114d06dbde19fd74eb88",
+        "sha256": "ba8571bb2dcffb19cd1e1240c70ce898640a8afed25960c6a9d724f3b82e2ab5"
+      },
+      {
+        "path": "f1/asn1/F1AP-CommonDataTypes.asn",
+        "size": 799,
+        "git_blob": "da3092376eb76a13281ef91adcfe001c1bcda040",
+        "sha256": "a0e1e1821de78618130703d540b0720fb2ebaeb724918c1b34f618e950c2e7ad"
+      },
+      {
+        "path": "f1/asn1/F1AP-Constants.asn",
+        "size": 59874,
+        "git_blob": "81095d580b9f4c7f5e39bce12aa199cba139d3df",
+        "sha256": "d0c03b14b10c961d36e1f76419f87db0a6a04ace5d4757ebc051accf76895ed8"
+      },
+      {
+        "path": "f1/asn1/F1AP-Containers.asn",
+        "size": 5088,
+        "git_blob": "ed5dfba961e1bd315fc373d633babfdd1c4d4acb",
+        "sha256": "dffb7609f70d247c0da226241a760710dc2292d5ed9315e0b0f44844db013e15"
+      }
+    ]
+  },
+  "claim": "Frozen ASN.1 mandatory IE rows, not application procedure qualification",
+  "cases": [
+    {
+      "message": "F1SetupRequest",
+      "procedure": 1,
+      "root": "initiatingMessage",
+      "criticality": "reject",
+      "variant": "low-mandatory-minimum",
+      "semantic_value": "{'protocolIEs': [{'id': 78, 'criticality': 'reject', 'value': ('TransactionID', 0)}, {'id': 42, 'criticality': 'reject', 'value': ('GNB-DU-ID', 0)}, {'id': 171, 'criticality': 'reject', 'value': ('RRC-Version', {'latest-RRC-Version': (0, 3)})}]}",
+      "declared_criticality": "reject",
+      "semantic_json": {
+        "protocolIEs": [
+          {
+            "id": 78,
+            "criticality": "reject",
+            "value": {
+              "kind": "tuple",
+              "items": [
+                "TransactionID",
+                0
+              ]
+            }
+          },
+          {
+            "id": 42,
+            "criticality": "reject",
+            "value": {
+              "kind": "tuple",
+              "items": [
+                "GNB-DU-ID",
+                0
+              ]
+            }
+          },
+          {
+            "id": 171,
+            "criticality": "reject",
+            "value": {
+              "kind": "tuple",
+              "items": [
+                "RRC-Version",
+                {
+                  "latest-RRC-Version": {
+                    "kind": "tuple",
+                    "items": [
+                      0,
+                      3
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "policy_profile": "declared",
+      "known_table_trace": [
+        {
+          "path": "F1SetupRequest.protocolIEs[0]",
+          "row_id": 78,
+          "presence": "mandatory",
+          "table_field": "value"
+        },
+        {
+          "path": "F1SetupRequest.protocolIEs[0].value",
+          "type": "TransactionID",
+          "primitive": 0
+        },
+        {
+          "path": "F1SetupRequest.protocolIEs[1]",
+          "row_id": 42,
+          "presence": "mandatory",
+          "table_field": "value"
+        },
+        {
+          "path": "F1SetupRequest.protocolIEs[1].value",
+          "type": "GNB-DU-ID",
+          "primitive": 0
+        },
+        {
+          "path": "F1SetupRequest.protocolIEs[2]",
+          "row_id": 171,
+          "presence": "mandatory",
+          "table_field": "value"
+        },
+        {
+          "path": "F1SetupRequest.protocolIEs[2].value.latest-RRC-Version",
+          "type": "BIT STRING",
+          "octets": null,
+          "bits": 3
+        }
+      ],
+      "status": "PASS",
+      "body_hex": "000003004e00020000002a0002000000ab000100",
+      "pdu_hex": "00010014000003004e00020000002a0002000000ab000100",
+      "storage_semantic_json": {
+        "protocolIEs": [
+          {
+            "id": 78,
+            "criticality": "reject",
+            "value": {
+              "kind": "tuple",
+              "items": [
+                "TransactionID",
+                0
+              ]
+            }
+          },
+          {
+            "id": 42,
+            "criticality": "reject",
+            "value": {
+              "kind": "tuple",
+              "items": [
+                "GNB-DU-ID",
+                0
+              ]
+            }
+          },
+          {
+            "id": 171,
+            "criticality": "reject",
+            "value": {
+              "kind": "tuple",
+              "items": [
+                "RRC-Version",
+                {
+                  "latest-RRC-Version": {
+                    "kind": "tuple",
+                    "items": [
+                      0,
+                      3
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "id": "low-mandatory-minimum-reject"
+    },
+    {
+      "message": "F1SetupResponse",
+      "procedure": 1,
+      "root": "successfulOutcome",
+      "criticality": "reject",
+      "variant": "low-mandatory-minimum",
+      "semantic_value": "{'protocolIEs': [{'id': 78, 'criticality': 'reject', 'value': ('TransactionID', 0)}, {'id': 170, 'criticality': 'reject', 'value': ('RRC-Version', {'latest-RRC-Version': (0, 3)})}]}",
+      "declared_criticality": "reject",
+      "semantic_json": {
+        "protocolIEs": [
+          {
+            "id": 78,
+            "criticality": "reject",
+            "value": {
+              "kind": "tuple",
+              "items": [
+                "TransactionID",
+                0
+              ]
+            }
+          },
+          {
+            "id": 170,
+            "criticality": "reject",
+            "value": {
+              "kind": "tuple",
+              "items": [
+                "RRC-Version",
+                {
+                  "latest-RRC-Version": {
+                    "kind": "tuple",
+                    "items": [
+                      0,
+                      3
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "policy_profile": "declared",
+      "known_table_trace": [
+        {
+          "path": "F1SetupResponse.protocolIEs[0]",
+          "row_id": 78,
+          "presence": "mandatory",
+          "table_field": "value"
+        },
+        {
+          "path": "F1SetupResponse.protocolIEs[0].value",
+          "type": "TransactionID",
+          "primitive": 0
+        },
+        {
+          "path": "F1SetupResponse.protocolIEs[1]",
+          "row_id": 170,
+          "presence": "mandatory",
+          "table_field": "value"
+        },
+        {
+          "path": "F1SetupResponse.protocolIEs[1].value.latest-RRC-Version",
+          "type": "BIT STRING",
+          "octets": null,
+          "bits": 3
+        }
+      ],
+      "status": "PASS",
+      "body_hex": "000002004e0002000000aa000100",
+      "pdu_hex": "4001000e000002004e0002000000aa000100",
+      "storage_semantic_json": {
+        "protocolIEs": [
+          {
+            "id": 78,
+            "criticality": "reject",
+            "value": {
+              "kind": "tuple",
+              "items": [
+                "TransactionID",
+                0
+              ]
+            }
+          },
+          {
+            "id": 170,
+            "criticality": "reject",
+            "value": {
+              "kind": "tuple",
+              "items": [
+                "RRC-Version",
+                {
+                  "latest-RRC-Version": {
+                    "kind": "tuple",
+                    "items": [
+                      0,
+                      3
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "id": "low-mandatory-minimum-reject"
+    },
+    {
+      "message": "F1SetupFailure",
+      "procedure": 1,
+      "root": "unsuccessfulOutcome",
+      "criticality": "reject",
+      "variant": "low-mandatory-minimum",
+      "semantic_value": "{'protocolIEs': [{'id': 78, 'criticality': 'reject', 'value': ('TransactionID', 0)}, {'id': 0, 'criticality': 'ignore', 'value': ('Cause', ('radioNetwork', 'unspecified'))}]}",
+      "declared_criticality": "reject",
+      "semantic_json": {
+        "protocolIEs": [
+          {
+            "id": 78,
+            "criticality": "reject",
+            "value": {
+              "kind": "tuple",
+              "items": [
+                "TransactionID",
+                0
+              ]
+            }
+          },
+          {
+            "id": 0,
+            "criticality": "ignore",
+            "value": {
+              "kind": "tuple",
+              "items": [
+                "Cause",
+                {
+                  "kind": "tuple",
+                  "items": [
+                    "radioNetwork",
+                    "unspecified"
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "policy_profile": "declared",
+      "known_table_trace": [
+        {
+          "path": "F1SetupFailure.protocolIEs[0]",
+          "row_id": 78,
+          "presence": "mandatory",
+          "table_field": "value"
+        },
+        {
+          "path": "F1SetupFailure.protocolIEs[0].value",
+          "type": "TransactionID",
+          "primitive": 0
+        },
+        {
+          "path": "F1SetupFailure.protocolIEs[1]",
+          "row_id": 0,
+          "presence": "mandatory",
+          "table_field": "value"
+        },
+        {
+          "path": "F1SetupFailure.protocolIEs[1].value.radioNetwork",
+          "type": "CauseRadioNetwork",
+          "primitive": "unspecified"
+        },
+        {
+          "path": "F1SetupFailure.protocolIEs[1].value",
+          "type": "Cause",
+          "choice": "radioNetwork"
+        }
+      ],
+      "status": "PASS",
+      "body_hex": "000002004e000200000000400100",
+      "pdu_hex": "8001000e000002004e000200000000400100",
+      "storage_semantic_json": {
+        "protocolIEs": [
+          {
+            "id": 78,
+            "criticality": "reject",
+            "value": {
+              "kind": "tuple",
+              "items": [
+                "TransactionID",
+                0
+              ]
+            }
+          },
+          {
+            "id": 0,
+            "criticality": "ignore",
+            "value": {
+              "kind": "tuple",
+              "items": [
+                "Cause",
+                {
+                  "kind": "tuple",
+                  "items": [
+                    "radioNetwork",
+                    "unspecified"
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "id": "low-mandatory-minimum-reject"
+    }
+  ]
+}

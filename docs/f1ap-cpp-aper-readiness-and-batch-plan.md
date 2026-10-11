@@ -161,3 +161,34 @@ Evidence: [F1-P5 closeout](f1ap-cpp-sdk-closeout.md),
 `tools/f1ap-sdk/verification-summary.json`, and `tools/f1ap-sdk/review.md`.
 Next: **F1-P6**, the separate Python SDK task. E1AP remains a later independent
 protocol task; no merge is part of this acceptance.
+
+
+## F1-P6 completion (2026-10-11) — Complete / Accepted
+
+The separate `nrforge-f1ap` Python SDK 0.1.0 is delivered for CPython 3.12 Linux
+x86-64, exposing all 158 messages and 94 procedures through the installed F1-P5
+C++ codec. Shared NGAP converters and packaging are reused with distinct package,
+profile, fingerprint and exception identities. Both wheels coexist in both
+same-process import orders.
+
+Actual isolated installed consumers pass: nine F1AP test methods cover 4,728
+inherited finite byte vectors, three populated independent F1 Setup outcomes,
+explicit construction, conversion/error/resource limits, unknown receive data,
+optional fields, fourth-root policy and concurrent contexts. The 12 original
+NGAP consumer methods also pass, including all 131 native vectors and three
+NG Setup outcomes. Build-time seal and distribution/profile rejection gates
+pass. Independent agent review accepts actual wheel/source inventories and
+implementation hashes, and separately reruns all nine F1AP methods successfully.
+
+The source distribution is self-contained and its staging inventory is checked;
+a second complete clean compile from the extracted tar is not claimed. Runtime
+imports have no schema/oracle/compiler/SDK dependency; ELF has only system shared
+libraries and no RPATH. Default-linker memory exhaustion was resolved by serial
+lld linkage of already compiled objects without codec or schema changes.
+Historical F1-P4 wire qualification and its finite boundaries remain unchanged.
+No benchmark, stable ABI or full native-extension sanitizer claim is added.
+
+Evidence: [F1-P6 contract and closeout](f1ap-python-sdk-contract-and-closeout.md),
+`tools/f1ap-python/verification-summary.json` and `tools/f1ap-python/review.md`.
+Next: **E1AP readiness and shared-capability planning**, then RRC. No merge is
+part of this acceptance.
