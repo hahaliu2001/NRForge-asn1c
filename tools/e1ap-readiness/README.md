@@ -73,3 +73,45 @@ families and descriptors, unchanged accepted runtime headers, then strictly
 compiles five representative messages per protocol. It does not claim a full
 SDK rebuild or rerun of historical native wire qualification. Run Python
 normally (without `-O`), since assertion failures are evidence gates.
+
+## E1-P3 complete dispatch integration
+
+After building `tools/asn1typed_ngap_dispatch`, produce a message list from all
+72 `messages` rows of `readiness-e1-p2.json`. Use a fresh output directory:
+
+```sh
+mkdir generated-e1ap
+tools/asn1typed_ngap_dispatch tools/e1ap-readiness/e1ap-rel18.modules \
+  /path/NRForge-RAN/src messages.txt generated-e1ap --e1ap
+cmake -S generated-e1ap -B e1ap-build \
+  -DNRFORGE_SOURCE_ROOT="$PWD" -DCMAKE_CXX_COMPILER=/usr/bin/g++ \
+  '-DCMAKE_CXX_FLAGS=-Wall -Wextra -Werror -pedantic-errors -Wconversion -Wsign-conversion -DNDEBUG'
+cmake --build e1ap-build -j3
+python3 tools/e1ap-readiness/check_dispatch.py --generated generated-e1ap \
+  --build e1ap-build --work /new/integration --output integration.json --jobs 3
+make -C libngap CXX=/usr/bin/g++ check -j3
+```
+
+`check_dispatch.py` requires full40procedure/72slot closure and E1AP framing.
+It strictly compiles one consumer per BODY, links all adapters, and checks
+identity, default BODY roundtrip, criticality change and truncation/trailing
+rejection. Values are 71 empty protocol-IE containers plus one vendor-opaque local:0/raw00
+PrivateMessage entry to satisfy its SIZE(1..maxPrivateIEs). No required-IE application
+policy or independent wire qualification is inferred. E1-P4 follows.
+
+`check_generator_regression.py` compares complete NGAP/F1AP generated outputs
+against an executable built from the baseline controller at
+`b255db5768c90260b6a5ba1bf98fc2e931a43e56` with the same parser/fixer/typed
+libraries. Pass `--asn1-root`, `--baseline-generator`, fresh `--work` and
+`--output`; all files must match byte-for-byte except manifest source paths.
+Logical manifests must match, frozen module hashes are checked and inputs
+are fingerprinted before/after. This is generator nonregression, not a new
+protocol wire campaign. Prior E1-P2 readiness is reused only with all retained
+input and frozen source fingerprints unchanged.
+
+Run `record_p3.py` with `--asn1-root`, `--generated`, `--messages`, a fresh
+`--work`, and `--output` after building the registry tests. It checks all prior
+E1-P2 retained input hashes and frozen E1 modules before reusing their scan
+results, repeats all E1 generation, exercises closure/profile refusal, and
+executes all three protocol registry tests. See the E1-P3 contract for the
+exact baseline-controller source identity and compilation command.

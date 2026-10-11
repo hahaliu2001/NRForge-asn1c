@@ -136,3 +136,27 @@ headers byte-exact against historical acceptance, plus ten representative
 strict BODY/envelope compilations. See `ngap-f1ap-regression-e1-p2.json` and
 `review-e1-p2.md` for the regression and independent acceptance receipts.
 Next implementation scope: E1-P3, explicit E1AP outer profile and dispatch.
+
+
+## E1-P3 complete dispatch integration
+
+The frozen three-root extensible E1AP outer profile now has an explicit
+`--e1ap` generation mode, distinct `nrforge::e1ap` owned API and complete
+40procedure/72outcome registry. All72 adapters strictly compile and link in
+the development `nrforge_e1ap` CMake target. All72 public consumers pass
+identity, roundtrip, criticality, truncated and trailing-input checks with
+71 empty-container BODY values and one vendor-opaque local:0/raw00 private
+entry. The protocol registry suite passes3/3 and tool suite passes2/2.
+
+Repeated E1 generation is byte-exact for363 non-manifest files; four closure
+and profile negative guards pass. The E1-P2 full scan is explicitly reused
+with unchanged retained inputs and frozen modules. Complete NGAP/F1AP
+controller regeneration preserves658/793 baseline files for131/158 messages
+and logical manifests. See the E1-P3 contract and machine-readable receipts
+under `tools/e1ap-readiness/`; independent acceptance is recorded in
+`review-e1-p3.md`.
+
+This is integration readiness. Independent populated complete-PDU wire
+qualification is E1-P4, installable C++ SDK delivery E1-P5, Python delivery
+E1-P6. No application mandatory-IE policy, all-value codec coverage, live
+interoperability, SDK release or benchmark is inferred.

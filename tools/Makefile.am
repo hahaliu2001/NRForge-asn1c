@@ -90,3 +90,5 @@ EXTRA_DIST += f1ap-wire-qualification/qualify.py f1ap-wire-qualification/native_
 
 EXTRA_DIST += e1ap-readiness/scan.py e1ap-readiness/test_scan.py e1ap-readiness/README.md e1ap-readiness/source-manifest.json e1ap-readiness/e1ap-rel18.modules e1ap-readiness/readiness.json e1ap-readiness/review.md
 EXTRA_DIST += e1ap-readiness/check_regression.py e1ap-readiness/readiness-e1-p2.json e1ap-readiness/ngap-f1ap-regression-e1-p2.json e1ap-readiness/review-e1-p2.md
+
+EXTRA_DIST += e1ap-readiness/check_dispatch.py e1ap-readiness/check_generator_regression.py e1ap-readiness/record_p3.py e1ap-readiness/dispatch-integration-e1-p3.json e1ap-readiness/generator-regression-e1-p3.json e1ap-readiness/verification-e1-p3.json e1ap-readiness/review-e1-p3.md

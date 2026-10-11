@@ -36,7 +36,7 @@ struct ProcedureInfo {
 struct OpaqueRoot { std::vector<std::byte> payload; };
 struct UnknownExtension { std::uint64_t index; std::vector<std::byte> payload; };
 // Owned envelope evidence supplies framing. Only these shared shapes
-// are supported: NGAP has three extensible roots; F1AP four nonextensible roots.
+// are supported: NGAP/E1AP have three extensible roots; F1AP four nonextensible roots.
 struct Framing { unsigned root_count; bool choice_is_extensible; };
 
 namespace detail {

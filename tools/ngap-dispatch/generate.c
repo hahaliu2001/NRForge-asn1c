@@ -170,7 +170,7 @@ static int preflight(struct message *rows,size_t count,char *why,size_t why_size
 #define BAD(text) do { snprintf(why,why_size,"%s",text); return -1; } while(0)
     if(!strcmp(profile,"f1ap")) {
         if(schema->root_count!=4 || schema->header.choice_is_extensible) BAD("F1AP framing profile mismatch");
-    } else if(schema->root_count!=3 || !schema->header.choice_is_extensible) BAD("NGAP framing profile mismatch");
+    } else if(schema->root_count!=3 || !schema->header.choice_is_extensible) BAD("three-root extensible framing profile mismatch");
     for(i=0;i<count;++i) {
         struct message *m=&rows[i];
         const asn1typed_target_envelope_t *d=&m->envelope;
@@ -185,7 +185,7 @@ static int preflight(struct message *rows,size_t count,char *why,size_t why_size
         m->criticality=d->rows[d->target_row_index].expected_criticality;
         m->name=asn1typed_render_cpp_final_name(m->source,ASN1TYPED_NAME_TYPE);
         m->body_name=identity_name(&d->target_body);
-        if(!m->name || !m->body_name || !(m->ns=join(!strcmp(profile,"f1ap") ? "nrforge::f1ap::messages::" : "nrforge::ngap::messages::",m->name))) BAD("allocation failure planning final spelling");
+        if(!m->name || !m->body_name || !(m->ns=join(!strcmp(profile,"f1ap") ? "nrforge::f1ap::messages::" : !strcmp(profile,"e1ap") ? "nrforge::e1ap::messages::" : "nrforge::ngap::messages::",m->name))) BAD("allocation failure planning final spelling");
         if(asn1typed_render_cpp_ioc_check_names(&m->body,m->ns,reserved,1,why,why_size)) return -1;
         for(j=0;j<i;++j) if(!strcmp(m->name,rows[j].name)
             || (m->role==rows[j].role && m->code==rows[j].code)) BAD("duplicate final spelling or dispatch key");
@@ -231,7 +231,7 @@ static int registry(const char *dir,const struct message *rows,size_t count) {
     fprintf(f,"}};\nconst ::std::array<Registration,%zu> messages{{\n",count);
     for(i=0;i<count;++i) fprintf(f,"generated::registration_%03zu(),\n",i);
     fprintf(f,"}};\nreturn Registry::create({{%u,%u,%u}},%s,procedures,messages",mapping[0],mapping[1],mapping[2],d->header.object_set_is_extensible?"true":"false");
-    if(!strcmp(profile,"f1ap")) fprintf(f,",{%zu,%s}",d->root_count,d->header.choice_is_extensible?"true":"false");
+    if(strcmp(profile,"ngap")) fprintf(f,",{%zu,%s}",d->root_count,d->header.choice_is_extensible?"true":"false");
     fprintf(f,");\n}(); return state;\n}\n}\n");
     return finish_file(f);
 }
@@ -239,6 +239,12 @@ static int build_file(const char *dir,const struct message *rows,size_t count) {
     FILE *f=new_file(dir,"CMakeLists.txt");
     size_t i;
     if(!f) return -1;
+    if(!strcmp(profile,"e1ap")) {
+        fprintf(f,"cmake_minimum_required(VERSION 3.20)\nproject(nrforge_e1ap_dispatch LANGUAGES CXX)\nset(NRFORGE_SOURCE_ROOT \"\" CACHE PATH \"NRForge-asn1c source directory\")\nif(NOT EXISTS \"${NRFORGE_SOURCE_ROOT}/libngap/e1ap_pdu.cpp\")\n  message(FATAL_ERROR \"Set NRFORGE_SOURCE_ROOT to NRForge-asn1c\")\nendif()\nadd_library(nrforge_e1ap STATIC\n  \"${NRFORGE_SOURCE_ROOT}/libngap/e1ap_pdu.cpp\"\n  \"${NRFORGE_SOURCE_ROOT}/libaper/runtime.cpp\"\n  registry.cpp\n");
+        for(i=0;i<count;++i) fprintf(f,"  adapters/%s.cpp\n",rows[i].name);
+        fprintf(f,")\ntarget_compile_features(nrforge_e1ap PUBLIC cxx_std_20)\ntarget_include_directories(nrforge_e1ap PUBLIC \"${CMAKE_CURRENT_SOURCE_DIR}\" \"${NRFORGE_SOURCE_ROOT}/libngap\" \"${NRFORGE_SOURCE_ROOT}/libaper\")\n");
+        return finish_file(f);
+    }
     if(!strcmp(profile,"f1ap")) {
         fprintf(f,"cmake_minimum_required(VERSION 3.20)\nproject(nrforge_f1ap_dispatch LANGUAGES CXX)\nset(NRFORGE_SOURCE_ROOT \"\" CACHE PATH \"NRForge-asn1c source directory\")\nif(NOT EXISTS \"${NRFORGE_SOURCE_ROOT}/libngap/f1ap_pdu.cpp\")\n  message(FATAL_ERROR \"Set NRFORGE_SOURCE_ROOT to NRForge-asn1c\")\nendif()\nadd_library(nrforge_f1ap STATIC\n  \"${NRFORGE_SOURCE_ROOT}/libngap/f1ap_pdu.cpp\"\n  \"${NRFORGE_SOURCE_ROOT}/libaper/runtime.cpp\"\n  registry.cpp\n");
         for(i=0;i<count;++i) fprintf(f,"  adapters/%s.cpp\n",rows[i].name);
@@ -260,6 +266,7 @@ static int manifest(const char *dir,const struct message *rows,size_t count,cons
     fprintf(f,"{\"parse\":\"PASS\",\"fix\":\"PASS\",\"parser_deleted\":true,\"deterministic\":true,\"message_count\":%zu,\"registry\":{\"role_to_per_index\":[%u,%u,%u],\"object_set_extensible\":%s},\"schema\":{\"pdu_module\":",count,mapping[0],mapping[1],mapping[2],d->header.object_set_is_extensible?"true":"false");
     json_text(f,d->header.pdu.module); fputs(",\"pdu_type\":",f); json_text(f,d->header.pdu.source_name);
     if(!strcmp(profile,"f1ap")) fprintf(f,",\"profile\":\"f1ap\",\"root_count\":%zu,\"choice_is_extensible\":%s,\"unsupported_root_policy\":\"reject_before_header\"",d->root_count,d->header.choice_is_extensible?"true":"false");
+    if(!strcmp(profile,"e1ap")) fprintf(f,",\"profile\":\"e1ap\",\"root_count\":%zu,\"choice_is_extensible\":%s,\"unknown_extension_policy\":\"receive_only_owned\"",d->root_count,d->header.choice_is_extensible?"true":"false");
     fputs(",\"procedure_class_module\":",f); json_text(f,d->header.procedure_class.module);
     fputs(",\"procedure_class\":",f); json_text(f,d->header.procedure_class.source_name);
     fputs(",\"object_set_module\":",f); json_text(f,d->header.object_set.module);
@@ -291,7 +298,7 @@ int main(int argc,char **argv) {
     dev_tree_options_t options;
     asn1p_t *tree=NULL;
     const char *failed=NULL;
-    char why[1024]="invalid, duplicate or truncated message list",path[4096],relative[256];
+    char why[1024]="invalid, duplicate or truncated message list",path[4096],relative[256],contents[64],descriptions[64],pdu_name[64];
     size_t count=0,i=0,family;
     int result=1;
     int (*renderers[])(const asn1typed_module_t*,const char*,char**,char*,size_t)={
@@ -299,7 +306,9 @@ int main(int argc,char **argv) {
     const char *suffixes[]={"types","mapping","codec"};
     if(argc==6 && !strcmp(argv[5],"--f1ap")) {
         profile="f1ap"; profile_upper="F1AP"; profile_namespace="nrforge::f1ap"; runtime_header="f1ap_pdu.hpp";
-    } else if(argc!=5) { fprintf(stderr,"Usage: generate MODULE_LIST ASN1_ROOT MESSAGE_LIST NEW_OUTPUT_DIR [--f1ap]\n"); return 2; }
+    } else if(argc==6 && !strcmp(argv[5],"--e1ap")) {
+        profile="e1ap"; profile_upper="E1AP"; profile_namespace="nrforge::e1ap"; runtime_header="e1ap_pdu.hpp";
+    } else if(argc!=5) { fprintf(stderr,"Usage: generate MODULE_LIST ASN1_ROOT MESSAGE_LIST NEW_OUTPUT_DIR [--f1ap|--e1ap]\n"); return 2; }
     rows=calloc(MAX_MESSAGES,sizeof(*rows));
     if(!rows || read_list(argv[3],rows,&count)) goto done;
     if(!empty_directory(argv[4])) { snprintf(why,sizeof(why),"output directory must exist and be empty"); goto done; }
@@ -307,8 +316,11 @@ int main(int argc,char **argv) {
     tree=dev_tree_load(&options,&failed);
     if(!tree) { snprintf(why,sizeof(why),"parse failed: %s",failed?failed:"unknown"); goto done; }
     if(dev_tree_fix(tree)<0) { snprintf(why,sizeof(why),"fix failed"); goto done; }
-    for(i=0;i<count;++i) if(asn1typed_extract_physical_message(tree,!strcmp(profile,"f1ap")?"F1AP-PDU-Contents":"NGAP-PDU-Contents",rows[i].source,&rows[i].body,why,sizeof(why))
-        || asn1typed_extract_target_envelope(tree,!strcmp(profile,"f1ap")?"F1AP-PDU-Descriptions":"NGAP-PDU-Descriptions",!strcmp(profile,"f1ap")?"F1AP-PDU":"NGAP-PDU",!strcmp(profile,"f1ap")?"F1AP-PDU-Contents":"NGAP-PDU-Contents",rows[i].source,&rows[i].envelope,why,sizeof(why))) goto done;
+    snprintf(contents,sizeof(contents),"%s-PDU-Contents",profile_upper);
+    snprintf(descriptions,sizeof(descriptions),"%s-PDU-Descriptions",profile_upper);
+    snprintf(pdu_name,sizeof(pdu_name),"%s-PDU",profile_upper);
+    for(i=0;i<count;++i) if(asn1typed_extract_physical_message(tree,contents,rows[i].source,&rows[i].body,why,sizeof(why))
+        || asn1typed_extract_target_envelope(tree,descriptions,pdu_name,contents,rows[i].source,&rows[i].envelope,why,sizeof(why))) goto done;
     snprintf(why,sizeof(why),"incomplete/duplicate registry, inconsistent owned schema, body identity or final spelling collision");
     if(preflight(rows,count,why,sizeof(why))) goto done;
     asn1p_delete(tree); tree=NULL;
@@ -326,7 +338,7 @@ int main(int argc,char **argv) {
         }
         if(public_header(argv[4],&rows[i]) || adapter(argv[4],&rows[i],i)) { snprintf(why,sizeof(why),"adapter/public-header output failed"); goto done; }
     }
-    if(registry(argv[4],rows,count) || save(argv[4],!strcmp(profile,"f1ap")?"f1ap.hpp":"ngap.hpp",!strcmp(profile,"f1ap")?"#ifndef NRFORGE_GENERATED_F1AP_HPP\n#define NRFORGE_GENERATED_F1AP_HPP\n#include <f1ap_pdu.hpp>\n#endif\n":"#ifndef NRFORGE_GENERATED_NGAP_HPP\n#define NRFORGE_GENERATED_NGAP_HPP\n#include <pdu.hpp>\n#include <sdk_version.hpp>\n#endif\n") || build_file(argv[4],rows,count)) { snprintf(why,sizeof(why),"registry/build output failed"); goto done; }
+    if(registry(argv[4],rows,count) || save(argv[4],!strcmp(profile,"f1ap")?"f1ap.hpp":!strcmp(profile,"e1ap")?"e1ap.hpp":"ngap.hpp",!strcmp(profile,"e1ap")?"#ifndef NRFORGE_GENERATED_E1AP_HPP\n#define NRFORGE_GENERATED_E1AP_HPP\n#include <e1ap_pdu.hpp>\n#endif\n":!strcmp(profile,"f1ap")?"#ifndef NRFORGE_GENERATED_F1AP_HPP\n#define NRFORGE_GENERATED_F1AP_HPP\n#include <f1ap_pdu.hpp>\n#endif\n":"#ifndef NRFORGE_GENERATED_NGAP_HPP\n#define NRFORGE_GENERATED_NGAP_HPP\n#include <pdu.hpp>\n#include <sdk_version.hpp>\n#endif\n") || build_file(argv[4],rows,count)) { snprintf(why,sizeof(why),"registry/build output failed"); goto done; }
     /* Success evidence is deliberately last; partial generation never has it. */
     if(manifest(argv[4],rows,count,(const char *const *)argv)) { snprintf(why,sizeof(why),"manifest output failed"); goto done; }
     printf("Generated complete typed dispatch: %zu owned declared message slots\n",count); result=0;

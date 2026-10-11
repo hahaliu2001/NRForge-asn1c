@@ -60,3 +60,16 @@ Unknown root procedures/absent outcome slots remain receive-only opaque values
 only when the procedure object set permits them. Known malformed BODY values
 do not fall back to opaque data. All-message linkage and focused vectors are
 integration gates, not the independent batch wire qualification of F1-P4.
+
+## E1AP shared dispatch profile (E1-P3)
+
+Pass `--e1ap` with the frozen E1AP module list and all72 message names. The
+controller emits `e1ap.hpp`, independent `nrforge::e1ap::messages` BODY types,
+a complete registry and development CMake target `nrforge_e1ap`. The public
+entry points are `make_e1ap_pdu`, `encode_e1ap_pdu`, `decode_e1ap_pdu`. E1AP
+uses three outer roots plus an extension marker, as proven by owned schema
+evidence. Unknown procedures/absent slots and outer extensions are owned
+receive-only values; malformed known messages remain errors. See
+`tools/e1ap-readiness/README.md` for build/integration reproduction and
+`docs/e1ap-cpp-aper-pdu-integration-contract-and-closeout.md` for scope.
+This development build does not deliver an installable E1AP SDK.
