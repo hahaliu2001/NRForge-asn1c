@@ -213,3 +213,4 @@ asn1c/tmp/
 /libuper/check_uper_compound
 /libasn1typed/check_asn1typed_uper
 /libasn1typed/check_asn1typed_collection_elements
+/libasn1typed/check_asn1typed_fixed_choice

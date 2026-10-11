@@ -1,0 +1,28 @@
+AutoA DEFINITIONS AUTOMATIC TAGS ::= BEGIN
+IMPORTS Shared FROM AutoB;
+Local ::= INTEGER (0..3)
+Pick { T } ::= CHOICE { first NULL, last T }
+Roots ::= SEQUENCE { a Pick { Local }, b Pick { Shared } }
+Alias ::= Pick { Local }
+Mixed { T } ::= CHOICE { other Local, last T }
+MixedRoot ::= Mixed { Shared }
+Wrap { T } ::= CHOICE { first Pick { T }, last Local }
+Wrapped ::= Wrap { Shared }
+Outer { T } ::= SEQUENCE { inner Pick { T } }
+Nested ::= Outer { Local }
+ExtPick { T } ::= CHOICE { first NULL, last T, ..., added BOOLEAN }
+Ext ::= ExtPick { Local }
+END
+AutoB DEFINITIONS AUTOMATIC TAGS ::= BEGIN
+Shared ::= INTEGER (4..7)
+END
+Explicit DEFINITIONS EXPLICIT TAGS ::= BEGIN
+ExplicitLocal ::= INTEGER (0..3)
+ExplicitPick { T } ::= CHOICE { first [9] NULL, last [2] T }
+ExplicitRoot ::= ExplicitPick { ExplicitLocal }
+END
+Implicit DEFINITIONS IMPLICIT TAGS ::= BEGIN
+ImplicitLocal ::= INTEGER (0..3)
+ImplicitPick { T } ::= CHOICE { first [APPLICATION 9] NULL, last [2] T }
+ImplicitRoot ::= ImplicitPick { ImplicitLocal }
+END

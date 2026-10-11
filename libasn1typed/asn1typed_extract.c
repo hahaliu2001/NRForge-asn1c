@@ -788,6 +788,7 @@ ordinary_reference_target(asn1p_t *tree, asn1p_expr_t *expr) {
 typedef struct ordinary_profile_s {
     asn1p_expr_t *generic;
     const asn1typed_type_ref_t *instance;
+    asn1p_expr_t *fixed_choice; /* Borrowed only during extraction. */
 } ordinary_profile_t;
 
 /* Bind only ungoverned, named ordinary type arguments. The explicit namespace
@@ -804,7 +805,8 @@ static int ordinary_template_valid(asn1p_expr_t *g, size_t count) {
     size_t i, j;
     if(!g || !g->lhs_params || g->rhs_pspecs || !g->lhs_params->params ||
             count != (size_t)g->lhs_params->params_count || !count || count > 64 ||
-            g->expr_type == A1TC_REFERENCE) return 0;
+            g->expr_type == A1TC_REFERENCE || g->specializations.pspecs_count < 0 ||
+            (g->specializations.pspecs_count && !g->specializations.pspec)) return 0;
     for(i = 0; i < count; ++i) {
         const char *a = g->lhs_params->params[i].argument;
         if(g->lhs_params->params[i].governor || !a || a[0] < 'A' || a[0] > 'Z') return 0;
@@ -812,6 +814,90 @@ static int ordinary_template_valid(asn1p_expr_t *g, size_t count) {
     }
     return 1;
 }
+/* Tags belong to an exact fixed specialization, never to its generated name.
+ * Resolve actuals lexically: the fixer need not cache these references. This
+ * matcher does not relax source-use reference cache validation below. */
+static int ordinary_fixed_choice(asn1p_t *tree, ordinary_profile_t *p) {
+    asn1p_expr_t *g = p->generic;
+    int i;
+    if(!g || g->expr_type != ASN_CONSTR_CHOICE) return 0;
+    for(i = 0; i < g->specializations.pspecs_count; ++i) {
+        asn1p_expr_t *rhs = g->specializations.pspec[i].rhs_pspecs;
+        asn1p_expr_t *a, *clone, *source, *fixed;
+        size_t n = 0;
+        int equal = 1;
+        if(!rhs) continue;
+        TQ_FOR(a, &rhs->members, next) {
+            asn1p_expr_t *target = ordinary_reference_target(tree, a);
+            if(n >= p->instance->actual_count || !target || target->lhs_params ||
+                    a->rhs_pspecs || a->constraints || a->combined_constraints ||
+                    (a->reference->ref_expr && a->reference->ref_expr != target) ||
+                    strcmp(target->module->ModuleName, p->instance->actuals[n].module) ||
+                    strcmp(target->Identifier, p->instance->actuals[n].source_name)) {
+                equal = 0; break;
+            }
+            ++n;
+        }
+        if(!equal || n != p->instance->actual_count) continue;
+        clone = g->specializations.pspec[i].my_clone;
+        if(p->fixed_choice || !clone || clone->module != g->module || clone->expr_type != ASN_CONSTR_CHOICE)
+            return -1;
+        /* Member names and extension partitions must still match the template.
+         * Semantic types/constraints continue to come from the generic profile. */
+        source = TQ_FIRST(&g->members); fixed = TQ_FIRST(&clone->members);
+        for(; source && fixed; source = TQ_NEXT(source, next), fixed = TQ_NEXT(fixed, next)) {
+            if((source->expr_type == A1TC_EXTENSIBLE) != (fixed->expr_type == A1TC_EXTENSIBLE)) return -1;
+            if(source->expr_type == A1TC_EXTENSIBLE) continue;
+            if(!source->Identifier || !fixed->Identifier || strcmp(source->Identifier, fixed->Identifier)) return -1;
+            {
+                int formal = ordinary_formal(p, source);
+                if(formal >= 0) {
+                    asn1p_expr_t *target = ordinary_reference_target(tree, fixed);
+                    if(!target || (fixed->reference->ref_expr && fixed->reference->ref_expr != target) ||
+                            strcmp(target->module->ModuleName, p->instance->actuals[formal].module) ||
+                            strcmp(target->Identifier, p->instance->actuals[formal].source_name)) return -1;
+                } else {
+                    if(source->expr_type != fixed->expr_type || source->module != fixed->module) return -1;
+                    if(source->expr_type == A1TC_REFERENCE) {
+                        asn1p_expr_t *left = ordinary_reference_target(tree, source);
+                        asn1p_expr_t *right = ordinary_reference_target(tree, fixed);
+                        if(!left || left != right) return -1;
+                        if(!source->rhs_pspecs) {
+                            if((source->reference->ref_expr && source->reference->ref_expr != left) ||
+                                    (fixed->reference->ref_expr && fixed->reference->ref_expr != right)) return -1;
+                        } else {
+                            asn1p_expr_t *sa, *fa;
+                            if(!fixed->rhs_pspecs) return -1;
+                            sa = TQ_FIRST(&source->rhs_pspecs->members);
+                            fa = TQ_FIRST(&fixed->rhs_pspecs->members);
+                            for(; sa && fa; sa = TQ_NEXT(sa, next), fa = TQ_NEXT(fa, next)) {
+                                asn1p_expr_t *st, *ft = ordinary_reference_target(tree, fa);
+                                int f = ordinary_formal(p, sa);
+                                if(sa->rhs_pspecs || fa->rhs_pspecs || sa->constraints || fa->constraints ||
+                                        sa->combined_constraints || fa->combined_constraints || !ft || ft->lhs_params ||
+                                        (fa->reference->ref_expr && fa->reference->ref_expr != ft)) return -1;
+                                if(f >= 0) {
+                                    if(strcmp(ft->module->ModuleName, p->instance->actuals[f].module) ||
+                                            strcmp(ft->Identifier, p->instance->actuals[f].source_name)) return -1;
+                                } else {
+                                    st = ordinary_reference_target(tree, sa);
+                                    if(!st || st != ft || (sa->reference->ref_expr && sa->reference->ref_expr != st)) return -1;
+                                }
+                            }
+                            if(sa || fa) return -1;
+                        }
+                    }
+                }
+            }
+            if(source->tag.tag_class != TC_NOCLASS && fixed->tag.tag_class != TC_NOCLASS &&
+                    (source->tag.tag_class != fixed->tag.tag_class || source->tag.tag_value != fixed->tag.tag_value)) return -1;
+        }
+        if(source || fixed) return -1;
+        p->fixed_choice = clone;
+    }
+    return 0;
+}
+
 static char *ordinary_instance_key(const char *name, const asn1typed_type_actual_t *a, size_t n) {
     size_t i, bytes = strlen(name) + 8;
     char *key;
@@ -1434,14 +1520,20 @@ populate_type_profile(asn1p_t *tree, asn1typed_type_t *out, asn1p_expr_t *decl,
 			{
 				size_t alternative_index = out->alternative_count - 1;
                 if(ordinary) out->alternatives[alternative_index].is_extension_addition = extended;
-				asn1typed_tag_class_e tag_class =
-					owned_tag_class(member->tag.tag_class);
+				asn1p_expr_t *tag_member = member;
+                if(ordinary && ordinary->fixed_choice && member->tag.tag_class == TC_NOCLASS) {
+                    asn1p_expr_t *fixed;
+                    TQ_FOR(fixed, &ordinary->fixed_choice->members, next)
+                        if(fixed->Identifier && !strcmp(fixed->Identifier, member->Identifier)) { tag_member = fixed; break; }
+                }
+                asn1typed_tag_class_e tag_class =
+                    owned_tag_class(tag_member->tag.tag_class);
 				if(tag_class != ASN1TYPED_TAG_CLASS_UNKNOWN &&
-					member->tag.tag_value >= 0 &&
-					member->tag.tag_value <= INTMAX_MAX) {
+					tag_member->tag.tag_value >= 0 &&
+					tag_member->tag.tag_value <= INTMAX_MAX) {
 					if(asn1typed_choice_alternative_set_wire_evidence(
 						out, alternative_index, tag_class,
-						(intmax_t)member->tag.tag_value)) {
+						(intmax_t)tag_member->tag.tag_value)) {
 						asn1typed_type_ref_clear(&ref);
 						free(alternative_value_range.tail); free(alternative_value_range.extension_additions);
 						set_error(error, error_size,
@@ -1449,7 +1541,7 @@ populate_type_profile(asn1p_t *tree, asn1typed_type_t *out, asn1p_expr_t *decl,
 							decl->Identifier, member->Identifier);
 						return -1;
 					}
-				} else if(member->tag.tag_class != TC_NOCLASS) {
+				} else if(tag_member->tag.tag_class != TC_NOCLASS) {
 					asn1typed_choice_alternative_set_wire_unsupported(out,
 						alternative_index);
 				}
@@ -2952,6 +3044,9 @@ ordinary_add_dependency(asn1p_t *tree, asn1typed_module_t *out,
         profile.generic = ordinary_reference_target(tree, decl);
         profile.instance = &binding;
         if(decl->constraints || decl->combined_constraints) goto unsupported;
+    }
+    if(ordinary_fixed_choice(tree, &profile)) {
+        set_error(detail, sizeof(detail), "ambiguous or inconsistent fixed CHOICE evidence"); goto detail_fail;
     }
     body = profile.generic ? profile.generic : terminal_type(decl);
     if(!body || (kind = kind_of_type(body)) == (asn1typed_type_kind_e)-1) goto unsupported;

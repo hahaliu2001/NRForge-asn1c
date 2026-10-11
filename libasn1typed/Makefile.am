@@ -308,3 +308,9 @@ check_asn1typed_uper_SOURCES = check_asn1typed_uper.c
 check_asn1typed_uper_CPPFLAGS = $(check_asn1typed_extract_CPPFLAGS) -DUPER_FIXTURE=\"$(abs_top_srcdir)/tools/rrc-uper/compound.asn1\"
 check_asn1typed_uper_LDADD = $(check_asn1typed_extract_LDADD)
 check_asn1typed_uper_LDFLAGS = -Wl,--wrap=malloc -Wl,--wrap=calloc -Wl,--wrap=realloc
+
+check_PROGRAMS += check_asn1typed_fixed_choice
+TESTS += check_asn1typed_fixed_choice
+check_asn1typed_fixed_choice_SOURCES = $(top_srcdir)/tools/rrc-fixed-choice/check_extract.c
+check_asn1typed_fixed_choice_CPPFLAGS = $(check_asn1typed_extract_CPPFLAGS) -DCHOICE_FIXTURE=\"$(abs_top_srcdir)/tools/rrc-fixed-choice/choices.asn1\"
+check_asn1typed_fixed_choice_LDADD = $(check_asn1typed_extract_LDADD)

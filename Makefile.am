@@ -131,3 +131,10 @@ EXTRA_DIST += docs/rrc-constrained-collection-elements-contract-and-closeout.md 
  tools/rrc-collection-elements/check_generated.cpp tools/rrc-collection-elements/README.md \
  tools/rrc-collection-elements/readiness.json tools/rrc-collection-elements/verification.json \
  tools/rrc-collection-elements/review.md
+
+EXTRA_DIST += docs/rrc-fixed-choice-tag-transfer-contract-and-closeout.md \
+ tools/rrc-fixed-choice/check.py tools/rrc-fixed-choice/choices.asn1 \
+ tools/rrc-fixed-choice/check_extract.c tools/rrc-fixed-choice/check_instances.c \
+ tools/rrc-fixed-choice/check_generated.cpp tools/rrc-fixed-choice/README.md \
+ tools/rrc-fixed-choice/readiness.json tools/rrc-fixed-choice/verification.json \
+ tools/rrc-fixed-choice/review.md
