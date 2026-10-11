@@ -1,0 +1,31 @@
+CollectionCodec DEFINITIONS AUTOMATIC TAGS ::= BEGIN
+Integers ::= SEQUENCE (SIZE (1..3)) OF INTEGER (-2..3)
+Singletons ::= SEQUENCE (SIZE (1..2)) OF INTEGER (4)
+Bits ::= SEQUENCE (SIZE (1..2)) OF BIT STRING (SIZE (32))
+BoundedBits ::= SEQUENCE (SIZE (0..2)) OF BIT STRING (SIZE (1..3))
+Fields ::= SEQUENCE {
+    first SEQUENCE (SIZE (1..2)) OF INTEGER (0..7),
+    second SEQUENCE (SIZE (1..2)) OF INTEGER (0..15) OPTIONAL,
+    bits SEQUENCE (SIZE (1..2)) OF BIT STRING (SIZE (32))
+}
+Pick ::= CHOICE {
+    integers SEQUENCE (SIZE (1..2)) OF INTEGER (0..139),
+    bits SEQUENCE (SIZE (1..2)) OF BIT STRING (SIZE (32))
+}
+Nested ::= SEQUENCE (SIZE (1..2)) OF SEQUENCE { values SEQUENCE (SIZE (0..2)) OF INTEGER (0..7) }
+Grouped ::= SEQUENCE {
+    marker BOOLEAN, ...,
+    [[ values SEQUENCE (SIZE (1..2)) OF INTEGER (0..7) ]],
+    extra SEQUENCE (SIZE (1..2)) OF BIT STRING (SIZE (32)) OPTIONAL
+}
+Wide ::= SEQUENCE (SIZE (1..2)) OF INTEGER (18446744073709551614..18446744073709551615)
+Union ::= SEQUENCE (SIZE (1..2)) OF INTEGER (1 | 4..5)
+ExtInts ::= SEQUENCE (SIZE (1..2)) OF INTEGER (0..3, ...)
+Base ::= INTEGER (0..7)
+BadExtSingleton ::= SEQUENCE (SIZE (1..2)) OF INTEGER (4, ...)
+BadOverflow ::= SEQUENCE (SIZE (1..2)) OF INTEGER (18446744073709551616)
+BadExcept ::= SEQUENCE (SIZE (1..2)) OF INTEGER (0..10 EXCEPT 3)
+BadNamedBits ::= SEQUENCE (SIZE (1..2)) OF BIT STRING { one(0) } (SIZE (1))
+BadNamedUse ::= SEQUENCE (SIZE (1..2)) OF Base (1..3)
+BadOctets ::= SEQUENCE (SIZE (1..2)) OF OCTET STRING (SIZE (4))
+END

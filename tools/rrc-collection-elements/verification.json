@@ -1,0 +1,121 @@
+{
+  "allocation_failures_checked": 37,
+  "aper_regression": {
+    "E1AP": {
+      "extraction_and_generation": "PASS",
+      "historical_headers_byte_identical": 432,
+      "messages": 72
+    },
+    "F1AP": {
+      "extraction_and_generation": "PASS",
+      "historical_headers_byte_identical": 948,
+      "messages": 158
+    },
+    "NGAP": {
+      "extraction_and_generation": "PASS",
+      "historical_headers_byte_identical": 393,
+      "messages": 131
+    }
+  },
+  "baseline_commit": "82ff13ff3172640887c6c847a258e1b8a2a07d13",
+  "batch": "RRC-P12",
+  "benchmark_run": false,
+  "branch": "feature/f1ap-cpp-aper",
+  "compiler": "gcc (Ubuntu 13.3.0-6ubuntu2~24.04) 13.3.0",
+  "contract": "direct constrained INTEGER/BIT STRING element promoted to existing anonymous named primitive body; list SIZE separate; borrowed AST unchanged",
+  "contract_review": {
+    "existing_model_sufficient": true,
+    "gate": "independent model approval before production edits",
+    "reviewer": "/root/e1_sdk_review",
+    "separate_p12_a_skipped": true
+  },
+  "focused_extraction_pass": 11,
+  "focused_rejected": 6,
+  "focused_render_blocked": 1,
+  "focused_render_pass": 10,
+  "limitations": [
+    "Two newly rendered roots have strict compilation only; no new real-message wire qualification",
+    "P8/P9 SDK and qualification receipts remain unchanged; expanded delivery is deferred",
+    "Constrained named uses, named bits and other primitive element families remain rejected",
+    "INTEGER union element ownership passes but the existing UPER renderer rejects it",
+    "Nested list coverage uses a constructed element wrapper; parser grammar is unchanged"
+  ],
+  "merge": false,
+  "native_pass_total": 64,
+  "native_regressions": {
+    "libaper": {
+      "ERROR": 0,
+      "FAIL": 0,
+      "PASS": 10,
+      "TOTAL": 10,
+      "log_sha256": "64dd53a2436bdbaa10943b0d31973e6ac6cbd70aae3d719e4ef45c520387e404"
+    },
+    "libasn1parser": {
+      "ERROR": 0,
+      "FAIL": 0,
+      "PASS": 1,
+      "TOTAL": 1,
+      "log_sha256": "7e5e21619b2036dcf772754e1d36f6417d598f06354ee3201ade7ed1a354282d"
+    },
+    "libasn1typed": {
+      "ERROR": 0,
+      "FAIL": 0,
+      "PASS": 47,
+      "TOTAL": 47,
+      "log_sha256": "f9b2e1e6be78fa0a92551987891a0fde111a40f331d686ccc5e7b5fe1c41c98e"
+    },
+    "libngap": {
+      "ERROR": 0,
+      "FAIL": 0,
+      "PASS": 3,
+      "TOTAL": 3,
+      "log_sha256": "12dc1d2f7373ffbfb62133f4cbb73dc84aa68c32f2b7c5588dca2578d7771641"
+    },
+    "libuper": {
+      "ERROR": 0,
+      "FAIL": 0,
+      "PASS": 3,
+      "TOTAL": 3,
+      "log_sha256": "3af18de7d89dc09343b74c90df7b7294bcbb41da2e5d8f23fb94797312ef99fa"
+    }
+  },
+  "new_real_message_wire_qualification": false,
+  "next_task": "RRC-P13-A: transfer authenticated fixed parameterized CHOICE tag evidence",
+  "preserved_baseline_blob_inventory_sha256": "974436ee470821b34afefc319652f004b7819add3757b6cdda246ffcab1a23ee",
+  "preserved_baseline_blobs": 2627,
+  "production_changes": [
+    "libasn1typed/asn1typed_extract.c"
+  ],
+  "readiness_summary": {
+    "BLOCKED_EXTRACTION": 8,
+    "BLOCKED_RENDER": 10,
+    "PASS": 67
+  },
+  "renderer_changes": false,
+  "runtime_changes": false,
+  "sanitizer": {
+    "address": "PASS",
+    "leak_scan": "NOT_RUN: environment cannot enumerate /proc tasks",
+    "scope": "current extractor and element tests directly instrumented",
+    "undefined": "PASS"
+  },
+  "schema_changes": false,
+  "sdk_delivered_roots": 64,
+  "sdk_rebuild": false,
+  "source_sha256": {
+    ".gitignore": "85b41dc6d6bd13bfdd5f34dff5de403bf888b7fc8c74ed205797ac8c4dd178c9",
+    "Makefile.am": "a9b99357d46eb11759125cca6fb9c1ca7b1298ae658e8439e57d48725b5020c6",
+    "docs/rrc-constrained-collection-elements-contract-and-closeout.md": "4f852a3aec1bdbe849e26b4bafb248cbb76b870b7294bdf1d3eeb7b437fb245a",
+    "libasn1typed/Makefile.am": "5458ae2ce9e423f6922a00459300f9d45368c34e6da7429989ec0acbf8b67683",
+    "libasn1typed/asn1typed_extract.c": "ced6e4590b27bd0d15766eb103219bad85ccfa9128a40c109dbee6d90abf30d6",
+    "libasn1typed/check_asn1typed_collection_elements.c": "1be04396b0986d58afccce299db9fb87ad5a0c42504f6c3e5b514cd37dba6218",
+    "libasn1typed/check_asn1typed_extract.c": "910f0eea0469378f780970728549ed514050891e2a91de14d9a2bf068c0d7b6a",
+    "tools/rrc-collection-elements/README.md": "754861b56ae192f6044cfb689f48c5139f912e35ddeaf7c5d323cecac6eab2d6",
+    "tools/rrc-collection-elements/check.py": "6be1cfdce80753bbb802823d2766bab1d29919b6eb9d029d03399a3aaa2d72f5",
+    "tools/rrc-collection-elements/check_generated.cpp": "04560f90ce00fa19f1e00d6b5cc39c1ca738de6639dcd0028987f612a265af0f",
+    "tools/rrc-collection-elements/collections.asn1": "4315077b8cf6a3c60c175a9f741e5c646bf9584447e4157162341624d9913c0c",
+    "tools/rrc-collection-elements/readiness.json": "42613cd14208a73a78f9d5be9bda564a1bee9b4c77173f3294a4354677d8111d"
+  },
+  "status": "VERIFIED_PENDING_INDEPENDENT_ACCEPTANCE",
+  "unchanged_accepted_rrc_headers": 65
+}

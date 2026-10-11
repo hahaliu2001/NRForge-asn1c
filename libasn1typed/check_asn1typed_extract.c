@@ -294,7 +294,7 @@ check_integer_singletons(void) {
         "Bad ::= INTEGER (4, ...)",
         "Bad ::= INTEGER (-9223372036854775809)",
         "Bad ::= INTEGER (18446744073709551616)",
-        "Bad ::= SEQUENCE (SIZE (1..2)) OF INTEGER (4)"
+        "Bad ::= SEQUENCE (SIZE (1..2)) OF INTEGER (4, ...)"
     };
     for(size_t i = 0; i < sizeof(bad)/sizeof(bad[0]); ++i) {
         char input[256];

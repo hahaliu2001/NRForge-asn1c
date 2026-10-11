@@ -125,3 +125,9 @@ EXTRA_DIST += docs/rrc-singleton-integer-contract-and-closeout.md \
  tools/rrc-singleton/check_generated.cpp tools/rrc-singleton/README.md \
  tools/rrc-singleton/readiness.json tools/rrc-singleton/verification.json \
  tools/rrc-singleton/review.md
+
+EXTRA_DIST += docs/rrc-constrained-collection-elements-contract-and-closeout.md \
+ tools/rrc-collection-elements/check.py tools/rrc-collection-elements/collections.asn1 \
+ tools/rrc-collection-elements/check_generated.cpp tools/rrc-collection-elements/README.md \
+ tools/rrc-collection-elements/readiness.json tools/rrc-collection-elements/verification.json \
+ tools/rrc-collection-elements/review.md

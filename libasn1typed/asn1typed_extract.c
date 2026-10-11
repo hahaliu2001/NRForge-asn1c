@@ -914,6 +914,16 @@ static int inline_constructed_constraints_owned(const asn1p_expr_t *e) {
     return e && !e->rhs_pspecs && !e->lhs_params &&
         (e->expr_type == ASN_CONSTR_SEQUENCE_OF || (!e->constraints && !e->combined_constraints));
 }
+/* Constrained direct elements need their own primitive body: collection SIZE
+ * belongs to the list, never to its element. Named use restrictions continue
+ * through the existing rejection path. The primitive extractor validates the
+ * complete effective constraint when this anonymous dependency is closed. */
+static int inline_constrained_primitive_element(const asn1p_expr_t *e) {
+    asn1typed_primitive_kind_e kind = primitive_from_expr(e);
+    return e && !e->lhs_params && !e->rhs_pspecs &&
+        (e->constraints || e->combined_constraints) &&
+        (kind == ASN1TYPED_PRIMITIVE_INTEGER || kind == ASN1TYPED_PRIMITIVE_BIT_STRING);
+}
 static int put_inline_constructed_ref(asn1typed_type_ref_t *ref,
         const asn1typed_type_t *owner, const char *member) {
     const char *name = owner->identity.source_name;
@@ -1298,6 +1308,8 @@ populate_type_profile(asn1p_t *tree, asn1typed_type_t *out, asn1p_expr_t *decl,
             int rc;
             if(inline_constructed(member)) {
                 if(!inline_constructed_constraints_owned(member)) { set_error(error, error_size, "%s: unsupported inline constructed element constraints", decl->Identifier); return -1; }
+                rc = put_inline_constructed_ref(&ref, out, "@element");
+            } else if(inline_constrained_primitive_element(member)) {
                 rc = put_inline_constructed_ref(&ref, out, "@element");
             } else if(!ordinary && member->rhs_pspecs) {
                 rc = put_parameterized_object_set_ref(tree, &ref, member, error, error_size);
@@ -2659,6 +2671,13 @@ add_ioc_dependency(asn1p_t *tree, asn1typed_module_t *out,
 		set_error(error, error_size, "out of memory storing IOC dependency");
 		return -1;
 	}
+    if(!strncmp(type->identity.source_name, "$inline$", 8)) {
+        /* Anonymous primitive elements usually have no parser Identifier.
+         * Supply the owned path on a borrowed view, without changing the AST. */
+        asn1p_expr_t view = *decl;
+        view.Identifier = type->identity.source_name;
+        return populate_type(tree, type, &view, file, error, error_size);
+    }
 	return populate_type(tree, type, decl, file, error, error_size);
 }
 

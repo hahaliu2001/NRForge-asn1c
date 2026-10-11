@@ -34,6 +34,13 @@ check_asn1typed_extract_LDADD = \
 	$(top_builddir)/libasn1parser/libasn1parser.la \
 	$(top_builddir)/libasn1common/libasn1common.la
 
+check_PROGRAMS += check_asn1typed_collection_elements
+TESTS += check_asn1typed_collection_elements
+check_asn1typed_collection_elements_SOURCES = check_asn1typed_collection_elements.c
+check_asn1typed_collection_elements_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/libasn1parser -I$(top_srcdir)/libasn1fix -DCOLLECTION_ELEMENT_FIXTURE=\"$(abs_top_srcdir)/tools/rrc-collection-elements/collections.asn1\"
+check_asn1typed_collection_elements_LDADD = $(check_asn1typed_extract_LDADD)
+check_asn1typed_collection_elements_LDFLAGS = -Wl,--wrap=malloc -Wl,--wrap=calloc -Wl,--wrap=realloc
+
 EXTRA_DIST = check_asn1typed_render_cpp.sh check_asn1typed_owned_slice.sh check_asn1typed_codec.sh check_asn1typed_codec_variants.sh fixtures/ordinary-t2.asn1 fixtures/cpp-aper-s1.asn1 fixtures/cpp-aper-s1-int64.asn1 fixtures/cpp-aper-reversed-tags.asn1 fixtures/cpp-aper-wrapper-collision.asn1 fixtures/cpp-aper-ordinal-member-zero.asn1 fixtures/cpp-aper-ordinal-member-one.asn1 fixtures/choice-wire-evidence.asn1 fixtures/ioc-t3.asn1 fixtures/ioc-multimodule.asn1 fixtures/parameterized-reference-b7a.asn1 fixtures/visible-string-size-t6.asn1 fixtures/integer-value-range.asn1 fixtures/integer-permitted-set-t8.asn1 fixtures/ioc-empty-typed.asn1 fixtures/s4-renamed-num.asn1 fixtures/s4-reordered.asn1 fixtures/s4-extra-boolean.asn1 fixtures/s4-type-swap.asn1 fixtures/s4-choice-swap.asn1 fixtures/s4-presence.asn1 fixtures/s4-count-boolean.asn1 fixtures/s4-empty-sequence.asn1 fixtures/s4-two-renamed-types.asn1 fixtures/s4-errno-field.asn1 fixtures/s4-errno-alternative.asn1
 
 check_asn1typed_codec_render_SOURCES = check_asn1typed_codec_render.c
