@@ -89,3 +89,8 @@ EXTRA_DIST += tools/rrc-wire-qualification/qualify.py tools/rrc-wire-qualificati
  tools/rrc-wire-qualification/qualification-sanitized.json tools/rrc-wire-qualification/reference-boundary.json \
  tools/rrc-wire-qualification/verification.json tools/rrc-wire-qualification/review.md \
  docs/rrc-cpp-uper-p7-wire-qualification-closeout.md
+EXTRA_DIST += cmake/NrforgeRrcSdk.cmake docs/rrc-cpp-sdk-contract.md docs/rrc-cpp-sdk-closeout.md \
+ tools/rrc-sdk/build.py tools/rrc-sdk/verify_seal.py tools/rrc-sdk/record.py \
+ tools/rrc-sdk/README.md tools/rrc-sdk/verification-summary.json tools/rrc-sdk/review.md \
+ tools/rrc-sdk-consumer/prepare.py tools/rrc-sdk-consumer/isolate.py tools/rrc-sdk-consumer/README.md \
+ tools/rrc-sdk-consumer/example/CMakeLists.txt tools/rrc-sdk-consumer/example/mib.cpp

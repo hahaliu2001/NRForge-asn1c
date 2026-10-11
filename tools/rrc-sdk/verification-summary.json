@@ -1,0 +1,1433 @@
+{
+  "batch": "RRC-P8",
+  "baseline_commit": "0bc5b860ffc11378f88dbf5a0bef07b1d0c8f908",
+  "branch": "feature/f1ap-cpp-aper",
+  "status": "PASS",
+  "full_rrc_wire_coverage": false,
+  "source_sha256": {
+    "tools/rrc-sdk/README.md": "27caa43519e6474db9c755a47e800c2a3a4323348ae1d0492773d751f314471e",
+    "tools/rrc-sdk/build.py": "12f102ec195f9758db6f0db7cf27bd9ffc307b5e338b26a95b0c98d90b14a99b",
+    "tools/rrc-sdk/record.py": "425b838a19709ea34623beadf388f31ea419fc0e510cccbd6e75c29ba8b56f5d",
+    "tools/rrc-sdk/verify_seal.py": "1967abc639adfc8d6eddf7d351c671c3144f38c17a9956224425afe37741cb42",
+    "tools/rrc-sdk-consumer/README.md": "d57d5cb3d8d4cc2637c8edeba06426fc5802473f49cacb9981f7492ae3844eb7",
+    "tools/rrc-sdk-consumer/example/CMakeLists.txt": "712bffeb2b281d90c9bc5a4489f5e4b37b6812ed1eac17b628831ecbca6d8b9d",
+    "tools/rrc-sdk-consumer/example/mib.cpp": "5a05614acc7297edade388415f04ed5c57572b7486d64a85cba6ad9785740a55",
+    "tools/rrc-sdk-consumer/isolate.py": "05bb33e26e3c0f0a84458842ffc226eb27a25539c6c1cfa8a85d95a5df8a3753",
+    "tools/rrc-sdk-consumer/prepare.py": "bcbbf88c40051ac6e37af63de814a3d2a9da7b7a55ce152632cd20ef0cbf3c9e",
+    "Makefile.am": "3c9b4a3e42f3145da19c3454ac11d44ae921f9ccb7eddc00dd6e56c29a0f23bb",
+    "cmake/NrforgeRrcSdk.cmake": "08894b9a44e225ee283f24335f23f4ef865ba3de28f81267294f79c5067d4e29",
+    "docs/rrc-cpp-sdk-contract.md": "75b0d1096aa2c68c0bdf407d7ba67ae8b0dac4d907114936aedc68f6257f0569",
+    "docs/rrc-cpp-sdk-closeout.md": "95bb43596438ba9dc7154bf93eca1a1929e66dc65ed9df5fd84906bdda850b1c"
+  },
+  "sdk_identity": {
+    "fingerprint": "804b916ab4c40203e0d40399d4776d07eb2718c125f549f49b6e4002708e7d47",
+    "runtime_sha256": "5c94ee1866160f035b0393a20f5f690dd663b94f4c81c95b11387df982db0e64",
+    "schema_sha256": "97a7f13be4c515c9c78e5f752647807621d59568ca33eeea6258513731462d2b",
+    "source_revision": "0bc5b860ffc11378f88dbf5a0bef07b1d0c8f908",
+    "version": "0.1.0"
+  },
+  "installed_files": {
+    "lib/libnrforge_rrc.a": "233b7fc3fb59616266c94dc022f46a7eda142baf02b1b0c50dbe0eaaf4b19e08",
+    "share/nrforge-rrc/sdk-provenance.json": "cbd62530e583bc62a4c318baafe01b9603ba31ffbbbcc97e82fac3eeab5deabd",
+    "share/nrforge-rrc/manifest.json": "2d9e1ed9306bb7e8dac804cd75fea4e3cbba8c3c43ac10539b3deaefa525ae3d",
+    "lib/cmake/NRForgeRRC/NRForgeRRCConfigVersion.cmake": "bcfadc3a489a3340bf62e83ccd41b9b9de34c51e5bc281539cad9e5a7bd947f6",
+    "lib/cmake/NRForgeRRC/NRForgeRRCTargets-noconfig.cmake": "607063858e97c0877312d572dd0e0f5f35600db06a050c79db81dcbc887afa90",
+    "lib/cmake/NRForgeRRC/NRForgeRRCConfig.cmake": "ac78b1cc82803e7d49845a86ef9398aa77ba5f89d3233ac32806f17fc21fcefc",
+    "lib/cmake/NRForgeRRC/NRForgeRRCTargets.cmake": "2bf74fac16947aacf76f94ff2731ae5da4dd369d168009069a242a74e6d8bd22",
+    "include/nrforge/rrc/sdk_version.hpp": "bad68ccc7d7c359bf1c24faa800380ee8d658ac3ea958808c9c920328b9c5351",
+    "include/nrforge/rrc/rrc.hpp": "fdb362b47d8af87c76379f4c95e5fbbb033b77b1d73975dc1f6f121962a653fc",
+    "include/nrforge/rrc/runtime.hpp": "ba7273d88aeec2917cc5b491bb949dafc155aac35f6f779dd815e203a1558202",
+    "include/nrforge/rrc/roots/PC5_RRC_Definitions/RRCReconfigurationFailureSidelink.hpp": "e6ada7d034e7ea2383b88525b34eec4537221c583a8a87379749884a0ff45a71",
+    "include/nrforge/rrc/roots/PC5_RRC_Definitions/NotificationMessageSidelink_r17.hpp": "cee3d54466b650ce8a1b498447afa2ce941b266d590877053b9091564b4d3e32",
+    "include/nrforge/rrc/roots/PC5_RRC_Definitions/UECapabilityEnquirySidelink.hpp": "020febcd41166cbc19dfbcff20c8e8a0b7fed676995396c0d9d8be5a086150ea",
+    "include/nrforge/rrc/roots/PC5_RRC_Definitions/UuMessageTransferSidelink_r17.hpp": "0149a7d588f1ed50359e3e50fcec0be6036f40396649df8887bfc111a1b194f4",
+    "include/nrforge/rrc/roots/PC5_RRC_Definitions/UEInformationRequestSidelink_r18.hpp": "ec8782dbca147d291ad5e14a874e3e90e98af47c8213529727d3808f7dda1eed",
+    "include/nrforge/rrc/roots/PC5_RRC_Definitions/SBCCH_SL_BCH_Message.hpp": "a4114906543ac6827430f9935ee5cc5b021d6f0eb8bcfad16526b06b04b6f47a",
+    "include/nrforge/rrc/roots/PC5_RRC_Definitions/UEAssistanceInformationSidelink_r17.hpp": "e5a5172128cf96227ea7fe849953bed6339b42cded7b3ff7bc56d6951a4c67f3",
+    "include/nrforge/rrc/roots/PC5_RRC_Definitions/MasterInformationBlockSidelink.hpp": "eeb557134692e7d2a5a9794934904225362c9cda514f255dc918c3fad72b5881",
+    "include/nrforge/rrc/roots/PC5_RRC_Definitions/RRCReconfigurationCompleteSidelink.hpp": "301fd2fbe84b3d3344e5926f7ff305e56853aa4681ea75b5d89a846e455ba019",
+    "include/nrforge/rrc/roots/PC5_RRC_Definitions/UEInformationResponseSidelink_r18.hpp": "277c3cd1123b8d6f4f5b789aa2e879deb9389a3617776b8e417d5dfdb05ba166",
+    "include/nrforge/rrc/roots/PC5_RRC_Definitions/UECapabilityInformationSidelink.hpp": "383aa1860fe58177594148f103b604f211d6c4a5d7d4556eb00c9baacfd5da23",
+    "include/nrforge/rrc/roots/PC5_RRC_Definitions/MeasurementReportSidelink.hpp": "e9319c203b5611abfb03a9ff82ab0bf3fec80c963640040b7ed60a57f7dd972b",
+    "include/nrforge/rrc/roots/NR_RRC_Definitions/UECapabilityInformation.hpp": "d45b6007fb59348aaab8ed784f2257590a0c1ab7322e36229da5aa5752870223",
+    "include/nrforge/rrc/roots/NR_RRC_Definitions/RRCReestablishmentComplete.hpp": "0cdfc1c7655777fee0542a697e018faa1f0eadfc23e996d93da74419a986a4e1",
+    "include/nrforge/rrc/roots/NR_RRC_Definitions/MBSInterestIndication_r17.hpp": "1b86c5f7643b7de84afcb9b5a2845835894ec81eb3ff5f6903f1c598ca888787",
+    "include/nrforge/rrc/roots/NR_RRC_Definitions/SecurityModeFailure.hpp": "db71b450e6e68e89466d5e14605f1fc03fc177feda9f8e70135cb0e3e3b02b81",
+    "include/nrforge/rrc/roots/NR_RRC_Definitions/MBSBroadcastConfiguration_r17.hpp": "7d25389791cf141c467fb6d3743e99b637b751c3ae20f0105b62c785be586018",
+    "include/nrforge/rrc/roots/NR_RRC_Definitions/DLInformationTransfer.hpp": "02f6458a220bdbd6dcbc3b68fa6d8809de196be292529b08f47b9d5fb701c66e",
+    "include/nrforge/rrc/roots/NR_RRC_Definitions/RRCSetupComplete.hpp": "54b331e735f0cd3bbeea58feff7a561caedbd4cd0cc8f419c50df141717f50ba",
+    "include/nrforge/rrc/roots/NR_RRC_Definitions/SCGFailureInformation.hpp": "fe598c47759f366573548a30aabc9bc0a569d4b1aa1aeea21445c871fcb5e524",
+    "include/nrforge/rrc/roots/NR_RRC_Definitions/IndirectPathFailureInformation_r18.hpp": "f94ee30ece038a96201a16e82dff80892a2d4c73619f5fc4d93a31a448398958",
+    "include/nrforge/rrc/roots/NR_RRC_Definitions/CounterCheckResponse.hpp": "c32a7efcb566346c467144e53f0312b9969a70409af4cda5a0bff948a6c28c0b",
+    "include/nrforge/rrc/roots/NR_RRC_Definitions/RRCResumeRequest1.hpp": "dbb90f87ef102d6da5001649260b7363d6ee36e9199c77d5e2f81b59f073f39b",
+    "include/nrforge/rrc/roots/NR_RRC_Definitions/RRCResumeRequest.hpp": "ce6c2b7feb681931a8aabd814b0bd8afdc36411f8a25b4cf33278986a5674fd8",
+    "include/nrforge/rrc/roots/NR_RRC_Definitions/DLInformationTransferMRDC_r16.hpp": "8cfc2a9c6a62085bf4b145aeaa2fb983814e0a915dbd2034ebc77224a4f4e6db",
+    "include/nrforge/rrc/roots/NR_RRC_Definitions/QuantityConfigUTRA_FDD_r16.hpp": "2236350968b846b96c881bea2e561160458dea3db38f687a491dc3853a23df15",
+    "include/nrforge/rrc/roots/NR_RRC_Definitions/QuantityConfigNR.hpp": "6e6610807791b00e79e8da092f2b71fa5d3b261f1791fbe720c6c2321daaeefd",
+    "include/nrforge/rrc/roots/NR_RRC_Definitions/MIB.hpp": "c2740f933b047688e615aae5f944edc606b9660dbbdc98611c32b9d924c6a0b6",
+    "include/nrforge/rrc/roots/NR_RRC_Definitions/FailureInformation.hpp": "208b32c10d80ef83b9146367c63da055713d2916c350075b017a483a214ff9fc",
+    "include/nrforge/rrc/roots/NR_RRC_Definitions/RRCReject.hpp": "05e49cf347a2eb085a24d198d2f64ac6791846a5e5ffab2c57849b9afc12cc10",
+    "include/nrforge/rrc/roots/NR_RRC_Definitions/ULDedicatedMessageSegment_r16.hpp": "d26140cf3fab1f85c1c0ee51b6cd65e438eb5e18d26f6f780fc3e5c4efe55500",
+    "include/nrforge/rrc/roots/NR_RRC_Definitions/Q_OffsetRangeList.hpp": "c83668d6907b5379fa128c86ce430697e338f78254f0f079f63c9bee08bd2b45",
+    "include/nrforge/rrc/roots/NR_RRC_Definitions/PCCH_Message.hpp": "d3023bb6d4180fc61832e4a5e8b50747e024e9479f634241db11ab494a4e7c6d",
+    "include/nrforge/rrc/roots/NR_RRC_Definitions/SecurityModeCommand.hpp": "4c70575d91e18596551e484a85cad22aa624ad1e75ea2c51f5b8475f9b779625",
+    "include/nrforge/rrc/roots/NR_RRC_Definitions/RRCSystemInfoRequest.hpp": "9270a770036941aec5cc07911c6d4921a07aa42f5fa39cb25e93be301f98bf08",
+    "include/nrforge/rrc/roots/NR_RRC_Definitions/ULInformationTransferMRDC.hpp": "7c73ab481633c03c8c72fc1deae1855cf9ed346e7c60e842608881442149ed2c",
+    "include/nrforge/rrc/roots/NR_RRC_Definitions/IABOtherInformation_r16.hpp": "e63db531f3800026679f26c84534a864e9959145d9fd1361e7a54d35c6b26fb6",
+    "include/nrforge/rrc/roots/NR_RRC_Definitions/UL_CCCH1_Message.hpp": "522ee96ed9f48b6a83b3a9c7e60301b8ee9f67a51db2247c5ab6316bbb7838c2",
+    "include/nrforge/rrc/roots/NR_RRC_Definitions/RRCReestablishmentRequest.hpp": "15fc184fb2ed4c653edd6093c0a036d9bf06af7b842271b2738bfff45e313b78",
+    "include/nrforge/rrc/roots/NR_RRC_Definitions/DedicatedSIBRequest_r16.hpp": "300fbbf5e80a4939453b81ca596ee29fd186ccd269e02f101ddad12f2315d680",
+    "include/nrforge/rrc/roots/NR_RRC_Definitions/SCGFailureInformationEUTRA.hpp": "801b700693ce781436f27183033379bf58cb5847c70a6e230164f653a1aa7593",
+    "include/nrforge/rrc/roots/NR_RRC_Definitions/BCCH_BCH_Message.hpp": "d3fbfc9ddd7c1d61b2bb3b1b21e79fc3c6bd3d8800ff6d46692aa65bb8282f19",
+    "include/nrforge/rrc/roots/NR_RRC_Definitions/UEPositioningAssistanceInfo_r17.hpp": "854aa6e49922fbf7ddf07681ab7034acc7cec72db9994a73906b3ad30d1381b1",
+    "include/nrforge/rrc/roots/NR_RRC_Definitions/MeasurementReportAppLayer_r17.hpp": "c3edb957214ebd7cdf39bcf01134110e823d12cd7b66467d11d0282bac778082",
+    "include/nrforge/rrc/roots/NR_RRC_Definitions/UEInformationRequest_r16.hpp": "4a68ba44075d17965d0da8c689453ba2f663fd2aeed0da005c91e813ea92d82b",
+    "include/nrforge/rrc/roots/NR_RRC_Definitions/RRCSetupRequest.hpp": "f3ea7fd0bff57559eec3664f3ad4edcc6cb7c44578cc4ec92ca94a42b0ba1468",
+    "include/nrforge/rrc/roots/NR_RRC_Definitions/MobilityFromNRCommand.hpp": "087bfd704d287302455f0172804e98d8322b2a971d3999dc8aabcc0f02dbc9bb",
+    "include/nrforge/rrc/roots/NR_RRC_Definitions/MCGFailureInformation_r16.hpp": "6fa75ad1c18d04383d86d09c05e98e54ae312f4417e992f2b171b9aa14ec06d5",
+    "include/nrforge/rrc/roots/NR_RRC_Definitions/MeasurementReport.hpp": "1c9294d37b6e4af2d86330b20b1ccf45b091cf06ead208a7810d068d2cb24e13",
+    "include/nrforge/rrc/roots/NR_RRC_Definitions/UECapabilityEnquiry.hpp": "7db48a13aac89c8b3ad38e4ddfde5146a957f3ee8e332f891e76e22d1d3dcfb9",
+    "include/nrforge/rrc/roots/NR_RRC_Definitions/FilterConfig.hpp": "390be0c69f39ebb17eaa0dbf89e68040c460cc6cda3fe5107d34db4c88faab88",
+    "include/nrforge/rrc/roots/NR_RRC_Definitions/Paging.hpp": "decf080309ec428cd451fae4f7a97535872e4e2c09b9df02ebd86c227d93b06c",
+    "include/nrforge/rrc/roots/NR_RRC_Definitions/UL_CCCH_Message.hpp": "695168dba49342535df5e992d93b8b41a93d733737f5c3736b268af1805dc5da",
+    "include/nrforge/rrc/roots/NR_RRC_Definitions/CounterCheck.hpp": "b8079f7d9341c283f8a77d0aef775ac45104ba620857bb3d82ac4b7b9265fbe9",
+    "include/nrforge/rrc/roots/NR_RRC_Definitions/MCCH_Message_r17.hpp": "2d3095f671e2fc81f57ba6b8f6ae7e3b4bfe3a472f64f20f481f2b0075b0bc5f",
+    "include/nrforge/rrc/roots/NR_RRC_Definitions/SIB2.hpp": "57c77134cc9dfb35bb8e082024333784af9d6280eea51fb63412d8ec49379853",
+    "include/nrforge/rrc/roots/NR_RRC_Definitions/SecurityModeComplete.hpp": "2277238ae2ef0bc6059c4829f47ab28f9007d0d787eda75fa8c4e96886c627b0",
+    "include/nrforge/rrc/roots/NR_RRC_Definitions/ULInformationTransferIRAT_r16.hpp": "2138e3436b6d65dfed435d6facf3be99b39ce4303dd45179bae6d64001459ae3",
+    "include/nrforge/rrc/roots/NR_RRC_Definitions/MBSMulticastConfiguration_r18.hpp": "55de15f9dc94c24c1c3b7eb033cb929bf738ed2786b21be845dd0a711dd5e3ed",
+    "include/nrforge/rrc/roots/NR_RRC_Definitions/FilterConfigCLI_r16.hpp": "68d16047192e72bf01464e8fd51962ea91c1d7b75400c985756627d1cdc52e2b",
+    "include/nrforge/rrc/roots/NR_RRC_Definitions/ULInformationTransfer.hpp": "142d6e29880193b61bf0b56e2e28b7b13efd13f1e63898122d2650ac74783e77",
+    "include/nrforge/rrc/roots/NR_RRC_Definitions/DLDedicatedMessageSegment_r16.hpp": "b1fcbbead9f484d6c27f0a64775b29332f3bf76a7457d0f6e0579659414595d1",
+    "include/nrforge/rrc/roots/NR_RRC_Definitions/MulticastMCCH_Message_r18.hpp": "8dfc908c09006965af644dcade453c70079559b050c1a3caaa148a46a097b445",
+    "include/nrforge/rrc/roots/NR_InterNodeDefinitions/MeasurementTimingConfiguration.hpp": "6316571f7a1f092e397f068b04a4bee99727b23738fa8be954462ded5d6ae3c5"
+  },
+  "manifest": {
+    "version": "0.1.0",
+    "protocol": "RRC",
+    "requested_roots": 85,
+    "supported_roots": 64,
+    "selected_supported_roots": 59,
+    "blocked_roots": 21,
+    "channel_roots": 7,
+    "full_rrc_coverage": false,
+    "qualification_sha256": "7bd8487677f88f1197101b1bff2e02058318542442b88290eccdf2f4aeb499c2",
+    "roots": [
+      {
+        "index": 0,
+        "module": "NR-InterNodeDefinitions",
+        "root": "MeasurementTimingConfiguration",
+        "roles": [
+          "bare_seed"
+        ],
+        "status": "PASS",
+        "header": "nrforge/rrc/roots/NR_InterNodeDefinitions/MeasurementTimingConfiguration.hpp",
+        "namespace": "nrforge::rrc::NR_InterNodeDefinitions::MeasurementTimingConfiguration",
+        "qualified_header_sha256": "f5ed06ed3350a9313a1e6a5aaaf2b4ac1a50dab8cbe15452823fae4246fe2877",
+        "installed_header_sha256": "6316571f7a1f092e397f068b04a4bee99727b23738fa8be954462ded5d6ae3c5"
+      },
+      {
+        "index": 1,
+        "module": "NR-RRC-Definitions",
+        "root": "BCCH-BCH-Message",
+        "roles": [
+          "channel"
+        ],
+        "status": "PASS",
+        "header": "nrforge/rrc/roots/NR_RRC_Definitions/BCCH_BCH_Message.hpp",
+        "namespace": "nrforge::rrc::NR_RRC_Definitions::BCCH_BCH_Message",
+        "qualified_header_sha256": "763d16dbe4ea62f0b30003edcf009641af050d85be594a951a2dfabd4e854e15",
+        "installed_header_sha256": "d3fbfc9ddd7c1d61b2bb3b1b21e79fc3c6bd3d8800ff6d46692aa65bb8282f19"
+      },
+      {
+        "index": 2,
+        "module": "NR-RRC-Definitions",
+        "root": "BCCH-DL-SCH-Message",
+        "roles": [
+          "channel"
+        ],
+        "status": "BLOCKED_EXTRACTION",
+        "error": "NR-RRC-Definitions.$inline$PCCH-Config$firstPDCCH-MonitoringOccasionOfPO$sCS15KHZoneT: NR-RRC-Definitions.$inline$PCCH-Config$firstPDCCH-MonitoringOccasionOfPO$sCS15KHZoneT: inline constrained type is unsupported"
+      },
+      {
+        "index": 3,
+        "module": "NR-RRC-Definitions",
+        "root": "CounterCheck",
+        "roles": [
+          "payload"
+        ],
+        "status": "PASS",
+        "header": "nrforge/rrc/roots/NR_RRC_Definitions/CounterCheck.hpp",
+        "namespace": "nrforge::rrc::NR_RRC_Definitions::CounterCheck",
+        "qualified_header_sha256": "c304aae5b53bfbcaaa62a0f70da99ecb9c84dadc0f2d25e79557a9933d6fd622",
+        "installed_header_sha256": "b8079f7d9341c283f8a77d0aef775ac45104ba620857bb3d82ac4b7b9265fbe9"
+      },
+      {
+        "index": 4,
+        "module": "NR-RRC-Definitions",
+        "root": "CounterCheckResponse",
+        "roles": [
+          "payload"
+        ],
+        "status": "PASS",
+        "header": "nrforge/rrc/roots/NR_RRC_Definitions/CounterCheckResponse.hpp",
+        "namespace": "nrforge::rrc::NR_RRC_Definitions::CounterCheckResponse",
+        "qualified_header_sha256": "830ca30c984eac745379a11135c2d4adfaab15007707bc1e54dec6a6c643b3ee",
+        "installed_header_sha256": "c32a7efcb566346c467144e53f0312b9969a70409af4cda5a0bff948a6c28c0b"
+      },
+      {
+        "index": 5,
+        "module": "NR-RRC-Definitions",
+        "root": "DL-CCCH-Message",
+        "roles": [
+          "channel"
+        ],
+        "status": "BLOCKED_EXTRACTION",
+        "error": "NR-RRC-Definitions.SRB-Identity-v1700: SRB-Identity-v1700: unsupported or unrepresentable primitive constraint"
+      },
+      {
+        "index": 6,
+        "module": "NR-RRC-Definitions",
+        "root": "DL-DCCH-Message",
+        "roles": [
+          "channel"
+        ],
+        "status": "BLOCKED_EXTRACTION",
+        "error": "NR-RRC-Definitions.$inline$RRCResume-v1610-IEs$mrdc-SecondaryCellGroup-r16: $inline$RRCResume-v1610-IEs$mrdc-SecondaryCellGroup-r16.nr-SCG-r16: inline constrained type is unsupported"
+      },
+      {
+        "index": 7,
+        "module": "NR-RRC-Definitions",
+        "root": "DLDedicatedMessageSegment-r16",
+        "roles": [
+          "payload"
+        ],
+        "status": "PASS",
+        "header": "nrforge/rrc/roots/NR_RRC_Definitions/DLDedicatedMessageSegment_r16.hpp",
+        "namespace": "nrforge::rrc::NR_RRC_Definitions::DLDedicatedMessageSegment_r16",
+        "qualified_header_sha256": "52e262168ed6ec27355e3a181a0e2ea249681a2ae05342666f04c16be0384a13",
+        "installed_header_sha256": "b1fcbbead9f484d6c27f0a64775b29332f3bf76a7457d0f6e0579659414595d1"
+      },
+      {
+        "index": 8,
+        "module": "NR-RRC-Definitions",
+        "root": "DLInformationTransfer",
+        "roles": [
+          "payload"
+        ],
+        "status": "PASS",
+        "header": "nrforge/rrc/roots/NR_RRC_Definitions/DLInformationTransfer.hpp",
+        "namespace": "nrforge::rrc::NR_RRC_Definitions::DLInformationTransfer",
+        "qualified_header_sha256": "8bc6c77f4c12bafa683659d536a072496389a5ff9e09f553f948de6782d3220b",
+        "installed_header_sha256": "02f6458a220bdbd6dcbc3b68fa6d8809de196be292529b08f47b9d5fb701c66e"
+      },
+      {
+        "index": 9,
+        "module": "NR-RRC-Definitions",
+        "root": "DLInformationTransferMRDC-r16",
+        "roles": [
+          "payload"
+        ],
+        "status": "PASS",
+        "header": "nrforge/rrc/roots/NR_RRC_Definitions/DLInformationTransferMRDC_r16.hpp",
+        "namespace": "nrforge::rrc::NR_RRC_Definitions::DLInformationTransferMRDC_r16",
+        "qualified_header_sha256": "f83696e708c9c39fbeb57cf6d8a4afd545fde43649dde0973e4bfbf57ea9d52a",
+        "installed_header_sha256": "8cfc2a9c6a62085bf4b145aeaa2fb983814e0a915dbd2034ebc77224a4f4e6db"
+      },
+      {
+        "index": 10,
+        "module": "NR-RRC-Definitions",
+        "root": "DedicatedSIBRequest-r16",
+        "roles": [
+          "payload"
+        ],
+        "status": "PASS",
+        "header": "nrforge/rrc/roots/NR_RRC_Definitions/DedicatedSIBRequest_r16.hpp",
+        "namespace": "nrforge::rrc::NR_RRC_Definitions::DedicatedSIBRequest_r16",
+        "qualified_header_sha256": "56b949a0a7c69455cd81f89295758f8f64e7daf332cac176d81359ad060d3a18",
+        "installed_header_sha256": "300fbbf5e80a4939453b81ca596ee29fd186ccd269e02f101ddad12f2315d680"
+      },
+      {
+        "index": 11,
+        "module": "NR-RRC-Definitions",
+        "root": "FailureInformation",
+        "roles": [
+          "payload"
+        ],
+        "status": "PASS",
+        "header": "nrforge/rrc/roots/NR_RRC_Definitions/FailureInformation.hpp",
+        "namespace": "nrforge::rrc::NR_RRC_Definitions::FailureInformation",
+        "qualified_header_sha256": "3f97d27b8698ccc16696ba3c6300510ab1324ded6f7a78cdd4917b25c9542dee",
+        "installed_header_sha256": "208b32c10d80ef83b9146367c63da055713d2916c350075b017a483a214ff9fc"
+      },
+      {
+        "index": 12,
+        "module": "NR-RRC-Definitions",
+        "root": "IABOtherInformation-r16",
+        "roles": [
+          "payload"
+        ],
+        "status": "PASS",
+        "header": "nrforge/rrc/roots/NR_RRC_Definitions/IABOtherInformation_r16.hpp",
+        "namespace": "nrforge::rrc::NR_RRC_Definitions::IABOtherInformation_r16",
+        "qualified_header_sha256": "63462e38e172a5acc7161c87a9e90f31b3db5dee0d4c12486ce8ec45b83a447d",
+        "installed_header_sha256": "e63db531f3800026679f26c84534a864e9959145d9fd1361e7a54d35c6b26fb6"
+      },
+      {
+        "index": 13,
+        "module": "NR-RRC-Definitions",
+        "root": "IndirectPathFailureInformation-r18",
+        "roles": [
+          "payload"
+        ],
+        "status": "PASS",
+        "header": "nrforge/rrc/roots/NR_RRC_Definitions/IndirectPathFailureInformation_r18.hpp",
+        "namespace": "nrforge::rrc::NR_RRC_Definitions::IndirectPathFailureInformation_r18",
+        "qualified_header_sha256": "c4d057f486961ceed6c1f12631619d5be839367085a701f74d48bd8c1cd4926e",
+        "installed_header_sha256": "f94ee30ece038a96201a16e82dff80892a2d4c73619f5fc4d93a31a448398958"
+      },
+      {
+        "index": 14,
+        "module": "NR-RRC-Definitions",
+        "root": "LocationMeasurementIndication",
+        "roles": [
+          "payload"
+        ],
+        "status": "BLOCKED_RENDER",
+        "error": "ordinary CHOICE root tags unavailable"
+      },
+      {
+        "index": 15,
+        "module": "NR-RRC-Definitions",
+        "root": "LoggedMeasurementConfiguration-r16",
+        "roles": [
+          "payload"
+        ],
+        "status": "BLOCKED_EXTRACTION",
+        "error": "NR-RRC-Definitions.$inline$CAG-Config-r18$cag-IdentityList-r18: NR-RRC-Definitions.$inline$CAG-Config-r18$cag-IdentityList-r18: inline constrained type is unsupported"
+      },
+      {
+        "index": 16,
+        "module": "NR-RRC-Definitions",
+        "root": "MBSBroadcastConfiguration-r17",
+        "roles": [
+          "payload"
+        ],
+        "status": "PASS",
+        "header": "nrforge/rrc/roots/NR_RRC_Definitions/MBSBroadcastConfiguration_r17.hpp",
+        "namespace": "nrforge::rrc::NR_RRC_Definitions::MBSBroadcastConfiguration_r17",
+        "qualified_header_sha256": "901ac3a0dd392ae8a9ecf4e3392c15f9ef3d3ff0046d72ef78a891b2b5215128",
+        "installed_header_sha256": "7d25389791cf141c467fb6d3743e99b637b751c3ae20f0105b62c785be586018"
+      },
+      {
+        "index": 17,
+        "module": "NR-RRC-Definitions",
+        "root": "MBSInterestIndication-r17",
+        "roles": [
+          "payload"
+        ],
+        "status": "PASS",
+        "header": "nrforge/rrc/roots/NR_RRC_Definitions/MBSInterestIndication_r17.hpp",
+        "namespace": "nrforge::rrc::NR_RRC_Definitions::MBSInterestIndication_r17",
+        "qualified_header_sha256": "734e0339db50b27ebfef965eab0fc573eba9b88726b30797e845f92d931372e3",
+        "installed_header_sha256": "1b86c5f7643b7de84afcb9b5a2845835894ec81eb3ff5f6903f1c598ca888787"
+      },
+      {
+        "index": 18,
+        "module": "NR-RRC-Definitions",
+        "root": "MBSMulticastConfiguration-r18",
+        "roles": [
+          "payload"
+        ],
+        "status": "PASS",
+        "header": "nrforge/rrc/roots/NR_RRC_Definitions/MBSMulticastConfiguration_r18.hpp",
+        "namespace": "nrforge::rrc::NR_RRC_Definitions::MBSMulticastConfiguration_r18",
+        "qualified_header_sha256": "0226b3b90e0a3b2112ad0b8b0ca6c17fbfc3c55424afbce71feb9d395ad3b40b",
+        "installed_header_sha256": "55de15f9dc94c24c1c3b7eb033cb929bf738ed2786b21be845dd0a711dd5e3ed"
+      },
+      {
+        "index": 19,
+        "module": "NR-RRC-Definitions",
+        "root": "MCCH-Message-r17",
+        "roles": [
+          "channel"
+        ],
+        "status": "PASS",
+        "header": "nrforge/rrc/roots/NR_RRC_Definitions/MCCH_Message_r17.hpp",
+        "namespace": "nrforge::rrc::NR_RRC_Definitions::MCCH_Message_r17",
+        "qualified_header_sha256": "ca7dedc35ca6e79c64c526e1f48b68d0d52b6cd02e291c18bb6e2215f143d94f",
+        "installed_header_sha256": "2d3095f671e2fc81f57ba6b8f6ae7e3b4bfe3a472f64f20f481f2b0075b0bc5f"
+      },
+      {
+        "index": 20,
+        "module": "NR-RRC-Definitions",
+        "root": "MCGFailureInformation-r16",
+        "roles": [
+          "payload"
+        ],
+        "status": "PASS",
+        "header": "nrforge/rrc/roots/NR_RRC_Definitions/MCGFailureInformation_r16.hpp",
+        "namespace": "nrforge::rrc::NR_RRC_Definitions::MCGFailureInformation_r16",
+        "qualified_header_sha256": "c3625dc06705e354e2e94355cd8e29ee15bc91ad9b19cefd4a11a1d4fd9fe006",
+        "installed_header_sha256": "6fa75ad1c18d04383d86d09c05e98e54ae312f4417e992f2b171b9aa14ec06d5"
+      },
+      {
+        "index": 21,
+        "module": "NR-RRC-Definitions",
+        "root": "MIB",
+        "roles": [
+          "payload",
+          "bare_seed"
+        ],
+        "status": "PASS",
+        "header": "nrforge/rrc/roots/NR_RRC_Definitions/MIB.hpp",
+        "namespace": "nrforge::rrc::NR_RRC_Definitions::MIB",
+        "qualified_header_sha256": "240bf25bc17df32973e542fc70a3b8eecbf4058b6e4c1803a0d0320359ee7cc9",
+        "installed_header_sha256": "c2740f933b047688e615aae5f944edc606b9660dbbdc98611c32b9d924c6a0b6"
+      },
+      {
+        "index": 22,
+        "module": "NR-RRC-Definitions",
+        "root": "MeasurementReport",
+        "roles": [
+          "payload"
+        ],
+        "status": "PASS",
+        "header": "nrforge/rrc/roots/NR_RRC_Definitions/MeasurementReport.hpp",
+        "namespace": "nrforge::rrc::NR_RRC_Definitions::MeasurementReport",
+        "qualified_header_sha256": "50bf059e37ef9e7ddb18ac08c7be552feb89b02b25e8e78ec31275332365861b",
+        "installed_header_sha256": "1c9294d37b6e4af2d86330b20b1ccf45b091cf06ead208a7810d068d2cb24e13"
+      },
+      {
+        "index": 23,
+        "module": "NR-RRC-Definitions",
+        "root": "MeasurementReportAppLayer-r17",
+        "roles": [
+          "payload"
+        ],
+        "status": "PASS",
+        "header": "nrforge/rrc/roots/NR_RRC_Definitions/MeasurementReportAppLayer_r17.hpp",
+        "namespace": "nrforge::rrc::NR_RRC_Definitions::MeasurementReportAppLayer_r17",
+        "qualified_header_sha256": "4cfd186660ed822e840266940176aeac3db396115cc00a23d5f5a40e2c50b792",
+        "installed_header_sha256": "c3edb957214ebd7cdf39bcf01134110e823d12cd7b66467d11d0282bac778082"
+      },
+      {
+        "index": 24,
+        "module": "NR-RRC-Definitions",
+        "root": "MobilityFromNRCommand",
+        "roles": [
+          "payload"
+        ],
+        "status": "PASS",
+        "header": "nrforge/rrc/roots/NR_RRC_Definitions/MobilityFromNRCommand.hpp",
+        "namespace": "nrforge::rrc::NR_RRC_Definitions::MobilityFromNRCommand",
+        "qualified_header_sha256": "c2f8aebc341d3d0cb959b9aad42b3c046e9e17704f7262c77cdeb184b1940d6e",
+        "installed_header_sha256": "087bfd704d287302455f0172804e98d8322b2a971d3999dc8aabcc0f02dbc9bb"
+      },
+      {
+        "index": 25,
+        "module": "NR-RRC-Definitions",
+        "root": "MulticastMCCH-Message-r18",
+        "roles": [
+          "channel"
+        ],
+        "status": "PASS",
+        "header": "nrforge/rrc/roots/NR_RRC_Definitions/MulticastMCCH_Message_r18.hpp",
+        "namespace": "nrforge::rrc::NR_RRC_Definitions::MulticastMCCH_Message_r18",
+        "qualified_header_sha256": "a070781f4a2aec84562cca36a941f3179e4b4e817d1940e444a75e259a3d12c3",
+        "installed_header_sha256": "8dfc908c09006965af644dcade453c70079559b050c1a3caaa148a46a097b445"
+      },
+      {
+        "index": 26,
+        "module": "NR-RRC-Definitions",
+        "root": "PCCH-Message",
+        "roles": [
+          "channel"
+        ],
+        "status": "PASS",
+        "header": "nrforge/rrc/roots/NR_RRC_Definitions/PCCH_Message.hpp",
+        "namespace": "nrforge::rrc::NR_RRC_Definitions::PCCH_Message",
+        "qualified_header_sha256": "552048815fdd5c98f677d70bc7dfc3715a89fd5c38980ad61c0403a8ac57feb0",
+        "installed_header_sha256": "d3023bb6d4180fc61832e4a5e8b50747e024e9479f634241db11ab494a4e7c6d"
+      },
+      {
+        "index": 27,
+        "module": "NR-RRC-Definitions",
+        "root": "Paging",
+        "roles": [
+          "payload"
+        ],
+        "status": "PASS",
+        "header": "nrforge/rrc/roots/NR_RRC_Definitions/Paging.hpp",
+        "namespace": "nrforge::rrc::NR_RRC_Definitions::Paging",
+        "qualified_header_sha256": "f16e5c914043aa77c0d68dcf4bd09741371a274c1c93276f6f0f8098607d432c",
+        "installed_header_sha256": "decf080309ec428cd451fae4f7a97535872e4e2c09b9df02ebd86c227d93b06c"
+      },
+      {
+        "index": 28,
+        "module": "NR-RRC-Definitions",
+        "root": "RRCReconfiguration",
+        "roles": [
+          "payload"
+        ],
+        "status": "BLOCKED_EXTRACTION",
+        "error": "NR-RRC-Definitions.SRB-Identity-v1700: SRB-Identity-v1700: unsupported or unrepresentable primitive constraint"
+      },
+      {
+        "index": 29,
+        "module": "NR-RRC-Definitions",
+        "root": "RRCReconfigurationComplete",
+        "roles": [
+          "payload"
+        ],
+        "status": "BLOCKED_EXTRACTION",
+        "error": "NR-RRC-Definitions.$inline$RRCReconfigurationComplete-v1560-IEs$scg-Response: $inline$RRCReconfigurationComplete-v1560-IEs$scg-Response.nr-SCG-Response: inline constrained type is unsupported"
+      },
+      {
+        "index": 30,
+        "module": "NR-RRC-Definitions",
+        "root": "RRCReestablishment",
+        "roles": [
+          "payload"
+        ],
+        "status": "BLOCKED_RENDER",
+        "error": "ordinary CHOICE root tags unavailable"
+      },
+      {
+        "index": 31,
+        "module": "NR-RRC-Definitions",
+        "root": "RRCReestablishmentComplete",
+        "roles": [
+          "payload"
+        ],
+        "status": "PASS",
+        "header": "nrforge/rrc/roots/NR_RRC_Definitions/RRCReestablishmentComplete.hpp",
+        "namespace": "nrforge::rrc::NR_RRC_Definitions::RRCReestablishmentComplete",
+        "qualified_header_sha256": "96ebcc360a4065d678d4e89c9e8bdc8ef978a2e771454d3631f5d53a5f8afca6",
+        "installed_header_sha256": "0cdfc1c7655777fee0542a697e018faa1f0eadfc23e996d93da74419a986a4e1"
+      },
+      {
+        "index": 32,
+        "module": "NR-RRC-Definitions",
+        "root": "RRCReestablishmentRequest",
+        "roles": [
+          "payload"
+        ],
+        "status": "PASS",
+        "header": "nrforge/rrc/roots/NR_RRC_Definitions/RRCReestablishmentRequest.hpp",
+        "namespace": "nrforge::rrc::NR_RRC_Definitions::RRCReestablishmentRequest",
+        "qualified_header_sha256": "b8b6fb5061ea857fc43e7a1b2b8be8a84a7d22707f2c1c2262dd7e0e7e70e5ad",
+        "installed_header_sha256": "15fc184fb2ed4c653edd6093c0a036d9bf06af7b842271b2738bfff45e313b78"
+      },
+      {
+        "index": 33,
+        "module": "NR-RRC-Definitions",
+        "root": "RRCReject",
+        "roles": [
+          "payload"
+        ],
+        "status": "PASS",
+        "header": "nrforge/rrc/roots/NR_RRC_Definitions/RRCReject.hpp",
+        "namespace": "nrforge::rrc::NR_RRC_Definitions::RRCReject",
+        "qualified_header_sha256": "465d19dd6b46bcf2e280c90ca32ef9002137aa5674d5c791692408e50b56308c",
+        "installed_header_sha256": "05e49cf347a2eb085a24d198d2f64ac6791846a5e5ffab2c57849b9afc12cc10"
+      },
+      {
+        "index": 34,
+        "module": "NR-RRC-Definitions",
+        "root": "RRCRelease",
+        "roles": [
+          "payload"
+        ],
+        "status": "BLOCKED_EXTRACTION",
+        "error": "NR-RRC-Definitions.SRS-PosRRC-Inactive-r17: SRS-PosRRC-Inactive-r17: unsupported or unrepresentable primitive constraint"
+      },
+      {
+        "index": 35,
+        "module": "NR-RRC-Definitions",
+        "root": "RRCResume",
+        "roles": [
+          "payload"
+        ],
+        "status": "BLOCKED_EXTRACTION",
+        "error": "NR-RRC-Definitions.$inline$RRCResume-v1610-IEs$mrdc-SecondaryCellGroup-r16: $inline$RRCResume-v1610-IEs$mrdc-SecondaryCellGroup-r16.nr-SCG-r16: inline constrained type is unsupported"
+      },
+      {
+        "index": 36,
+        "module": "NR-RRC-Definitions",
+        "root": "RRCResumeComplete",
+        "roles": [
+          "payload"
+        ],
+        "status": "BLOCKED_EXTRACTION",
+        "error": "NR-RRC-Definitions.$inline$RRCResumeComplete-v1610-IEs$scg-Response-r16: $inline$RRCResumeComplete-v1610-IEs$scg-Response-r16.nr-SCG-Response: inline constrained type is unsupported"
+      },
+      {
+        "index": 37,
+        "module": "NR-RRC-Definitions",
+        "root": "RRCResumeRequest",
+        "roles": [
+          "payload"
+        ],
+        "status": "PASS",
+        "header": "nrforge/rrc/roots/NR_RRC_Definitions/RRCResumeRequest.hpp",
+        "namespace": "nrforge::rrc::NR_RRC_Definitions::RRCResumeRequest",
+        "qualified_header_sha256": "9fc070c6a48fc281c8fdcba87f8256c514ae587ffc85d80d81759c4dfce5bd01",
+        "installed_header_sha256": "ce6c2b7feb681931a8aabd814b0bd8afdc36411f8a25b4cf33278986a5674fd8"
+      },
+      {
+        "index": 38,
+        "module": "NR-RRC-Definitions",
+        "root": "RRCResumeRequest1",
+        "roles": [
+          "payload"
+        ],
+        "status": "PASS",
+        "header": "nrforge/rrc/roots/NR_RRC_Definitions/RRCResumeRequest1.hpp",
+        "namespace": "nrforge::rrc::NR_RRC_Definitions::RRCResumeRequest1",
+        "qualified_header_sha256": "66e7fefafb40648724721a136e7b715fc335dbbdee84a3f06f1e8914f7395fd9",
+        "installed_header_sha256": "dbb90f87ef102d6da5001649260b7363d6ee36e9199c77d5e2f81b59f073f39b"
+      },
+      {
+        "index": 39,
+        "module": "NR-RRC-Definitions",
+        "root": "RRCSetup",
+        "roles": [
+          "payload"
+        ],
+        "status": "BLOCKED_EXTRACTION",
+        "error": "NR-RRC-Definitions.SRB-Identity-v1700: SRB-Identity-v1700: unsupported or unrepresentable primitive constraint"
+      },
+      {
+        "index": 40,
+        "module": "NR-RRC-Definitions",
+        "root": "RRCSetupComplete",
+        "roles": [
+          "payload"
+        ],
+        "status": "PASS",
+        "header": "nrforge/rrc/roots/NR_RRC_Definitions/RRCSetupComplete.hpp",
+        "namespace": "nrforge::rrc::NR_RRC_Definitions::RRCSetupComplete",
+        "qualified_header_sha256": "411c4c96e3633e29512122899f94846f8a7fbe2abd13ccd77b18a2fc55b7e333",
+        "installed_header_sha256": "54b331e735f0cd3bbeea58feff7a561caedbd4cd0cc8f419c50df141717f50ba"
+      },
+      {
+        "index": 41,
+        "module": "NR-RRC-Definitions",
+        "root": "RRCSetupRequest",
+        "roles": [
+          "payload"
+        ],
+        "status": "PASS",
+        "header": "nrforge/rrc/roots/NR_RRC_Definitions/RRCSetupRequest.hpp",
+        "namespace": "nrforge::rrc::NR_RRC_Definitions::RRCSetupRequest",
+        "qualified_header_sha256": "0eb82ae704e7d26e1c934cde6e1a501cb8875fee4878a0a7313db8301daf2ebe",
+        "installed_header_sha256": "f3ea7fd0bff57559eec3664f3ad4edcc6cb7c44578cc4ec92ca94a42b0ba1468"
+      },
+      {
+        "index": 42,
+        "module": "NR-RRC-Definitions",
+        "root": "RRCSystemInfoRequest",
+        "roles": [
+          "payload"
+        ],
+        "status": "PASS",
+        "header": "nrforge/rrc/roots/NR_RRC_Definitions/RRCSystemInfoRequest.hpp",
+        "namespace": "nrforge::rrc::NR_RRC_Definitions::RRCSystemInfoRequest",
+        "qualified_header_sha256": "8a4c9d5f503d063a1c4e346a7ad8b02b299f5cc79b096f636effb1752e243b3c",
+        "installed_header_sha256": "9270a770036941aec5cc07911c6d4921a07aa42f5fa39cb25e93be301f98bf08"
+      },
+      {
+        "index": 43,
+        "module": "NR-RRC-Definitions",
+        "root": "SCGFailureInformation",
+        "roles": [
+          "payload"
+        ],
+        "status": "PASS",
+        "header": "nrforge/rrc/roots/NR_RRC_Definitions/SCGFailureInformation.hpp",
+        "namespace": "nrforge::rrc::NR_RRC_Definitions::SCGFailureInformation",
+        "qualified_header_sha256": "90399fb47fbf55d80b662ddbb6babb3eb1e56146ac33152854f9ab213e275532",
+        "installed_header_sha256": "fe598c47759f366573548a30aabc9bc0a569d4b1aa1aeea21445c871fcb5e524"
+      },
+      {
+        "index": 44,
+        "module": "NR-RRC-Definitions",
+        "root": "SCGFailureInformationEUTRA",
+        "roles": [
+          "payload"
+        ],
+        "status": "PASS",
+        "header": "nrforge/rrc/roots/NR_RRC_Definitions/SCGFailureInformationEUTRA.hpp",
+        "namespace": "nrforge::rrc::NR_RRC_Definitions::SCGFailureInformationEUTRA",
+        "qualified_header_sha256": "13e2bf660bb2d58e3f8fd411debdcd5d9e0ec554faf981ce16a0900a97d74bfb",
+        "installed_header_sha256": "801b700693ce781436f27183033379bf58cb5847c70a6e230164f653a1aa7593"
+      },
+      {
+        "index": 45,
+        "module": "NR-RRC-Definitions",
+        "root": "SIB1",
+        "roles": [
+          "payload",
+          "bare_seed"
+        ],
+        "status": "BLOCKED_EXTRACTION",
+        "error": "NR-RRC-Definitions.$inline$PCCH-Config$firstPDCCH-MonitoringOccasionOfPO$sCS15KHZoneT: NR-RRC-Definitions.$inline$PCCH-Config$firstPDCCH-MonitoringOccasionOfPO$sCS15KHZoneT: inline constrained type is unsupported"
+      },
+      {
+        "index": 46,
+        "module": "NR-RRC-Definitions",
+        "root": "SIB2",
+        "roles": [
+          "bare_seed"
+        ],
+        "status": "PASS",
+        "header": "nrforge/rrc/roots/NR_RRC_Definitions/SIB2.hpp",
+        "namespace": "nrforge::rrc::NR_RRC_Definitions::SIB2",
+        "qualified_header_sha256": "09e8d3562e7c530b2e15cf6197dcfd32614e4cf67ffc895555b8a435cff54381",
+        "installed_header_sha256": "57c77134cc9dfb35bb8e082024333784af9d6280eea51fb63412d8ec49379853"
+      },
+      {
+        "index": 47,
+        "module": "NR-RRC-Definitions",
+        "root": "SecurityModeCommand",
+        "roles": [
+          "payload"
+        ],
+        "status": "PASS",
+        "header": "nrforge/rrc/roots/NR_RRC_Definitions/SecurityModeCommand.hpp",
+        "namespace": "nrforge::rrc::NR_RRC_Definitions::SecurityModeCommand",
+        "qualified_header_sha256": "3ecf24fe6547466d900e38c23c7598b17a7a6a84cd2c719079eff67fe6adeec0",
+        "installed_header_sha256": "4c70575d91e18596551e484a85cad22aa624ad1e75ea2c51f5b8475f9b779625"
+      },
+      {
+        "index": 48,
+        "module": "NR-RRC-Definitions",
+        "root": "SecurityModeComplete",
+        "roles": [
+          "payload"
+        ],
+        "status": "PASS",
+        "header": "nrforge/rrc/roots/NR_RRC_Definitions/SecurityModeComplete.hpp",
+        "namespace": "nrforge::rrc::NR_RRC_Definitions::SecurityModeComplete",
+        "qualified_header_sha256": "d865ea35ae127e733568a7220ef45d5a6678a431ae17d88ca9665a3c2bc32982",
+        "installed_header_sha256": "2277238ae2ef0bc6059c4829f47ab28f9007d0d787eda75fa8c4e96886c627b0"
+      },
+      {
+        "index": 49,
+        "module": "NR-RRC-Definitions",
+        "root": "SecurityModeFailure",
+        "roles": [
+          "payload"
+        ],
+        "status": "PASS",
+        "header": "nrforge/rrc/roots/NR_RRC_Definitions/SecurityModeFailure.hpp",
+        "namespace": "nrforge::rrc::NR_RRC_Definitions::SecurityModeFailure",
+        "qualified_header_sha256": "9a811beaa2cf7e4623a3cc24e9a2382e2a3def4a32f200d3cf6e8539a3f308d9",
+        "installed_header_sha256": "db71b450e6e68e89466d5e14605f1fc03fc177feda9f8e70135cb0e3e3b02b81"
+      },
+      {
+        "index": 50,
+        "module": "NR-RRC-Definitions",
+        "root": "SidelinkUEInformationNR-r16",
+        "roles": [
+          "payload"
+        ],
+        "status": "BLOCKED_EXTRACTION",
+        "error": "NR-RRC-Definitions.SL-InterestedFreqList-r16: NR-RRC-Definitions.SL-InterestedFreqList-r16: inline constrained type is unsupported"
+      },
+      {
+        "index": 51,
+        "module": "NR-RRC-Definitions",
+        "root": "SystemInformation",
+        "roles": [
+          "payload"
+        ],
+        "status": "BLOCKED_EXTRACTION",
+        "error": "NR-RRC-Definitions.MCCH-RepetitionPeriodAndOffset-r17: MCCH-RepetitionPeriodAndOffset-r17.rf1-r17: unsupported inline INTEGER constraint"
+      },
+      {
+        "index": 52,
+        "module": "NR-RRC-Definitions",
+        "root": "UEAssistanceInformation",
+        "roles": [
+          "payload"
+        ],
+        "status": "BLOCKED_EXTRACTION",
+        "error": "NR-RRC-Definitions.PropagationDelayDifference-r17: NR-RRC-Definitions.PropagationDelayDifference-r17: inline constrained type is unsupported"
+      },
+      {
+        "index": 53,
+        "module": "NR-RRC-Definitions",
+        "root": "UECapabilityEnquiry",
+        "roles": [
+          "payload"
+        ],
+        "status": "PASS",
+        "header": "nrforge/rrc/roots/NR_RRC_Definitions/UECapabilityEnquiry.hpp",
+        "namespace": "nrforge::rrc::NR_RRC_Definitions::UECapabilityEnquiry",
+        "qualified_header_sha256": "1ed37d81d0bc04fe482d2a0cee8438db00186268568ed75717af4c4c6c1c35d2",
+        "installed_header_sha256": "7db48a13aac89c8b3ad38e4ddfde5146a957f3ee8e332f891e76e22d1d3dcfb9"
+      },
+      {
+        "index": 54,
+        "module": "NR-RRC-Definitions",
+        "root": "UECapabilityInformation",
+        "roles": [
+          "payload"
+        ],
+        "status": "PASS",
+        "header": "nrforge/rrc/roots/NR_RRC_Definitions/UECapabilityInformation.hpp",
+        "namespace": "nrforge::rrc::NR_RRC_Definitions::UECapabilityInformation",
+        "qualified_header_sha256": "b6d8e15a14381495db24a2a0c0809558d0e921a58a24f61e28229eaf7a80b808",
+        "installed_header_sha256": "d45b6007fb59348aaab8ed784f2257590a0c1ab7322e36229da5aa5752870223"
+      },
+      {
+        "index": 55,
+        "module": "NR-RRC-Definitions",
+        "root": "UEInformationRequest-r16",
+        "roles": [
+          "payload"
+        ],
+        "status": "PASS",
+        "header": "nrforge/rrc/roots/NR_RRC_Definitions/UEInformationRequest_r16.hpp",
+        "namespace": "nrforge::rrc::NR_RRC_Definitions::UEInformationRequest_r16",
+        "qualified_header_sha256": "96d8790dbcd974cc12bb9e2efa7123598db0d2982335eb317a5d7badae25e370",
+        "installed_header_sha256": "4a68ba44075d17965d0da8c689453ba2f663fd2aeed0da005c91e813ea92d82b"
+      },
+      {
+        "index": 56,
+        "module": "NR-RRC-Definitions",
+        "root": "UEInformationResponse-r16",
+        "roles": [
+          "payload"
+        ],
+        "status": "BLOCKED_EXTRACTION",
+        "error": "NR-RRC-Definitions.MobilityHistoryReport-r16: constrained ordinary alias unsupported"
+      },
+      {
+        "index": 57,
+        "module": "NR-RRC-Definitions",
+        "root": "UEPositioningAssistanceInfo-r17",
+        "roles": [
+          "payload"
+        ],
+        "status": "PASS",
+        "header": "nrforge/rrc/roots/NR_RRC_Definitions/UEPositioningAssistanceInfo_r17.hpp",
+        "namespace": "nrforge::rrc::NR_RRC_Definitions::UEPositioningAssistanceInfo_r17",
+        "qualified_header_sha256": "298e90a944aa8878e48b014d91417a676fa517b5789319963dcfbc24ea833f6d",
+        "installed_header_sha256": "854aa6e49922fbf7ddf07681ab7034acc7cec72db9994a73906b3ad30d1381b1"
+      },
+      {
+        "index": 58,
+        "module": "NR-RRC-Definitions",
+        "root": "UL-CCCH-Message",
+        "roles": [
+          "channel"
+        ],
+        "status": "PASS",
+        "header": "nrforge/rrc/roots/NR_RRC_Definitions/UL_CCCH_Message.hpp",
+        "namespace": "nrforge::rrc::NR_RRC_Definitions::UL_CCCH_Message",
+        "qualified_header_sha256": "46019bd5d39e31723c562eea47d7bbc8afb3e46e58e688ae562aae114dd74b00",
+        "installed_header_sha256": "695168dba49342535df5e992d93b8b41a93d733737f5c3736b268af1805dc5da"
+      },
+      {
+        "index": 59,
+        "module": "NR-RRC-Definitions",
+        "root": "UL-CCCH1-Message",
+        "roles": [
+          "channel"
+        ],
+        "status": "PASS",
+        "header": "nrforge/rrc/roots/NR_RRC_Definitions/UL_CCCH1_Message.hpp",
+        "namespace": "nrforge::rrc::NR_RRC_Definitions::UL_CCCH1_Message",
+        "qualified_header_sha256": "c28fbc2d002f87d6256b8ccb3aeba10deda316c6c2ade747965b7bc15c2f0d22",
+        "installed_header_sha256": "522ee96ed9f48b6a83b3a9c7e60301b8ee9f67a51db2247c5ab6316bbb7838c2"
+      },
+      {
+        "index": 60,
+        "module": "NR-RRC-Definitions",
+        "root": "UL-DCCH-Message",
+        "roles": [
+          "channel"
+        ],
+        "status": "BLOCKED_EXTRACTION",
+        "error": "NR-RRC-Definitions.$inline$RRCResumeComplete-v1610-IEs$scg-Response-r16: $inline$RRCResumeComplete-v1610-IEs$scg-Response-r16.nr-SCG-Response: inline constrained type is unsupported"
+      },
+      {
+        "index": 61,
+        "module": "NR-RRC-Definitions",
+        "root": "ULDedicatedMessageSegment-r16",
+        "roles": [
+          "payload"
+        ],
+        "status": "PASS",
+        "header": "nrforge/rrc/roots/NR_RRC_Definitions/ULDedicatedMessageSegment_r16.hpp",
+        "namespace": "nrforge::rrc::NR_RRC_Definitions::ULDedicatedMessageSegment_r16",
+        "qualified_header_sha256": "d4c8527501b37adabaabda0dd379ac790cbae0da2e86c5527f07350af5118307",
+        "installed_header_sha256": "d26140cf3fab1f85c1c0ee51b6cd65e438eb5e18d26f6f780fc3e5c4efe55500"
+      },
+      {
+        "index": 62,
+        "module": "NR-RRC-Definitions",
+        "root": "ULInformationTransfer",
+        "roles": [
+          "payload"
+        ],
+        "status": "PASS",
+        "header": "nrforge/rrc/roots/NR_RRC_Definitions/ULInformationTransfer.hpp",
+        "namespace": "nrforge::rrc::NR_RRC_Definitions::ULInformationTransfer",
+        "qualified_header_sha256": "467ab2c8b2bd120993ccf9dd59df33a4e70daa3e38e04668c45540eab7507f0a",
+        "installed_header_sha256": "142d6e29880193b61bf0b56e2e28b7b13efd13f1e63898122d2650ac74783e77"
+      },
+      {
+        "index": 63,
+        "module": "NR-RRC-Definitions",
+        "root": "ULInformationTransferIRAT-r16",
+        "roles": [
+          "payload"
+        ],
+        "status": "PASS",
+        "header": "nrforge/rrc/roots/NR_RRC_Definitions/ULInformationTransferIRAT_r16.hpp",
+        "namespace": "nrforge::rrc::NR_RRC_Definitions::ULInformationTransferIRAT_r16",
+        "qualified_header_sha256": "bbbbe5696f43e2b75b42322f68aad8feb495a5275248ce438d4290bb41fd4125",
+        "installed_header_sha256": "2138e3436b6d65dfed435d6facf3be99b39ce4303dd45179bae6d64001459ae3"
+      },
+      {
+        "index": 64,
+        "module": "NR-RRC-Definitions",
+        "root": "ULInformationTransferMRDC",
+        "roles": [
+          "payload"
+        ],
+        "status": "PASS",
+        "header": "nrforge/rrc/roots/NR_RRC_Definitions/ULInformationTransferMRDC.hpp",
+        "namespace": "nrforge::rrc::NR_RRC_Definitions::ULInformationTransferMRDC",
+        "qualified_header_sha256": "18bd05b152006acb4a9d056ae62c82957dfd450b2cdbc5da8bdf1790d1fe0b6c",
+        "installed_header_sha256": "7c73ab481633c03c8c72fc1deae1855cf9ed346e7c60e842608881442149ed2c"
+      },
+      {
+        "index": 65,
+        "module": "PC5-RRC-Definitions",
+        "root": "MasterInformationBlockSidelink",
+        "roles": [
+          "payload"
+        ],
+        "status": "PASS",
+        "header": "nrforge/rrc/roots/PC5_RRC_Definitions/MasterInformationBlockSidelink.hpp",
+        "namespace": "nrforge::rrc::PC5_RRC_Definitions::MasterInformationBlockSidelink",
+        "qualified_header_sha256": "f825e08a0bbac486494b1920aac84f1ccf425bbe0cebeb6deb62fa0366600159",
+        "installed_header_sha256": "eeb557134692e7d2a5a9794934904225362c9cda514f255dc918c3fad72b5881"
+      },
+      {
+        "index": 66,
+        "module": "PC5-RRC-Definitions",
+        "root": "MeasurementReportSidelink",
+        "roles": [
+          "payload"
+        ],
+        "status": "PASS",
+        "header": "nrforge/rrc/roots/PC5_RRC_Definitions/MeasurementReportSidelink.hpp",
+        "namespace": "nrforge::rrc::PC5_RRC_Definitions::MeasurementReportSidelink",
+        "qualified_header_sha256": "dcc360f822ccf1c76afd13ee5c53f42e7061eac7f0b135574edac31425fc0f58",
+        "installed_header_sha256": "e9319c203b5611abfb03a9ff82ab0bf3fec80c963640040b7ed60a57f7dd972b"
+      },
+      {
+        "index": 67,
+        "module": "PC5-RRC-Definitions",
+        "root": "NotificationMessageSidelink-r17",
+        "roles": [
+          "payload"
+        ],
+        "status": "PASS",
+        "header": "nrforge/rrc/roots/PC5_RRC_Definitions/NotificationMessageSidelink_r17.hpp",
+        "namespace": "nrforge::rrc::PC5_RRC_Definitions::NotificationMessageSidelink_r17",
+        "qualified_header_sha256": "327e7c95192cafa4da0f176ee054ef978c052cdc4e19fb0ac9e930764822734f",
+        "installed_header_sha256": "cee3d54466b650ce8a1b498447afa2ce941b266d590877053b9091564b4d3e32"
+      },
+      {
+        "index": 68,
+        "module": "PC5-RRC-Definitions",
+        "root": "RRCReconfigurationCompleteSidelink",
+        "roles": [
+          "payload"
+        ],
+        "status": "PASS",
+        "header": "nrforge/rrc/roots/PC5_RRC_Definitions/RRCReconfigurationCompleteSidelink.hpp",
+        "namespace": "nrforge::rrc::PC5_RRC_Definitions::RRCReconfigurationCompleteSidelink",
+        "qualified_header_sha256": "14f4ac6b54bb91a4dbd033559733331106ab6b06c7427c34d0879c613ee4b12f",
+        "installed_header_sha256": "301fd2fbe84b3d3344e5926f7ff305e56853aa4681ea75b5d89a846e455ba019"
+      },
+      {
+        "index": 69,
+        "module": "PC5-RRC-Definitions",
+        "root": "RRCReconfigurationFailureSidelink",
+        "roles": [
+          "payload"
+        ],
+        "status": "PASS",
+        "header": "nrforge/rrc/roots/PC5_RRC_Definitions/RRCReconfigurationFailureSidelink.hpp",
+        "namespace": "nrforge::rrc::PC5_RRC_Definitions::RRCReconfigurationFailureSidelink",
+        "qualified_header_sha256": "6ac29704c6a1fcf236ecd655d11869ebb85ab9cd8da17aff55a610f16f3c46de",
+        "installed_header_sha256": "e6ada7d034e7ea2383b88525b34eec4537221c583a8a87379749884a0ff45a71"
+      },
+      {
+        "index": 70,
+        "module": "PC5-RRC-Definitions",
+        "root": "RRCReconfigurationSidelink",
+        "roles": [
+          "payload"
+        ],
+        "status": "BLOCKED_RENDER",
+        "error": "ordinary CHOICE root tags unavailable"
+      },
+      {
+        "index": 71,
+        "module": "PC5-RRC-Definitions",
+        "root": "RemoteUEInformationSidelink-r17",
+        "roles": [
+          "payload"
+        ],
+        "status": "BLOCKED_RENDER",
+        "error": "ordinary CHOICE root tags unavailable"
+      },
+      {
+        "index": 72,
+        "module": "PC5-RRC-Definitions",
+        "root": "SBCCH-SL-BCH-Message",
+        "roles": [
+          "channel"
+        ],
+        "status": "PASS",
+        "header": "nrforge/rrc/roots/PC5_RRC_Definitions/SBCCH_SL_BCH_Message.hpp",
+        "namespace": "nrforge::rrc::PC5_RRC_Definitions::SBCCH_SL_BCH_Message",
+        "qualified_header_sha256": "87046152eac4bd92aaa66e13c678c8585d665c80f9836f34d9b8003ff6911350",
+        "installed_header_sha256": "a4114906543ac6827430f9935ee5cc5b021d6f0eb8bcfad16526b06b04b6f47a"
+      },
+      {
+        "index": 73,
+        "module": "PC5-RRC-Definitions",
+        "root": "SCCH-Message",
+        "roles": [
+          "channel"
+        ],
+        "status": "BLOCKED_RENDER",
+        "error": "ordinary CHOICE root tags unavailable"
+      },
+      {
+        "index": 74,
+        "module": "PC5-RRC-Definitions",
+        "root": "UEAssistanceInformationSidelink-r17",
+        "roles": [
+          "payload"
+        ],
+        "status": "PASS",
+        "header": "nrforge/rrc/roots/PC5_RRC_Definitions/UEAssistanceInformationSidelink_r17.hpp",
+        "namespace": "nrforge::rrc::PC5_RRC_Definitions::UEAssistanceInformationSidelink_r17",
+        "qualified_header_sha256": "9996cea51e2354ee67938011da6f86fb2f98b7ca522283b99ff4ebb16d8beab5",
+        "installed_header_sha256": "e5a5172128cf96227ea7fe849953bed6339b42cded7b3ff7bc56d6951a4c67f3"
+      },
+      {
+        "index": 75,
+        "module": "PC5-RRC-Definitions",
+        "root": "UECapabilityEnquirySidelink",
+        "roles": [
+          "payload"
+        ],
+        "status": "PASS",
+        "header": "nrforge/rrc/roots/PC5_RRC_Definitions/UECapabilityEnquirySidelink.hpp",
+        "namespace": "nrforge::rrc::PC5_RRC_Definitions::UECapabilityEnquirySidelink",
+        "qualified_header_sha256": "0617bde4c069c922e9d88a22b5bf4308b677719bcb0402371cd28d476e206008",
+        "installed_header_sha256": "020febcd41166cbc19dfbcff20c8e8a0b7fed676995396c0d9d8be5a086150ea"
+      },
+      {
+        "index": 76,
+        "module": "PC5-RRC-Definitions",
+        "root": "UECapabilityInformationSidelink",
+        "roles": [
+          "payload"
+        ],
+        "status": "PASS",
+        "header": "nrforge/rrc/roots/PC5_RRC_Definitions/UECapabilityInformationSidelink.hpp",
+        "namespace": "nrforge::rrc::PC5_RRC_Definitions::UECapabilityInformationSidelink",
+        "qualified_header_sha256": "38030740c550b9b53c150cf4fe1f509e90502d571a72ac9a216a2f7f3de3ec63",
+        "installed_header_sha256": "383aa1860fe58177594148f103b604f211d6c4a5d7d4556eb00c9baacfd5da23"
+      },
+      {
+        "index": 77,
+        "module": "PC5-RRC-Definitions",
+        "root": "UEInformationRequestSidelink-r18",
+        "roles": [
+          "payload"
+        ],
+        "status": "PASS",
+        "header": "nrforge/rrc/roots/PC5_RRC_Definitions/UEInformationRequestSidelink_r18.hpp",
+        "namespace": "nrforge::rrc::PC5_RRC_Definitions::UEInformationRequestSidelink_r18",
+        "qualified_header_sha256": "ce6741e95c66b19d2b7e8bd606584fddb23361317e816a83c1714ee990f886da",
+        "installed_header_sha256": "ec8782dbca147d291ad5e14a874e3e90e98af47c8213529727d3808f7dda1eed"
+      },
+      {
+        "index": 78,
+        "module": "PC5-RRC-Definitions",
+        "root": "UEInformationResponseSidelink-r18",
+        "roles": [
+          "payload"
+        ],
+        "status": "PASS",
+        "header": "nrforge/rrc/roots/PC5_RRC_Definitions/UEInformationResponseSidelink_r18.hpp",
+        "namespace": "nrforge::rrc::PC5_RRC_Definitions::UEInformationResponseSidelink_r18",
+        "qualified_header_sha256": "d15c4b9906ce0c0fa34a2a3b40ec27f341c4f450127e9d1f2ba45f24e2fbd92d",
+        "installed_header_sha256": "277c3cd1123b8d6f4f5b789aa2e879deb9389a3617776b8e417d5dfdb05ba166"
+      },
+      {
+        "index": 79,
+        "module": "PC5-RRC-Definitions",
+        "root": "UuMessageTransferSidelink-r17",
+        "roles": [
+          "payload"
+        ],
+        "status": "PASS",
+        "header": "nrforge/rrc/roots/PC5_RRC_Definitions/UuMessageTransferSidelink_r17.hpp",
+        "namespace": "nrforge::rrc::PC5_RRC_Definitions::UuMessageTransferSidelink_r17",
+        "qualified_header_sha256": "141cf73fe85faef739a87e3d282c607ab1ae392c7f3f92ae297364eff3ee421d",
+        "installed_header_sha256": "0149a7d588f1ed50359e3e50fcec0be6036f40396649df8887bfc111a1b194f4"
+      },
+      {
+        "index": 80,
+        "module": "NR-RRC-Definitions",
+        "root": "FilterConfig",
+        "roles": [
+          "default_seed"
+        ],
+        "status": "PASS",
+        "header": "nrforge/rrc/roots/NR_RRC_Definitions/FilterConfig.hpp",
+        "namespace": "nrforge::rrc::NR_RRC_Definitions::FilterConfig",
+        "qualified_header_sha256": "dc280963269b10f234f504fdb366898e285665ea75fb3dcc492c0ffbf85fd5f2",
+        "installed_header_sha256": "390be0c69f39ebb17eaa0dbf89e68040c460cc6cda3fe5107d34db4c88faab88"
+      },
+      {
+        "index": 81,
+        "module": "NR-RRC-Definitions",
+        "root": "FilterConfigCLI-r16",
+        "roles": [
+          "default_seed"
+        ],
+        "status": "PASS",
+        "header": "nrforge/rrc/roots/NR_RRC_Definitions/FilterConfigCLI_r16.hpp",
+        "namespace": "nrforge::rrc::NR_RRC_Definitions::FilterConfigCLI_r16",
+        "qualified_header_sha256": "ab4a1aaa56e62dc33c973e62759ad724c98954cf82af19edbae9d2aa0486ef15",
+        "installed_header_sha256": "68d16047192e72bf01464e8fd51962ea91c1d7b75400c985756627d1cdc52e2b"
+      },
+      {
+        "index": 82,
+        "module": "NR-RRC-Definitions",
+        "root": "Q-OffsetRangeList",
+        "roles": [
+          "default_seed"
+        ],
+        "status": "PASS",
+        "header": "nrforge/rrc/roots/NR_RRC_Definitions/Q_OffsetRangeList.hpp",
+        "namespace": "nrforge::rrc::NR_RRC_Definitions::Q_OffsetRangeList",
+        "qualified_header_sha256": "538a69a23f63c17d85e43d3d34fc322f09a8427cd004a9364c66c564262e655a",
+        "installed_header_sha256": "c83668d6907b5379fa128c86ce430697e338f78254f0f079f63c9bee08bd2b45"
+      },
+      {
+        "index": 83,
+        "module": "NR-RRC-Definitions",
+        "root": "QuantityConfigNR",
+        "roles": [
+          "default_seed"
+        ],
+        "status": "PASS",
+        "header": "nrforge/rrc/roots/NR_RRC_Definitions/QuantityConfigNR.hpp",
+        "namespace": "nrforge::rrc::NR_RRC_Definitions::QuantityConfigNR",
+        "qualified_header_sha256": "4cde03b3d83c171d190c010cebc11985a33b2781eedc5b63e7da5c5fabdf0a4b",
+        "installed_header_sha256": "6e6610807791b00e79e8da092f2b71fa5d3b261f1791fbe720c6c2321daaeefd"
+      },
+      {
+        "index": 84,
+        "module": "NR-RRC-Definitions",
+        "root": "QuantityConfigUTRA-FDD-r16",
+        "roles": [
+          "default_seed"
+        ],
+        "status": "PASS",
+        "header": "nrforge/rrc/roots/NR_RRC_Definitions/QuantityConfigUTRA_FDD_r16.hpp",
+        "namespace": "nrforge::rrc::NR_RRC_Definitions::QuantityConfigUTRA_FDD_r16",
+        "qualified_header_sha256": "2c312a9ec9ee87ed13827417a16fee5acec5f8b622d7df8a60859959e3672deb",
+        "installed_header_sha256": "2236350968b846b96c881bea2e561160458dea3db38f687a491dc3853a23df15"
+      }
+    ]
+  },
+  "public_archive_wrappers": 128,
+  "producer_inputs": 126,
+  "repeated_generation": {
+    "status": "PASS",
+    "exact_files": 138,
+    "all_generated_bytes_identical": true
+  },
+  "isolation": {
+    "status": "PASS",
+    "consumer_source_sha256": {
+      "root024.cpp": "9d01d009af437b3b6e312cbf72191823e38c34c2f3fc6f86b0fad5785d83c2de",
+      "root010.cpp": "26c88abfb11753a5c957197ffd427b5b20ffb38e56ef8b976f08f43f0040028b",
+      "root079.cpp": "6dee33a709d8761ba08defb872d86ffd1e2d29a4c2e821fea6983d2100d0900d",
+      "root061.cpp": "9e27e7383aaa1b7e70782734a4291d7285e07c7cef729a390e7f3f65c75b20cb",
+      "root037.cpp": "4c4434a3db374a874767822f2d0c4f87b2c4c2c64b87b872b286045b962ac9ee",
+      "root044.cpp": "0553464c0066f01a6cafde98c112fe8cb1a19215f739467c1aca7b6c0f66ab0e",
+      "root059.cpp": "2777a5e4b0ae0a63948ba4b14ab92a20a3c24b2768fa95c6ed3904bb543aba63",
+      "root081.cpp": "b0eef4f5812b3db4e4f0d4f3786e1dfe772fa28549158df4e59babace7055efe",
+      "root055.cpp": "f166503ffeb3e285076acba2adad51e730063661d374085719866c43bff4cacb",
+      "root054.cpp": "79cece1900c37b93356b160903ac41e1aebcf96da530329ef4de2d1edcf30dde",
+      "root063.cpp": "42524816cf43b3e724d83aa5f0730717d299e6592aaa594eadabc055ea0af826",
+      "root077.cpp": "9b27ecbeaec4f0967ab6d7c5eca0a4ca871a76f4a35f7ff71b27609ff5ef393e",
+      "root076.cpp": "66197aec0583f894d0007e41739379b2df52dfb6bf6bd6489c13ee22cf588a75",
+      "root066.cpp": "87bae9986f19de7e6b7466f6cccfbf7c18a5fd7d83be5ac6255bc81c65cf5900",
+      "root022.cpp": "d2809c33ce7b3a89441e64648c1098083693cc126316921e913013849abe302f",
+      "root038.cpp": "e05da63e9d1a4c2f23c19bc11a0d9474bf589a5b1d9d90784331df5857cdaa19",
+      "root062.cpp": "05f062278b1948eaa5e4a110c179415248757bd68c59d96fcf40fcb315e87e24",
+      "root074.cpp": "be371bf05da198d22bc50a51ea43451fddd2fae808e4b947a9dc17e36519decd",
+      "root057.cpp": "92035762c75df919c73d2a3aab1088db6ec8b0bca0501e6190e7a70e8874667c",
+      "root033.cpp": "e38002bbd7138d77fd315069084a9b7856e889341ab2e83971830063f82c83fa",
+      "root041.cpp": "3767dd0514fe5e5b009e66af3fb079f25880e8bdc771341681e065e04e6cdb89",
+      "root020.cpp": "5d35638d929e8d806f0ba35ec4c935305e2a2644089c384f04b4076ce0da3be9",
+      "root049.cpp": "4bb1e5b17e554e3d6ca1d2858ab8a260ad87b7b89c8ae6e4119502db95aa4856",
+      "root048.cpp": "459c27b44b459156b30149cd171de8216e9ccd7074966a694d1d631340776966",
+      "root065.cpp": "f7751d4676755fcb7bdb78207fb1ecd7c0091ee2dde059952d25b396ed9ab73d",
+      "root026.cpp": "a741f79a86d7783fb61288796ccb3893de4ce75741b782436423bc7f4b7ae660",
+      "root080.cpp": "bff850a8fda1d1f8e6379fbb446b91322c88ba5b3bbd48a308417995ac91c9fc",
+      "root027.cpp": "e244b8d045f687598bb46c54d40f2c757111dc11a3abee7ee2fe1419abd43d03",
+      "root043.cpp": "e809733c41ad7a7c5b3ca3b24946a95af7494b62601e413931edb352e7eb2a32",
+      "root000.cpp": "19a3d0de5ec3b59fc6f712d124269728c6b4c232c9cb6df28759fcf981241e77",
+      "root072.cpp": "21f7aa9a0540c72709fe28cd78dc21a271b56c346213362b655c06d90cd2d8f0",
+      "root046.cpp": "f1326590fe49dc604f4090ffd25121283e4b6b73cbb28f282d2a2546a624a420",
+      "root018.cpp": "77730ea283faa857fc07e51ae6249f19a96c4ed547c594175bb94d7374190975",
+      "root083.cpp": "9615b5b21aab51cf59fdfaf60d6e3aefccd9f29b81e0734b03e97fec9e83f82c",
+      "root023.cpp": "6895563835361953a7f0ab21f0867489d39658128bd720e350ac111f15fe31e2",
+      "root032.cpp": "fe51894b905ef3b0b250540a8aeb25ad8365b5a9d3596c050aabcdd6eee75db9",
+      "root031.cpp": "e583b58ca4b20c395a159ef02caacef00243166358caa007fc79f7dedaf8a2fb",
+      "root047.cpp": "eacc68b44a6a747fe625b66701de86e20122897b8d21054787ee8f36b2ab92a4",
+      "CMakeLists.txt": "cfae5547826b3df40a3caad4e7d7a40b130d634904fc0ce395eab82bdffa060b",
+      "root067.cpp": "677a47eda6587b73c7cc4607f9d515982b92b2051e835416c935ad0c9cfb9f93",
+      "root064.cpp": "daba6ad5e5851d1420b7baf07c636a11b139131b3dcfab5adbcad8eed36bbb01",
+      "root058.cpp": "724d097611c5c52c145d86d71ccbf3b562803120474772ad721b6e4edd8e18b2",
+      "mixed.cpp": "206821a06788ed14c1331bc69f556695fa78404394a8fe236149591ecc119871",
+      "root078.cpp": "fd041459f216d2f2f864d611296c466125856907cbf8a8fc89f22c89eecd81e9",
+      "root012.cpp": "4df5a08fb8f313b2d523304bce6a105bbf6412bc0f46519cf8180e3290de92fe",
+      "root017.cpp": "22afe5b0db11d8b5fc34d8ff35cc8feb1dc88f0383b2f8c9772cbcc71997d945",
+      "root025.cpp": "af263fd9e7b7b0b02ffc892f5b50670738a2b0cb20d72a15bbac08e1a7ee81b5",
+      "root068.cpp": "72783f4fcb99a700bbc23f4c9b2b746581d1d351431a9663aa81716ee3b114cf",
+      "root021.cpp": "b1e48bf71774edf09bf5b7b7e42df087903471060f7824b672d5c7a26e73c795",
+      "root001.cpp": "8767fc84d540c2a0d8441f7e059f39362cd52ff66652f6dcb9713fcc9d283bff",
+      "root013.cpp": "19b135895a4f34cc9e9448cf8db1fde72353650a37f241030002ca4f817fd1b3",
+      "root053.cpp": "e74888a6bc7c75e4412cb82a01b0d87a46734fd72f8471d35fa6a9d7291bf96f",
+      "root007.cpp": "9c96d955607b0c6711d483265836955b6fcc41e2a103cf6e908e1c774d9f5ebe",
+      "root040.cpp": "396c6ed69a224583a3852906da982396e2b8ffe9147dc6619356617991bfe254",
+      "root009.cpp": "078261662eb1e9b0eda96ff2a791d0422db576dfbceeddd74b7aebd6cf710ec2",
+      "root004.cpp": "46df99231ae3e2131ed79c8a4ef03031115f2aa4e423e25236c6c284a1fc851d",
+      "root075.cpp": "534c82b66b4960fb72f1557eafc965795992b81c066599419975147850a977d4",
+      "root016.cpp": "de3bb1851d34bf987f10561b4df7ba37fd6b68db275398f4ecf81e74c9950ed0",
+      "root011.cpp": "f81925036c338dd6768717159be38d3d9fb679db65555b2192f8112acdb6b1c1",
+      "root008.cpp": "3a61bde155e3b827cdd4008c8a72527489c45e28ce23b70f10c3dd26525fe6e3",
+      "root082.cpp": "37254998262d00e1982be730c203e996d625dd1f166603e0ba651a9f7f3378f2",
+      "root042.cpp": "0019f2b3b1e35b9f033d58f87e2ba426a89d95762c4eb6470e12f297ddeb9b8c",
+      "root003.cpp": "f1e20af44a795f528d4bb3a159015824bb42bd265671733bbaf65d0560a2141c",
+      "root069.cpp": "70a69a91ac380275120768f3e537faea635aa1c0bdb21fa6de28c5a9204fad54",
+      "root084.cpp": "98c1c3c465f8158f6b72e7c276e4ef29f5f227e088acf049495020991ae8818d",
+      "root019.cpp": "93bce60fdb249e9759aadd936a0997857b387b6b6b2f939c6ba433412bca88b4"
+    },
+    "qualification_sha256": "7bd8487677f88f1197101b1bff2e02058318542442b88290eccdf2f4aeb499c2",
+    "original_paths_unavailable": [
+      "/workspace/scratch/31a28362a951/NRForge-asn1c",
+      "/workspace/scratch/31a28362a951/schema",
+      "/workspace/scratch/31a28362a951/p8-rrc-final",
+      "/workspace/scratch/31a28362a951/p8-rrc-final-install",
+      "/workspace/scratch/31a28362a951/p8-consumer-lld",
+      "/workspace/scratch/31a28362a951/p8-ngap-install",
+      "/workspace/scratch/31a28362a951/p8-f1ap-install",
+      "/workspace/scratch/31a28362a951/e1-install",
+      "/workspace/scratch/31a28362a951/p8-ngap-work",
+      "/workspace/scratch/31a28362a951/p8-f1ap-work",
+      "/workspace/scratch/31a28362a951/e1-sdk-work"
+    ],
+    "public_root_executables": 64,
+    "independent_real_cases": 143,
+    "inherited_negative_checks": 2498,
+    "completion_modes": [
+      "octets",
+      "contained_bits",
+      "exact"
+    ],
+    "four_protocols": true,
+    "installed_mib_example": true,
+    "public_logical_truncation_cases": 143,
+    "public_zero_depth_quota_cases": 143,
+    "dependency_count": 407,
+    "dependency_manifest_sha256": "7cc6777f02bcabd0174eded5486be6fecff8cd6fda516c0aac8ef07f0ad299d4",
+    "identity_negatives": [
+      "wrong_expected_fingerprint",
+      "mismatched_header_archive"
+    ]
+  },
+  "relocated_other_protocols": {
+    "ngap": {
+      "files": 274,
+      "closure_sha256": "bfad13bdde146a0b057a63094a658b5b1b71f3e22e6269ca680f28af24b0a27d"
+    },
+    "f1ap": {
+      "files": 328,
+      "closure_sha256": "855fccbf11b3e999f935eb92c0be09bdd05fa2ca89b83ecb825b6c9e187b07b1"
+    },
+    "e1ap": {
+      "files": 156,
+      "closure_sha256": "0cad59e2d20aa1a9d7da27bd711f1733dd4ecca48f03f243c1000c6f7baccdf2"
+    }
+  },
+  "seal": {
+    "status": "PASS",
+    "cases": [
+      {
+        "case": "sealed_baseline",
+        "status": "PASS",
+        "expected_accept": true
+      },
+      {
+        "case": "source_mutation",
+        "status": "PASS",
+        "expected_accept": false
+      },
+      {
+        "case": "generated_mutation",
+        "status": "PASS",
+        "expected_accept": false
+      },
+      {
+        "case": "extra_generated_input",
+        "status": "PASS",
+        "expected_accept": false
+      },
+      {
+        "case": "archive_mutation",
+        "status": "PASS",
+        "expected_accept": false
+      },
+      {
+        "case": "missing_receipt",
+        "status": "PASS",
+        "expected_accept": false
+      },
+      {
+        "case": "missing_generated_input",
+        "status": "PASS",
+        "expected_accept": false
+      },
+      {
+        "case": "restored_baseline",
+        "status": "PASS",
+        "expected_accept": true
+      },
+      {
+        "case": "missing_encode_wrapper",
+        "status": "PASS",
+        "expected_accept": false
+      },
+      {
+        "case": "missing_decode_wrapper",
+        "status": "PASS",
+        "expected_accept": false
+      }
+    ]
+  },
+  "checks": [
+    {
+      "command": "make -j4 -C libuper check",
+      "total": 3,
+      "passed": 3,
+      "status": "PASS",
+      "test_suite_sha256": "438761a907595109785a4cdac87fd1372b4351101d2f7355eac11edf010c51f8",
+      "command_log_sha256": "a2539ce099c971405e08776bf3ca57612daf93c84b9b5ee4102d4064acae6ee5"
+    },
+    {
+      "command": "make -j4 -C libaper check",
+      "total": 10,
+      "passed": 10,
+      "status": "PASS",
+      "test_suite_sha256": "a519b95aec2fd007c8c7e6529d417f021d901da1dbbf3719a05442fd6818d453",
+      "command_log_sha256": "fdae10b200cf840f1ea9f15dd02478e10fc72f484a638ab5fdebcd1fe4b8c1a5"
+    },
+    {
+      "command": "make -j4 -C libngap check",
+      "total": 3,
+      "passed": 3,
+      "status": "PASS",
+      "test_suite_sha256": "8d59fbbd402b2a7578dcc7670592be1ef2c12adc8b9206a780a9e6ed9ce61598",
+      "command_log_sha256": "83fb5d77c7f1257a1781dcf6b853d25d5ae2d55a25a078aba3486d2e45f32b90"
+    },
+    {
+      "command": "make -j4 -C libasn1typed check",
+      "total": 46,
+      "passed": 46,
+      "status": "PASS",
+      "test_suite_sha256": "485cf687a1696e4454bae616b7551f1473174a3186ff5a8800bdd8c4960e502b",
+      "command_log_sha256": "4e791c9c21f9b8ff38d566f13477f816c79c891e0e681a018c21064cb2e0fe98"
+    },
+    {
+      "command": "make -j4 -C libasn1parser check",
+      "total": 1,
+      "passed": 1,
+      "status": "PASS",
+      "test_suite_sha256": "96ff31b3c4e7566430187e3808318ca3453589431bdad93687ca4e844e6549e1",
+      "command_log_sha256": "fad228827fc3252e2d1d813dbb1983efa01313ae4603e6a4e5981f19fe629922"
+    }
+  ],
+  "protocol_builds": [
+    {
+      "protocol": "ngap",
+      "mode": "fresh full installed SDK",
+      "registry_messages": 131,
+      "archive_sha256": "9b37feec52dc0e26fe9de3201cc5dfa6fa8c16a015cd4c12f450d78544fcc3bc",
+      "compile_commands_sha256": "92e63e9c8edc77c08251012e234b6e6e40f9aba0a7c73eaee738accdfc9e93e7",
+      "build_log_sha256": "e1ae22f16fc2bad995f585d444c7f1392ec1390d5092975dfcf7253fde8c8a65",
+      "memory_control": "two build jobs"
+    },
+    {
+      "protocol": "f1ap",
+      "mode": "fresh full installed SDK",
+      "registry_messages": 158,
+      "archive_sha256": "a47ec298fe528b944bc46817c41668d72c3533c0c0fb019983e29a938e880d8a",
+      "compile_commands_sha256": "0100e1f64abaef27729df9e4399614f0304d99f1e1596ee9cddfca4e52b12ce0",
+      "build_log_sha256": "2c3154edc39b493aa908a886430de7037daeb33c7b4d5298489a60fff8127d08",
+      "memory_control": "GCC GC flags on UEContextModificationRequest only; single build job"
+    }
+  ],
+  "e1ap": {
+    "mode": "reused accepted E1-P5 installed SDK, not rebuilt",
+    "registry_messages": 72,
+    "provenance_sha256": "b03dfee7e3c4157a2e9537512f291c4c51d3e7788772fe1f8aa7731d237af419",
+    "archive_sha256": "c442a5daa684134d169d256f246096b8d4afec81c1604b159b576ffedbb409a9"
+  },
+  "preserved_baseline": {
+    "unchanged_git_blobs": 2582,
+    "sole_changed_existing_file": "Makefile.am: EXTRA_DIST only",
+    "production_codec_changes": false,
+    "p7_qualification_sha256": "7bd8487677f88f1197101b1bff2e02058318542442b88290eccdf2f4aeb499c2"
+  },
+  "evidence_sha256": {
+    "focused.log": "8ab5f0f3c45d73104cb9d20c320428e93d2aa8dd1afb1cbbd8cd197452d39ee4",
+    "matrix.json": "f8881db5dcab1204180c39442ef681f368851bf23b34265d75e03df262dd4f17",
+    "configure.log": "0680dfec36a9421aa3e6be3de72356413cf29d790f3e3ef1db8863228a855bce",
+    "build.log": "b3f14abe7c7ae2bae56c30f6734083b41ea29474bef30219177309a0ba76fa1a",
+    "install.log": "d087c580555e246b92e9e960f4f724cf845d09c4f1bf6280a261527818ef218d",
+    "build/sdk-build-receipt.cmake": "83b1c0e1d6051d214b50eca96962bd72c8c1c664a10b7aede2ea420b463b80e8"
+  },
+  "isolation_receipt_sha256": "28aa09f93090688040b6f2a0efee0fd2cb0fb086beaa324603e8fd097af98e40",
+  "seal_receipt_sha256": "3a590d780714c822243592ce0a653b66ac6ed35a688caffbc1bf836c6b754503",
+  "limits": [
+    "P7 finite value/reference limitations retained; SIB1 blocked; 21 roots unsupported.",
+    "No new 361-message APER wire campaign; coexistence uses three accepted populated setup wires plus MIB.",
+    "RRC codec algorithms unchanged; wrappers and packaging only.",
+    "No stable cross-toolchain binary ABI/authenticity claim.",
+    "P9 Python SDK, benchmark and merge NOT_RUN."
+  ],
+  "independent_review": "Exact canonical snapshot approval recorded in review.md before commit/push"
+}

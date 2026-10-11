@@ -1,0 +1,8 @@
+cmake_minimum_required(VERSION 3.20)
+project(RRCMibExample LANGUAGES CXX)
+find_package(NRForgeRRC 0.1.0 EXACT CONFIG REQUIRED)
+add_executable(rrc_mib mib.cpp)
+target_link_libraries(rrc_mib PRIVATE NRForge::rrc)
+set_target_properties(rrc_mib PROPERTIES CXX_EXTENSIONS OFF)
+enable_testing()
+add_test(NAME mib COMMAND rrc_mib)
