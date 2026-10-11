@@ -94,3 +94,24 @@ EXTRA_DIST += cmake/NrforgeRrcSdk.cmake docs/rrc-cpp-sdk-contract.md docs/rrc-cp
  tools/rrc-sdk/README.md tools/rrc-sdk/verification-summary.json tools/rrc-sdk/review.md \
  tools/rrc-sdk-consumer/prepare.py tools/rrc-sdk-consumer/isolate.py tools/rrc-sdk-consumer/README.md \
  tools/rrc-sdk-consumer/example/CMakeLists.txt tools/rrc-sdk-consumer/example/mib.cpp
+
+EXTRA_DIST += docs/rrc-python-sdk-contract-and-closeout.md \
+ python/rrc/CMakeLists.txt \
+ python/rrc/LICENSE \
+ python/rrc/PYBIND11-LICENSE \
+ python/rrc/README.md \
+ python/rrc/bindings/conversion.hpp \
+ python/rrc/bindings/generate_bindings.py \
+ python/rrc/bindings/module.cpp \
+ python/rrc/pyproject.toml \
+ python/rrc/src/nrforge_rrc/__init__.py \
+ python/rrc/tests/golden.json \
+ python/rrc/tests/test_generator.py \
+ python/rrc/tests/test_sdk.py \
+ tools/rrc-python/README.md \
+ tools/rrc-python/prepare.py \
+ tools/rrc-python/prepare_vectors.py \
+ tools/rrc-python/record.py \
+ tools/rrc-python/run_installed.py \
+ tools/rrc-python/verification-summary.json \
+ tools/rrc-python/review.md
