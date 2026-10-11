@@ -23,7 +23,7 @@ static int field_ok(const asn1typed_field_t *f) {
         !r->actual_index && !r->has_selector && !r->selector_source_name &&
         !f->size_constraint.has_size_constraint && !f->size_constraint.lower_bound &&
         !f->size_constraint.upper_bound && !f->size_constraint.is_extensible && !f->size_constraint.has_extension_addition && !f->size_constraint.extension_lower_bound && !f->size_constraint.extension_upper_bound &&
-        !f->value_range.has_value_range && !f->value_range.lower_bound &&
+        asn1typed_integer_unsigned_empty(&f->value_range) && !f->value_range.has_value_range && !f->value_range.lower_bound &&
         !f->value_range.upper_bound && !f->value_range.is_extensible &&
         !f->value_range.tail && !f->value_range.tail_count && !f->value_range.extension_additions && !f->value_range.extension_addition_count &&
         !f->ioc.symbolic_id && !f->ioc.has_numeric_id && !f->ioc.numeric_id &&
@@ -52,7 +52,7 @@ static int count_body(const asn1typed_type_t *t, size_t *count, char *why, size_
         const asn1typed_choice_alternative_t *a = &t->alternatives[j];
         if(t->kind != ASN1TYPED_TYPE_CHOICE || !text(a->source_name) || !empty_ref(&a->type_ref) ||
             a->size_constraint.has_size_constraint || a->size_constraint.is_extensible || a->size_constraint.lower_bound || a->size_constraint.upper_bound || a->size_constraint.has_extension_addition || a->size_constraint.extension_lower_bound || a->size_constraint.extension_upper_bound ||
-            a->value_range.has_value_range || a->value_range.is_extensible || a->value_range.lower_bound || a->value_range.upper_bound || a->value_range.tail || a->value_range.tail_count || a->value_range.extension_additions || a->value_range.extension_addition_count ||
+            !asn1typed_integer_unsigned_empty(&a->value_range) || a->value_range.has_value_range || a->value_range.is_extensible || a->value_range.lower_bound || a->value_range.upper_bound || a->value_range.tail || a->value_range.tail_count || a->value_range.extension_additions || a->value_range.extension_addition_count ||
             !body_ok(a->inline_enumerated) || asn1typed_enumerated_evidence_validate(a->inline_enumerated,why,size)) return -1;
         if(*count == SIZE_MAX) return -1;
         ++*count;

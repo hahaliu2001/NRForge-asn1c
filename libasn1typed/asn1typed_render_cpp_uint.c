@@ -95,7 +95,7 @@ preflight(const asn1typed_module_t *m, const char *ns,
 		if(!supported_metadata(t)) FAIL("unsupported uint-only type metadata or kind");
 		if(!t->identity.module || strcmp(t->identity.module, m->source_name) ||
 			!t->identity.source_name || !t->identity.source_name[0]) FAIL("invalid uint type identity");
-		if(range->has_value_range != 1 || range->lower_bound != 0 || range->is_extensible ||
+		if(!asn1typed_integer_unsigned_empty(range) || range->has_value_range != 1 || range->lower_bound != 0 || range->is_extensible ||
 			range->tail || range->tail_count || range->extension_additions || range->extension_addition_count) FAIL("unsupported uint constraint: requires one non-extensible zero-based root range");
 		if(range->upper_bound == 255) p[i].bits = 8;
 		else if(range->upper_bound == 65535) p[i].bits = 16;

@@ -25,6 +25,11 @@ static void string(const char *s) {
 	putchar('"');
 }
 static void range(const asn1typed_integer_value_range_t *r) {
+    if(r->unsigned_bounds) {
+        printf("{\"present\":%d,\"lower\":%" PRIu64 ",\"upper\":%" PRIu64 ",\"extensible\":%d,\"tail_count\":%zu,\"unsigned_bounds\":%d}",
+            r->has_value_range, r->unsigned_lower_bound, r->unsigned_upper_bound, r->is_extensible, r->tail_count, r->unsigned_bounds);
+        return;
+    }
 	printf("{\"present\":%d,\"lower\":%jd,\"upper\":%jd,\"extensible\":%d,\"tail_count\":%zu}",
 		r->has_value_range, r->lower_bound, r->upper_bound, r->is_extensible, r->tail_count);
 }

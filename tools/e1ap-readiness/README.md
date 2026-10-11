@@ -57,3 +57,19 @@ inventory/use-site evidence does not fully inspect bound-instance internals.
 `readiness.json` preserves per-message evidence and input fingerprints.
 The plan is in `docs/e1ap-cpp-aper-readiness-and-batch-plan.md`;
 `review.md` records independent review.
+
+## E1-P2 shared unsigned64 follow-up
+
+The new tagged finite unsigned interval preserves full uint64 endpoints through
+owned extraction, named refinements, inline SEQUENCE/CHOICE and IOC generation.
+`readiness-e1-p2.json` is the separate follow-up; historical `readiness.json`
+is unchanged. See `docs/e1ap-cpp-aper-unsigned64-contract-and-closeout.md` for
+boundaries, tests and reproduction commands.
+
+`check_regression.py` regenerates all 158 F1AP and 131 NGAP messages against
+their frozen sources. It checks every BODY header against the accepted F1-P3
+baselines, every F1AP target-envelope header, all BODY/envelope generation
+families and descriptors, unchanged accepted runtime headers, then strictly
+compiles five representative messages per protocol. It does not claim a full
+SDK rebuild or rerun of historical native wire qualification. Run Python
+normally (without `-O`), since assertion failures are evidence gates.

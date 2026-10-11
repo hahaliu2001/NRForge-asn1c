@@ -375,6 +375,17 @@ collect_integer_union_terms(const asn1p_constraint_t *node,
 
 /* Keep the original inline representation for a simple range. For a bounded
  * UNION, collect into temporary storage, normalize, then publish atomically. */
+/* Unsigned endpoints stay owned without narrowing through intmax_t. */
+static int
+constraint_unsigned_bound(const asn1p_value_t *value, uint64_t *out) {
+    if(!value || value->type != ATV_INTEGER || value->value.v_integer < 0) return -1;
+#if defined(HAVE_128_BIT_INT) && HAVE_128_BIT_INT
+    if(value->value.v_integer > (asn1c_integer_t)UINT64_MAX) return -1;
+#endif
+    *out = (uint64_t)value->value.v_integer;
+    return 0;
+}
+
 static int
 extract_integer_value_range(const asn1p_constraint_t *constraint,
 		asn1typed_integer_value_range_t *out) {
@@ -404,7 +415,7 @@ extract_integer_value_range(const asn1p_constraint_t *constraint,
 		addition_set.elements = &addition_child;
 		if(extract_integer_value_range(&root_set, &pending) ||
 			extract_integer_value_range(&addition_set, &addition) ||
-			!addition.has_value_range || addition.is_extensible) {
+			!addition.has_value_range || addition.is_extensible || addition.unsigned_bounds) {
 			free(pending.tail); free(pending.extension_additions); free(addition.tail); free(addition.extension_additions); return -1;
 		}
 		pending.extension_addition_count = addition.tail_count + 1;
@@ -429,6 +440,17 @@ extract_integer_value_range(const asn1p_constraint_t *constraint,
 	}
 	if(root->type == ACT_EL_RANGE) {
 		range = root;
+        if(!extensible && range->el_count == 0 && integer_constraint_leaf(range) &&
+           !range->value && !range->containedSubtype && range->range_start && range->range_stop) {
+            uint64_t lo, hi;
+            if(!constraint_unsigned_bound(range->range_start, &lo) &&
+               !constraint_unsigned_bound(range->range_stop, &hi) && hi > (uint64_t)INTMAX_MAX) {
+                if(lo > hi) return -1;
+                pending.has_value_range = 1; pending.unsigned_bounds = 1;
+                pending.unsigned_lower_bound = lo; pending.unsigned_upper_bound = hi;
+                *out = pending; return 0;
+            }
+        }
 		if(range->el_count != 0 || !integer_constraint_leaf(range) ||
 			range->value || range->containedSubtype ||
 			!range->range_start || !range->range_stop ||
@@ -622,12 +644,26 @@ extract_effective_use_integer(const asn1p_constraint_t *c,
 			free(part.tail); free(part.extension_additions); return -1;
 		}
 		if(i == 0) *out = part;
+        else if(out->unsigned_bounds || part.unsigned_bounds) {
+            uint64_t lo, hi;
+            if((!out->unsigned_bounds && out->lower_bound < 0) ||
+               (!part.unsigned_bounds && part.lower_bound < 0)) return -1;
+            lo = part.unsigned_bounds ? part.unsigned_lower_bound : (uint64_t)part.lower_bound;
+            hi = part.unsigned_bounds ? part.unsigned_upper_bound : (uint64_t)part.upper_bound;
+            if(!out->unsigned_bounds) {
+                out->unsigned_lower_bound = (uint64_t)out->lower_bound;
+                out->unsigned_upper_bound = (uint64_t)out->upper_bound;
+                out->lower_bound = out->upper_bound = 0; out->unsigned_bounds = 1;
+            }
+            if(lo > out->unsigned_lower_bound) out->unsigned_lower_bound = lo;
+            if(hi < out->unsigned_upper_bound) out->unsigned_upper_bound = hi;
+        }
 		else {
 			if(part.lower_bound > out->lower_bound) out->lower_bound = part.lower_bound;
 			if(part.upper_bound < out->upper_bound) out->upper_bound = part.upper_bound;
 		}
 	}
-	return out->lower_bound <= out->upper_bound ? 0 : -1;
+	return (out->unsigned_bounds ? out->unsigned_lower_bound <= out->unsigned_upper_bound : out->lower_bound <= out->upper_bound) ? 0 : -1;
 }
 static int
 extract_integer_use_range(asn1p_expr_t *expr,
@@ -642,6 +678,17 @@ extract_integer_use_range(asn1p_expr_t *expr,
 	}
 	if(extract_effective_use_integer(expr->combined_constraints, &effective, named)
 		|| !effective.has_value_range) goto bad;
+	if(declared.unsigned_bounds || effective.unsigned_bounds) {
+        uint64_t dlo, dhi, elo, ehi;
+        if((!declared.unsigned_bounds && (declared.lower_bound < 0 || declared.is_extensible || declared.tail_count)) ||
+           (!effective.unsigned_bounds && (effective.lower_bound < 0 || effective.is_extensible || effective.tail_count))) goto bad;
+        dlo = declared.unsigned_bounds ? declared.unsigned_lower_bound : (uint64_t)declared.lower_bound;
+        dhi = declared.unsigned_bounds ? declared.unsigned_upper_bound : (uint64_t)declared.upper_bound;
+        elo = effective.unsigned_bounds ? effective.unsigned_lower_bound : (uint64_t)effective.lower_bound;
+        ehi = effective.unsigned_bounds ? effective.unsigned_upper_bound : (uint64_t)effective.upper_bound;
+        if(named ? (elo < dlo || ehi > dhi) : (elo != dlo || ehi != dhi)) goto bad;
+        free(declared.tail); free(declared.extension_additions); *out = effective; return 0;
+    }
 	if(named) {
 		if(declared.is_extensible || declared.tail || declared.tail_count ||
 			effective.is_extensible || effective.tail || effective.tail_count ||
@@ -2882,7 +2929,7 @@ envelope_class_source(asn1p_t *tree, asn1p_expr_t *class_expr,
                 || (is_code ? member->marker.default_value != NULL : member->marker.default_value == NULL)) return -1;
             if(type->combined_constraints) {
                 if(!is_code || extract_integer_value_range(type->combined_constraints, &class_range)
-                    || !class_range.has_value_range || class_range.tail || class_range.tail_count || class_range.extension_additions || class_range.extension_addition_count) {
+                    || !asn1typed_integer_unsigned_empty(&class_range) || !class_range.has_value_range || class_range.tail || class_range.tail_count || class_range.extension_additions || class_range.extension_addition_count) {
                     free(class_range.tail); free(class_range.extension_additions); return -1;
                 }
             }
@@ -2897,7 +2944,7 @@ envelope_class_source(asn1p_t *tree, asn1p_expr_t *class_expr,
     if(seen != 31 || envelope_source_ref(&header->procedure_type, procedure) || envelope_source_ref(&header->criticality_type, crit)
         || primitive_from_expr(terminal_type(procedure)) != ASN1TYPED_PRIMITIVE_INTEGER
         || extract_integer_value_range(procedure->combined_constraints ? procedure->combined_constraints : procedure->constraints, &range)) return -1;
-    if(!range.has_value_range || range.tail || range.tail_count || range.extension_additions || range.extension_addition_count) { free(range.tail); free(range.extension_additions); return -1; }
+    if(!asn1typed_integer_unsigned_empty(&range) || !range.has_value_range || range.tail || range.tail_count || range.extension_additions || range.extension_addition_count) { free(range.tail); free(range.extension_additions); return -1; }
     if(class_range.has_value_range && (class_range.lower_bound != range.lower_bound || class_range.upper_bound != range.upper_bound
         || class_range.is_extensible != range.is_extensible)) return -1;
     header->procedure_lower_bound = range.lower_bound; header->procedure_upper_bound = range.upper_bound;

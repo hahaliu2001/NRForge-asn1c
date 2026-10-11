@@ -263,3 +263,10 @@ check_asn1typed_inline_constructed_CPPFLAGS = $(check_asn1typed_extract_CPPFLAGS
 check_asn1typed_inline_constructed_LDADD = $(check_asn1typed_extract_LDADD)
 TESTS += check_asn1typed_inline_constructed.sh
 EXTRA_DIST += check_asn1typed_inline_constructed.sh check_asn1typed_inline_constructed.cpp fixtures/inline-constructed-f1p2.asn1
+
+check_PROGRAMS += check_asn1typed_unsigned_render
+check_asn1typed_unsigned_render_SOURCES = check_asn1typed_unsigned_render.c
+check_asn1typed_unsigned_render_CPPFLAGS = $(check_asn1typed_extract_CPPFLAGS) -DNDEBUG
+check_asn1typed_unsigned_render_LDADD = $(check_asn1typed_extract_LDADD)
+TESTS += check_asn1typed_unsigned_generated.sh
+EXTRA_DIST += check_asn1typed_unsigned_generated.sh check_asn1typed_unsigned_generated.cpp fixtures/unsigned-integers-e1p2.asn1

@@ -124,7 +124,8 @@ static int inline_integer(const asn1typed_type_ref_t *r, const asn1typed_integer
         !r->module && !r->source_name && !r->actuals && !r->actual_count && v->has_value_range == 1 &&
         (v->is_extensible == 0 || v->is_extensible == 1) &&
         (!!v->extension_additions == !!v->extension_addition_count) && (!v->extension_addition_count || v->is_extensible) && (!v->tail_count || v->tail) && v->lower_bound <= v->upper_bound &&
-        v->lower_bound >= INT64_MIN && v->upper_bound <= INT64_MAX;
+        (v->unsigned_bounds ? asn1typed_integer_unsigned_valid(v) :
+         (asn1typed_integer_unsigned_empty(v) && v->lower_bound >= INT64_MIN && v->upper_bound <= INT64_MAX));
 }
 static int dependencies(const asn1typed_module_t *m, const struct node *n, const unsigned char *done) {
     size_t j;

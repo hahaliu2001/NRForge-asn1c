@@ -117,7 +117,8 @@ preflight(const asn1typed_module_t *m, const char *ns,
             (!!range->tail != !!range->tail_count) || range->tail_count > SIZE_MAX / sizeof(*range->tail) ||
             range->lower_bound > range->upper_bound)
 			FAIL("unsupported integer constraint: requires one finite non-extensible interval");
-		if(range->lower_bound < INT64_MIN || range->upper_bound > INT64_MAX)
+		if(range->unsigned_bounds ? !asn1typed_integer_unsigned_valid(range) :
+           (!asn1typed_integer_unsigned_empty(range) || range->lower_bound < INT64_MIN || range->upper_bound > INT64_MAX))
 			FAIL("integer interval exceeds int64 evidence domain");
 		p[i].lower = (int64_t)range->lower_bound;
 		p[i].upper = (int64_t)range->upper_bound;
@@ -139,10 +140,15 @@ preflight(const asn1typed_module_t *m, const char *ns,
         }
         p[i].range = range; p[i].extensible = range->is_extensible;
         p[i].is_signed = p[i].lower < 0 || p[i].extensible || range->tail_count;
-		p[i].distance = (uint64_t)p[i].upper - (uint64_t)p[i].lower;
+		p[i].distance = range->unsigned_bounds ? range->unsigned_upper_bound - range->unsigned_lower_bound :
+            (uint64_t)p[i].upper - (uint64_t)p[i].lower;
 		{ uint64_t remaining = p[i].distance; while(remaining) { ++p[i].bits; remaining >>= 1; } }
 		integer_literal(p[i].lower_literal, sizeof(p[i].lower_literal), p[i].lower, p[i].is_signed);
 		integer_literal(p[i].upper_literal, sizeof(p[i].upper_literal), p[i].upper, p[i].is_signed);
+        if(range->unsigned_bounds) {
+            snprintf(p[i].lower_literal, sizeof(p[i].lower_literal), "UINT64_C(%" PRIu64 ")", range->unsigned_lower_bound);
+            snprintf(p[i].upper_literal, sizeof(p[i].upper_literal), "UINT64_C(%" PRIu64 ")", range->unsigned_upper_bound);
+        }
 		p[i].type = asn1typed_render_cpp_final_name(t->identity.source_name, ASN1TYPED_NAME_TYPE);
 		base = asn1typed_render_cpp_final_name(t->identity.source_name, ASN1TYPED_NAME_FIELD);
 		if(!p[i].type || !base) { free(base); FAIL("invalid integer spelling or out of memory naming integer"); }

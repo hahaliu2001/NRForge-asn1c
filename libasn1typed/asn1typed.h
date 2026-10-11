@@ -95,7 +95,25 @@ typedef struct asn1typed_integer_value_range_s {
 	/* Known extension additions; open extension values remain representable. */
 	asn1typed_integer_interval_t *extension_additions;
 	size_t extension_addition_count;
+	/* Tagged finite unsigned interval. Signed slots are zero in this mode;
+	 * unsigned sets/extensions are deliberately outside this contract. */
+	int unsigned_bounds;
+	uint64_t unsigned_lower_bound;
+	uint64_t unsigned_upper_bound;
 } asn1typed_integer_value_range_t;
+
+static inline int
+asn1typed_integer_unsigned_valid(const asn1typed_integer_value_range_t *r) {
+    return r && r->has_value_range == 1 && r->unsigned_bounds == 1 &&
+        r->unsigned_lower_bound <= r->unsigned_upper_bound &&
+        !r->lower_bound && !r->upper_bound && !r->is_extensible &&
+        !r->tail && !r->tail_count && !r->extension_additions && !r->extension_addition_count;
+}
+static inline int
+asn1typed_integer_unsigned_empty(const asn1typed_integer_value_range_t *r) {
+    return !r->unsigned_bounds && !r->unsigned_lower_bound && !r->unsigned_upper_bound;
+}
+
 
 typedef enum asn1typed_ref_kind_e {
 	ASN1TYPED_REF_NAMED,

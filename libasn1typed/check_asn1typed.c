@@ -189,7 +189,7 @@ check_choice_alternative_size_api(void) {
 	asn1typed_type_ref_t integer = {0};
 	asn1typed_size_constraint_t size = {1, 22, 32, 0};
 	asn1typed_size_constraint_t invalid = {0, 22, 32, 0};
-	asn1typed_integer_value_range_t value_range = {1, 1, 10, 1, NULL, 0, NULL, 0};
+	asn1typed_integer_value_range_t value_range = {1, 1, 10, 1, NULL, 0, NULL, 0, 0, 0, 0};
 	asn1typed_integer_value_range_t invalid_range = {0};
 	asn1typed_integer_interval_t tail[] = {{20, 30}};
 	asn1typed_integer_interval_t additions[] = {{40, 40}, {45, 45}};

@@ -89,3 +89,4 @@ EXTRA_DIST += f1ap-readiness/check_dispatch.py f1ap-readiness/readiness-f1-p3.js
 EXTRA_DIST += f1ap-wire-qualification/qualify.py f1ap-wire-qualification/native_reference.py f1ap-wire-qualification/native_values.py f1ap-wire-qualification/semantic_bridge.py f1ap-wire-qualification/reference_framing.py f1ap-wire-qualification/requirements.txt f1ap-wire-qualification/README.md f1ap-wire-qualification/accepted-profile.json f1ap-wire-qualification/qualification-summary.json f1ap-wire-qualification/review.md
 
 EXTRA_DIST += e1ap-readiness/scan.py e1ap-readiness/test_scan.py e1ap-readiness/README.md e1ap-readiness/source-manifest.json e1ap-readiness/e1ap-rel18.modules e1ap-readiness/readiness.json e1ap-readiness/review.md
+EXTRA_DIST += e1ap-readiness/check_regression.py e1ap-readiness/readiness-e1-p2.json e1ap-readiness/ngap-f1ap-regression-e1-p2.json e1ap-readiness/review-e1-p2.md

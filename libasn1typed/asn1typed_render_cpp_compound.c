@@ -49,7 +49,7 @@ empty_size(const asn1typed_size_constraint_t *s) {
 }
 static int
 empty_range(const asn1typed_integer_value_range_t *r) {
-	return !r->has_value_range && !r->is_extensible && !r->lower_bound && !r->upper_bound && !r->tail && !r->tail_count && !r->extension_additions && !r->extension_addition_count;
+	return asn1typed_integer_unsigned_empty(r) && !r->has_value_range && !r->is_extensible && !r->lower_bound && !r->upper_bound && !r->tail && !r->tail_count && !r->extension_additions && !r->extension_addition_count;
 }
 static int
 storage(size_t count, size_t capacity, const void *pointer) {
@@ -186,7 +186,7 @@ static int
 legacy_uint(const asn1typed_type_t *t) {
     const asn1typed_integer_value_range_t *r = &t->value_range;
     return t->kind == ASN1TYPED_TYPE_PRIMITIVE && t->primitive_kind == ASN1TYPED_PRIMITIVE_INTEGER &&
-        r->has_value_range == 1 && !r->lower_bound && !r->is_extensible && !r->tail && !r->tail_count && !r->extension_additions && !r->extension_addition_count &&
+        asn1typed_integer_unsigned_empty(r) && r->has_value_range == 1 && !r->lower_bound && !r->is_extensible && !r->tail && !r->tail_count && !r->extension_additions && !r->extension_addition_count &&
         (r->upper_bound == 255 || r->upper_bound == 65535 || r->upper_bound == INT64_C(4294967295) || r->upper_bound == INT64_C(1099511627775));
 }
 typedef int (*renderer)(const asn1typed_module_t *, const char *, char **, char *, size_t);
@@ -358,7 +358,8 @@ preflight(const asn1typed_module_t *m, const char *ns, struct plan *p, char *why
                    site_range->extension_addition_count > SIZE_MAX / sizeof(*site_range->extension_additions) ||
                    (!!site_range->tail != !!site_range->tail_count) || site_range->tail_count > SIZE_MAX / sizeof(*site_range->tail) ||
                    site_range->lower_bound > site_range->upper_bound ||
-                   site_range->lower_bound < INT64_MIN || site_range->upper_bound > INT64_MAX ||
+                   (site_range->unsigned_bounds ? !asn1typed_integer_unsigned_valid(site_range) :
+                    (!asn1typed_integer_unsigned_empty(site_range) || site_range->lower_bound < INT64_MIN || site_range->upper_bound > INT64_MAX)) ||
                    (site_size && !empty_size(site_size))) FAIL("unsupported INTEGER use-site interval metadata");
                 if(ref->kind == ASN1TYPED_REF_NAMED) {
                     if(site_range->is_extensible || site_range->tail_count) FAIL("unsupported extensible/set INTEGER named use-site refinement");
@@ -367,7 +368,13 @@ preflight(const asn1typed_module_t *m, const char *ns, struct plan *p, char *why
                         FAIL("INTEGER interval use-site requires INTEGER reference");
                     decl_range = &m->types[target].value_range;
                     if(decl_range->has_value_range != 1 || decl_range->is_extensible || decl_range->tail || decl_range->tail_count || decl_range->extension_additions || decl_range->extension_addition_count ||
-                       site_range->lower_bound < decl_range->lower_bound || site_range->upper_bound > decl_range->upper_bound)
+                       (site_range->unsigned_bounds || decl_range->unsigned_bounds ?
+                         (decl_range->lower_bound < 0 ||
+                          (site_range->unsigned_bounds ? site_range->unsigned_lower_bound : (uint64_t)site_range->lower_bound) <
+                          (decl_range->unsigned_bounds ? decl_range->unsigned_lower_bound : (uint64_t)decl_range->lower_bound) ||
+                          (site_range->unsigned_bounds ? site_range->unsigned_upper_bound : (uint64_t)site_range->upper_bound) >
+                          (decl_range->unsigned_bounds ? decl_range->unsigned_upper_bound : (uint64_t)decl_range->upper_bound)) :
+                         (site_range->lower_bound < decl_range->lower_bound || site_range->upper_bound > decl_range->upper_bound)))
                         FAIL("INTEGER use-site interval is not a subset of named declaration");
                 } else if(ref->primitive_kind != ASN1TYPED_PRIMITIVE_INTEGER) FAIL("INTEGER interval use-site requires INTEGER primitive");
                 {
@@ -750,6 +757,10 @@ emit_member_values(struct compound_buf *b, const struct type_plan *p, int mode) 
         if(!mp->value_name || mode == 0) continue;
         bound_literal(lower, sizeof(lower), mp->range.lower_bound, mp->value_signed);
         bound_literal(upper, sizeof(upper), mp->range.tail_count ? mp->range.tail[mp->range.tail_count - 1].upper_bound : mp->range.upper_bound, mp->value_signed);
+        if(mp->range.unsigned_bounds) {
+            snprintf(lower, sizeof(lower), "UINT64_C(%" PRIu64 ")", mp->range.unsigned_lower_bound);
+            snprintf(upper, sizeof(upper), "UINT64_C(%" PRIu64 ")", mp->range.unsigned_upper_bound);
+        }
         if(mode == 1 && !mp->range.tail_count && !mp->range.extension_addition_count) {
             if(format(b, "struct %s { using value_type = %s; static constexpr value_type lower_bound = %s; static constexpr value_type upper_bound = %s; static constexpr bool extensible = %s; };\n", mp->value_name, mp->type, lower, upper, mp->range.is_extensible ? "true" : "false")) return -1;
             continue;

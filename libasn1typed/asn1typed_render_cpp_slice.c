@@ -215,7 +215,7 @@ static int size_constraint_is_empty(const asn1typed_size_constraint_t *c) {
 	return !c->has_size_constraint && c->lower_bound == 0 && c->upper_bound == 0 && !c->is_extensible && !c->has_extension_addition && !c->extension_lower_bound && !c->extension_upper_bound;
 }
 static int value_range_is_empty(const asn1typed_integer_value_range_t *r) {
-	return !r->has_value_range && r->lower_bound == 0 && r->upper_bound == 0 &&
+	return asn1typed_integer_unsigned_empty(r) && !r->has_value_range && r->lower_bound == 0 && r->upper_bound == 0 &&
 		!r->is_extensible && !r->tail && !r->tail_count && !r->extension_additions && !r->extension_addition_count;
 }
 static int fmt_i64(struct outbuf *b, intmax_t v) {
@@ -290,7 +290,7 @@ int asn1typed_render_cpp_owned_slice(const asn1typed_module_t *m,
 				if(fmt(&b, "using %s = bool;\n\n", names[i])) goto oom;
 			} else if(t->primitive_kind == ASN1TYPED_PRIMITIVE_INTEGER) {
 				const asn1typed_integer_value_range_t *r = &t->value_range;
-				if(!r->has_value_range || r->is_extensible || r->tail || r->tail_count || r->extension_additions || r->extension_addition_count || r->lower_bound > r->upper_bound || !size_constraint_is_empty(&t->size_constraint)) { err = "INTEGER requires one complete non-extensible interval"; goto fail; }
+				if(!asn1typed_integer_unsigned_empty(r) || !r->has_value_range || r->is_extensible || r->tail || r->tail_count || r->extension_additions || r->extension_addition_count || r->lower_bound > r->upper_bound || !size_constraint_is_empty(&t->size_constraint)) { err = "INTEGER requires one complete non-extensible interval"; goto fail; }
 				if(r->lower_bound < 0) {
 					if(r->lower_bound < INT64_MIN || r->upper_bound > INT64_MAX) { err = "INTEGER domain exceeds int64_t"; goto fail; }
 					if(fmt(&b, "using %s = std::int64_t;\nstruct %s_constraint {\n    static constexpr std::int64_t lower_bound = ", names[i], names[i]) || fmt_i64(&b, r->lower_bound) || put(&b, ";\n    static constexpr std::int64_t upper_bound = ") || fmt_i64(&b, r->upper_bound) || put(&b, ";\n};\n\n")) goto oom;
@@ -444,7 +444,7 @@ int asn1typed_render_cpp_owned_aper_mapping(const asn1typed_module_t *m,
 		if(t->is_extensible || t->has_ioc_table || t->ioc_object_set_is_extensible) { err = "extension or IOC semantics unsupported by owned APER mapping"; goto fail; }
 		if(t->kind == ASN1TYPED_TYPE_PRIMITIVE && t->primitive_kind == ASN1TYPED_PRIMITIVE_INTEGER) {
 			const asn1typed_integer_value_range_t *r = &t->value_range;
-			if(!r->has_value_range || r->is_extensible || r->tail || r->tail_count || r->extension_additions || r->extension_addition_count || r->lower_bound != 0 || r->upper_bound != 65535 || !size_constraint_is_empty(&t->size_constraint)) { err = "APER mapping supports only non-extensible INTEGER (0..65535)"; goto fail; }
+			if(!asn1typed_integer_unsigned_empty(r) || !r->has_value_range || r->is_extensible || r->tail || r->tail_count || r->extension_additions || r->extension_addition_count || r->lower_bound != 0 || r->upper_bound != 65535 || !size_constraint_is_empty(&t->size_constraint)) { err = "APER mapping supports only non-extensible INTEGER (0..65535)"; goto fail; }
 			if(fmt(&b, "struct %s_aper {\n    static constexpr std::uint64_t lower_bound = 0;\n    static constexpr std::uint64_t upper_bound = 65535;\n    static constexpr std::uint8_t value_bit_width = 16;\n    static constexpr bool align_before_payload_to_octet = true;\n    static constexpr bool most_significant_octet_first = true;\n    static constexpr bool has_length_determinant = false;\n    static constexpr bool has_extension_bit = false;\n};\n\n", names[i])) goto oom;
 		} else if(t->kind == ASN1TYPED_TYPE_PRIMITIVE && t->primitive_kind == ASN1TYPED_PRIMITIVE_BOOLEAN) {
 			if(!value_range_is_empty(&t->value_range) || !size_constraint_is_empty(&t->size_constraint)) { err = "constraint on BOOLEAN unsupported by owned APER mapping"; goto fail; }

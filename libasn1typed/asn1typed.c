@@ -43,7 +43,7 @@ asn1typed_inline_enum_body_valid(const asn1typed_type_t *body) {
 		body->identity.module || body->identity.source_name ||
 		body->primitive_kind != ASN1TYPED_PRIMITIVE_INVALID ||
 		body->size_constraint.has_size_constraint || body->size_constraint.is_extensible || body->size_constraint.lower_bound || body->size_constraint.upper_bound || body->size_constraint.has_extension_addition || body->size_constraint.extension_lower_bound || body->size_constraint.extension_upper_bound ||
-		body->value_range.has_value_range || body->value_range.tail ||
+		!asn1typed_integer_unsigned_empty(&body->value_range) || body->value_range.has_value_range || body->value_range.tail ||
 		body->value_range.tail_count || body->value_range.extension_additions || body->value_range.extension_addition_count || body->location.file ||
 		body->fields || body->field_count || body->field_capacity ||
 		body->alternatives || body->alternative_count ||
@@ -142,6 +142,8 @@ asn1typed_integer_value_range_copy(asn1typed_integer_value_range_t *target,
 	size_t i;
 	if(!target || !source ||
 		(source->has_value_range != 0 && source->has_value_range != 1) ||
+        (source->unsigned_bounds ? !asn1typed_integer_unsigned_valid(source) :
+         !asn1typed_integer_unsigned_empty(source)) ||
 		(source->is_extensible != 0 && source->is_extensible != 1) ||
 		(source->has_value_range && source->lower_bound > source->upper_bound) ||
 		(!source->has_value_range && (source->lower_bound || source->upper_bound ||
@@ -611,7 +613,7 @@ ioc_empty_size(const asn1typed_size_constraint_t *s) {
 }
 static int
 ioc_empty_range(const asn1typed_integer_value_range_t *r) {
-	return !r->has_value_range && !r->is_extensible && !r->lower_bound && !r->upper_bound && !r->tail && !r->tail_count && !r->extension_additions && !r->extension_addition_count;
+	return asn1typed_integer_unsigned_empty(r) && !r->has_value_range && !r->is_extensible && !r->lower_bound && !r->upper_bound && !r->tail && !r->tail_count && !r->extension_additions && !r->extension_addition_count;
 }
 static const asn1typed_type_t *
 ioc_named_type(const asn1typed_module_t *m, const asn1typed_type_ref_t *r) {
@@ -671,7 +673,7 @@ ioc_binding_check(const asn1typed_module_t *m, size_t index, int published, char
 		crit->type_semantics != ASN1TYPED_FIELD_FIXED_TYPE || !ioc_relation_matches(crit, r, "criticality", id->source_name) ||
 		value->type_semantics != ASN1TYPED_FIELD_CLASS_FIELD_SELECTED_TYPE || !ioc_empty_ref(&value->type) || !ioc_relation_matches(value, r, r->selected_class_field_source_name, id->source_name)) BIND_BAD("IOC binding selector/class role mismatch");
 	id_type = ioc_named_type(m, &id->type); criticality = ioc_named_type(m, &crit->type);
-	if(!ioc_scalar_clean(id_type) || id_type->kind != ASN1TYPED_TYPE_PRIMITIVE || id_type->primitive_kind != ASN1TYPED_PRIMITIVE_INTEGER || id_type->value_range.has_value_range != 1 || id_type->value_range.is_extensible || id_type->value_range.lower_bound != 0 || id_type->value_range.upper_bound != 65535 || id_type->value_range.tail || id_type->value_range.tail_count || id_type->value_range.extension_additions || id_type->value_range.extension_addition_count || id_type->enum_items || id_type->enum_item_count || id_type->enum_item_capacity || id_type->has_valid_per_enumeration_mapping) BIND_BAD("IOC binding identifier type/domain unsupported");
+	if(!ioc_scalar_clean(id_type) || id_type->kind != ASN1TYPED_TYPE_PRIMITIVE || id_type->primitive_kind != ASN1TYPED_PRIMITIVE_INTEGER || !asn1typed_integer_unsigned_empty(&id_type->value_range) || id_type->value_range.has_value_range != 1 || id_type->value_range.is_extensible || id_type->value_range.lower_bound != 0 || id_type->value_range.upper_bound != 65535 || id_type->value_range.tail || id_type->value_range.tail_count || id_type->value_range.extension_additions || id_type->value_range.extension_addition_count || id_type->enum_items || id_type->enum_item_count || id_type->enum_item_capacity || id_type->has_valid_per_enumeration_mapping) BIND_BAD("IOC binding identifier type/domain unsupported");
 	if(!ioc_scalar_clean(criticality) || criticality->kind != ASN1TYPED_TYPE_ENUMERATED || criticality->primitive_kind != ASN1TYPED_PRIMITIVE_INVALID || !ioc_empty_range(&criticality->value_range) || criticality->enum_item_count != 3 || asn1typed_enumerated_evidence_validate(criticality, error, size)) BIND_BAD("IOC binding criticality type evidence unsupported");
 	for(i = 0; i < 3; ++i) {
 		const asn1typed_enum_item_t *item = &criticality->enum_items[i];
@@ -742,7 +744,7 @@ asn1typed_bound_instance_empty_private_validate(const asn1typed_module_t *m,
         if(a->wire_evidence != ASN1TYPED_WIRE_EVIDENCE_RESOLVED || a->effective_tag_class != ASN1TYPED_TAG_CLASS_CONTEXT_SPECIFIC || a->effective_tag_number != (intmax_t)i || a->per_root_index != i ||
             a->type_ref.kind != ASN1TYPED_REF_PRIMITIVE || a->type_ref.module || a->type_ref.source_name || a->type_ref.actuals || a->type_ref.actual_count ||
             a->type_ref.primitive_kind != (i ? ASN1TYPED_PRIMITIVE_OBJECT_IDENTIFIER : ASN1TYPED_PRIMITIVE_INTEGER) || !ioc_empty_size(&a->size_constraint)) PRIVATE_BAD("empty-private key domain/tag order unsupported");
-        if(i ? !ioc_empty_range(&a->value_range) : (a->value_range.has_value_range != 1 || a->value_range.is_extensible || a->value_range.lower_bound || a->value_range.upper_bound != 65535 || a->value_range.tail || a->value_range.tail_count || a->value_range.extension_additions || a->value_range.extension_addition_count)) PRIVATE_BAD("empty-private local/OID key constraint unsupported");
+        if(i ? !ioc_empty_range(&a->value_range) : (!asn1typed_integer_unsigned_empty(&a->value_range) || a->value_range.has_value_range != 1 || a->value_range.is_extensible || a->value_range.lower_bound || a->value_range.upper_bound != 65535 || a->value_range.tail || a->value_range.tail_count || a->value_range.extension_additions || a->value_range.extension_addition_count)) PRIVATE_BAD("empty-private local/OID key constraint unsupported");
     }
     if(!ioc_scalar_clean(criticality) || criticality->kind != ASN1TYPED_TYPE_ENUMERATED || criticality->enum_item_count != 3 || asn1typed_enumerated_evidence_validate(criticality, error, size)) PRIVATE_BAD("empty-private criticality evidence unavailable");
     for(i = 0; i < 3; ++i) {
@@ -1072,7 +1074,7 @@ asn1typed_type_add_inline_enumerated_alternative(asn1typed_type_t *type,
     if(!type || type->kind != ASN1TYPED_TYPE_CHOICE || !name || !name[0] || !file ||
        !body || body->enum_item_capacity > SIZE_MAX / sizeof(*body->enum_items) ||
        body->size_constraint.is_extensible || body->size_constraint.lower_bound ||
-       body->size_constraint.upper_bound || body->value_range.is_extensible ||
+       body->size_constraint.upper_bound || !asn1typed_integer_unsigned_empty(&body->value_range) || body->value_range.is_extensible ||
        body->value_range.lower_bound || body->value_range.upper_bound ||
        body->location.line || body->element_type.kind != ASN1TYPED_REF_NAMED ||
        body->element_type.primitive_kind != ASN1TYPED_PRIMITIVE_INVALID ||

@@ -1,0 +1,73 @@
+{
+  "scope": "all-message regeneration and historical-header byte equality with targeted strict compilation; no new wire qualification",
+  "baseline_commit": "5ff8a2e2c95825f5d16077ed4ccfe8128caae702",
+  "input_sha256": {
+    "tools/asn1typed_codec_coverage": "a1e69f169c85dca900d67a7ecbaaee85de3824ac194dae0eb1dba925d2b44043",
+    "tools/e1ap-readiness/check_regression.py": "36eac327c0d2f661d79e6d4c33c6ede1e35d0606d177175d1c212aaa31835bbc",
+    "tools/asn1typed_codec_coverage.c": "6817edaeaabe9d5532475a78cb63d5f40efe62ff6f45118a899f03bc8c6489f4",
+    "libasn1typed/asn1typed.c": "d99bad60af69eb92ab0bd2594800ea8f4f1db0ded122d88a901b6d2cd4dc8a5f",
+    "libasn1typed/asn1typed_envelope.c": "3031f07ec8c2b1aa9f0544cb32c12e7e95c6207388a079d509fff021a1ee329e",
+    "libasn1typed/asn1typed_extract.c": "bf578f23198c49ce1a49e6ef29da8e843aa0f252a9441feaf175e2b9a6f12e3d",
+    "libasn1typed/asn1typed_name.c": "3070d2bbdc67e719ab2c6a079a7c1116d3254215a00defa384e1f746d9c61039",
+    "libasn1typed/asn1typed_render_cpp.c": "6476abc318aa65596535858f5c88bc9502b8adcba974988b8b690d2c2964f273",
+    "libasn1typed/asn1typed_render_cpp_codec.c": "4390322794a340368f2c864f7c7f23f7da59d5d002843c7d8cd5e7f9e8300102",
+    "libasn1typed/asn1typed_render_cpp_compound.c": "c384a6931aa2492f136da4d7508745c661c6e7b5ea476dceb5900b28065cf4c7",
+    "libasn1typed/asn1typed_render_cpp_enum.c": "6f16ab55671e945b55b96512090f09241a473369803f5403427d19f7186587be",
+    "libasn1typed/asn1typed_render_cpp_envelope.c": "1873c80ade49789c013f524684cad854a9b7503c11aa87c92d0b051b0ed57f99",
+    "libasn1typed/asn1typed_render_cpp_inline_enum.c": "a309a965f5019d7c31137f801b57a92600646a19a31cefb2d44e85c4304936a7",
+    "libasn1typed/asn1typed_render_cpp_integer.c": "fa95e2a2a56a4008e122900c1bc066f3d4c8b2a0fe538ada8b621bf9e6857ace",
+    "libasn1typed/asn1typed_render_cpp_ioc.c": "2bb09e2fd2ceb995ed0343d0a22f676c5fba13fde0b41b5486810510b4bb58d2",
+    "libasn1typed/asn1typed_render_cpp_slice.c": "ef9044304f5b8aedc07fd5a540a09f347daa71811d2c66e97b587190f0e62281",
+    "libasn1typed/asn1typed_render_cpp_uint.c": "892e61d52e439af6c24940b52e9b475d9a9f7bf484c0393bb0b541845a8694b1",
+    "libasn1typed/asn1typed.h": "4e197f0ef1295fbb0da551c3b8f1735b37b70db0d08080c7ce9b449b08d35ef5",
+    "libasn1typed/asn1typed_envelope.h": "71cab9f1b5bdf0ef8a72d12d6dd63ad4f27218b165f029c181916b7fb381bef9",
+    "libasn1typed/asn1typed_extract.h": "a56be27a82a88a8548ff5b9f901325d969e9eabec3d451fceaa9f4cb6da0f4d6",
+    "libasn1typed/asn1typed_name.h": "a262d0fcd1a6bb0bd05becbad10889b7206a84d03dca7e54be97deba00a56dc1",
+    "libasn1typed/asn1typed_render_cpp.h": "fec1c47b125ca738b8631e86d46b42f79b1d8db6b3830cf18001a00563fed9fe",
+    "libasn1typed/asn1typed_render_cpp_inline_enum_internal.h": "997eff3c476706c64c73969b662aa5d38be160b6c77ade7430c74794e00afdfb",
+    "libasn1typed/asn1typed_render_cpp_internal.h": "a2eeec91ddbae33c18516d55b26ac13edabe55f59bd67afd33e72c2d8ac3adf9",
+    "libasn1typed/asn1typed_render_cpp_ioc_internal.h": "29a0b4e92b22fe4588d6e54152bf7efc0d9d98d1af799a2c3840530910393c24",
+    "libaper/runtime.hpp": "34ceca5e464fc1c8f6e505cdd01ec00d22dd87d74d17abbb5660f605570162f1",
+    "libaper/sequence_extensions.hpp": "5447fdd559b2d1be8112161b4474810af619dd24f64678fc92d167bd36ef3db2",
+    "libaper/runtime.cpp": "e6d162c031a4c8ba958e21460ffd5acf5ecf05d26232549da9933912e9259731",
+    "tools/f1ap-readiness/readiness-f1-p3.json": "c244994cb60b84ab01f55e71d5a3448c0742b019ae59676c6a41dfa58562369c",
+    "tools/f1ap-readiness/f1ap-rel18.modules": "0d30af33c5950c01fa21694ecb37c017b33d2936497dc2a7f8a5dd978612ad99",
+    "tools/f1ap-readiness/ngap-regression-f1-p3.json": "71fa7215a9b96ad8a0244e05d32688c6a310af66057fa74152eefca43d9e7b9d",
+    "tools/qualification/ngap-rel18.modules": "1623b9ec62622d31785740a57a56a10d1687c20ae3787da80617c3b09dd8b597"
+  },
+  "compiler": "g++ (Ubuntu 13.3.0-6ubuntu2~24.04) 13.3.0",
+  "profiles": {
+    "f1ap": {
+      "messages": 158,
+      "physical_generation_and_descriptor": "PASS",
+      "body_and_envelope_generation": "PASS",
+      "historical_headers_byte_exact": 948,
+      "targeted_strict_compile": [
+        "F1SetupRequest",
+        "F1SetupResponse",
+        "F1SetupFailure",
+        "UEContextSetupRequest",
+        "PrivateMessage"
+      ],
+      "historical_runtime_headers_unchanged": true
+    },
+    "ngap": {
+      "messages": 131,
+      "physical_generation_and_descriptor": "PASS",
+      "body_and_envelope_generation": "PASS",
+      "historical_headers_byte_exact": 393,
+      "targeted_strict_compile": [
+        "InitialContextSetupRequest",
+        "NGSetupRequest",
+        "NGSetupResponse",
+        "NGSetupFailure",
+        "PrivateMessage"
+      ],
+      "historical_runtime_headers_unchanged": true
+    }
+  },
+  "limits": [
+    "NGAP historical baseline retains BODY hashes only; new target-envelope generation is checked but no historical envelope byte-equality claim.",
+    "Full SDK rebuild, all-message runtime/native-wire corpus and interoperability are not rerun."
+  ]
+}

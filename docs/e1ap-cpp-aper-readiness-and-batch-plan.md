@@ -111,3 +111,28 @@ linkage or runtime qualification. Ordinary inventory/use sites do not exhaust
 bound-instance internals. No new APER bytes, native-reference comparison,
 interoperability, benchmark, ABI matrix or SDK release is claimed. Historical
 F1AP/NGAP reports and accepted wire qualification remain unchanged.
+
+
+## E1-P2 shared unsigned64 completion
+
+All 72 frozen E1AP messages now pass physical extraction, all three BODY
+and target-envelope generation families, and both strict compilation gates
+(144 syntax-only invocations). In particular, DataUsageReport and
+MRDC-DataUsageReport retain exact 0..UINT64_MAX bounds for both usageCountUL
+and usageCountDL. No further extraction/generation/compile blocker is observed
+in this scan. This does not qualify complete PDU dispatch or runtime bytes.
+
+E1-P2 appends explicit finite unsigned endpoint evidence, validates ownership
+and residue, preserves named refinements and inline SEQUENCE/CHOICE mappings,
+and reuses the existing bounded_uint runtime. Signed intervals/sets/extensions
+retain their domain. High unsigned sets/extensions and mixed negative-to-wide
+ranges remain unsupported and are rejected. See
+[E1-P2 contract and closeout](e1ap-cpp-aper-unsigned64-contract-and-closeout.md)
+and `tools/e1ap-readiness/readiness-e1-p2.json`.
+
+Typed IR checks pass 42/42 and APER checks pass 10/10. Regression regenerates
+all 158 F1AP and 131 NGAP messages, with 948 F1AP headers and 393 NGAP BODY
+headers byte-exact against historical acceptance, plus ten representative
+strict BODY/envelope compilations. See `ngap-f1ap-regression-e1-p2.json` and
+`review-e1-p2.md` for the regression and independent acceptance receipts.
+Next implementation scope: E1-P3, explicit E1AP outer profile and dispatch.

@@ -97,6 +97,15 @@ int main(int argc, char **argv) {
             REQUIRE(b->empty_private_object_set.module == module && b->empty_private_object_set.source_name == source && b->has_empty_private_binding == 1);
         }
     }
+    {
+        size_t k; int found = 0;
+        for(k = 0; k < m.type_count; ++k) if(m.types[k].kind == ASN1TYPED_TYPE_CHOICE &&
+            m.types[k].alternative_count == 2 && m.types[k].alternatives[0].value_range.upper_bound == 65535) {
+            m.types[k].alternatives[0].value_range.unsigned_upper_bound = 1;
+            rejected(&m, argv[4]); m.types[k].alternatives[0].value_range.unsigned_upper_bound = 0; found = 1;
+        }
+        REQUIRE(found);
+    }
     rejected(NULL, argv[4]); rejected(&m, "class");
     {
         m.bound_instances[entry].has_empty_private_binding = 0;
