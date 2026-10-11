@@ -31,7 +31,7 @@ Reader::Reader(std::span<const std::byte> in, Limits l, std::size_t n) noexcept
     : input_(in), limits_(l), limit_(n) {}
 Reader::Reader(Reader &&r) noexcept
     : input_(r.input_), limits_(r.limits_), usage_(r.usage_), cursor_(r.cursor_), limit_(r.limit_),
-      error_(r.error_), finished_(r.finished_) {
+      error_(r.error_), finished_(r.finished_), depth_(r.depth_), base_depth_(r.base_depth_) {
     r.finished_ = true;
 }
 [[noreturn]] void Reader::fault(ErrorCode e) const { throw detail::Fault{{e, cursor_}}; }
@@ -73,6 +73,7 @@ std::uint64_t Reader::bits(unsigned n) {
         fault(ErrorCode::truncated_input);
     if (cursor_ > limits_.max_wire_bits || n > limits_.max_wire_bits - cursor_)
         fault(ErrorCode::resource_limit);
+    charge(usage_.work_bits, n, limits_.max_work_bits);
     std::uint64_t v = 0;
     for (unsigned i = 0; i < n; ++i)
         v = (v << 1) | static_cast<unsigned>(bit(input_, cursor_++));
@@ -88,6 +89,10 @@ void Writer::bits(std::uint64_t v, unsigned n) {
     auto end = cursor_ + n, octets = detail::octets_for_bits(end);
     if (octets > limits_.max_output_octets)
         fault(ErrorCode::resource_limit);
+    charge(usage_.work_bits, n, limits_.max_work_bits);
+    if (child_)
+        charge(usage_.open_staging_octets, octets - output_.size(),
+               limits_.max_open_staging_octets);
     output_.resize(octets, std::byte{0});
     for (unsigned i = n; i > 0; --i) {
         auto mask = std::byte{static_cast<unsigned char>(0x80u >> (cursor_ % 8))};
@@ -252,12 +257,15 @@ BitString Reader::blob(Size s, bool octets, bool retain) {
     result.bit_count = octets ? total * 8 : total;
     return result;
 }
-void Writer::blob(std::span<const std::byte> value, std::size_t count, Size s, bool octets) {
+void Writer::reject_alias(std::span<const std::byte> value) const {
     // Reject staging aliases before any resize can invalidate the input span.
     const std::less<const std::byte *> less;
     if (!value.empty() && !output_.empty() && less(value.data(), output_.data() + output_.size()) &&
         less(output_.data(), value.data() + value.size()))
         fault(ErrorCode::invalid_argument);
+}
+void Writer::blob(std::span<const std::byte> value, std::size_t count, Size s, bool octets) {
+    reject_alias(value);
     if (!valid(s) || (!octets && !valid_bits(value, count)) || (octets && count != value.size()))
         fault(ErrorCode::invalid_argument);
     bool ext = !s.unconstrained && (count < s.lower || count > s.upper);
@@ -399,6 +407,13 @@ Result<void> Writer::write_collection_segment(std::size_t n, bool fragment) {
         length(n, fragment);
     });
 }
+Result<void> Reader::claim_value_octets(std::size_t n) {
+    auto r = transaction<unsigned>([&] {
+        charge(usage_.value_octets, n, limits_.max_value_octets);
+        return 0u;
+    });
+    return r ? Result<void>::success() : Result<void>::failure(r.error());
+}
 Result<std::size_t> Reader::read_collection_length(std::size_t l, std::size_t u) {
     return transaction<std::size_t>([&] {
         if (u >= 65536)
@@ -446,18 +461,22 @@ Result<BitString> Reader::read_extension_bitmap() {
     });
 }
 Result<void> Writer::write_extension_bitmap(const BitString &v) {
+    return write_extension_bitmap(v.octets, v.bit_count);
+}
+Result<void> Writer::write_extension_bitmap(std::span<const std::byte> value, std::size_t count) {
     return transaction([&] {
-        if (!v.bit_count || v.bit_count >= 16384)
+        reject_alias(value);
+        if (!count || count >= 16384)
             fault(ErrorCode::invalid_argument);
-        charge(usage_.bitmap_bits, v.bit_count, limits_.max_bitmap_bits);
-        if (v.bit_count <= 64) {
+        charge(usage_.bitmap_bits, count, limits_.max_bitmap_bits);
+        if (count <= 64) {
             bits(0, 1);
-            bits(v.bit_count - 1, 6);
+            bits(count - 1, 6);
         } else {
             bits(1, 1);
-            length(v.bit_count, false);
+            length(count, false);
         }
-        blob(v.octets, v.bit_count, Size{v.bit_count, v.bit_count}, false);
+        blob(value, count, Size{count, count}, false);
     });
 }
 Result<std::vector<std::byte>> Reader::read_open_type(bool retain) {
@@ -494,6 +513,7 @@ Result<void> Reader::skip_open_type() {
                 fault(ErrorCode::truncated_input);
             if (cursor_ > limits_.max_wire_bits || n > limits_.max_wire_bits - cursor_)
                 fault(ErrorCode::resource_limit);
+            charge(usage_.work_bits, n, limits_.max_work_bits);
             cursor_ += n;
             if (!seg.fragmented)
                 break;
@@ -506,6 +526,8 @@ Result<void> Reader::skip_open_type() {
 }
 Result<void> Reader::finish(Completion form) {
     auto r = transaction<unsigned>([&] {
+        if (depth_ != base_depth_)
+            fault(ErrorCode::invalid_state);
         if (form != Completion::octets && form != Completion::contained_bits &&
             form != Completion::exact)
             fault(ErrorCode::invalid_argument);
@@ -518,6 +540,7 @@ Result<void> Reader::finish(Completion form) {
             fault(ErrorCode::trailing_data);
         if (cursor_ > limits_.max_wire_bits || expected - cursor_ > limits_.max_wire_bits - cursor_)
             fault(ErrorCode::resource_limit);
+        charge(usage_.work_bits, input_.size() * 8 - cursor_, limits_.max_work_bits);
         for (std::size_t i = cursor_; i < input_.size() * 8; ++i)
             if (bit(input_, i))
                 fault(ErrorCode::nonzero_padding);
@@ -529,6 +552,8 @@ Result<void> Reader::finish(Completion form) {
 Result<CompleteEncoding> Writer::finish(Completion form) {
     CompleteEncoding result;
     auto r = transaction([&] {
+        if (depth_ != base_depth_)
+            fault(ErrorCode::invalid_state);
         if (form != Completion::octets && form != Completion::contained_bits &&
             form != Completion::exact)
             fault(ErrorCode::invalid_argument);

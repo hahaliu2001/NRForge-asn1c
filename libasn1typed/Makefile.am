@@ -3,7 +3,7 @@ AM_CPPFLAGS = -I$(top_srcdir)/libasn1common
 
 noinst_LTLIBRARIES = libasn1typed.la libasn1typed_extract.la
 libasn1typed_la_SOURCES = asn1typed.c asn1typed.h asn1typed_envelope.c asn1typed_envelope.h asn1typed_name.c asn1typed_name.h asn1typed_render_cpp_internal.h \
-	asn1typed_render_cpp.c asn1typed_render_cpp_slice.c asn1typed_render_cpp_codec.c asn1typed_render_cpp_enum.c asn1typed_render_cpp_uint.c asn1typed_render_cpp_integer.c asn1typed_render_cpp_inline_enum.c asn1typed_render_cpp_inline_enum_internal.h asn1typed_render_cpp_compound.c asn1typed_render_cpp_ioc.c asn1typed_render_cpp_envelope.c asn1typed_render_cpp_ioc_internal.h asn1typed_render_cpp.h
+	asn1typed_render_uper.c asn1typed_render_uper.h asn1typed_render_cpp.c asn1typed_render_cpp_slice.c asn1typed_render_cpp_codec.c asn1typed_render_cpp_enum.c asn1typed_render_cpp_uint.c asn1typed_render_cpp_integer.c asn1typed_render_cpp_inline_enum.c asn1typed_render_cpp_inline_enum_internal.h asn1typed_render_cpp_compound.c asn1typed_render_cpp_ioc.c asn1typed_render_cpp_envelope.c asn1typed_render_cpp_ioc_internal.h asn1typed_render_cpp.h
 libasn1typed_extract_la_SOURCES = asn1typed_extract.c asn1typed_extract.h
 libasn1typed_extract_la_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/libasn1parser -I$(top_srcdir)/libasn1fix
 libasn1typed_extract_la_LIBADD = \
@@ -294,3 +294,10 @@ check_asn1typed_extensions_CPPFLAGS = $(check_asn1typed_extract_CPPFLAGS) -DEXTE
 check_asn1typed_extensions_LDADD = $(check_asn1typed_extract_LDADD)
 check_asn1typed_extensions_LDFLAGS = -Wl,--wrap=malloc -Wl,--wrap=calloc -Wl,--wrap=realloc
 EXTRA_DIST += fixtures/ordinary-extensions.asn1
+
+check_PROGRAMS += check_asn1typed_uper
+TESTS += check_asn1typed_uper
+check_asn1typed_uper_SOURCES = check_asn1typed_uper.c
+check_asn1typed_uper_CPPFLAGS = $(check_asn1typed_extract_CPPFLAGS) -DUPER_FIXTURE=\"$(abs_top_srcdir)/tools/rrc-uper/compound.asn1\"
+check_asn1typed_uper_LDADD = $(check_asn1typed_extract_LDADD)
+check_asn1typed_uper_LDFLAGS = -Wl,--wrap=malloc -Wl,--wrap=calloc -Wl,--wrap=realloc

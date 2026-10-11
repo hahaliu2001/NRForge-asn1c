@@ -210,3 +210,5 @@ asn1c/tmp/
 
 /libuper/check_uper_runtime
 /libuper/check_uper_coexistence
+/libuper/check_uper_compound
+/libasn1typed/check_asn1typed_uper

@@ -11,3 +11,7 @@ check_PROGRAMS += check_uper_coexistence
 TESTS += check_uper_coexistence
 check_uper_coexistence_SOURCES = check_coexistence.cpp
 check_uper_coexistence_LDADD = libuper.la ../libaper/libaper.la
+check_PROGRAMS += check_uper_compound
+TESTS += check_uper_compound
+check_uper_compound_SOURCES = check_compound.cpp
+check_uper_compound_LDADD = libuper.la

@@ -75,3 +75,10 @@ EXTRA_DIST += docs/rrc-cpp-uper-p5-runtime-closeout.md \
  tools/uper-qualification/probe.cpp tools/uper-qualification/qualify.py \
  tools/uper-qualification/qualification.json tools/uper-qualification/verification-rrc-p5.json \
  tools/uper-qualification/review-rrc-p5.md
+
+EXTRA_DIST += tools/rrc-uper/probe.c tools/rrc-uper/generate.py tools/rrc-uper/check.py \
+ tools/rrc-uper/compound.asn1 tools/rrc-uper/check_generated.cpp tools/rrc-uper/README.md \
+ tools/rrc-uper/readiness-rrc-p6.json tools/rrc-uper/verification-rrc-p6.json \
+ tools/rrc-uper/review-rrc-p6.md docs/rrc-cpp-uper-compound-contract-and-closeout.md
+EXTRA_DIST += tools/rrc-uper/observe_oracles.py tools/rrc-uper/oracle-observation.json \
+ tools/rrc-uper/aper-regression-rrc-p6.json

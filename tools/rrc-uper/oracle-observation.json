@@ -1,0 +1,53 @@
+{
+  "status": "EXPLORATORY_ONLY",
+  "full_wire_qualification": false,
+  "fixture_sha256": "cbdbdcfe5c5d1abc53a7b0727996d2e5757006dcb57cf71f84ea5eea5bd2639c",
+  "asn1tools_version": "0.167.0",
+  "pycrate_version": "0.7.11",
+  "pycrate_limitation": "Original parameter formal T triggers compiler assertion; only Box { Counter } explicitly expanded to BoxCounter; oracle implementation unmodified.",
+  "expanded_schema_sha256": "cab30350dc3757e5d201815a2b12c0da95ad1894fa69b99f9359f1860b9d993e",
+  "cases": [
+    {
+      "case": "minimal",
+      "generated_focused_hex": "01044403",
+      "generated_semantic_bits": 32,
+      "asn1tools_hex": "01044403",
+      "pycrate_hex": "01044403",
+      "byte_match": true
+    },
+    {
+      "case": "group",
+      "generated_focused_hex": "1ff30444820443201c05200b58e0",
+      "generated_semantic_bits": 110,
+      "asn1tools_hex": "1ff30444820443201c05200b58e0",
+      "pycrate_hex": "1ff30444820443201c05200b58e0",
+      "byte_match": true
+    },
+    {
+      "case": "choice_root",
+      "generated_focused_hex": "40",
+      "generated_semantic_bits": 5,
+      "asn1tools_hex": "48",
+      "pycrate_hex": "48",
+      "byte_match": false
+    },
+    {
+      "case": "choice_extension",
+      "generated_focused_hex": "500028c0",
+      "generated_semantic_bits": 27,
+      "asn1tools_hex": "500028c0",
+      "pycrate_hex": "500028c0",
+      "byte_match": true
+    },
+    {
+      "case": "root_extension",
+      "generated_focused_hex": "800408222018",
+      "generated_semantic_bits": 48,
+      "asn1tools_hex": "800408222018",
+      "pycrate_hex": "800408222018",
+      "byte_match": true
+    }
+  ],
+  "discrepancy": "AUTOMATIC TAGS Pick first [2] Counter / nothing [0] NULL: inherited owned canonical root mapping selects nothing index0; both reference codecs emit declaration-order-compatible index1. Generated Root.pick/nothing is 40 (5 semantic bits); references emit 48.",
+  "next_gate": "RRC-P7: independently audit X.691 10.2/23.2 and X.680 automatic/explicit tag rules and each oracle implementation before claiming this case independently qualified. Do not replace validated mapping with declaration order."
+}
