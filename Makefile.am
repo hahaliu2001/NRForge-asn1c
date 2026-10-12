@@ -164,3 +164,11 @@ EXTRA_DIST += tools/rrc-null-open/contract.md tools/rrc-null-open/check.py \
  tools/rrc-null-open/check_generated.cpp tools/rrc-null-open/README.md \
  tools/rrc-null-open/readiness.json tools/rrc-null-open/verification.json \
  tools/rrc-null-open/review.md docs/rrc-null-open-closeout.md
+
+EXTRA_DIST += tools/rrc-wire-expanded/contract.md tools/rrc-wire-expanded/qualify.py \
+ tools/rrc-wire-expanded/native_values.py tools/rrc-wire-expanded/witnesses.py \
+ tools/rrc-wire-expanded/semantic_bridge.py tools/rrc-wire-expanded/compound.asn1 \
+ tools/rrc-wire-expanded/requirements.txt tools/rrc-wire-expanded/README.md \
+ tools/rrc-wire-expanded/qualification.json tools/rrc-wire-expanded/qualification-sanitized.json \
+ tools/rrc-wire-expanded/verification.json tools/rrc-wire-expanded/review.md \
+ docs/rrc-cpp-uper-p16-wire-qualification-closeout.md
