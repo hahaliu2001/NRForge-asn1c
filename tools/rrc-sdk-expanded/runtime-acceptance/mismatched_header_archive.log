@@ -1,0 +1,3 @@
+/usr/bin/ld: /tmp/cc6cS6y6.o: in function `nrforge::rrc::detail::sdk_header_library_guard::{lambda()#1}::operator()() const':
+mismatch.cpp:(.text._ZNK7nrforge3rrc6detail24sdk_header_library_guardMUlvE_clEv[_ZNK7nrforge3rrc6detail24sdk_header_library_guardMUlvE_clEv]+0x11): undefined reference to `nrforge::rrc::detail::sdk_require_0000000000000000000000000000000000000000000000000000000000000000()'
+collect2: error: ld returned 1 exit status

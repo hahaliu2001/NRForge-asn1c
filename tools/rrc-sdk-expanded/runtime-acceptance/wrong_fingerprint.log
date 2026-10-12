@@ -1,0 +1,13 @@
+-- The CXX compiler identification is GNU 13.3.0
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /usr/bin/c++ - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Configuring incomplete, errors occurred!
+CMake Error at /tmp/nrforge-p17/rrc-isolated-final/installed-rrc/lib/cmake/NRForgeRRC/NRForgeRRCConfig.cmake:32 (message):
+  NRForgeRRC requested SDK fingerprint does not match installed package
+Call Stack (most recent call first):
+  CMakeLists.txt:3 (find_package)
+
+

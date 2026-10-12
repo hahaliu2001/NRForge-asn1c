@@ -1,0 +1,25 @@
+{
+  "restored": true,
+  "paths": [
+    {
+      "original": "/tmp/nrforge-p17/rrc-install",
+      "hidden": "/tmp/nrforge-p17/.unavailable-rrc-install-ffdef658b35d4c41b0d6bac0d23b1158"
+    },
+    {
+      "original": "/tmp/nrforge-p17/rrc-sdk",
+      "hidden": "/tmp/nrforge-p17/.unavailable-rrc-sdk-e9cc3dc6377741b88c5e5d9403ca728f"
+    },
+    {
+      "original": "/tmp/nrforge-p17/rrc-consumer-rrc-only",
+      "hidden": "/tmp/nrforge-p17/.unavailable-rrc-consumer-rrc-only-fec4b3e85aec4d31acbbdaf4f25343b9"
+    },
+    {
+      "original": "/workspace/scratch/31a28362a951/NRForge-asn1c-p9",
+      "hidden": "/workspace/scratch/31a28362a951/.unavailable-NRForge-asn1c-p9-b14e5c37e0e546ec9ab3fac8d0f26330"
+    },
+    {
+      "original": "/workspace/scratch/31a28362a951/schema",
+      "hidden": "/workspace/scratch/31a28362a951/.unavailable-schema-21f5516a68f645a6869502322ece25d1"
+    }
+  ]
+}

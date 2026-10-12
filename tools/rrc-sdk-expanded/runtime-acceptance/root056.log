@@ -1,0 +1,6 @@
+CASE 0 0000 12
+NEG 17
+CASE 1 e0 3
+NEG 8
+CASE 2 004f3ffcfff3ffcfff3ffcfff3ffcfff3ffcfff3ffcfff3ffcfff3ffcfff 240
+NEG 244

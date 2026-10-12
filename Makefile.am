@@ -172,3 +172,108 @@ EXTRA_DIST += tools/rrc-wire-expanded/contract.md tools/rrc-wire-expanded/qualif
  tools/rrc-wire-expanded/qualification.json tools/rrc-wire-expanded/qualification-sanitized.json \
  tools/rrc-wire-expanded/verification.json tools/rrc-wire-expanded/review.md \
  docs/rrc-cpp-uper-p16-wire-qualification-closeout.md
+
+EXTRA_DIST += cmake/NrforgeRrcSdkExpanded.cmake \
+ tools/rrc-sdk-expanded/contract.md tools/rrc-sdk-expanded/build.py \
+ tools/rrc-sdk-expanded/verify_seal.py tools/rrc-sdk-expanded/record.py \
+ tools/rrc-sdk-expanded/README.md tools/rrc-sdk-expanded/verification.json \
+ tools/rrc-sdk-expanded/review.md tools/rrc-sdk-expanded-consumer/prepare.py \
+ tools/rrc-sdk-expanded-consumer/isolate.py tools/rrc-sdk-expanded-consumer/README.md \
+ tools/rrc-sdk-expanded-consumer/example/CMakeLists.txt \
+ tools/rrc-sdk-expanded-consumer/example/mib.cpp \
+ docs/rrc-cpp-sdk-expanded-p17-closeout.md
+
+EXTRA_DIST += tools/rrc-sdk-expanded/runtime-acceptance/evidence-sha256.json \
+ tools/rrc-sdk-expanded/runtime-acceptance/example_build.log \
+ tools/rrc-sdk-expanded/runtime-acceptance/example_configure.log \
+ tools/rrc-sdk-expanded/runtime-acceptance/example_test.log \
+ tools/rrc-sdk-expanded/runtime-acceptance/mismatched_header_archive.log \
+ tools/rrc-sdk-expanded/runtime-acceptance/original-path-restoration.json \
+ tools/rrc-sdk-expanded/runtime-acceptance/resume-runtime.py \
+ tools/rrc-sdk-expanded/runtime-acceptance/root000.log \
+ tools/rrc-sdk-expanded/runtime-acceptance/root001.log \
+ tools/rrc-sdk-expanded/runtime-acceptance/root002.log \
+ tools/rrc-sdk-expanded/runtime-acceptance/root003.log \
+ tools/rrc-sdk-expanded/runtime-acceptance/root004.log \
+ tools/rrc-sdk-expanded/runtime-acceptance/root005.log \
+ tools/rrc-sdk-expanded/runtime-acceptance/root006.log \
+ tools/rrc-sdk-expanded/runtime-acceptance/root007.log \
+ tools/rrc-sdk-expanded/runtime-acceptance/root008.log \
+ tools/rrc-sdk-expanded/runtime-acceptance/root009.log \
+ tools/rrc-sdk-expanded/runtime-acceptance/root010.log \
+ tools/rrc-sdk-expanded/runtime-acceptance/root011.log \
+ tools/rrc-sdk-expanded/runtime-acceptance/root012.log \
+ tools/rrc-sdk-expanded/runtime-acceptance/root013.log \
+ tools/rrc-sdk-expanded/runtime-acceptance/root014.log \
+ tools/rrc-sdk-expanded/runtime-acceptance/root015.log \
+ tools/rrc-sdk-expanded/runtime-acceptance/root016.log \
+ tools/rrc-sdk-expanded/runtime-acceptance/root017.log \
+ tools/rrc-sdk-expanded/runtime-acceptance/root018.log \
+ tools/rrc-sdk-expanded/runtime-acceptance/root019.log \
+ tools/rrc-sdk-expanded/runtime-acceptance/root020.log \
+ tools/rrc-sdk-expanded/runtime-acceptance/root021.log \
+ tools/rrc-sdk-expanded/runtime-acceptance/root022.log \
+ tools/rrc-sdk-expanded/runtime-acceptance/root023.log \
+ tools/rrc-sdk-expanded/runtime-acceptance/root024.log \
+ tools/rrc-sdk-expanded/runtime-acceptance/root025.log \
+ tools/rrc-sdk-expanded/runtime-acceptance/root026.log \
+ tools/rrc-sdk-expanded/runtime-acceptance/root027.log \
+ tools/rrc-sdk-expanded/runtime-acceptance/root028.log \
+ tools/rrc-sdk-expanded/runtime-acceptance/root029.log \
+ tools/rrc-sdk-expanded/runtime-acceptance/root030.log \
+ tools/rrc-sdk-expanded/runtime-acceptance/root031.log \
+ tools/rrc-sdk-expanded/runtime-acceptance/root032.log \
+ tools/rrc-sdk-expanded/runtime-acceptance/root033.log \
+ tools/rrc-sdk-expanded/runtime-acceptance/root034.log \
+ tools/rrc-sdk-expanded/runtime-acceptance/root035.log \
+ tools/rrc-sdk-expanded/runtime-acceptance/root036.log \
+ tools/rrc-sdk-expanded/runtime-acceptance/root037.log \
+ tools/rrc-sdk-expanded/runtime-acceptance/root038.log \
+ tools/rrc-sdk-expanded/runtime-acceptance/root039.log \
+ tools/rrc-sdk-expanded/runtime-acceptance/root040.log \
+ tools/rrc-sdk-expanded/runtime-acceptance/root041.log \
+ tools/rrc-sdk-expanded/runtime-acceptance/root042.log \
+ tools/rrc-sdk-expanded/runtime-acceptance/root043.log \
+ tools/rrc-sdk-expanded/runtime-acceptance/root044.log \
+ tools/rrc-sdk-expanded/runtime-acceptance/root045.log \
+ tools/rrc-sdk-expanded/runtime-acceptance/root046.log \
+ tools/rrc-sdk-expanded/runtime-acceptance/root047.log \
+ tools/rrc-sdk-expanded/runtime-acceptance/root048.log \
+ tools/rrc-sdk-expanded/runtime-acceptance/root049.log \
+ tools/rrc-sdk-expanded/runtime-acceptance/root050.log \
+ tools/rrc-sdk-expanded/runtime-acceptance/root051.log \
+ tools/rrc-sdk-expanded/runtime-acceptance/root052.log \
+ tools/rrc-sdk-expanded/runtime-acceptance/root053.log \
+ tools/rrc-sdk-expanded/runtime-acceptance/root054.log \
+ tools/rrc-sdk-expanded/runtime-acceptance/root055.log \
+ tools/rrc-sdk-expanded/runtime-acceptance/root056.log \
+ tools/rrc-sdk-expanded/runtime-acceptance/root057.log \
+ tools/rrc-sdk-expanded/runtime-acceptance/root058.log \
+ tools/rrc-sdk-expanded/runtime-acceptance/root059.log \
+ tools/rrc-sdk-expanded/runtime-acceptance/root060.log \
+ tools/rrc-sdk-expanded/runtime-acceptance/root061.log \
+ tools/rrc-sdk-expanded/runtime-acceptance/root062.log \
+ tools/rrc-sdk-expanded/runtime-acceptance/root063.log \
+ tools/rrc-sdk-expanded/runtime-acceptance/root064.log \
+ tools/rrc-sdk-expanded/runtime-acceptance/root065.log \
+ tools/rrc-sdk-expanded/runtime-acceptance/root066.log \
+ tools/rrc-sdk-expanded/runtime-acceptance/root067.log \
+ tools/rrc-sdk-expanded/runtime-acceptance/root068.log \
+ tools/rrc-sdk-expanded/runtime-acceptance/root069.log \
+ tools/rrc-sdk-expanded/runtime-acceptance/root070.log \
+ tools/rrc-sdk-expanded/runtime-acceptance/root071.log \
+ tools/rrc-sdk-expanded/runtime-acceptance/root072.log \
+ tools/rrc-sdk-expanded/runtime-acceptance/root073.log \
+ tools/rrc-sdk-expanded/runtime-acceptance/root074.log \
+ tools/rrc-sdk-expanded/runtime-acceptance/root075.log \
+ tools/rrc-sdk-expanded/runtime-acceptance/root076.log \
+ tools/rrc-sdk-expanded/runtime-acceptance/root077.log \
+ tools/rrc-sdk-expanded/runtime-acceptance/root078.log \
+ tools/rrc-sdk-expanded/runtime-acceptance/root079.log \
+ tools/rrc-sdk-expanded/runtime-acceptance/root080.log \
+ tools/rrc-sdk-expanded/runtime-acceptance/root081.log \
+ tools/rrc-sdk-expanded/runtime-acceptance/root082.log \
+ tools/rrc-sdk-expanded/runtime-acceptance/root083.log \
+ tools/rrc-sdk-expanded/runtime-acceptance/root084.log \
+ tools/rrc-sdk-expanded/runtime-acceptance/verification.json \
+ tools/rrc-sdk-expanded/runtime-acceptance/wrong_fingerprint.log

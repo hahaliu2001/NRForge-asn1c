@@ -1,0 +1,3 @@
+[ 50%] Building CXX object CMakeFiles/rrc_mib.dir/mib.cpp.o
+[100%] Linking CXX executable rrc_mib
+[100%] Built target rrc_mib

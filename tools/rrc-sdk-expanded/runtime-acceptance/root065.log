@@ -1,0 +1,4 @@
+CASE 0 00000000 32
+NEG 36
+CASE 1 ffffffff 32
+NEG 36
