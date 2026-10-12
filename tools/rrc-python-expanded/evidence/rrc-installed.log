@@ -1,0 +1,21 @@
+RRC_FOUR_PROTOCOL_IMPORT_ORDERS 24
+RRC_REAL_CASES 248 ROOTS 85 COMPLETIONS 3
+RRC_DEFAULT_OMISSIONS 19
+RRC_MALFORMED_QUOTA_CHECKS 5510
+test_all_four_protocol_import_orders (test_sdk.SDKTests.test_all_four_protocol_import_orders) ... ok
+test_all_independent_real_cases_and_completions (test_sdk.SDKTests.test_all_independent_real_cases_and_completions) ... ok
+test_concurrent_owned_calls (test_sdk.SDKTests.test_concurrent_owned_calls) ... ok
+test_default_omission_materializes_effective_values (test_sdk.SDKTests.test_default_omission_materializes_effective_values) ... ok
+test_identity_catalog_and_schema (test_sdk.SDKTests.test_identity_catalog_and_schema) ... ok
+test_independent_conversion_and_codec_limits (test_sdk.SDKTests.test_independent_conversion_and_codec_limits) ... ok
+test_native_optional_false (test_sdk.SDKTests.test_native_optional_false) ... ok
+test_native_unknown_choice_and_enum_semantics (test_sdk.SDKTests.test_native_unknown_choice_and_enum_semantics) ... ok
+test_owned_lifetime_and_independent_results (test_sdk.SDKTests.test_owned_lifetime_and_independent_results) ... ok
+test_shapes_storage_overflow_and_bool_rejection (test_sdk.SDKTests.test_shapes_storage_overflow_and_bool_rejection) ... ok
+test_truncation_padding_trailing_and_codec_quotas (test_sdk.SDKTests.test_truncation_padding_trailing_and_codec_quotas) ... ok
+test_unknown_enumeration_extension (test_sdk.SDKTests.test_unknown_enumeration_extension) ... ok
+
+----------------------------------------------------------------------
+Ran 12 tests in 1.965s
+
+OK

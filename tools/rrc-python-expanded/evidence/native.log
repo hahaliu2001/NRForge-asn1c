@@ -1,0 +1,3 @@
+CHOICE._from_per: BCCH-DL-SCH-Message.message.c1.systemInformation.criticalExtensions.systemInformation.sib-TypeAndInfo._item_, unknown extension index 1000
+ENUM._from_per: gnss-id-r16, unknown extension index 1000
+PASS 248 independently projected real cases, 85 roots

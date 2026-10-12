@@ -1,0 +1,8 @@
+Processing /workspace/scratch/31a28362a951/e1-python-delivery/dist/nrforge_e1ap-0.1.0-cp312-cp312-linux_x86_64.whl
+Processing /workspace/scratch/31a28362a951/e1-regression-wheels/nrforge_f1ap-0.1.0-cp312-cp312-linux_x86_64.whl
+Processing /workspace/scratch/31a28362a951/e1-regression-wheels/NRForge_prj/nrforge_ngap-0.1.0-cp312-cp312-linux_x86_64.whl
+Installing collected packages: nrforge-ngap, nrforge-f1ap, nrforge-e1ap
+Successfully installed nrforge-e1ap-0.1.0 nrforge-f1ap-0.1.0 nrforge-ngap-0.1.0
+
+[notice] A new release of pip is available: 25.0.1 -> 26.2.1
+[notice] To update, run: python -m pip install --upgrade pip

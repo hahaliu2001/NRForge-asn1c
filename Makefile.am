@@ -277,3 +277,41 @@ EXTRA_DIST += tools/rrc-sdk-expanded/runtime-acceptance/evidence-sha256.json \
  tools/rrc-sdk-expanded/runtime-acceptance/root084.log \
  tools/rrc-sdk-expanded/runtime-acceptance/verification.json \
  tools/rrc-sdk-expanded/runtime-acceptance/wrong_fingerprint.log
+
+EXTRA_DIST += docs/rrc-python-expanded-p18-closeout.md \
+ python/rrc-expanded/CMakeLists.txt \
+ python/rrc-expanded/LICENSE \
+ python/rrc-expanded/PYBIND11-LICENSE \
+ python/rrc-expanded/README.md \
+ python/rrc-expanded/bindings/conversion.hpp \
+ python/rrc-expanded/bindings/generate_bindings.py \
+ python/rrc-expanded/bindings/module.cpp \
+ python/rrc-expanded/pyproject.toml \
+ python/rrc-expanded/src/nrforge_rrc/__init__.py \
+ python/rrc-expanded/tests/golden.json \
+ python/rrc-expanded/tests/test_generator.py \
+ python/rrc-expanded/tests/test_sdk.py \
+ tools/rrc-python-expanded/README.md \
+ tools/rrc-python-expanded/contract.md \
+ tools/rrc-python-expanded/evidence/aper-install.log \
+ tools/rrc-python-expanded/evidence/e1ap-installed.log \
+ tools/rrc-python-expanded/evidence/f1ap-installed.log \
+ tools/rrc-python-expanded/evidence/generator.log \
+ tools/rrc-python-expanded/evidence/isolated.json \
+ tools/rrc-python-expanded/evidence/isolated.log \
+ tools/rrc-python-expanded/evidence/isolated.restoration.json \
+ tools/rrc-python-expanded/evidence/native.log \
+ tools/rrc-python-expanded/evidence/ngap-installed.log \
+ tools/rrc-python-expanded/evidence/rrc-install.log \
+ tools/rrc-python-expanded/evidence/rrc-installed.log \
+ tools/rrc-python-expanded/evidence/sdist.log \
+ tools/rrc-python-expanded/evidence/wheel-final.log \
+ tools/rrc-python-expanded/evidence/wheel-initial.log \
+ tools/rrc-python-expanded/prepare.py \
+ tools/rrc-python-expanded/prepare_vectors.py \
+ tools/rrc-python-expanded/record.py \
+ tools/rrc-python-expanded/run_installed.py \
+ tools/rrc-python-expanded/evidence/elf-exports.log \
+ tools/rrc-python-expanded/evidence/elf-dynamic.log \
+ tools/rrc-python-expanded/verification.json \
+ tools/rrc-python-expanded/review.md

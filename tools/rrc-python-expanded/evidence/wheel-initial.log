@@ -1,0 +1,119 @@
+* Getting build dependencies for wheel...
+* Building wheel...
+*** scikit-build-core 0.11.6 using CMake 3.28.3 (wheel)
+*** Configuring CMake...
+loading initial cache file build/cp312-cp312-linux_x86_64/CMakeInit.txt
+-- The CXX compiler identification is GNU 13.3.0
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /usr/bin/g++ - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Found Python: /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python (found version "3.12.14") found components: Interpreter Development.Module 
+-- Performing Test HAS_FLTO_AUTO
+-- Performing Test HAS_FLTO_AUTO - Success
+-- Found pybind11: /root/.local/lib/python3.12/site-packages/pybind11/include (found version "3.0.1")
+PASS 85 complete ordinary RRC bindings
+-- Configuring done (2.8s)
+-- Generating done (0.0s)
+-- Build files have been written to: /tmp/nrforge-p18-sdist/nrforge_rrc-0.2.0/build/cp312-cp312-linux_x86_64
+*** Building project with Ninja...
+[1/89] cd /tmp/nrforge-p18-sdist/nrforge_rrc-0.2.0/build/cp312-cp312-linux_x86_64 && /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python /tmp/nrforge-p18-sdist/nrforge_rrc-0.2.0/bindings/generate_bindings.py --sdk-prefix /tmp/nrforge-p17/rrc-install --expected-fingerprint 19ccdc7c2ae789f3b503d930b90f27775ad30a4bb8c1b9c99a06eaba4b4e71ef --output /tmp/nrforge-p18-sdist/nrforge_rrc-0.2.0/build/cp312-cp312-linux_x86_64/generated --verify-only
+PASS installed RRC public seal
+[2/89] Building CXX object CMakeFiles/_native.dir/bindings/module.cpp.o
+[3/89] Building CXX object CMakeFiles/_native.dir/generated/root000.cpp.o
+[4/89] Building CXX object CMakeFiles/_native.dir/generated/root001.cpp.o
+[5/89] Building CXX object CMakeFiles/_native.dir/generated/root002.cpp.o
+[6/89] Building CXX object CMakeFiles/_native.dir/generated/root003.cpp.o
+[7/89] Building CXX object CMakeFiles/_native.dir/generated/root004.cpp.o
+[8/89] Building CXX object CMakeFiles/_native.dir/generated/root005.cpp.o
+[9/89] Building CXX object CMakeFiles/_native.dir/generated/root006.cpp.o
+[10/89] Building CXX object CMakeFiles/_native.dir/generated/root007.cpp.o
+[11/89] Building CXX object CMakeFiles/_native.dir/generated/root008.cpp.o
+[12/89] Building CXX object CMakeFiles/_native.dir/generated/root009.cpp.o
+[13/89] Building CXX object CMakeFiles/_native.dir/generated/root010.cpp.o
+[14/89] Building CXX object CMakeFiles/_native.dir/generated/root011.cpp.o
+[15/89] Building CXX object CMakeFiles/_native.dir/generated/root012.cpp.o
+[16/89] Building CXX object CMakeFiles/_native.dir/generated/root013.cpp.o
+[17/89] Building CXX object CMakeFiles/_native.dir/generated/root014.cpp.o
+[18/89] Building CXX object CMakeFiles/_native.dir/generated/root015.cpp.o
+[19/89] Building CXX object CMakeFiles/_native.dir/generated/root016.cpp.o
+[20/89] Building CXX object CMakeFiles/_native.dir/generated/root017.cpp.o
+[21/89] Building CXX object CMakeFiles/_native.dir/generated/root018.cpp.o
+[22/89] Building CXX object CMakeFiles/_native.dir/generated/root019.cpp.o
+[23/89] Building CXX object CMakeFiles/_native.dir/generated/root020.cpp.o
+[24/89] Building CXX object CMakeFiles/_native.dir/generated/root021.cpp.o
+[25/89] Building CXX object CMakeFiles/_native.dir/generated/root022.cpp.o
+[26/89] Building CXX object CMakeFiles/_native.dir/generated/root023.cpp.o
+[27/89] Building CXX object CMakeFiles/_native.dir/generated/root024.cpp.o
+[28/89] Building CXX object CMakeFiles/_native.dir/generated/root025.cpp.o
+[29/89] Building CXX object CMakeFiles/_native.dir/generated/root026.cpp.o
+[30/89] Building CXX object CMakeFiles/_native.dir/generated/root027.cpp.o
+[31/89] Building CXX object CMakeFiles/_native.dir/generated/root028.cpp.o
+[32/89] Building CXX object CMakeFiles/_native.dir/generated/root029.cpp.o
+[33/89] Building CXX object CMakeFiles/_native.dir/generated/root030.cpp.o
+[34/89] Building CXX object CMakeFiles/_native.dir/generated/root031.cpp.o
+[35/89] Building CXX object CMakeFiles/_native.dir/generated/root032.cpp.o
+[36/89] Building CXX object CMakeFiles/_native.dir/generated/root033.cpp.o
+[37/89] Building CXX object CMakeFiles/_native.dir/generated/root034.cpp.o
+[38/89] Building CXX object CMakeFiles/_native.dir/generated/root035.cpp.o
+[39/89] Building CXX object CMakeFiles/_native.dir/generated/root036.cpp.o
+[40/89] Building CXX object CMakeFiles/_native.dir/generated/root037.cpp.o
+[41/89] Building CXX object CMakeFiles/_native.dir/generated/root038.cpp.o
+[42/89] Building CXX object CMakeFiles/_native.dir/generated/root039.cpp.o
+[43/89] Building CXX object CMakeFiles/_native.dir/generated/root040.cpp.o
+[44/89] Building CXX object CMakeFiles/_native.dir/generated/root041.cpp.o
+[45/89] Building CXX object CMakeFiles/_native.dir/generated/root042.cpp.o
+[46/89] Building CXX object CMakeFiles/_native.dir/generated/root043.cpp.o
+[47/89] Building CXX object CMakeFiles/_native.dir/generated/root044.cpp.o
+[48/89] Building CXX object CMakeFiles/_native.dir/generated/root045.cpp.o
+[49/89] Building CXX object CMakeFiles/_native.dir/generated/root046.cpp.o
+[50/89] Building CXX object CMakeFiles/_native.dir/generated/root047.cpp.o
+[51/89] Building CXX object CMakeFiles/_native.dir/generated/root048.cpp.o
+[52/89] Building CXX object CMakeFiles/_native.dir/generated/root049.cpp.o
+[53/89] Building CXX object CMakeFiles/_native.dir/generated/root050.cpp.o
+[54/89] Building CXX object CMakeFiles/_native.dir/generated/root051.cpp.o
+[55/89] Building CXX object CMakeFiles/_native.dir/generated/root052.cpp.o
+[56/89] Building CXX object CMakeFiles/_native.dir/generated/root053.cpp.o
+[57/89] Building CXX object CMakeFiles/_native.dir/generated/root054.cpp.o
+[58/89] Building CXX object CMakeFiles/_native.dir/generated/root055.cpp.o
+[59/89] Building CXX object CMakeFiles/_native.dir/generated/root056.cpp.o
+[60/89] Building CXX object CMakeFiles/_native.dir/generated/root057.cpp.o
+[61/89] Building CXX object CMakeFiles/_native.dir/generated/root058.cpp.o
+[62/89] Building CXX object CMakeFiles/_native.dir/generated/root059.cpp.o
+[63/89] Building CXX object CMakeFiles/_native.dir/generated/root060.cpp.o
+[64/89] Building CXX object CMakeFiles/_native.dir/generated/root061.cpp.o
+[65/89] Building CXX object CMakeFiles/_native.dir/generated/root062.cpp.o
+[66/89] Building CXX object CMakeFiles/_native.dir/generated/root063.cpp.o
+[67/89] Building CXX object CMakeFiles/_native.dir/generated/root064.cpp.o
+[68/89] Building CXX object CMakeFiles/_native.dir/generated/root065.cpp.o
+[69/89] Building CXX object CMakeFiles/_native.dir/generated/root066.cpp.o
+[70/89] Building CXX object CMakeFiles/_native.dir/generated/root067.cpp.o
+[71/89] Building CXX object CMakeFiles/_native.dir/generated/root068.cpp.o
+[72/89] Building CXX object CMakeFiles/_native.dir/generated/root069.cpp.o
+[73/89] Building CXX object CMakeFiles/_native.dir/generated/root070.cpp.o
+[74/89] Building CXX object CMakeFiles/_native.dir/generated/root071.cpp.o
+[75/89] Building CXX object CMakeFiles/_native.dir/generated/root072.cpp.o
+[76/89] Building CXX object CMakeFiles/_native.dir/generated/root073.cpp.o
+[77/89] Building CXX object CMakeFiles/_native.dir/generated/root074.cpp.o
+[78/89] Building CXX object CMakeFiles/_native.dir/generated/root075.cpp.o
+[79/89] Building CXX object CMakeFiles/_native.dir/generated/root076.cpp.o
+[80/89] Building CXX object CMakeFiles/_native.dir/generated/root077.cpp.o
+[81/89] Building CXX object CMakeFiles/_native.dir/generated/root078.cpp.o
+[82/89] Building CXX object CMakeFiles/_native.dir/generated/root079.cpp.o
+[83/89] Building CXX object CMakeFiles/_native.dir/generated/root080.cpp.o
+[84/89] Building CXX object CMakeFiles/_native.dir/generated/root081.cpp.o
+[85/89] Building CXX object CMakeFiles/_native.dir/generated/root082.cpp.o
+[86/89] Building CXX object CMakeFiles/_native.dir/generated/root083.cpp.o
+[87/89] Building CXX object CMakeFiles/_native.dir/generated/root084.cpp.o
+[88/89] Building CXX object CMakeFiles/_native.dir/generated/registry.cpp.o
+[89/89] Linking CXX shared module _native.cpython-312-x86_64-linux-gnu.so
+PASS complete RRC extension import
+*** Installing project into wheel...
+-- Install configuration: ""
+PASS installed RRC public seal
+-- Installing: /tmp/tmp4q84_hqb/wheel/platlib/nrforge_rrc/_native.cpython-312-x86_64-linux-gnu.so
+-- Installing: /tmp/tmp4q84_hqb/wheel/platlib/nrforge_rrc/conversion-schema.json
+*** Making wheel...
+*** Created nrforge_rrc-0.2.0-cp312-cp312-linux_x86_64.whl
+Successfully built nrforge_rrc-0.2.0-cp312-cp312-linux_x86_64.whl

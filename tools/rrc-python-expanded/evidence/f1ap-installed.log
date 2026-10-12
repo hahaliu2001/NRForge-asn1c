@@ -1,0 +1,14 @@
+test_all_historical_finite_vectors (test_sdk.SDKTests.test_all_historical_finite_vectors) ... ok
+test_coinstalled_protocols_both_import_orders (test_sdk.SDKTests.test_coinstalled_protocols_both_import_orders) ... ok
+test_concurrent_calls (test_sdk.SDKTests.test_concurrent_calls) ... ok
+test_errors_and_limits (test_sdk.SDKTests.test_errors_and_limits) ... ok
+test_exact_shapes_and_ranges (test_sdk.SDKTests.test_exact_shapes_and_ranges) ... ok
+test_fourth_root_and_opaque (test_sdk.SDKTests.test_fourth_root_and_opaque) ... ok
+test_identity_registry_schema (test_sdk.SDKTests.test_identity_registry_schema) ... ok
+test_independent_setup_fields_and_construction (test_sdk.SDKTests.test_independent_setup_fields_and_construction) ... ok
+test_unknown_receive_only_and_optional (test_sdk.SDKTests.test_unknown_receive_only_and_optional) ... ok
+
+----------------------------------------------------------------------
+Ran 9 tests in 6.547s
+
+OK

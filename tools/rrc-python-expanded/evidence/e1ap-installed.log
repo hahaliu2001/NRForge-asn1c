@@ -1,0 +1,15 @@
+test_concurrency (test_sdk.SDKTests.test_concurrency) ... ok
+test_errors_budgets (test_sdk.SDKTests.test_errors_budgets) ... ok
+test_historical_vectors_and_uint64 (test_sdk.SDKTests.test_historical_vectors_and_uint64) ... ok
+test_identity_registry_schema (test_sdk.SDKTests.test_identity_registry_schema) ... ok
+test_shapes_and_ranges (test_sdk.SDKTests.test_shapes_and_ranges) ... ok
+test_six_setup_and_independent_construction (test_sdk.SDKTests.test_six_setup_and_independent_construction) ... ok
+test_three_protocol_import_orders (test_sdk.SDKTests.test_three_protocol_import_orders) ... ok
+test_uint64_field_conversion_boundaries (test_sdk.SDKTests.test_uint64_field_conversion_boundaries) ... ok
+test_unknown_ie_and_optional (test_sdk.SDKTests.test_unknown_ie_and_optional) ... ok
+test_unknown_outer_and_opaque (test_sdk.SDKTests.test_unknown_outer_and_opaque) ... ok
+
+----------------------------------------------------------------------
+Ran 10 tests in 1.613s
+
+OK

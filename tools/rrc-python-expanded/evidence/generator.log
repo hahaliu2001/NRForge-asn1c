@@ -1,0 +1,10 @@
+test_actual_sdk_header_missing_extra_and_version_drift (test_generator.GeneratorTests.test_actual_sdk_header_missing_extra_and_version_drift) ... ok
+test_closed_public_model_shapes (test_generator.GeneratorTests.test_closed_public_model_shapes) ... ok
+test_generated_cpp_schema_missing_extra_and_producer_drift (test_generator.GeneratorTests.test_generated_cpp_schema_missing_extra_and_producer_drift) ... ok
+test_metadata_duplicate_manifest_and_fingerprint_drift (test_generator.GeneratorTests.test_metadata_duplicate_manifest_and_fingerprint_drift) ... ok
+test_pristine_and_repeated_generation (test_generator.GeneratorTests.test_pristine_and_repeated_generation) ... ok
+
+----------------------------------------------------------------------
+Ran 5 tests in 19.024s
+
+OK

@@ -1,0 +1,37 @@
+{
+  "restored": true,
+  "paths": [
+    {
+      "original": "/tmp/nrforge-p18-stage",
+      "hidden": "/tmp/nrforge-p18-stage.rrc-python-hidden"
+    },
+    {
+      "original": "/tmp/nrforge-p18-sdist",
+      "hidden": "/tmp/nrforge-p18-sdist.rrc-python-hidden"
+    },
+    {
+      "original": "/tmp/nrforge-p18-native",
+      "hidden": "/tmp/nrforge-p18-native.rrc-python-hidden"
+    },
+    {
+      "original": "/tmp/nrforge-p18-probe",
+      "hidden": "/tmp/nrforge-p18-probe.rrc-python-hidden"
+    },
+    {
+      "original": "/tmp/nrforge-p17/rrc-install",
+      "hidden": "/tmp/nrforge-p17/rrc-install.rrc-python-hidden"
+    },
+    {
+      "original": "/tmp/nrforge-p17/rrc-sdk",
+      "hidden": "/tmp/nrforge-p17/rrc-sdk.rrc-python-hidden"
+    },
+    {
+      "original": "/workspace/scratch/31a28362a951/NRForge-asn1c-p9",
+      "hidden": "/workspace/scratch/31a28362a951/NRForge-asn1c-p9.rrc-python-hidden"
+    },
+    {
+      "original": "/workspace/scratch/31a28362a951/schema",
+      "hidden": "/workspace/scratch/31a28362a951/schema.rrc-python-hidden"
+    }
+  ]
+}

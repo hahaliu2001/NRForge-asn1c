@@ -1,0 +1,20 @@
+[build-system]
+requires = ["scikit-build-core==0.11.6", "pybind11==3.0.1"]
+build-backend = "scikit_build_core.build"
+
+[project]
+name = "nrforge-rrc"
+version = "0.2.0"
+description = "Finite typed RRC UPER Python SDK backed by installed NRForge C++"
+requires-python = ">=3.10"
+license = {file = "LICENSE"}
+readme = "README.md"
+
+[tool.scikit-build]
+cmake.build-type = ""
+wheel.packages = ["src/nrforge_rrc"]
+build-dir = "build/{wheel_tag}"
+build.tool-args = ["-j1"]
+install.strip = true
+wheel.license-files = ["LICENSE", "PYBIND11-LICENSE"]
+sdist.include = ["bindings/**", "src/**", "tests/**", "CMakeLists.txt", "README.md", "LICENSE", "PYBIND11-LICENSE", "staging-receipt.json"]

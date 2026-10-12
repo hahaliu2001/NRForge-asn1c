@@ -1,0 +1,17 @@
+test_all_131_native_vectors (test_sdk.SDKTests.test_all_131_native_vectors) ... ok
+test_concurrent_calls_have_independent_contexts (test_sdk.SDKTests.test_concurrent_calls_have_independent_contexts) ... ok
+test_conversion_budgets (test_sdk.SDKTests.test_conversion_budgets) ... ok
+test_errors_and_budgets (test_sdk.SDKTests.test_errors_and_budgets) ... ok
+test_example_constructs_request (test_sdk.SDKTests.test_example_constructs_request) ... ok
+test_identity_and_registry (test_sdk.SDKTests.test_identity_and_registry) ... ok
+test_independent_ng_setup_fields (test_sdk.SDKTests.test_independent_ng_setup_fields) ... ok
+test_rejects_custom_container_dispatch_and_large_labels (test_sdk.SDKTests.test_rejects_custom_container_dispatch_and_large_labels) ... ok
+test_sequence_extension_and_optional_retention (test_sdk.SDKTests.test_sequence_extension_and_optional_retention) ... ok
+test_strict_python_shapes (test_sdk.SDKTests.test_strict_python_shapes) ... ok
+test_unknown_ie_and_enum_retained (test_sdk.SDKTests.test_unknown_ie_and_enum_retained) ... ok
+test_unknown_outer_payloads_retained (test_sdk.SDKTests.test_unknown_outer_payloads_retained) ... ok
+
+----------------------------------------------------------------------
+Ran 12 tests in 0.117s
+
+OK
