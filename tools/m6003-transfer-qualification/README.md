@@ -1,8 +1,9 @@
 # M6.003 standalone Transfer APER qualification
 
 The oracle, receive policy and error mapping were frozen by Owner on
-2026-10-17 America/Los_Angeles. The tool is implemented, but its actual native
-build and qualification run remain **NOT_RUN** until executed in terminal.
+2026-10-17 America/Los_Angeles. The finite native C++ campaign at `460c790` passed in Owner terminal and was
+accepted by Owner on 2026-10-18 America/Los_Angeles; see RESULTS.md. The frozen
+contract's NOT_RUN is historical input state, not the current result.
 No accepted SDK/wheel, Python binding or AMF implementation is changed.
 
 ## Run on native Linux
@@ -56,9 +57,11 @@ same verified schema. The existing semantic bridge constructs C++ objects and
 asserts every oracle-defined field, optional presence, choice, list entry,
 criticality and unknown payload. It does not encode/decode PER. Each root has
 one strictly compiled standalone consumer linked directly with exported runtime
-source, not the old installed SDK. Oracle encode -> native semantic assertions
-and native encode -> oracle semantic assertions are separate operations;
-canonical byte equality is an additional check, not the only proof.
+source, not the old installed SDK. Oracle-produced bytes are decoded natively
+with field-by-field assertions. Separately, semantically constructed native
+objects must encode to the oracle's exact bytes. The later oracle decode uses
+those already-equal bytes and is a redundant consistency operation, not an
+additional independent interoperability proof.
 
 Coverage includes minimum values, independent tunnel/TEID variations, all D2
 ARP label combinations and rate edges, non-R1 optional/CHOICE values, reordered,
@@ -84,18 +87,19 @@ payload stops the run. Other roots' unknown SEQUENCE suffixes are not claimed
 as separately qualified by that one example.
 
 The receive ledger is in RECEIVE_LEDGER.md and policy.py; the run exports a
-reachable schema-field/registry inventory. Policy is checked only after native
-semantic assertions passed for the same oracle value. This harness does not
-provide a production adapter or prove UE/run/session correlation.
+reachable schema-field/registry inventory. Python policy classification runs
+on oracle fixture values before native consumers are built. Native field
+assertions subsequently establish value equality, providing a transitive policy
+correspondence; policy does not execute on native objects. A production 5GC
+adapter must implement and test its own classification and correlation.
 
 ## Results and review boundary
 
 Inspect `summary.json`, `SUMMARY.txt`, `campaign/report.json`, `vectors.json`,
 `inputs.json`, `oracle-schema.json`, `receive-ledger.json`, per-root consumers,
 generated headers, command logs and mutation manifests. Values and hashes are
-actual outputs; no PASS is checked into this directory in advance. A PASS means
-this finite native campaign passed, pending independent review and Owner
-acceptance. It does not qualify Python binding, installed SDK relocation, outer
+actual outputs; no PASS is prefilled by the runner. RESULTS.md records the
+completed campaign, independent read-only review and scoped Owner acceptance. It does not qualify Python binding, installed SDK relocation, outer
 131-message regression, live RAN/SCTP, M6.003 completion or a new release.
 Retain failed evidence; do not commit binaries/venvs or bulk run directories.
 
