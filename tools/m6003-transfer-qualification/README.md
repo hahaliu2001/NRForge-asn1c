@@ -37,7 +37,7 @@ individual builds default to 15 minutes. Progress includes the active command.
 
 The bootstrap exports tracked HEAD (excluding prior verification binaries and
 an unrelated CodeQL workspace link), preserves safe internal source symlinks,
-records source inventory, exports and hashes the six schema modules, builds
+records source inventory and `source-links.json`, exports and hashes the six schema modules, builds
 common/parser/fix before typed to avoid the known build-order issue, and builds
 the unchanged root probe. A fresh venv installs only the approved hash-locked
 pycrate wheel. It never installs anything into the project venv.
@@ -98,3 +98,20 @@ this finite native campaign passed, pending independent review and Owner
 acceptance. It does not qualify Python binding, installed SDK relocation, outer
 131-message regression, live RAN/SCTP, M6.003 completion or a new release.
 Retain failed evidence; do not commit binaries/venvs or bulk run directories.
+
+## Source archive links
+
+The repository contains 242 historical tests/* file links to the absolute CI
+path `/home/runner/work/asn1c/asn1c/skeletons/<same-basename>`. Only in the
+scratch source snapshot, the exporter rebases this exact pattern to the same
+archived commit's `skeletons/<same-basename>` regular file. It records original
+and effective targets and the target byte hash in `source-links.json`. The
+checkout, schema, generator and runtime files are unchanged. Other external,
+escaping, missing or chained links remain rejected. This adaptation supplies
+no external files and does not qualify or run those historical test programs.
+
+Small exporter-only regressions (no build/oracle):
+
+```bash
+python3 tools/m6003-transfer-qualification/check_snapshot.py
+```

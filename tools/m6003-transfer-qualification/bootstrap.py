@@ -3,15 +3,13 @@
 import argparse
 from datetime import datetime, timezone
 import hashlib
-import io
 import json
-import os
 from pathlib import Path
 import subprocess
 import sys
-import tarfile
 
 from support import command, sha, write
+from snapshot import extract_source
 
 
 def git(repo, *args):
@@ -46,35 +44,9 @@ def main():
         # git archive contains only tracked files, not local caches/libraries.
         archive = git(repo, 'archive', '--format=tar', head, '--', '.', ':(exclude)verification',
                       ':(exclude)_codeql_detected_source_root')
-        source = out/'source'; source.mkdir()
-        with tarfile.open(fileobj=io.BytesIO(archive)) as tar:
-            members = tar.getmembers()
-            for member in members:
-                p = Path(member.name)
-                if p.is_absolute() or '..' in p.parts or not (member.isfile() or member.isdir() or member.issym()):
-                    raise RuntimeError('Unexpected non-regular source archive entry: '+member.name)
-                if member.issym():
-                    link = Path(os.path.normpath(str(p.parent/member.linkname)))
-                    if link.is_absolute() or '..' in link.parts:
-                        raise RuntimeError('Source symlink escapes snapshot: '+member.name)
-            # Explicit checks above also support Python 3.11 without filter=.
-            for member in members:
-                target = source/member.name
-                if member.issym():
-                    continue  # Create safe internal links after every regular file.
-                if member.isdir():
-                    target.mkdir(parents=True, exist_ok=True)
-                else:
-                    target.parent.mkdir(parents=True, exist_ok=True)
-                    target.write_bytes(tar.extractfile(member).read())
-                    target.chmod(member.mode & 0o777)
-            for member in members:
-                if member.issym():
-                    target = source/member.name
-                    target.parent.mkdir(parents=True, exist_ok=True)
-                    target.symlink_to(member.linkname)
-                    if not target.resolve().is_relative_to(source) or not target.is_file():
-                        raise RuntimeError('Invalid internal source symlink: '+member.name)
+        source = out/'source'
+        links = extract_source(archive, source)
+        write(out/'source-links.json', links)
         authority = json.loads((source/'tools/n11-envelope-qualification/source-manifest.json').read_text())
         schema = out/'asn1'; schema.mkdir()
         for item in authority['modules']:
