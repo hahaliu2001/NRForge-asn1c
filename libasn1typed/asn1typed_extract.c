@@ -3455,21 +3455,42 @@ physical_close_type(asn1p_t *tree, asn1typed_module_t *out, size_t index, char *
 malformed:
 	set_error(error, size, "unsupported physical message dependency or out of memory copying reference"); return -1;
 }
-/* M6.003 bounded scope: exactly these NGAP-IEs Transfer roots use the ordinary
- * SEQUENCE root path. Selection never admits a root by itself; each one must
- * still satisfy the shape checks below before and after the shared closure. */
+/* Frozen explicit CONTAINING roots. Container-based setup/modify requests
+ * retain the established single-ProtocolIE-Container path. All other roots
+ * must pass the ordinary shape and root-specific extension binding checks. */
 static int
 physical_transfer_root_selected(const char *module_name, const char *root_name) {
-	static const char *const roots[] = {
-		"PDUSessionResourceSetupResponseTransfer",
-		"PDUSessionResourceReleaseCommandTransfer",
-		"PDUSessionResourceReleaseResponseTransfer"
-	};
-	size_t i;
-	if(strcmp(module_name, "NGAP-IEs")) return 0;
-	for(i = 0; i < sizeof(roots) / sizeof(roots[0]); ++i)
-		if(!strcmp(root_name, roots[i])) return 1;
-	return 0;
+    static const char *const roots[] = {
+        "HandoverCommandTransfer",
+        "HandoverPreparationUnsuccessfulTransfer",
+        "HandoverRequestAcknowledgeTransfer",
+        "HandoverRequiredTransfer",
+        "HandoverResourceAllocationUnsuccessfulTransfer",
+        "PDUSessionResourceModifyConfirmTransfer",
+        "PDUSessionResourceModifyIndicationTransfer",
+        "PDUSessionResourceModifyIndicationUnsuccessfulTransfer",
+        "PDUSessionResourceModifyResponseTransfer",
+        "PDUSessionResourceModifyUnsuccessfulTransfer",
+        "PDUSessionResourceNotifyReleasedTransfer",
+        "PDUSessionResourceNotifyTransfer",
+        "PDUSessionResourceReleaseCommandTransfer",
+        "PDUSessionResourceReleaseResponseTransfer",
+        "PDUSessionResourceSetupResponseTransfer",
+        "PDUSessionResourceSetupUnsuccessfulTransfer",
+        "PathSwitchRequestAcknowledgeTransfer",
+        "PathSwitchRequestSetupFailedTransfer",
+        "PathSwitchRequestTransfer",
+        "PathSwitchRequestUnsuccessfulTransfer",
+        "SecondaryRATDataUsageReportTransfer",
+        "UEContextResumeRequestTransfer",
+        "UEContextResumeResponseTransfer",
+        "UEContextSuspendRequestTransfer"
+    };
+    size_t i;
+    if(strcmp(module_name, "NGAP-IEs")) return 0;
+    for(i = 0; i < sizeof(roots) / sizeof(roots[0]); ++i)
+        if(!strcmp(root_name, roots[i])) return 1;
+    return 0;
 }
 /* Root contract before closure: a direct extensible root-only SEQUENCE whose
  * components are fixed named references in source order, MANDATORY/OPTIONAL,

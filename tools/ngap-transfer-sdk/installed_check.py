@@ -23,11 +23,13 @@ def main():
     expected_identity = {k: identity[k] for k in ('version', 'fingerprint', 'schema_sha256', 'runtime_sha256', 'source_revision')}
     assert sdk.identity() == expected_identity
     assert len(sdk.messages()) == 131
-    assert len(sdk.transfers()) == 4
+    assert set(sdk.transfers()) == {row['message'] for row in identity['transfer_roots'].values()}
+    vectors = restore(json.loads(vectors_path.read_text()))
+    assert {row['root'] for row in vectors} == set(sdk.transfers())
     assert not any(name.startswith('pycrate') for name in sys.modules)
     assert Path(sdk.__file__).resolve().is_relative_to(Path(sys.prefix).resolve())
     checks = 0
-    for row in restore(json.loads(vectors_path.read_text())):
+    for row in vectors:
         root, wire, expected = row['root'], row['wire'], row['body']
         if len(wire) > 4096:
             try:
@@ -72,7 +74,7 @@ def main():
         assert error.code == 'constraint_violation'
     else:
         raise AssertionError('Unknown SEQUENCE addition was re-emitted')
-    for row in restore(json.loads(vectors_path.read_text())):
+    for row in vectors:
         if len(row['wire']) > 4096:
             continue
         try:
@@ -93,7 +95,7 @@ def main():
                   scope='finite installed Transfer binding vectors; no production receive adapter',
                   pycrate_loaded=False)
     result_path.write_text(json.dumps(report, indent=2)+'\n')
-    print('PASS installed four-root Python vectors:', checks)
+    print('PASS installed selected-root Python vectors:', checks)
 
 
 if __name__ == '__main__':

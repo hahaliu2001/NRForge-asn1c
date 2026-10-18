@@ -1,6 +1,25 @@
 # C++ SDK coverage inventory and implementation plan
 
-Status: planning / awaiting consolidated independent review and Owner acceptance.
+Status: baseline inventory retained; implementation scope superseded by the
+2026-10-18 Owner expansion below. Independent review and acceptance remain pending.
+
+## Current Owner scope and maintenance decision
+
+The Owner requests one substantive batch covering all 26 listed NGAP Transfer
+roots, the six listed RRC roots and F1AP outer choice-extension, with an E1AP
+same-class audit and a single ASN1-owned SDK/wheel delivery. No demand-by-demand
+root admission or parallel old/new maintained SDK line is planned. Current
+candidate code/terminal entry: [tools/unified-sdk/README.md](../tools/unified-sdk/README.md).
+
+Old SDK/r1 release assets are authorized for deletion after the replacement
+qualifies and both consumers migrate. Historical Git/qualification evidence is
+retained. Previous preservation wording below describes the baseline plan and
+is superseded by this decision. No build, release or asset deletion was performed
+in this source implementation batch. The inventory below is as of a759580b;
+new source coverage is not a claim of successful native generation or wire tests.
+
+The historical staged implementation table below is superseded by the unified
+batch; it remains a record of why the missing roots were identified.
 Read-only source audit: 2026-10-18. No build, generation, tests or publication performed.
 
 ## 1. Verified remote baseline and ownership

@@ -60,11 +60,25 @@ const aper::Result<Registry>& ngap_registry_state() noexcept { static const auto
 int main() {
     check<0>(); check<1>(); check<2>();
     auto registry=::registry(); REQUIRE(registry); REQUIRE(registry.value().message_count()==3);
-    for(auto data : {bytes({0xc0}),bytes({0xc0,255,0,0})}) {
-        auto result=registry.value().decode(data); REQUIRE(!result);
-        REQUIRE(result.error().code==nrforge::aper::ErrorCode::constraint_violation);
-        REQUIRE(result.error().bit_offset==2);
-    }
+    auto extension=registry.value().make_choice_extension({65535,Criticality::ignore,bytes({0x55})}); REQUIRE(extension);
+    auto extension_wire=registry.value().encode(extension.value()); REQUIRE(extension_wire);
+    REQUIRE(extension_wire.value().octets==bytes({0xc0,0xff,0xff,0x40,1,0x55}));
+    auto received_extension=registry.value().decode(extension_wire.value().octets); REQUIRE(received_extension);
+    REQUIRE(received_extension.value().kind()==PduKind::choice_extension && !received_extension.value().root_header());
+    REQUIRE(received_extension.value().choice_extension()->id==65535);
+    REQUIRE(received_extension.value().choice_extension()->payload==bytes({0x55}));
+    auto extension_copy=received_extension.value();
+    REQUIRE(registry.value().encode(extension_copy).value().octets==extension_wire.value().octets);
+    REQUIRE(!registry.value().make_choice_extension({65536,Criticality::ignore,{}}));
+    for(std::size_t n=0;n<extension_wire.value().octets.size();++n)
+        REQUIRE(!registry.value().decode(std::span(extension_wire.value().octets).first(n)));
+    auto extra_extension=extension_wire.value().octets; extra_extension.push_back(std::byte{0});
+    REQUIRE(!registry.value().decode(extra_extension));
+    REQUIRE(!registry.value().decode(bytes({0xc0,0,1,0xc0,1,0x55})));
+    aper::Limits extension_limits; extension_limits.max_retained_unknown_payload_octets=0;
+    REQUIRE(!registry.value().decode(extension_wire.value().octets,extension_limits));
+    extension_limits={}; extension_limits.max_output_octets=5;
+    REQUIRE(!registry.value().encode(extension.value(),extension_limits));
     auto unknown=registry.value().decode(bytes({0,255,0,1,0x55})); REQUIRE(unknown);
     REQUIRE(unknown.value().kind()==PduKind::opaque_root); REQUIRE(!registry.value().encode(unknown.value()));
     auto opaque_copy=unknown.value(); opaque_copy=unknown.value();
@@ -96,9 +110,13 @@ int main() {
     auto reordered=Registry::create({2,0,3},true,rows(),entries(),{4,false}); REQUIRE(reordered);
     auto made=reordered.value().make(Value<0>{true}); REQUIRE(made);
     REQUIRE(reordered.value().encode(made.value()).value().octets==bytes({0x80,41,0x40,1,0x80}));
-    auto rejected=reordered.value().decode(bytes({0x40})); REQUIRE(!rejected);
-    REQUIRE(rejected.error().code==aper::ErrorCode::constraint_violation && rejected.error().bit_offset==2);
+    auto fourth=reordered.value().make_choice_extension({7,Criticality::notify,bytes({0x80})}); REQUIRE(fourth);
+    auto fourth_wire=reordered.value().encode(fourth.value()); REQUIRE(fourth_wire);
+    REQUIRE(fourth_wire.value().octets==bytes({0x40,0,7,0x80,1,0x80}));
+    auto fourth_read=reordered.value().decode(fourth_wire.value().octets); REQUIRE(fourth_read);
+    REQUIRE(fourth_read.value().choice_extension()->id==7);
+    REQUIRE(!reordered.value().encode(extension.value()));
     auto registrations=entries();
     REQUIRE(!Registry::create({0,1,2},true,rows(),std::span(registrations).first(2),{4,false}));
-    std::puts("PASS independent F1AP profile: three roles, no extension bit, fourth-root rejection and owned dispatch");
+    std::puts("PASS independent F1AP profile: three roles, no extension bit, owned fourth-root single-container and owned dispatch");
 }

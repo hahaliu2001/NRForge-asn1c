@@ -23,7 +23,9 @@ def main():
     repo, prefix = args.repo.resolve(), args.prefix.resolve()
     sys.path.insert(0, str(repo/'tools/m6003-transfer-qualification'))
     sys.path.insert(0, str(Path(__file__).resolve().parent))
-    from cases import ROOTS, build_cases
+    from cases import build_cases
+    sys.path.insert(0, str(repo/"python/ngap_sdk"))
+    from root_catalog import ROOTS, cpp_type
     from qualify import boundary_cases
     from support import write
     from python_vectors import project
@@ -34,8 +36,20 @@ def main():
     work.mkdir(exist_ok=False)
     native = reference.compile_native(texts, work)
     cases = build_cases()+boundary_cases(native)
+    constructor = load('standalone_native_constructor', repo/'tools/full-pdu-qualification/native_values.py')
+    for stem, name in ROOTS.items():
+        desc = getattr(native.NGAP_IEs, name.replace('-', '_'))
+        for mode in ('low', 'contrast'):
+            value = constructor.Builder(mode).value(desc, name)
+            cases.append(dict(root=stem, name=name+'-'+mode, value=value, encode=True))
+    if {case['root'] for case in cases} != set(ROOTS):
+        raise ValueError('Missing selected standalone-root oracle cases')
     provenance = json.loads((prefix/'share/nrforge-ngap/sdk-provenance.json').read_text())
     bridges = {}
+    drivers = args.output.parent/'ngap-consumers'
+    drivers.mkdir(exist_ok=False)
+    campaign = load('standalone_campaign', repo/'tools/m6003-transfer-qualification/qualify.py')
+    grouped = {}
     result = []
     for case in cases:
         stem = case['root']
@@ -46,8 +60,23 @@ def main():
         desc = getattr(native.NGAP_IEs, ROOTS[stem])
         desc.set_val(case['value'])
         wire = desc.to_aper()
+        grouped.setdefault(stem, []).append(dict(case, wire=wire, cpp_type=cpp_type(row['message'])))
         result.append(dict(root=row['message'], name=case['name'], wire=wire,
                            body=project(bridges[stem], desc, case['value'], row['cpp_type']), encode=case['encode']))
+    cmake = ['cmake_minimum_required(VERSION 3.20)', 'project(StandaloneTransferConsumers LANGUAGES CXX)',
+             'find_package(NRForgeNGAP 0.3.0 EXACT CONFIG REQUIRED)', 'enable_testing()']
+    for stem, root_cases in grouped.items():
+        desc = getattr(native.NGAP_IEs, ROOTS[stem].replace('-', '_'))
+        bridge = bridges[stem]
+        text = campaign.cpp_driver(bridge, desc, root_cases)
+        for header in ('runtime.hpp', 'sequence_extensions.hpp'):
+            text = text.replace('#include "'+header+'"', '#include <nrforge/ngap/'+header+'>')
+        for family in ('types', 'mapping', 'codec'):
+            text = text.replace('#include "root_'+family+'.hpp"', '#include <nrforge/ngap/transfers/'+stem+'/root_'+family+'.hpp>')
+        (drivers/(stem+'.cpp')).write_text(text)
+        cmake += ['add_executable('+stem+' '+stem+'.cpp)', 'target_link_libraries('+stem+' PRIVATE NRForge::ngap)',
+                  'add_test(NAME '+stem+' COMMAND '+stem+')']
+    (drivers/'CMakeLists.txt').write_text('\n'.join(cmake)+'\n')
     write(args.output, result)
     print('Generated independent installed binding vectors:', len(result))
 

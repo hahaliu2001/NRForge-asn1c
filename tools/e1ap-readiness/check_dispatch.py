@@ -16,7 +16,7 @@ def main():
     ap.add_argument('--work', type=Path, required=True)
     ap.add_argument('--output', type=Path, required=True)
     ap.add_argument('--jobs', type=int, choices=range(1, 5), default=1)
-    ap.add_argument('--linker', choices=['bfd', 'gold'], default='bfd')
+    ap.add_argument('--linker', choices=['bfd', 'gold', 'lld'], default='bfd')
     args = ap.parse_args()
     repo, generated, build = args.repo.resolve(), args.generated.resolve(), args.build.resolve()
     manifest = json.loads((generated / 'manifest.json').read_text())
@@ -80,7 +80,7 @@ return 0;
 }}
 ''')
         obj = work / f'{i:03d}.o'
-        command = ['g++', '-std=c++20', '-Wall', '-Wextra', '-Werror', '-pedantic-errors', '-Wconversion', '-Wsign-conversion', '-DNDEBUG',
+        command = ['g++', '-std=c++20', '-O0', '-g0', '--param=ggc-min-expand=5', '--param=ggc-min-heapsize=16384', '-Wall', '-Wextra', '-Werror', '-pedantic-errors', '-Wconversion', '-Wsign-conversion', '-DNDEBUG',
                    '-I' + str(generated), '-I' + str(repo / 'libngap'), '-I' + str(repo / 'libaper'), '-c', str(source), '-o', str(obj)]
         commands.append((i, m['message'], command))
         cases.append({'message': m['message'], 'role': m['role'], 'code': m['code'], 'status': 'PASS',
@@ -102,7 +102,7 @@ return 0;
                         ''.join(f'if(int result = check_{i}()) {{ std::fprintf(stderr,"case {i}: %d\\n",result); return result; }}\n' for i in range(72)) +
                         'std::puts("PASS all72 typed slots: 71 empty-container BODY + one private opaque entry, criticality, truncation/trailing rejection"); return 0; }\n')
     executable = work / 'check_all'
-    link_options = ['-fuse-ld=' + args.linker, '-Wl,--no-keep-memory']
+    link_options = ['-fuse-ld=' + args.linker, '-Wl,--threads=1' if args.linker == 'lld' else '-Wl,--no-keep-memory']
     subprocess.run(['g++', '-std=c++20', *link_options, '-I' + str(generated), '-I' + str(repo / 'libngap'), '-I' + str(repo / 'libaper'),
                     str(main_cpp), *[str(work / f'{i:03d}.o') for i in range(72)], str(build / 'libnrforge_e1ap.a'), '-o', str(executable)], check=True)
     result = subprocess.run([str(executable)], capture_output=True, text=True, check=True)
@@ -115,7 +115,7 @@ return 0;
                                       'compiler': subprocess.check_output(['g++', '--version'], text=True).splitlines()[0],
                                       'compile_jobs': args.jobs,
                                       'link_options': link_options,
-                                      'strict_compile_options': ['-std=c++20', '-Wall', '-Wextra', '-Werror', '-pedantic-errors', '-Wconversion', '-Wsign-conversion', '-DNDEBUG'],
+                                      'strict_compile_options': ['-std=c++20', '-O0', '-g0', '--param=ggc-min-expand=5', '--param=ggc-min-heapsize=16384', '-Wall', '-Wextra', '-Werror', '-pedantic-errors', '-Wconversion', '-Wsign-conversion', '-DNDEBUG'],
                                       'executable_sha256': hashlib.sha256(executable.read_bytes()).hexdigest(),
                                       'runtime_result': result.stdout,
                                       'limitations': ['71 default empty-container BODY values plus one vendor-opaque local:0 raw00 PrivateMessage entry; no required-IE procedure policy assertion.',

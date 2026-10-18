@@ -265,7 +265,7 @@ static int manifest(const char *dir,const struct message *rows,size_t count,cons
     for(i=0;i<d->root_count;++i) if((unsigned)d->roots[i].role<3) mapping[d->roots[i].role]=(unsigned)d->roots[i].per_root_index;
     fprintf(f,"{\"parse\":\"PASS\",\"fix\":\"PASS\",\"parser_deleted\":true,\"deterministic\":true,\"message_count\":%zu,\"registry\":{\"role_to_per_index\":[%u,%u,%u],\"object_set_extensible\":%s},\"schema\":{\"pdu_module\":",count,mapping[0],mapping[1],mapping[2],d->header.object_set_is_extensible?"true":"false");
     json_text(f,d->header.pdu.module); fputs(",\"pdu_type\":",f); json_text(f,d->header.pdu.source_name);
-    if(!strcmp(profile,"f1ap")) fprintf(f,",\"profile\":\"f1ap\",\"root_count\":%zu,\"choice_is_extensible\":%s,\"unsupported_root_policy\":\"reject_before_header\"",d->root_count,d->header.choice_is_extensible?"true":"false");
+    if(!strcmp(profile,"f1ap")) fprintf(f,",\"profile\":\"f1ap\",\"root_count\":%zu,\"choice_is_extensible\":%s,\"unsupported_root_policy\":\"decode_single_container\"",d->root_count,d->header.choice_is_extensible?"true":"false");
     if(!strcmp(profile,"e1ap")) fprintf(f,",\"profile\":\"e1ap\",\"root_count\":%zu,\"choice_is_extensible\":%s,\"unknown_extension_policy\":\"receive_only_owned\"",d->root_count,d->header.choice_is_extensible?"true":"false");
     fputs(",\"procedure_class_module\":",f); json_text(f,d->header.procedure_class.module);
     fputs(",\"procedure_class\":",f); json_text(f,d->header.procedure_class.source_name);

@@ -23,7 +23,9 @@ def main():
     (target/'pyproject.toml').write_text(project)
     package = target/'src/nrforge_e1ap'
     package.mkdir(parents=True)
-    (package/'__init__.py').write_text((source/'src/nrforge_ngap/__init__.py').read_text().replace('NGAP','E1AP'))
+    initial = (source/'src/nrforge_ngap/__init__.py').read_text().split('from ._native import')[0].replace('NGAP', 'E1AP')
+    initial += 'from ._native import decode, encode, identity, messages, schema\n__version__ = \"0.3.0\"\n__all__ = [\"CodecError\", \"decode\", \"encode\", \"identity\", \"messages\", \"schema\"]\n'
+    (package/'__init__.py').write_text(initial)
     shutil.copyfile(repo/'tools/e1ap-python/README.md', target/'README.md')
     shutil.copytree(source/'e1ap/tests', target/'tests',
                     ignore=shutil.ignore_patterns('prepare_vectors.py', '__pycache__'))

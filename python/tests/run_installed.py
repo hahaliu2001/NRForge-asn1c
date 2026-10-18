@@ -16,7 +16,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--python", required=True, help="Python from wheel installation environment")
     parser.add_argument("--output", type=Path, required=True)
-    parser.add_argument("--expected-version", choices=("0.1.0", "0.2.0"), default="0.1.0")
+    parser.add_argument("--expected-version", choices=("0.1.0", "0.2.0", "0.3.0"), default="0.1.0")
     args = parser.parse_args()
     tests = Path(__file__).resolve().parent
     with tempfile.TemporaryDirectory(prefix="nrforge-python-consumer-") as directory:

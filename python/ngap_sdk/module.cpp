@@ -62,6 +62,7 @@ static py::dict decode(py::handle data,py::handle limits,py::handle conversion_l
     case PduKind::typed:out["kind"]="typed";out["message"]=pdu.message_info()->message;out["body"]=to_body(pdu,budget);break;
     case PduKind::opaque_root:out["kind"]="opaque_root";out["payload"]=Convert<::std::vector<::std::byte>>::to(pdu.opaque_root()->payload,budget);break;
     case PduKind::unknown_extension:out["kind"]="unknown_extension";out["extension_index"]=pdu.unknown_extension()->index;out["payload"]=Convert<::std::vector<::std::byte>>::to(pdu.unknown_extension()->payload,budget);break;
+    case PduKind::choice_extension:out["kind"]="choice_extension";out["id"]=pdu.choice_extension()->id;out["criticality"]=criticality_name(pdu.choice_extension()->criticality);out["payload"]=Convert<::std::vector<::std::byte>>::to(pdu.choice_extension()->payload,budget);break;
     case PduKind::invalid:codec_error({::nrforge::aper::ErrorCode::invalid_state,0});
     }
     return out;

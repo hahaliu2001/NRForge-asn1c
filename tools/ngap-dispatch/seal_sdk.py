@@ -29,7 +29,7 @@ def main():
     parser.add_argument('--source-revision', help='Exact git archive source commit, supplied by the snapshot runner')
     parser.add_argument('--profile', choices=('ngap', 'f1ap', 'e1ap'), default='ngap')
     args = parser.parse_args()
-    if args.version not in ('0.1.0', '0.2.0') or (args.version == '0.2.0' and args.profile != 'ngap'):
+    if args.version not in ('0.1.0', '0.2.0', '0.3.0') or (args.version == '0.2.0' and args.profile != 'ngap'):
         raise ValueError('unsupported protocol SDK version')
     repo, generated = args.repo.resolve(), args.generated.resolve()
     profile = args.profile
@@ -76,21 +76,23 @@ def main():
             if not path.is_relative_to(generated) or not path.is_file():
                 raise ValueError('missing or escaped generated input')
     transfers = None
-    if args.version == '0.2.0':
+    if args.profile == 'ngap' and args.version in ('0.2.0', '0.3.0'):
         transfers = json.loads((generated/'transfer-manifest.json').read_text())
-        expected_roots = {'setup_request', 'setup_response', 'release_command', 'release_response'}
-        if transfers['version'] != '0.2.0' or set(transfers['roots']) != expected_roots or transfers['source_authority'] != authority:
+        import sys
+        sys.path.insert(0, str(repo/'python/ngap_sdk'))
+        from root_catalog import ROOTS, LEGACY_ROOTS, cpp_type
+        names = ROOTS if args.version == '0.3.0' else LEGACY_ROOTS
+        if transfers['version'] != args.version or set(transfers['roots']) != set(names) or transfers['source_authority'] != authority:
             raise ValueError('Incomplete or mismatched Transfer closure')
-        names = {'setup_request': 'SetupRequestTransfer', 'setup_response': 'SetupResponseTransfer',
-                 'release_command': 'ReleaseCommandTransfer', 'release_response': 'ReleaseResponseTransfer'}
-        for stem, tail in names.items():
+        for stem, name in names.items():
             row = transfers['roots'][stem]
-            if row['message'] != 'PDUSessionResource'+tail or row['namespace'] != 'nrforge::ngap::transfers::'+stem:
+            namespace = 'nrforge::ngap::transfers::'+stem
+            if row['message'] != name or row['namespace'] != namespace or row['cpp_type'].lstrip(':') != namespace+'::'+cpp_type(name):
                 raise ValueError('Unexpected Transfer root identity')
             expected_headers = {f'transfers/{stem}/{name}' for name in ('root.hpp', 'root_types.hpp', 'root_mapping.hpp', 'root_codec.hpp')}
             if set(row['headers']) != expected_headers:
                 raise ValueError('Unexpected Transfer public file closure')
-    paths = [repo/'tools/ngap-transfer-sdk/prepare.py'] + [*sorted((repo / 'libaper').glob('*.hpp')),
+    paths = [repo/'tools/ngap-transfer-sdk/prepare.py', repo/'python/ngap_sdk/root_catalog.py'] + [*sorted((repo / 'libaper').glob('*.hpp')),
              repo / 'libaper/runtime.cpp', repo / 'libngap' / core_header, repo / 'libngap' / core_source,
              repo / 'libngap/pdu_declarations.inc', repo / 'libngap/pdu_implementation.inc',
              *sorted((repo / 'libasn1typed').glob('asn1typed*.c')),

@@ -315,3 +315,19 @@ EXTRA_DIST += docs/rrc-python-expanded-p18-closeout.md \
  tools/rrc-python-expanded/evidence/elf-dynamic.log \
  tools/rrc-python-expanded/verification.json \
  tools/rrc-python-expanded/review.md
+
+# Unified SDK source delivery; historical receipts are not regenerated.
+EXTRA_DIST += tools/unified-sdk/README.md \
+  tools/unified-sdk/build_rrc.py \
+  tools/unified-sdk/check_f1_oracle.py \
+  tools/unified-sdk/consume.py \
+  tools/unified-sdk/prepare_rrc_consumers.py \
+  tools/unified-sdk/produce.py \
+  tools/unified-sdk/release.py \
+  tools/unified-sdk/run.sh \
+  tools/unified-sdk/scope.json \
+  tools/unified-sdk/stage_schema.py \
+  tools/unified-sdk/test_release_guards.py \
+  python/ngap_sdk/root_catalog.py
+
+EXTRA_DIST += docs/unified-sdk-expanded-source-review.md

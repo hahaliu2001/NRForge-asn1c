@@ -1,6 +1,7 @@
-"""Render converters for the four installed independent root APIs."""
+"""Render converters for the selected installed independent root APIs."""
 import json
 import re
+from root_catalog import cpp_type as root_cpp_type
 
 
 def generate_transfers(texts, receipt, rendered, parse_header, render):
@@ -9,7 +10,7 @@ def generate_transfers(texts, receipt, rendered, parse_header, render):
     dispatch = ['#include "transfer_bindings.hpp"', 'namespace nrforge::python_sdk {']
     for stem, row in sorted(receipt['transfer_roots'].items()):
         namespace = 'nrforge::ngap::transfers::'+stem
-        cpp_type = 'NgapIEsPduSessionResource'+row['message'][len('PDUSessionResource'):]
+        cpp_type = root_cpp_type(row['message'])
         if row['namespace'] != namespace or row['cpp_type'].lstrip(':') != namespace+'::'+cpp_type:
             raise ValueError('Transfer root type identity mismatch')
         codec = texts[f'transfers/{stem}/root_codec.hpp']

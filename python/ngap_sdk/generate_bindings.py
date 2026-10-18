@@ -190,7 +190,7 @@ def verify_installed_sdk(prefix, expected_fingerprint=None, profile="ngap"):
     provenance = json.loads(provenance_bytes, object_pairs_hook=unique_object)
     for key in ('fingerprint', 'schema_sha256', 'runtime_sha256'):
         if not re.fullmatch(r'[0-9a-f]{64}', provenance[key]): raise ValueError('invalid SDK identity')
-    if provenance['version'] not in (('0.1.0', '0.2.0') if profile == 'ngap' else ('0.1.0',)): raise ValueError('unsupported SDK version')
+    if provenance['version'] not in (('0.1.0', '0.2.0', '0.3.0') if profile == 'ngap' else ('0.1.0', '0.3.0')): raise ValueError('unsupported SDK version')
     if expected_fingerprint is not None and provenance['fingerprint'] != expected_fingerprint:
         raise ValueError('SDK fingerprint differs from CMake package')
     include = prefix / f'include/nrforge/{profile}'
@@ -205,9 +205,11 @@ def verify_installed_sdk(prefix, expected_fingerprint=None, profile="ngap"):
         if re.fullmatch(r'messages/' + IDENT + r'(?:_types)?\.hpp', name) and not name.endswith(('_mapping.hpp', '_codec.hpp')):
             expected.add(name); original[name] = digest
     transfer_headers = set()
-    if provenance['version'] == '0.2.0':
+    if profile == 'ngap' and provenance['version'] in ('0.2.0', '0.3.0'):
         roots = provenance.get('transfer_roots', {})
-        if set(roots) != {'setup_request', 'setup_response', 'release_command', 'release_response'}:
+        from root_catalog import ROOTS, LEGACY_ROOTS
+        expected_roots = ROOTS if provenance['version'] == '0.3.0' else LEGACY_ROOTS
+        if set(roots) != set(expected_roots) or any(row['message'] != expected_roots[stem] for stem, row in roots.items()):
             raise ValueError('incomplete Transfer inventory')
         for stem, row in roots.items():
             names = {f'transfers/{stem}/{name}' for name in ('root.hpp', 'root_types.hpp', 'root_mapping.hpp', 'root_codec.hpp')}
@@ -312,11 +314,11 @@ def generate(prefix, output, expected_fingerprint=None, profile="ngap"):
     dispatch += ['    return result;', '}', '}', '']
     rendered['dispatch.cpp'] = '\n'.join(dispatch)
     rendered['sources.cmake'] = 'set(NRFORGE_PYTHON_SOURCES\n' + ''.join(f'  "${{CMAKE_CURRENT_LIST_DIR}}/{s}.cpp"\n' for s in stems) + '  "${CMAKE_CURRENT_LIST_DIR}/dispatch.cpp"\n)\n'
-    if sdk_receipt['version'] == '0.2.0':
+    if bool(sdk_receipt['transfer_roots']):
         rendered['sources.cmake'] = rendered['sources.cmake'].replace('\n)\n', ''.join('  \"${CMAKE_CURRENT_LIST_DIR}/transfer_'+stem+'.cpp\"\n' for stem in sorted(sdk_receipt['transfer_roots']))+'\n)\n')
     counts = {kind: sum(d['kind'] == kind for m in metadata.values() for d in m['declarations']) for kind in ('struct', 'enum', 'alias', 'constraint')}
     from transfer_bindings import generate_transfers
-    transfer_metadata = generate_transfers(public_texts, sdk_receipt, rendered, parse_header, render) if sdk_receipt['version'] == '0.2.0' else {}
+    transfer_metadata = generate_transfers(public_texts, sdk_receipt, rendered, parse_header, render) if bool(sdk_receipt['transfer_roots']) else {}
     rendered['conversion-schema.json'] = json.dumps({'messages': metadata, 'transfers': transfer_metadata, 'counts': counts, 'sdk': sdk_receipt}, indent=2, sort_keys=True) + '\n'
     output.mkdir(parents=True, exist_ok=True)
     for name, content in rendered.items():

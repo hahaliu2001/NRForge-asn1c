@@ -1,0 +1,59 @@
+{
+  "version": "0.3.0",
+  "ngap_transfers": {
+    "handover_command": "HandoverCommandTransfer",
+    "handover_preparation_unsuccessful": "HandoverPreparationUnsuccessfulTransfer",
+    "handover_request_acknowledge": "HandoverRequestAcknowledgeTransfer",
+    "handover_required": "HandoverRequiredTransfer",
+    "handover_resource_allocation_unsuccessful": "HandoverResourceAllocationUnsuccessfulTransfer",
+    "modify_confirm": "PDUSessionResourceModifyConfirmTransfer",
+    "modify_indication": "PDUSessionResourceModifyIndicationTransfer",
+    "modify_indication_unsuccessful": "PDUSessionResourceModifyIndicationUnsuccessfulTransfer",
+    "modify_request": "PDUSessionResourceModifyRequestTransfer",
+    "modify_response": "PDUSessionResourceModifyResponseTransfer",
+    "modify_unsuccessful": "PDUSessionResourceModifyUnsuccessfulTransfer",
+    "notify_released": "PDUSessionResourceNotifyReleasedTransfer",
+    "notify": "PDUSessionResourceNotifyTransfer",
+    "release_command": "PDUSessionResourceReleaseCommandTransfer",
+    "release_response": "PDUSessionResourceReleaseResponseTransfer",
+    "setup_request": "PDUSessionResourceSetupRequestTransfer",
+    "setup_response": "PDUSessionResourceSetupResponseTransfer",
+    "setup_unsuccessful": "PDUSessionResourceSetupUnsuccessfulTransfer",
+    "path_switch_request_acknowledge": "PathSwitchRequestAcknowledgeTransfer",
+    "path_switch_request_setup_failed": "PathSwitchRequestSetupFailedTransfer",
+    "path_switch_request": "PathSwitchRequestTransfer",
+    "path_switch_request_unsuccessful": "PathSwitchRequestUnsuccessfulTransfer",
+    "secondary_rat_data_usage_report": "SecondaryRATDataUsageReportTransfer",
+    "ue_context_resume_request": "UEContextResumeRequestTransfer",
+    "ue_context_resume_response": "UEContextResumeResponseTransfer",
+    "ue_context_suspend_request": "UEContextSuspendRequestTransfer"
+  },
+  "rrc_additional_roots": [
+    {
+      "module": "NR-RRC-Definitions",
+      "root": "CellGroupConfig"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "root": "UE-MRDC-Capability"
+    },
+    {
+      "module": "NR-RRC-Definitions",
+      "root": "UE-NR-Capability"
+    },
+    {
+      "module": "NR-InterNodeDefinitions",
+      "root": "HandoverPreparationInformation"
+    },
+    {
+      "module": "NR-InterNodeDefinitions",
+      "root": "CG-Config"
+    },
+    {
+      "module": "NR-InterNodeDefinitions",
+      "root": "CG-ConfigInfo"
+    }
+  ],
+  "f1ap_choice_extension": "owned ProtocolIE-SingleContainer: id, criticality, opaque value; frozen empty object set",
+  "full_protocol_coverage": false
+}

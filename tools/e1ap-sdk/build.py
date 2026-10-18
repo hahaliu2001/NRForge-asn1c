@@ -26,10 +26,11 @@ def main():
     parser.add_argument('--work', type=pathlib.Path, required=True)
     parser.add_argument('--prefix', type=pathlib.Path, required=True)
     parser.add_argument('--cmake', default='cmake')
+    parser.add_argument('--source-revision')
     parser.add_argument('--jobs', type=int, default=1)
     args = parser.parse_args()
-    if args.jobs < 1:
-        raise ValueError('jobs must be positive')
+    if args.jobs != 1:
+        raise ValueError('only serial builds are supported')
     repo, root = args.repo.resolve(), args.asn1_root.resolve()
     work, prefix = args.work.resolve(), args.prefix.resolve()
     if prefix.exists() and any(prefix.iterdir()):
@@ -75,13 +76,13 @@ def main():
         if not path.is_relative_to(generated) or digest(path.read_bytes()) != expected:
             raise ValueError('qualified production output changed: ' + name)
     run(['python3', repo / 'tools/ngap-dispatch/seal_sdk.py', '--repo', repo,
-         '--generated', generated, '--version', '0.1.0', '--profile', 'e1ap'], work / 'seal.log')
+         '--generated', generated, '--version', '0.3.0', '--profile', 'e1ap'] + (['--source-revision', args.source_revision] if args.source_revision else []), work / 'seal.log')
     run([args.cmake, '-S', generated, '-B', build,
          '-DNRFORGE_SOURCE_ROOT=' + str(repo), '-DCMAKE_INSTALL_PREFIX=' + str(prefix),
          '-DCMAKE_BUILD_TYPE=',
-         '-DCMAKE_EXE_LINKER_FLAGS=-fuse-ld=gold -Wl,--no-keep-memory',
+         '-DCMAKE_EXE_LINKER_FLAGS=-fuse-ld=lld -Wl,--threads=1',
          '-DCMAKE_EXPORT_COMPILE_COMMANDS=ON',
-         '-DCMAKE_CXX_FLAGS=-O0 -Wall -Wextra -Werror -pedantic-errors -Wconversion -Wsign-conversion'],
+         '-DCMAKE_CXX_FLAGS=-O0 -g0 --param=ggc-min-expand=5 --param=ggc-min-heapsize=16384 -Wall -Wextra -Werror -pedantic-errors -Wconversion -Wsign-conversion'],
         work / 'configure.log')
     run([args.cmake, '--build', build, '--parallel', args.jobs], work / 'build.log')
     run([args.cmake, '--install', build], work / 'install.log')

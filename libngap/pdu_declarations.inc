@@ -14,7 +14,7 @@ namespace nrforge::NRFORGE_PDU_PROFILE {
 
 enum class Role : unsigned { initiating, successful, unsuccessful };
 enum class Criticality : unsigned { reject, ignore, notify };
-enum class PduKind { invalid, typed, opaque_root, unknown_extension };
+enum class PduKind { invalid, typed, opaque_root, unknown_extension, choice_extension };
 
 struct RootHeader {
     Role role;
@@ -34,6 +34,9 @@ struct ProcedureInfo {
     std::array<bool, 3> payload_present;
 };
 struct OpaqueRoot { std::vector<std::byte> payload; };
+// F1AP fourth root: a ProtocolIE-SingleContainer, not an outcome header.
+// Its frozen object set has no known rows; retain id/criticality/open value.
+struct ChoiceExtension { std::uint64_t id; Criticality criticality; std::vector<std::byte> payload; };
 struct UnknownExtension { std::uint64_t index; std::vector<std::byte> payload; };
 // Owned envelope evidence supplies framing. Only these shared shapes
 // are supported: NGAP/E1AP have three extensible roots; F1AP four nonextensible roots.
@@ -88,6 +91,7 @@ public:
     const MessageInfo* message_info() const noexcept;
     const OpaqueRoot* opaque_root() const noexcept;
     const UnknownExtension* unknown_extension() const noexcept;
+    const ChoiceExtension* choice_extension() const noexcept;
     aper::Result<void> set_criticality(Criticality) noexcept; // Typed only.
 
     // Access checks the actual concrete Model<T>, never a numeric variant
@@ -105,7 +109,7 @@ public:
 
 private:
     struct Typed { std::unique_ptr<detail::Body> body; };
-    using Content = std::variant<std::monostate, Typed, OpaqueRoot, UnknownExtension>;
+    using Content = std::variant<std::monostate, Typed, OpaqueRoot, UnknownExtension, ChoiceExtension>;
     static Content copy_content(const Content&);
     void invalidate() noexcept;
     std::shared_ptr<const detail::Table> table_; // Immutable metadata stays alive.
@@ -151,6 +155,7 @@ public:
             return aper::Result<Pdu>::failure({aper::ErrorCode::resource_limit, 0});
         }
     }
+    aper::Result<Pdu> make_choice_extension(ChoiceExtension) const;
     aper::Result<void> encode_fields(aper::FieldWriter&, const Pdu&) const;
     aper::Result<Pdu> decode_fields(aper::FieldReader&) const;
     aper::Result<aper::CompleteEncoding> encode(const Pdu&, const aper::Limits& = {}) const;

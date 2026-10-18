@@ -36,6 +36,7 @@ Pdu::Content Pdu::copy_content(const Content& source) {
         return Typed{typed->body ? typed->body->clone() : nullptr};
     if(const auto* opaque = std::get_if<OpaqueRoot>(&source)) return *opaque;
     if(const auto* extension = std::get_if<UnknownExtension>(&source)) return *extension;
+    if(const auto* extension = std::get_if<ChoiceExtension>(&source)) return *extension;
     return std::monostate{};
 }
 Pdu::Pdu(const Pdu& source) : table_(source.table_), entry_ordinal_(source.entry_ordinal_),
@@ -63,6 +64,7 @@ PduKind Pdu::kind() const noexcept {
     if(std::holds_alternative<Typed>(content_)) return PduKind::typed;
     if(std::holds_alternative<OpaqueRoot>(content_)) return PduKind::opaque_root;
     if(std::holds_alternative<UnknownExtension>(content_)) return PduKind::unknown_extension;
+    if(std::holds_alternative<ChoiceExtension>(content_)) return PduKind::choice_extension;
     return PduKind::invalid;
 }
 const RootHeader* Pdu::root_header() const noexcept { return header_ ? &*header_ : nullptr; }
@@ -72,6 +74,7 @@ const MessageInfo* Pdu::message_info() const noexcept {
 }
 const OpaqueRoot* Pdu::opaque_root() const noexcept { return std::get_if<OpaqueRoot>(&content_); }
 const UnknownExtension* Pdu::unknown_extension() const noexcept { return std::get_if<UnknownExtension>(&content_); }
+const ChoiceExtension* Pdu::choice_extension() const noexcept { return std::get_if<ChoiceExtension>(&content_); }
 aper::Result<void> Pdu::set_criticality(Criticality criticality) noexcept {
     if(kind() != PduKind::typed || !header_)
         return aper::Result<void>::failure({aper::ErrorCode::invalid_state, 0});
@@ -166,8 +169,34 @@ aper::Result<Pdu> Registry::publish_typed(std::size_t ordinal, Criticality criti
     pdu.content_ = Pdu::Typed{std::move(body)};
     return aper::Result<Pdu>::success(std::move(pdu));
 }
+aper::Result<Pdu> Registry::make_choice_extension(ChoiceExtension value) const {
+    if(!table_ || table_->framing.root_count != 4 || table_->framing.choice_is_extensible)
+        return aper::Result<Pdu>::failure({aper::ErrorCode::invalid_state, 0});
+    if(value.id > 65535 || !valid(value.criticality))
+        return aper::Result<Pdu>::failure({aper::ErrorCode::constraint_violation, 0});
+    Pdu pdu; pdu.table_ = table_; pdu.content_ = std::move(value);
+    return aper::Result<Pdu>::success(std::move(pdu));
+}
 aper::Result<void> Registry::encode_fields(aper::FieldWriter& f, const Pdu& pdu) const {
     if(!table_ || pdu.kind() == PduKind::invalid) return failure(f, aper::ErrorCode::invalid_state);
+    if(pdu.kind() == PduKind::choice_extension) {
+        if(pdu.table_.get() != table_.get() || table_->framing.root_count != 4 || table_->framing.choice_is_extensible)
+            return failure(f, aper::ErrorCode::invalid_argument);
+        const auto& value = *pdu.choice_extension();
+        if(value.id > 65535 || !valid(value.criticality)) return failure(f, aper::ErrorCode::constraint_violation);
+        unsigned index = 0;
+        while(index < 4 && table_->per_index_to_role[index]) ++index;
+        if(index == 4) return failure(f, aper::ErrorCode::invalid_state);
+        auto status = f.write_enumerated({false, index}, 4, false);
+        if(!status) return status;
+        status = f.write_constrained_uint(value.id, 16);
+        if(!status) return status;
+        status = f.write_enumerated({false, static_cast<unsigned>(value.criticality)}, 3, false);
+        if(!status) return status;
+        // Unconstrained OCTET STRING and opaque OPEN TYPE share aligned
+        // length/fragment framing. Do not add a second child length wrapper.
+        return f.write_octet_string(value.payload, 0, 0, true);
+    }
     if(pdu.kind() != PduKind::typed) return failure(f, aper::ErrorCode::constraint_violation);
     if(pdu.table_.get() != table_.get() || !pdu.header_ || pdu.entry_ordinal_ >= table_->entries.size())
         return failure(f, aper::ErrorCode::invalid_argument);
@@ -198,9 +227,17 @@ aper::Result<Pdu> Registry::decode_fields(aper::FieldReader& f) const {
         return aper::Result<Pdu>::success(std::move(pdu));
     }
     const auto selected_role = table_->per_index_to_role[static_cast<std::size_t>(selector.value().index)];
-    // The additional root is not an outcome header. Reject before reading its
-    // bytes as procedure/criticality or falling back to opaque outcome data.
-    if(!selected_role) return failure(f, aper::ErrorCode::constraint_violation);
+    if(!selected_role) {
+        if(table_->framing.root_count != 4 || table_->framing.choice_is_extensible)
+            return failure(f, aper::ErrorCode::invalid_state);
+        auto id = f.read_constrained_uint(16);
+        if(!id) return aper::Result<Pdu>::failure(id.error());
+        auto criticality = f.read_enumerated(3, false);
+        if(!criticality) return aper::Result<Pdu>::failure(criticality.error());
+        auto payload = f.read_open_type_owned();
+        if(!payload) return aper::Result<Pdu>::failure(payload.error());
+        return make_choice_extension({id.value(), static_cast<Criticality>(criticality.value().index), std::move(payload).value()});
+    }
     const auto role = *selected_role;
     auto code = f.read_constrained_uint(8);
     if(!code) return aper::Result<Pdu>::failure(code.error());

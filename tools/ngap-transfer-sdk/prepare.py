@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Add exactly four independent owned roots before sealing NGAP 0.2.0.
+"""Generate every selected standalone NGAP Transfer root before sealing.
 
 Run after the unchanged 131-message dispatch generator, before seal_sdk.py.
 This generates source only; it never declares compilation/qualification PASS.
@@ -11,12 +11,10 @@ from pathlib import Path
 import re
 import subprocess
 
-ROOTS = {
-    'setup_request': 'PDUSessionResourceSetupRequestTransfer',
-    'setup_response': 'PDUSessionResourceSetupResponseTransfer',
-    'release_command': 'PDUSessionResourceReleaseCommandTransfer',
-    'release_response': 'PDUSessionResourceReleaseResponseTransfer',
-}
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]/'python/ngap_sdk'))
+from root_catalog import ROOTS, VERSION, cpp_type
+
 
 
 def prepare(repo, root, generated):
@@ -26,6 +24,10 @@ def prepare(repo, root, generated):
         blob = hashlib.sha1(b'blob '+str(len(data)).encode()+b'\0'+data).hexdigest()
         if hashlib.sha256(data).hexdigest() != row['sha256'] or blob != row['git_blob']:
             raise ValueError('Transfer schema authority mismatch: '+row['path'])
+    source = (root/'ng/asn1/NGAP-IEs.asn').read_text()
+    explicit = set(re.findall(r'CONTAINING\s+([\w-]+)', re.sub(r'--[^\n]*', '', source)))
+    if explicit != set(ROOTS.values()):
+        raise ValueError('Frozen explicit CONTAINING inventory differs from current root catalog')
     target = generated/'transfers'
     target.mkdir(exist_ok=False)
     rows = {}
@@ -45,9 +47,9 @@ def prepare(repo, root, generated):
                 if f'{stage} {family} PASS' not in result.stdout:
                     raise ValueError('Missing Transfer generation evidence: '+stem)
         codec = (directory/'root_codec.hpp').read_text()
-        cpp_type = 'NgapIEsPduSessionResource'+name[len('PDUSessionResource'):]
+        expected_type = cpp_type(name)
         matches = re.findall(r'inline .*?\b(encode_\w+)\(const ([\w:]+)& v', codec)
-        matches = [(e, t) for e, t in matches if t.split('::')[-1] == cpp_type]
+        matches = [(e, t) for e, t in matches if t.split('::')[-1] == expected_type]
         if len(matches) != 1:
             raise ValueError('Ambiguous generated Transfer API: '+stem)
         encode, qualified = matches[0]
@@ -59,7 +61,7 @@ def prepare(repo, root, generated):
                           encode=encode, decode=decode,
                           headers=[f'transfers/{stem}/{n}' for n in
                                    ('root.hpp', 'root_types.hpp', 'root_mapping.hpp', 'root_codec.hpp')])
-    manifest = dict(version='0.2.0', roots=rows, source_authority=authority,
+    manifest = dict(version=VERSION, roots=rows, source_authority=authority,
                     scope='generated independent roots; installed qualification pending')
     (generated/'transfer-manifest.json').write_text(json.dumps(manifest, indent=2, sort_keys=True)+'\n')
     return manifest
