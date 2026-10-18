@@ -16,6 +16,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--python", required=True, help="Python from wheel installation environment")
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--expected-version", choices=("0.1.0", "0.2.0"), default="0.1.0")
     args = parser.parse_args()
     tests = Path(__file__).resolve().parent
     with tempfile.TemporaryDirectory(prefix="nrforge-python-consumer-") as directory:
@@ -24,6 +25,8 @@ def main():
         (work / "examples").mkdir()
         for name in ("test_sdk.py", "golden-131.json", "ng-setup-native.json"):
             shutil.copyfile(tests / name, work / "tests" / name)
+        version_test = work / "tests/test_sdk.py"
+        version_test.write_text(version_test.read_text().replace('self.assertEqual(identity["version"], "0.1.0")', 'self.assertEqual(identity["version"], '+repr(args.expected_version)+')'))
         shutil.copyfile(tests.parent / "examples" / "ng_setup.py", work / "examples" / "ng_setup.py")
         audit = subprocess.run([args.python, "-I", "-c", """
 import json, sys
@@ -58,3 +61,4 @@ print(json.dumps({'package': nrforge_ngap.__file__, 'extension': _native.__file_
 
 if __name__ == "__main__":
     main()
+

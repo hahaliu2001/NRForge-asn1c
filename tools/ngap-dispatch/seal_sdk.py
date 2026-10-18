@@ -26,10 +26,11 @@ def main():
     parser.add_argument('--repo', type=Path, required=True)
     parser.add_argument('--generated', type=Path, required=True)
     parser.add_argument('--version', default='0.1.0')
+    parser.add_argument('--source-revision', help='Exact git archive source commit, supplied by the snapshot runner')
     parser.add_argument('--profile', choices=('ngap', 'f1ap', 'e1ap'), default='ngap')
     args = parser.parse_args()
-    if args.version != '0.1.0':
-        raise ValueError('only the current SDK contract version 0.1.0 is supported')
+    if args.version not in ('0.1.0', '0.2.0') or (args.version == '0.2.0' and args.profile != 'ngap'):
+        raise ValueError('unsupported protocol SDK version')
     repo, generated = args.repo.resolve(), args.generated.resolve()
     profile = args.profile
     core_header = profile + "_pdu.hpp" if profile != "ngap" else "pdu.hpp"
@@ -74,7 +75,22 @@ def main():
             path = (generated / message[key]).resolve()
             if not path.is_relative_to(generated) or not path.is_file():
                 raise ValueError('missing or escaped generated input')
-    paths = [*sorted((repo / 'libaper').glob('*.hpp')),
+    transfers = None
+    if args.version == '0.2.0':
+        transfers = json.loads((generated/'transfer-manifest.json').read_text())
+        expected_roots = {'setup_request', 'setup_response', 'release_command', 'release_response'}
+        if transfers['version'] != '0.2.0' or set(transfers['roots']) != expected_roots or transfers['source_authority'] != authority:
+            raise ValueError('Incomplete or mismatched Transfer closure')
+        names = {'setup_request': 'SetupRequestTransfer', 'setup_response': 'SetupResponseTransfer',
+                 'release_command': 'ReleaseCommandTransfer', 'release_response': 'ReleaseResponseTransfer'}
+        for stem, tail in names.items():
+            row = transfers['roots'][stem]
+            if row['message'] != 'PDUSessionResource'+tail or row['namespace'] != 'nrforge::ngap::transfers::'+stem:
+                raise ValueError('Unexpected Transfer root identity')
+            expected_headers = {f'transfers/{stem}/{name}' for name in ('root.hpp', 'root_types.hpp', 'root_mapping.hpp', 'root_codec.hpp')}
+            if set(row['headers']) != expected_headers:
+                raise ValueError('Unexpected Transfer public file closure')
+    paths = [repo/'tools/ngap-transfer-sdk/prepare.py'] + [*sorted((repo / 'libaper').glob('*.hpp')),
              repo / 'libaper/runtime.cpp', repo / 'libngap' / core_header, repo / 'libngap' / core_source,
              repo / 'libngap/pdu_declarations.inc', repo / 'libngap/pdu_implementation.inc',
              *sorted((repo / 'libasn1typed').glob('asn1typed*.c')),
@@ -91,7 +107,9 @@ def main():
                          'schema': manifest['schema'], 'registry': manifest['registry']})
     runtime_sha = digest({name: value for name, value in source_hashes.items() if name.startswith('libaper/')})
     # Baseline revision plus content fingerprints describe modified source honestly.
-    revision = subprocess.check_output(['git', '-C', str(repo), 'rev-parse', 'HEAD'], text=True).strip()
+    revision = args.source_revision or subprocess.check_output(['git', '-C', str(repo), 'rev-parse', 'HEAD'], text=True).strip()
+    if not re.fullmatch(r'[0-9a-f]{40}', revision):
+        raise ValueError('Invalid source commit identity')
     # The raw manifest is checked by the lock, but build-input locations must
     # not change SDK identity when identical content is generated elsewhere.
     logical_manifest = {key: value for key, value in manifest.items() if key != 'source_inputs'}
@@ -120,9 +138,15 @@ inline constexpr SdkIdentity header_sdk_identity{
     (generated / 'sdk_identity.cpp').write_text('#include "sdk_version.hpp"\nnamespace nrforge::' + profile + ' {\n'
         'const SdkIdentity& sdk_identity() noexcept { return header_sdk_identity; }\n'
         'namespace detail { void ' + symbol + '() noexcept {} }\n}\n')
+    transfer_checks = ''
+    transfer_includes = ''
+    if transfers is not None:
+        for entry in transfers['roots'].values():
+            transfer_includes += '#include <'+entry['headers'][0]+'>\n'
+            transfer_checks += '    (void)::'+entry['namespace']+'::'+entry['encode']+'('+entry['cpp_type']+'{}, ::nrforge::aper::Limits{});\n'
     (generated / 'sdk_link_check.cpp').write_text(
-        '#include <' + core_header + '>\n#include <sdk_version.hpp>\n'
-        'int main() {\n'
+        transfer_includes + '#include <' + core_header + '>\n#include <sdk_version.hpp>\n'
+        'int main() {\n' + transfer_checks +
         '    const auto& registry = ::nrforge::' + profile + '::' + profile + '_registry_state();\n'
         f'    if(!registry || registry.value().message_count() != {len(messages)}U) return 1;\n'
         '    const auto& actual = ::nrforge::' + profile + '::sdk_identity();\n'
@@ -142,6 +166,9 @@ inline constexpr SdkIdentity header_sdk_identity{
     for message in messages:
         public_inputs.extend((generated / message[key], message[key])
                              for key in ('public_header', 'types_header'))
+    if transfers is not None:
+        for entry in transfers['roots'].values():
+            public_inputs.extend((generated/name, name) for name in entry['headers'])
     # Fully qualify installed internal includes so both protocols can share a TU
     # regardless of imported-target include-directory order. Keep legacy direct
     # NGAP entry points while exposing the unambiguous nrforge/<protocol> paths.
@@ -154,12 +181,15 @@ inline constexpr SdkIdentity header_sdk_identity{
                 return '#include <nrforge/' + profile + '/' + candidate + '>'
             return match.group(0)
         contents = re.sub(r'#include [<"]([^>"]+)[>"]', installed_include, path.read_text())
+        (public / relative).parent.mkdir(parents=True, exist_ok=True)
         (public / relative).write_text('#include <nrforge/' + profile + '/sdk_version.hpp>\n' + contents)
     (public / 'sdk_version.hpp').write_text(header)
     provenance = {**identity, 'schema_release': release, 'source_hashes': source_hashes,
                   'generated_inputs': generated_hashes, 'schema_files': schema_files,
                   'source_revision_kind': 'baseline revision; source_hashes identify exact build content',
                   'qualification_scope': 'finite accepted ' + profile.upper() + ' profile; not exhaustive values or live interoperability'}
+    if transfers is not None:
+        provenance['transfer_roots'] = transfers['roots']
     (generated / 'sdk-provenance.json').write_text(json.dumps(provenance, indent=2, sort_keys=True) + '\n')
     generated_hashes.update({name: sha(generated / name) for name in sealed_names
                              if name not in {'sdk-lock.cmake', 'sdk-public'}})
@@ -179,3 +209,4 @@ inline constexpr SdkIdentity header_sdk_identity{
 
 if __name__ == '__main__':
     main()
+

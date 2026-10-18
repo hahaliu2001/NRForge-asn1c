@@ -1,4 +1,7 @@
 #include "bindings.hpp"
+#if defined(NRFORGE_PYTHON_TRANSFERS)
+#include "transfer_bindings.hpp"
+#endif
 #if defined(NRFORGE_PYTHON_E1AP)
 #define NRFORGE_PYTHON_REGISTRY e1ap_registry_state
 #define NRFORGE_PYTHON_ENCODE encode_e1ap_pdu
@@ -63,6 +66,29 @@ static py::dict decode(py::handle data,py::handle limits,py::handle conversion_l
     }
     return out;
 }
+#if defined(NRFORGE_PYTHON_TRANSFERS)
+static ::nrforge::aper::Limits transfer_limits(py::handle limits) {
+    auto out = read_limits(limits);
+    out.max_input_octets = std::min(out.max_input_octets, ::std::size_t{4096});
+    out.max_output_octets = std::min(out.max_output_octets, ::std::size_t{4096});
+    out.max_wire_bits = std::min(out.max_wire_bits, ::std::size_t{32768});
+    return out;
+}
+static py::bytes encode_transfer(py::handle root, py::handle body, py::handle limits, py::handle conversion_limits) {
+    auto l=transfer_limits(limits); auto budget=read_conversion_limits(conversion_limits);
+    return encode_transfer_body(read_label(root,budget),body,l,budget);
+}
+static py::object decode_transfer(py::handle root, py::handle data, py::handle limits, py::handle conversion_limits) {
+    auto l=transfer_limits(limits); auto budget=read_conversion_limits(conversion_limits);
+    const auto name=read_label(root,budget);
+    if(!PyBytes_Check(data.ptr())) throw py::type_error("data must be bytes");
+    if(static_cast<::std::size_t>(PyBytes_GET_SIZE(data.ptr()))>l.max_input_octets)
+        codec_error({::nrforge::aper::ErrorCode::resource_limit,0});
+    auto bytes=Convert<::std::vector<::std::byte>>::from(data,budget);
+    return decode_transfer_body(name,bytes,l,budget);
+}
+#endif
+
 }
 PYBIND11_MODULE(_native,m) {
     using namespace nrforge::python_sdk;
@@ -73,4 +99,12 @@ PYBIND11_MODULE(_native,m) {
     m.def("encode",&encode,py::arg("message"),py::arg("body"),py::kw_only(),py::arg("criticality")=py::none(),py::arg("limits")=py::none(),py::arg("conversion_limits")=py::none());
     m.def("decode",&decode,py::arg("data"),py::kw_only(),py::arg("limits")=py::none(),py::arg("conversion_limits")=py::none());
     m.def("schema",[](py::handle value)->py::object{ConversionBudget budget{};auto message=read_label(value,budget);auto schemas=message_schema();if(!schemas.contains(py::str(message)))throw py::value_error("unknown message: "+message);return py::reinterpret_borrow<py::object>(schemas[py::str(message)]);});
+#if defined(NRFORGE_PYTHON_TRANSFERS)
+    m.def("transfers",[](){ auto schemas=transfer_schema(); py::list names; for(auto row:schemas) names.append(row.first); return names; });
+    m.def("encode_transfer",&encode_transfer,py::arg("root"),py::arg("body"),py::kw_only(),py::arg("limits")=py::none(),py::arg("conversion_limits")=py::none());
+    m.def("decode_transfer",&decode_transfer,py::arg("root"),py::arg("data"),py::kw_only(),py::arg("limits")=py::none(),py::arg("conversion_limits")=py::none());
+    m.def("transfer_schema",[](py::handle root)->py::object{ ConversionBudget budget{}; auto name=read_label(root,budget); auto schemas=transfer_schema(); if(!schemas.contains(py::str(name)))throw py::value_error("unknown Transfer root"); return py::reinterpret_borrow<py::object>(schemas[py::str(name)]); });
+#endif
+
 }
+

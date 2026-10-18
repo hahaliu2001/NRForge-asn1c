@@ -18,3 +18,4 @@ build.tool-args = ["-j2"]
 install.strip = true
 wheel.license-files = ["LICENSE", "PYBIND11-LICENSE"]
 sdist.include = ["ngap_sdk/**", "src/**", "tests/**", "examples/**", "CMakeLists.txt", "README.md", "LICENSE", "PYBIND11-LICENSE"]
+

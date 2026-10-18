@@ -1,0 +1,19 @@
+[build-system]
+requires = ["scikit-build-core==0.11.6", "pybind11==3.0.1"]
+build-backend = "scikit_build_core.build"
+
+[project]
+name = "nrforge-ngap"
+version = "0.2.0"
+description = "NGAP APER: 131 outer messages and four independent Transfer roots"
+requires-python = ">=3.12"
+license = {file = "LICENSE"}
+readme = "README.md"
+
+[tool.scikit-build]
+cmake.build-type = ""
+wheel.packages = ["src/nrforge_ngap"]
+build-dir = "build/{wheel_tag}"
+build.tool-args = ["-j1"]
+install.strip = true
+wheel.license-files = ["LICENSE", "PYBIND11-LICENSE"]

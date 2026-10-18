@@ -24,6 +24,8 @@ def main():
     parser.add_argument('--work', type=pathlib.Path, required=True)
     parser.add_argument('--prefix', type=pathlib.Path, required=True)
     parser.add_argument('--cmake', default='cmake')
+    parser.add_argument('--source-revision')
+    parser.add_argument('--version', choices=('0.1.0', '0.2.0'), default='0.1.0')
     parser.add_argument('--jobs', type=int, default=1)
     args = parser.parse_args()
     if args.jobs < 1:
@@ -64,13 +66,17 @@ def main():
         path = (generated / name).resolve()
         if not path.is_relative_to(generated) or digest(path.read_bytes()) != expected:
             raise ValueError('qualified production output changed: ' + name)
+    if args.version == '0.2.0':
+        run(['python3', repo/'tools/ngap-transfer-sdk/prepare.py', '--repo', repo,
+             '--asn1-root', root, '--generated', generated], work/'transfer-generation.log')
     run(['python3', repo / 'tools/ngap-dispatch/seal_sdk.py', '--repo', repo,
-         '--generated', generated, '--version', '0.1.0'], work / 'seal.log')
+         '--generated', generated, '--version', args.version] +
+        (['--source-revision', args.source_revision] if args.source_revision else []), work / 'seal.log')
     run([args.cmake, '-S', generated, '-B', build,
          '-DNRFORGE_SOURCE_ROOT=' + str(repo), '-DCMAKE_INSTALL_PREFIX=' + str(prefix),
          '-DCMAKE_BUILD_TYPE=',
          '-DCMAKE_EXPORT_COMPILE_COMMANDS=ON',
-         '-DCMAKE_CXX_FLAGS=-O0 -Wall -Wextra -Werror -pedantic-errors -Wconversion -Wsign-conversion'],
+         '-DCMAKE_CXX_FLAGS=-O0 -g0 --param=ggc-min-expand=5 --param=ggc-min-heapsize=16384 -Wall -Wextra -Werror -pedantic-errors -Wconversion -Wsign-conversion'],
         work / 'configure.log')
     run([args.cmake, '--build', build, '--parallel', args.jobs], work / 'build.log')
     run([args.cmake, '--install', build], work / 'install.log')
@@ -93,3 +99,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+

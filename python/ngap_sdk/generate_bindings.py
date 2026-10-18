@@ -106,12 +106,12 @@ def parse_header(text, namespace):
     return declarations
 
 
-def render(stem, declarations, profile="ngap"):
-    namespace = 'nrforge::' + profile + '::messages::' + stem
+def render(stem, declarations, profile="ngap", root=None):
+    namespace = root['namespace'] if root else 'nrforge::' + profile + '::messages::' + stem
     qual = lambda name: '::' + namespace + '::' + name
     converted = [d for d in declarations if d['kind'] in ('struct', 'enum')]
     out = ['// Generated solely from installed public SDK headers.', '#include "conversion.hpp"',
-           f'#include <messages/{stem}.hpp>', 'namespace nrforge::python_sdk {']
+           (f'#include <nrforge/ngap/transfers/{stem}/root.hpp>' if root else f'#include <messages/{stem}.hpp>'), 'namespace nrforge::python_sdk {']
     for d in converted:
         q = qual(d['name'])
         out += [f'template<> struct TypeName<{q}> {{ static const char* name() {{ return "{d["name"]}"; }} }};',
@@ -147,6 +147,21 @@ def render(stem, declarations, profile="ngap"):
                 out.append(f'    result.{f["name"]} = Convert<{f["type"]}>::from({access}(dict, "{f["name"]}"), budget);')
             out.append('    return result;')
         out.append('}')
+    if root is not None:
+        typ = root['cpp_type']
+        if not typ.startswith('::'): typ = '::'+typ
+        enc = '::'+namespace+'::'+root['encode']
+        dec = '::'+namespace+'::'+root['decode']
+        out += [f'py::bytes transfer_encode_{stem}(py::handle body, const ::nrforge::aper::Limits& limits, ConversionBudget& budget) {{',
+                f'    auto value = Convert<{typ}>::from(body, budget);',
+                f'    auto encoded = [&]() {{ py::gil_scoped_release release; return {enc}(value, limits); }}();',
+                '    auto bytes = unwrap(::std::move(encoded));',
+                '    return py::reinterpret_borrow<py::bytes>(Convert<::std::vector<::std::byte>>::to(bytes.octets, budget));', '}',
+                f'py::object transfer_decode_{stem}(const ::std::vector<::std::byte>& bytes, const ::nrforge::aper::Limits& limits, ConversionBudget& budget) {{',
+                f'    auto decoded = [&]() {{ py::gil_scoped_release release; return {dec}(bytes, limits); }}();',
+                '    auto value = unwrap(::std::move(decoded));',
+                f'    return Convert<{typ}>::to(value, budget);', '}', '}']
+        return '\n'.join(out)+'\n'
     body = '::' + namespace + '::Body'
     out += [f'bool body_is_{stem}(const Pdu& pdu) {{ return pdu.body_if<{body}>() != nullptr; }}',
             f'const std::string& body_name_{stem}() {{', f'    static const std::string name = [] {{ auto pdu = unwrap(::nrforge::{profile}::make_{profile}_pdu({body}{{}})); return std::string(pdu.message_info()->message); }}();', '    return name;', '}',
@@ -175,7 +190,7 @@ def verify_installed_sdk(prefix, expected_fingerprint=None, profile="ngap"):
     provenance = json.loads(provenance_bytes, object_pairs_hook=unique_object)
     for key in ('fingerprint', 'schema_sha256', 'runtime_sha256'):
         if not re.fullmatch(r'[0-9a-f]{64}', provenance[key]): raise ValueError('invalid SDK identity')
-    if provenance['version'] != '0.1.0': raise ValueError('unsupported SDK version')
+    if provenance['version'] not in (('0.1.0', '0.2.0') if profile == 'ngap' else ('0.1.0',)): raise ValueError('unsupported SDK version')
     if expected_fingerprint is not None and provenance['fingerprint'] != expected_fingerprint:
         raise ValueError('SDK fingerprint differs from CMake package')
     include = prefix / f'include/nrforge/{profile}'
@@ -189,7 +204,19 @@ def verify_installed_sdk(prefix, expected_fingerprint=None, profile="ngap"):
     for name, digest in provenance['generated_inputs'].items():
         if re.fullmatch(r'messages/' + IDENT + r'(?:_types)?\.hpp', name) and not name.endswith(('_mapping.hpp', '_codec.hpp')):
             expected.add(name); original[name] = digest
+    transfer_headers = set()
+    if provenance['version'] == '0.2.0':
+        roots = provenance.get('transfer_roots', {})
+        if set(roots) != {'setup_request', 'setup_response', 'release_command', 'release_response'}:
+            raise ValueError('incomplete Transfer inventory')
+        for stem, row in roots.items():
+            names = {f'transfers/{stem}/{name}' for name in ('root.hpp', 'root_types.hpp', 'root_mapping.hpp', 'root_codec.hpp')}
+            if set(row['headers']) != names:
+                raise ValueError('unexpected Transfer headers')
+            transfer_headers.update(names)
+            original.update({name: provenance['generated_inputs'][name] for name in names})
     if len(expected) != ((268 if qualified else 267) if profile == 'ngap' else {'f1ap': 322, 'e1ap': 150}[profile]): raise ValueError('incomplete SDK public header inventory')
+    expected.update(transfer_headers)
     actual = {p.relative_to(include).as_posix() for p in include.rglob('*') if p.is_file()}
     if actual != expected: raise ValueError('SDK public header inventory mismatch')
     texts, header_hashes = {}, {}
@@ -206,7 +233,7 @@ def verify_installed_sdk(prefix, expected_fingerprint=None, profile="ngap"):
                 def original_include(match):
                     included = match[1]
                     if included not in expected: raise ValueError('unknown qualified include')
-                    if name in pdu_headers or (name.startswith('messages/') and included.startswith('messages/')):
+                    if name in pdu_headers or (name.startswith('transfers/') and included.startswith('transfers/')) or (name.startswith('messages/') and included.startswith('messages/')):
                         return '#include "' + Path(included).name + '"'
                     return '#include <' + included + '>'
                 content = re.sub(r'#include <nrforge/' + profile + r'/([^>]+)>', original_include, content)
@@ -222,6 +249,8 @@ def verify_installed_sdk(prefix, expected_fingerprint=None, profile="ngap"):
             if hashlib.sha256(content.encode()).hexdigest() != original[name]:
                 raise ValueError('SDK public header hash mismatch: ' + name)
         texts[name] = data.decode('utf-8')
+        if name.startswith('transfers/'):
+            texts[name] = content
         if qualified and name.startswith('messages/'):
             texts[name] = texts[name].replace(f'nrforge/{profile}/', '')
     version = texts['sdk_version.hpp']
@@ -245,7 +274,7 @@ def verify_installed_sdk(prefix, expected_fingerprint=None, profile="ngap"):
     if version != expected_version: raise ValueError('unrecognized SDK version header content')
     receipt = {'fingerprint': provenance['fingerprint'], 'schema_sha256': provenance['schema_sha256'],
                'runtime_sha256': provenance['runtime_sha256'], 'version': provenance['version'],
-               'provenance_sha256': hashlib.sha256(provenance_bytes).hexdigest(), 'public_header_sha256': header_hashes}
+               'provenance_sha256': hashlib.sha256(provenance_bytes).hexdigest(), 'public_header_sha256': header_hashes, 'transfer_roots': provenance.get('transfer_roots', {})}
     return texts, receipt
 
 
@@ -283,8 +312,12 @@ def generate(prefix, output, expected_fingerprint=None, profile="ngap"):
     dispatch += ['    return result;', '}', '}', '']
     rendered['dispatch.cpp'] = '\n'.join(dispatch)
     rendered['sources.cmake'] = 'set(NRFORGE_PYTHON_SOURCES\n' + ''.join(f'  "${{CMAKE_CURRENT_LIST_DIR}}/{s}.cpp"\n' for s in stems) + '  "${CMAKE_CURRENT_LIST_DIR}/dispatch.cpp"\n)\n'
+    if sdk_receipt['version'] == '0.2.0':
+        rendered['sources.cmake'] = rendered['sources.cmake'].replace('\n)\n', ''.join('  \"${CMAKE_CURRENT_LIST_DIR}/transfer_'+stem+'.cpp\"\n' for stem in sorted(sdk_receipt['transfer_roots']))+'\n)\n')
     counts = {kind: sum(d['kind'] == kind for m in metadata.values() for d in m['declarations']) for kind in ('struct', 'enum', 'alias', 'constraint')}
-    rendered['conversion-schema.json'] = json.dumps({'messages': metadata, 'counts': counts, 'sdk': sdk_receipt}, indent=2, sort_keys=True) + '\n'
+    from transfer_bindings import generate_transfers
+    transfer_metadata = generate_transfers(public_texts, sdk_receipt, rendered, parse_header, render) if sdk_receipt['version'] == '0.2.0' else {}
+    rendered['conversion-schema.json'] = json.dumps({'messages': metadata, 'transfers': transfer_metadata, 'counts': counts, 'sdk': sdk_receipt}, indent=2, sort_keys=True) + '\n'
     output.mkdir(parents=True, exist_ok=True)
     for name, content in rendered.items():
         destination = output / name
@@ -308,3 +341,4 @@ if __name__ == '__main__':
     else:
         if args.output is None: parser.error('--output is required for generation')
         print(json.dumps(generate(args.sdk_prefix.resolve(), args.output.resolve(), args.expected_fingerprint, args.profile), sort_keys=True))
+

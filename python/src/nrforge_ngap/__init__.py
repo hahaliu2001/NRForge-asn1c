@@ -9,3 +9,4 @@ class CodecError(ValueError):
 from ._native import decode, encode, identity, messages, schema
 __version__ = "0.1.0"
 __all__ = ["CodecError", "decode", "encode", "identity", "messages", "schema"]
+

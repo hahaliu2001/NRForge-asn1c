@@ -85,3 +85,4 @@ function(nrforge_package_sdk target)
     "${CMAKE_CURRENT_BINARY_DIR}/${package}ConfigVersion.cmake"
     DESTINATION "${config_dir}")
 endfunction()
+
