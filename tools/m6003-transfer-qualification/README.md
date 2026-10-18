@@ -1,13 +1,12 @@
 # M6.003 standalone Transfer APER qualification
 
-This directory is preparation material only. The terminal qualification has
-not run. `qualification-contract.json` deliberately marks the oracle pin,
-AMF/Simulator receive policy, and native-error mapping as awaiting one Owner
-freeze; its proposed values are not approvals.
+Owner approved the oracle, receive policy and error mapping on 2026-10-17
+America/Los_Angeles ("批准这些策略"). Qualification remains **NOT_RUN**.
+The contract records the exact approved pin and policy; approval is not a test result.
 
 ## Oracle candidate and installation
 
-Recommended reference: pycrate **0.7.11**, Git tag `0.7.11`, commit
+Approved reference: pycrate **0.7.11**, Git tag `0.7.11`, commit
 `c97546fda8d585e28347fe21bf629d496b2e6c5c`. The official PyPI wheel is
 `pycrate-0.7.11-py2.py3-none-any.whl`, SHA-256
 `2f4169b132aad12693c628fe4a373d8ad35e52f9e8289edf8c7c30d1ed2386b3`.
@@ -54,11 +53,13 @@ zero-padding rule records the SDK's interoperability behavior; it is not a
 claim that X.691 requires all decoders to reject nonzero padding.
 
 The general codec's ability to preserve ASN.1 fields and raw bytes is a
-separate question from AMF and Simulator acceptance. The full receive ledger
-and native-to-application error mapping remain pending in one Owner decision.
-Until frozen, the policy-gated rows in `qualification-contract.json` are not
-executable acceptance expectations and no qualification PASS may be reported.
+separate question from AMF and Simulator acceptance. The policy is now frozen in `qualification-contract.json`. Unknown SEQUENCE
+additions retain their index and raw payload and have no per-entry criticality;
+only explicitly safe ledger entries may be ignored during R1 projection.
+Allocation failures map to resource_limit with original diagnostics retained;
+encode-time local constraint errors are not malformed peer input.
 
-The terminal runner, C++ root consumers, oracle vectors and malformed-input
-matrix are not yet complete. This intentional gate prevents recommendations
-from being treated as approved R1 behavior.
+The terminal runner, native consumers and vector matrix remain incomplete and
+unexecuted. Schema identity and oracle artifact hash are mandatory execution
+gates; importing the bundled precompiled NGAP schema as a fallback is forbidden.
+No SDK/wheel publication, Python binding change or main merge is authorized.

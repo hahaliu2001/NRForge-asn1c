@@ -1,5 +1,5 @@
 {
-  "status": "PREPARATION_ONLY_OWNER_POLICY_PENDING",
+  "status": "POLICY_APPROVED_QUALIFICATION_NOT_RUN",
   "scope": {
     "roots": [
       "PDUSessionResourceSetupRequestTransfer",
@@ -12,7 +12,7 @@
     "sdk_or_wheel_delivery": false
   },
   "oracle_recommendation": {
-    "status": "OWNER_DECISION_REQUIRED",
+    "status": "OWNER_APPROVED",
     "name": "pycrate",
     "version": "0.7.11",
     "git_tag": "0.7.11",
@@ -21,7 +21,7 @@
     "install_artifact_sha256": "2f4169b132aad12693c628fe4a373d8ad35e52f9e8289edf8c7c30d1ed2386b3",
     "install_isolated_venv": true,
     "install_no_deps": true,
-    "basis": "Existing full-PDU/N11 qualification pins pycrate 0.7.11 and compiles all six frozen NGAP modules. This is a recommendation, not yet frozen for M6.003."
+    "basis": "Owner approved this exact oracle pin on 2026-10-17 America/Los_Angeles. Installation artifact hash and fixed-source schema equivalence must be verified before qualification; no fallback to the installed NGAP schema."
   },
   "schema_authority": {
     "release": "TS 38.413 V18.10.0",
@@ -50,11 +50,17 @@
     }
   ],
   "owner_policy_gates": {
-    "status": "OWNER_DECISION_REQUIRED",
-    "recommendation_only": {
+    "status": "OWNER_APPROVED",
+    "approved_policy": {
       "receive_directions": {
-        "amf": ["PDUSessionResourceSetupResponseTransfer", "PDUSessionResourceReleaseResponseTransfer"],
-        "simulator": ["PDUSessionResourceSetupRequestTransfer", "PDUSessionResourceReleaseCommandTransfer"]
+        "amf": [
+          "PDUSessionResourceSetupResponseTransfer",
+          "PDUSessionResourceReleaseResponseTransfer"
+        ],
+        "simulator": [
+          "PDUSessionResourceSetupRequestTransfer",
+          "PDUSessionResourceReleaseCommandTransfer"
+        ]
       },
       "ordering": "Accept ASN.1-valid IE order on receive; retain exact order; emit the approved canonical order on local encode.",
       "duplicates": "Reject duplicate singleton ProtocolIE/ProtocolExtension identities as invalid_transfer; generated collection codec itself still represents repeated entries.",
@@ -72,9 +78,13 @@
         "asn1_valid_but_out_of_r1_projection": "unsupported_profile",
         "invalid_argument": "local argument error; do not translate to malformed wire",
         "invalid_state_or_unexpected_exception": "internal error; propagate and never convert to success"
-      }
-    },
-    "must_not_be_reported_as_approved": true
+      },
+      "unknown_sequence_extensions": "Retain extension index and opaque payload. SEQUENCE additions have no per-entry criticality. R1 projection may ignore only additions explicitly listed as safe in the receive ledger; otherwise unsupported_profile without a success event.",
+      "error_mapping_clarifications": [
+        "allocation_failure maps to resource_limit while retaining the original native diagnostic in evidence; this does not establish malformed peer input.",
+        "Encode-time constraint violations in local values are local argument errors, not malformed_aper."
+      ]
+    }
   },
   "coverage_plan": {
     "status": "NOT_RUN",
@@ -89,6 +99,13 @@
       "oracle-seeded mutations: truncation, trailing octet, nonzero padding, malformed length/choice/constraint",
       "4096 input acceptance boundary, 4097 valid input resource_limit, output cap boundary and over-cap non-publication"
     ],
-    "qualification_claim": "No pass is recorded until the Owner-frozen receive/error policy is supplied and the terminal runner executes."
+    "qualification_claim": "NOT_RUN. Policy approval is not execution or qualification acceptance."
+  },
+  "owner_approval": {
+    "date": "2026-10-17",
+    "timezone": "America/Los_Angeles",
+    "instruction": "批准这些策略",
+    "context": "Approves oracle, AMF/Simulator receive policy and native error mapping including the two clarifications proposed immediately before approval.",
+    "scope": "Complete native consumers, per-field receive ledger, vectors and terminal qualification runner. No RAN SDK publication, Python binding, new wheel or main-branch merge."
   }
 }
