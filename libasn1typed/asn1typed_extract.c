@@ -3455,6 +3455,94 @@ physical_close_type(asn1p_t *tree, asn1typed_module_t *out, size_t index, char *
 malformed:
 	set_error(error, size, "unsupported physical message dependency or out of memory copying reference"); return -1;
 }
+/* M6.003 bounded scope: exactly these NGAP-IEs Transfer roots use the ordinary
+ * SEQUENCE root path. Selection never admits a root by itself; each one must
+ * still satisfy the shape checks below before and after the shared closure. */
+static int
+physical_transfer_root_selected(const char *module_name, const char *root_name) {
+	static const char *const roots[] = {
+		"PDUSessionResourceSetupResponseTransfer",
+		"PDUSessionResourceReleaseCommandTransfer",
+		"PDUSessionResourceReleaseResponseTransfer"
+	};
+	size_t i;
+	if(strcmp(module_name, "NGAP-IEs")) return 0;
+	for(i = 0; i < sizeof(roots) / sizeof(roots[0]); ++i)
+		if(!strcmp(root_name, roots[i])) return 1;
+	return 0;
+}
+/* Root contract before closure: a direct extensible root-only SEQUENCE whose
+ * components are fixed named references in source order, MANDATORY/OPTIONAL,
+ * and whose last component alone is the OPTIONAL iE-Extensions container. */
+static int
+physical_transfer_root_shape(asn1p_expr_t *decl, const asn1typed_type_t *root, char *error, size_t size) {
+	const char *why = NULL;
+	size_t i;
+	if(decl->expr_type != ASN_CONSTR_SEQUENCE || decl->constraints || decl->combined_constraints) why = "root is not a direct unconstrained SEQUENCE";
+	else if(root->is_extensible != 1 || root->has_valid_sequence_extension_structure != 1 ||
+		root->sequence_root_field_count != root->field_count || root->sequence_known_addition_count) why = "root lacks root-only SEQUENCE extension evidence";
+	else if(!root->field_count) why = "root has no components";
+	for(i = 0; !why && i < root->field_count; ++i) {
+		const asn1typed_field_t *f = &root->fields[i];
+		int last = i + 1 == root->field_count;
+		if(f->type_semantics != ASN1TYPED_FIELD_FIXED_TYPE || f->inline_enumerated || f->has_class_field_relation ||
+			f->ioc.symbolic_id || f->ioc.has_numeric_id || f->default_value.kind != ASN1TYPED_DEFAULT_NONE ||
+			f->size_constraint.has_size_constraint || f->value_range.has_value_range ||
+			f->type.kind != ASN1TYPED_REF_NAMED || !f->type.module || !f->type.source_name ||
+			!strncmp(f->type.source_name, "$inline$", 8)) why = "component is not a fixed named type reference";
+		else if(f->presence != ASN1TYPED_PRESENCE_MANDATORY && f->presence != ASN1TYPED_PRESENCE_OPTIONAL) why = "component presence is not MANDATORY or OPTIONAL";
+		else if(!last && f->type.actual_count) why = "parameterized component other than iE-Extensions";
+		else if(last && (strcmp(f->source_name, "iE-Extensions") || f->presence != ASN1TYPED_PRESENCE_OPTIONAL || f->type.actual_count != 1))
+			why = "last component is not OPTIONAL single-set iE-Extensions";
+	}
+	if(!why) return 0;
+	set_error(error, size, "unsupported NGAP Transfer root shape for %s: %s", decl->Identifier, why);
+	return -1;
+}
+/* Root contract after closure: iE-Extensions owns a bounded SEQUENCE OF whose
+ * element binding is finalized against an &Extension, never &Value, registry
+ * for exactly the object set the root declares. */
+static int
+physical_transfer_root_binding(const asn1typed_module_t *m, char *error, size_t size) {
+	const asn1typed_type_t *root = &m->types[0];
+	const asn1typed_type_ref_t *ref = &root->fields[root->field_count - 1].type;
+	const asn1typed_bound_instance_t *container = NULL;
+	const char *why = "iE-Extensions container instance is not an owned SEQUENCE OF";
+	size_t i, element = m->bound_instance_count;
+	for(i = 0; i < m->bound_instance_count; ++i)
+		if(asn1typed_type_ref_equal(ref, &m->bound_instances[i].identity)) { container = &m->bound_instances[i]; break; }
+	if(container && container->body.kind == ASN1TYPED_TYPE_SEQUENCE_OF) {
+		why = "iE-Extensions container SIZE lower bound is not positive";
+		if(container->body.size_constraint.has_size_constraint && container->body.size_constraint.lower_bound >= 1) {
+			why = "iE-Extensions element is not an owned bound SEQUENCE";
+			for(i = 0; i < m->bound_instance_count; ++i)
+				if(asn1typed_type_ref_equal(&container->body.element_type, &m->bound_instances[i].identity)) { element = i; break; }
+		}
+	}
+	if(element < m->bound_instance_count && m->bound_instances[element].body.kind == ASN1TYPED_TYPE_SEQUENCE) {
+		const asn1typed_ioc_binding_t *binding = &m->bound_instances[element].ioc_binding;
+		why = "iE-Extensions element has no valid &Extension IOC binding";
+		if(binding->has_valid_binding && binding->registry_index < m->ioc_registry_count &&
+			m->ioc_registries[binding->registry_index].has_valid_dispatch &&
+			!strcmp(m->ioc_registries[binding->registry_index].selected_class_field_source_name, "Extension") &&
+			!asn1typed_bound_instance_ioc_binding_validate(m, element, error, size)) {
+			/* A container may ignore its parameter; the binding must use the
+			 * root's own declared ExtIEs set, not any other &Extension set. */
+			const asn1typed_type_actual_t *want = &ref->actuals[0];
+			const asn1typed_type_ref_t *bound = &container->body.element_type;
+			const asn1typed_ioc_registry_t *registry = &m->ioc_registries[binding->registry_index];
+			why = "iE-Extensions binding does not use the root's declared object set";
+			if(bound->actual_count == 1 && bound->actuals && want->module && want->source_name &&
+				bound->actuals[0].kind == want->kind &&
+				bound->actuals[0].module && !strcmp(bound->actuals[0].module, want->module) &&
+				bound->actuals[0].source_name && !strcmp(bound->actuals[0].source_name, want->source_name) &&
+				registry->object_set_module && !strcmp(registry->object_set_module, want->module) &&
+				registry->object_set_source_name && !strcmp(registry->object_set_source_name, want->source_name)) return 0;
+		}
+	}
+	set_error(error, size, "unsupported NGAP Transfer root %s: %s", root->identity.source_name, why);
+	return -1;
+}
 int
 asn1typed_extract_physical_message(asn1p_t *tree, const char *module_name, const char *message_name,
 		asn1typed_module_t *out, char *error, size_t size) {
@@ -3462,6 +3550,7 @@ asn1typed_extract_physical_message(asn1p_t *tree, const char *module_name, const
 	asn1p_expr_t *message;
 	asn1typed_type_t *root;
 	size_t type_index = 0, bound_index = 0, registry_index = 0;
+	int transfer_root;
 	if(error && size) error[0] = 0;
 	if(out) memset(out, 0, sizeof(*out));
 	memset(&pending, 0, sizeof(pending));
@@ -3472,7 +3561,10 @@ asn1typed_extract_physical_message(asn1p_t *tree, const char *module_name, const
 		asn1typed_module_add_type(&pending, message_name, ASN1TYPED_TYPE_SEQUENCE, pending.location.file, message->_lineno > 0 ? (unsigned)message->_lineno : 0, &root) ||
 		populate_type(tree, root, message, pending.location.file, error, size)) goto fail;
 	pending.tag_default = module_tag_default(message->module);
-	if(root->field_count != 1 || root->fields[0].type_semantics != ASN1TYPED_FIELD_FIXED_TYPE || root->fields[0].presence != ASN1TYPED_PRESENCE_MANDATORY || root->fields[0].type.actual_count != 1) goto unsupported;
+	transfer_root = physical_transfer_root_selected(module_name, message_name);
+	if(transfer_root) {
+		if(physical_transfer_root_shape(message, root, error, size)) goto fail;
+	} else if(root->field_count != 1 || root->fields[0].type_semantics != ASN1TYPED_FIELD_FIXED_TYPE || root->fields[0].presence != ASN1TYPED_PRESENCE_MANDATORY || root->fields[0].type.actual_count != 1) goto unsupported;
 	while(type_index < pending.type_count || bound_index < pending.bound_instance_count || registry_index < pending.ioc_registry_count) {
 		if(type_index < pending.type_count) {
 			if(physical_close_type(tree, &pending, type_index++, error, size)) goto fail;
@@ -3494,8 +3586,10 @@ asn1typed_extract_physical_message(asn1p_t *tree, const char *module_name, const
 			++registry_index;
 		}
 	}
-	/* The physical message root must hold a collection, not a single field. */
-	{
+	if(transfer_root) {
+		if(physical_transfer_root_binding(&pending, error, size)) goto fail;
+	} else {
+		/* The physical message root must hold a collection, not a single field. */
 		asn1typed_type_ref_t *ref = &pending.types[0].fields[0].type;
 		size_t i;
 		for(i = 0; i < pending.bound_instance_count; ++i)

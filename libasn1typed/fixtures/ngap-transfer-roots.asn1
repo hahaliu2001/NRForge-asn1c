@@ -1,0 +1,129 @@
+-- Synthetic M6.003 fixture mirroring NGAP container/class/root shapes.
+-- IDs and nested bodies are reduced; this is not the authoritative schema.
+NGAP-CommonDataTypes DEFINITIONS AUTOMATIC TAGS ::= BEGIN
+Criticality ::= ENUMERATED { reject, ignore, notify }
+Presence ::= ENUMERATED { optional, conditional, mandatory }
+ProtocolExtensionID ::= INTEGER (0..65535)
+ProtocolIE-ID ::= INTEGER (0..65535)
+END
+
+NGAP-Containers DEFINITIONS AUTOMATIC TAGS ::= BEGIN
+IMPORTS Criticality, Presence, ProtocolExtensionID, ProtocolIE-ID FROM NGAP-CommonDataTypes;
+NGAP-PROTOCOL-IES ::= CLASS {
+  &id ProtocolIE-ID UNIQUE,
+  &criticality Criticality,
+  &Value,
+  &presence Presence
+} WITH SYNTAX { ID &id CRITICALITY &criticality TYPE &Value PRESENCE &presence }
+NGAP-PROTOCOL-EXTENSION ::= CLASS {
+  &id ProtocolExtensionID UNIQUE,
+  &criticality Criticality,
+  &Extension,
+  &presence Presence
+} WITH SYNTAX { ID &id CRITICALITY &criticality EXTENSION &Extension PRESENCE &presence }
+ProtocolIE-Container {NGAP-PROTOCOL-IES : IEsSetParam} ::=
+  SEQUENCE (SIZE (0..65535)) OF ProtocolIE-Field {{IEsSetParam}}
+ProtocolIE-Field {NGAP-PROTOCOL-IES : IEsSetParam} ::= SEQUENCE {
+  id NGAP-PROTOCOL-IES.&id ({IEsSetParam}),
+  criticality NGAP-PROTOCOL-IES.&criticality ({IEsSetParam}{@id}),
+  value NGAP-PROTOCOL-IES.&Value ({IEsSetParam}{@id})
+}
+ProtocolExtensionContainer {NGAP-PROTOCOL-EXTENSION : ExtensionSetParam} ::=
+  SEQUENCE (SIZE (1..65535)) OF ProtocolExtensionField {{ExtensionSetParam}}
+ProtocolExtensionField {NGAP-PROTOCOL-EXTENSION : ExtensionSetParam} ::= SEQUENCE {
+  id NGAP-PROTOCOL-EXTENSION.&id ({ExtensionSetParam}),
+  criticality NGAP-PROTOCOL-EXTENSION.&criticality ({ExtensionSetParam}{@id}),
+  extensionValue NGAP-PROTOCOL-EXTENSION.&Extension ({ExtensionSetParam}{@id})
+}
+END
+
+NGAP-IEs DEFINITIONS AUTOMATIC TAGS ::= BEGIN
+IMPORTS ProtocolExtensionID, ProtocolIE-ID FROM NGAP-CommonDataTypes
+  NGAP-PROTOCOL-EXTENSION, NGAP-PROTOCOL-IES, ProtocolExtensionContainer,
+  ProtocolIE-Container FROM NGAP-Containers;
+id-RedundantDLQosFlowPerTNLInformation ProtocolExtensionID ::= 192
+id-UsedRSNInformation ProtocolExtensionID ::= 195
+id-QosFlowAdditionalInfoList ProtocolExtensionID ::= 284
+id-SecondaryRATUsageInformation ProtocolExtensionID ::= 144
+id-PDUSessionAggregateMaximumBitRate ProtocolIE-ID ::= 130
+id-UL-NGU-UP-TNLInformation ProtocolIE-ID ::= 139
+
+QosFlowIdentifier ::= INTEGER (0..63, ...)
+CauseRadioNetwork ::= ENUMERATED { unspecified, txnrelocoverall-expiry, ... }
+CauseMisc ::= ENUMERATED { control-processing-overload, unspecified, ... }
+Cause ::= CHOICE { radioNetwork CauseRadioNetwork, misc CauseMisc, ... }
+GTPTunnel ::= SEQUENCE {
+  transportLayerAddress BIT STRING (SIZE (1..160, ...)),
+  gTP-TEID OCTET STRING (SIZE (4)),
+  iE-Extensions ProtocolExtensionContainer { {GTPTunnel-ExtIEs} } OPTIONAL,
+  ...
+}
+GTPTunnel-ExtIEs NGAP-PROTOCOL-EXTENSION ::= { ... }
+AssociatedQosFlowItem ::= SEQUENCE { qosFlowIdentifier QosFlowIdentifier, ... }
+AssociatedQosFlowList ::= SEQUENCE (SIZE (1..64)) OF AssociatedQosFlowItem
+QosFlowPerTNLInformation ::= SEQUENCE {
+  uPTransportLayerInformation GTPTunnel,
+  associatedQosFlowList AssociatedQosFlowList,
+  ...
+}
+QosFlowPerTNLInformationItem ::= SEQUENCE { qosFlowPerTNLInformation QosFlowPerTNLInformation, ... }
+QosFlowPerTNLInformationList ::= SEQUENCE (SIZE (1..3)) OF QosFlowPerTNLInformationItem
+IntegrityProtectionResult ::= ENUMERATED { performed, not-performed, ... }
+SecurityResult ::= SEQUENCE { integrityProtectionResult IntegrityProtectionResult, ... }
+QosFlowWithCauseItem ::= SEQUENCE { qosFlowIdentifier QosFlowIdentifier, cause Cause, ... }
+QosFlowListWithCause ::= SEQUENCE (SIZE (1..64)) OF QosFlowWithCauseItem
+RedundantPDUSessionInformation ::= SEQUENCE { rSN ENUMERATED { v1, v2, ... }, ... }
+QosFlowAdditionalInfoList ::= SEQUENCE (SIZE (1..64)) OF QosFlowIdentifier
+SecondaryRATUsageInformation ::= SEQUENCE { pDUSessionUsageReport OCTET STRING OPTIONAL, ... }
+BitRate ::= INTEGER (0..4000000000000, ...)
+
+PDUSessionResourceSetupResponseTransfer ::= SEQUENCE {
+  dLQosFlowPerTNLInformation QosFlowPerTNLInformation,
+  additionalDLQosFlowPerTNLInformation QosFlowPerTNLInformationList OPTIONAL,
+  securityResult SecurityResult OPTIONAL,
+  qosFlowFailedToSetupList QosFlowListWithCause OPTIONAL,
+  iE-Extensions ProtocolExtensionContainer { {PDUSessionResourceSetupResponseTransfer-ExtIEs} } OPTIONAL,
+  ...
+}
+PDUSessionResourceSetupResponseTransfer-ExtIEs NGAP-PROTOCOL-EXTENSION ::= {
+  { ID id-RedundantDLQosFlowPerTNLInformation CRITICALITY ignore EXTENSION QosFlowPerTNLInformation PRESENCE optional } |
+  { ID id-UsedRSNInformation CRITICALITY ignore EXTENSION RedundantPDUSessionInformation PRESENCE optional },
+  ...
+}
+PDUSessionResourceReleaseCommandTransfer ::= SEQUENCE {
+  cause Cause,
+  iE-Extensions ProtocolExtensionContainer { {PDUSessionResourceReleaseCommandTransfer-ExtIEs} } OPTIONAL,
+  ...
+}
+PDUSessionResourceReleaseCommandTransfer-ExtIEs NGAP-PROTOCOL-EXTENSION ::= {
+  { ID id-QosFlowAdditionalInfoList CRITICALITY ignore EXTENSION QosFlowAdditionalInfoList PRESENCE optional },
+  ...
+}
+PDUSessionResourceReleaseResponseTransfer ::= SEQUENCE {
+  iE-Extensions ProtocolExtensionContainer { {PDUSessionResourceReleaseResponseTransfer-ExtIEs} } OPTIONAL,
+  ...
+}
+PDUSessionResourceReleaseResponseTransfer-ExtIEs NGAP-PROTOCOL-EXTENSION ::= {
+  { ID id-SecondaryRATUsageInformation CRITICALITY ignore EXTENSION SecondaryRATUsageInformation PRESENCE optional } |
+  { ID id-QosFlowAdditionalInfoList CRITICALITY ignore EXTENSION QosFlowAdditionalInfoList PRESENCE optional },
+  ...
+}
+
+-- IOC-message control: not selected, keeps the single-container path.
+PDUSessionResourceSetupRequestTransfer ::= SEQUENCE {
+  protocolIEs ProtocolIE-Container { {PDUSessionResourceSetupRequestTransferIEs} },
+  ...
+}
+PDUSessionResourceSetupRequestTransferIEs NGAP-PROTOCOL-IES ::= {
+  { ID id-PDUSessionAggregateMaximumBitRate CRITICALITY reject TYPE BitRate PRESENCE optional } |
+  { ID id-UL-NGU-UP-TNLInformation CRITICALITY reject TYPE GTPTunnel PRESENCE mandatory },
+  ...
+}
+-- Same Transfer shape, but not one of the three selected roots.
+PathSwitchRequestUnsuccessfulTransfer ::= SEQUENCE {
+  cause Cause,
+  iE-Extensions ProtocolExtensionContainer { {PathSwitchRequestUnsuccessfulTransfer-ExtIEs} } OPTIONAL,
+  ...
+}
+PathSwitchRequestUnsuccessfulTransfer-ExtIEs NGAP-PROTOCOL-EXTENSION ::= { ... }
+END

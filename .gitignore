@@ -159,6 +159,7 @@ asn1c/tmp/
 
 /libaper/check_aper_known_open
 /libasn1typed/check_asn1typed_ioc_evidence
+/libasn1typed/check_asn1typed_transfer_roots
 /libasn1typed/check_asn1typed_ioc_render
 /tools/asn1typed_ioc_probe
 /tools/asn1typed_codec_coverage

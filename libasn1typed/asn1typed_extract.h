@@ -42,7 +42,12 @@ int asn1typed_extract_message(asn1p_t *tree, const char *module_name,
 		char *error, size_t error_size);
 
 /* Opt-in physical single-container message graph, with owned dispatch tables
- * and explicit selector-role proofs. Old flattened extraction is unchanged. */
+ * and explicit selector-role proofs. Old flattened extraction is unchanged.
+ * Bounded exception: NGAP-IEs PDUSessionResourceSetupResponseTransfer,
+ * ReleaseCommandTransfer and ReleaseResponseTransfer are ordinary extensible
+ * SEQUENCE roots (types[0], fields in source order) whose last component must
+ * be OPTIONAL iE-Extensions bound to an &Extension registry; other shapes of
+ * those roots fail. All other roots keep the single-container contract. */
 int asn1typed_extract_physical_message(asn1p_t *, const char *, const char *,
 		asn1typed_module_t *, char *, size_t);
 

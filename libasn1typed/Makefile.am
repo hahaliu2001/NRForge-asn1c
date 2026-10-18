@@ -133,6 +133,13 @@ TESTS += check_asn1typed_ioc_evidence
 check_asn1typed_ioc_evidence_SOURCES = check_asn1typed_ioc_evidence.c check_ioc_alloc_core.c check_ioc_alloc_extract.c
 check_asn1typed_ioc_evidence_CPPFLAGS = $(check_asn1typed_extract_CPPFLAGS) -DIOC_EVIDENCE_FIXTURE=\"$(abs_srcdir)/fixtures/ioc-evidence-n9.asn1\" -DNDEBUG
 check_asn1typed_ioc_evidence_LDADD = $(check_asn1typed_extract_LDADD)
+
+check_PROGRAMS += check_asn1typed_transfer_roots
+TESTS += check_asn1typed_transfer_roots
+check_asn1typed_transfer_roots_SOURCES = check_asn1typed_transfer_roots.c check_ioc_alloc_core.c check_ioc_alloc_extract.c
+check_asn1typed_transfer_roots_CPPFLAGS = $(check_asn1typed_extract_CPPFLAGS) -DTRANSFER_ROOTS_FIXTURE=\"$(abs_srcdir)/fixtures/ngap-transfer-roots.asn1\" -DNDEBUG
+check_asn1typed_transfer_roots_LDADD = $(check_asn1typed_extract_LDADD)
+EXTRA_DIST += fixtures/ngap-transfer-roots.asn1
 EXTRA_DIST += fixtures/ioc-evidence-n9.asn1
 
 check_PROGRAMS += check_asn1typed_ioc_render
