@@ -1,8 +1,16 @@
-# NGAP 0.2.0 complete delivery
+# NGAP 0.2.0 candidate producer delivery
 
-Owner authorized the four-stage SDK/binding/RAN release/5GC wheel delivery on
-2026-10-18 America/Los_Angeles. Owner explicitly permits pushes to this existing
-public asn1c fork; RAN and 5GC and their new releases remain private. No mainline
+Current authority: [coverage and implementation plan](../../docs/cpp-sdk-coverage-and-implementation-plan.md).
+The 2026-10-18 Owner decision supersedes the previous cross-repository delivery
+chain: ASN1 owns C++ SDK and Python wheel production, verification and publication;
+RAN and 5GC consume immutable pinned artifacts. Do not run the old 5GC full-delivery
+entry point. Producer orchestration migration and consolidated review are pending.
+This planning update does not make existing scripts safe for publication.
+
+
+The historical four-stage SDK/binding/RAN release/5GC wheel delivery authorization
+has been superseded by the ownership decision above. Direct pushes to this
+existing public asn1c fork remain authorized; RAN and 5GC remain private. No mainline
 merge, history rewrite, old release replacement or deletion is authorized.
 
 The SDK retains the 131-message outer NGAP PDU API. Four independent roots are
@@ -36,7 +44,8 @@ compare all projected typed fields and oracle wire bytes. Old outer 131 vectors
 and twelve existing consumer tests remain in the regression (version is 0.2.0).
 The native 250-check campaign already accepted at 460c790 is not rerun or relabeled.
 
-Use the 5GC full-delivery entry point for the complete publication chain. The
+The previous 5GC full-delivery entry point is withdrawn. ASN1-owned publication
+orchestration must be implemented and reviewed before execution. The
 resource guard is mandatory: cgroup v2 MemoryMax=6 GiB, MemorySwapMax=0,
 TasksMax=128, CPUQuota=150%; compilation is serial. The guard verifies effective
 limits before any build. A missing user systemd manager/delegation stops safely;
