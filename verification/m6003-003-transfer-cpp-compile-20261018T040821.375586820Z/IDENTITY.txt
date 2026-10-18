@@ -1,0 +1,39 @@
+repo_root=/home/jie/jie_github/NRForge-asn1c
+source_head=36df0f5ba547e985cc3db236f83c99273dc78e3b
+source_branch=feature/ngap-transfer-owned-roots
+source_status:
+?? tools/m6003-003-transfer-cpp-compile/
+?? verification/
+
+inputs_sha256:
+dba52d63561f81db5b714140a1ef5ce238cd2c2f6c22918108433c13a699e036  /home/jie/jie_github/NRForge-asn1c/tools/m6003-003-transfer-cpp-compile/consumer.cpp
+c9ddb5992d7501c660af565ebb19f05357b9c164eebee39b4bbf8b5d1db89199  /home/jie/jie_github/NRForge-asn1c/.gitignore
+2889c7cb30c7a59b41aa2dca3504ffad8466082cd740123ad84571b5f71da346  /home/jie/jie_github/NRForge-asn1c/libasn1typed/Makefile.am
+2d74beda172aa194a0039c6aab423f2149dc2fc30b0d154a5e963d1876e7a70a  /home/jie/jie_github/NRForge-asn1c/libasn1typed/asn1typed_extract.c
+2ca6e595c26aaba7e935405047c2df465266ef4115783233efbe83ff954946bd  /home/jie/jie_github/NRForge-asn1c/libasn1typed/asn1typed_extract.h
+b7b76197e218f14aa0ff298e3b44fdd049977b33f96323117c76cc175324d9a6  /home/jie/jie_github/NRForge-asn1c/libasn1typed/check_asn1typed_transfer_roots.c
+c3e86b3d99cd35343eb6d6bd43a10e2bbb4e5931f253f42fb8b632586df61343  /home/jie/jie_github/NRForge-asn1c/libasn1typed/fixtures/ngap-transfer-roots.asn1
+34ceca5e464fc1c8f6e505cdd01ec00d22dd87d74d17abbb5660f605570162f1  /home/jie/m6003-b1-rerun/tree/libaper/runtime.hpp
+e6d162c031a4c8ba958e21460ffd5acf5ecf05d26232549da9933912e9259731  /home/jie/m6003-b1-rerun/tree/libaper/runtime.cpp
+5447fdd559b2d1be8112161b4474810af619dd24f64678fc92d167bd36ef3db2  /home/jie/m6003-b1-rerun/tree/libaper/sequence_extensions.hpp
+1347b422efd23fb167b954845ced865ce1412ade4f65d1f429e8d3ac0ff26de6  /home/jie/m6003-b1-rerun/tree/libaper/.libs/libaper.a
+
+case=setup_request
+24a06a55845f7baac5e857af7e6a5f3eece518da7dddfbf3b8cd8b183ebc47ec  /home/jie/m6003-b1-rerun/runs/setup_request/out/root_types.hpp
+98b31e2938c633362ac5b40f2964014ff77b5d9e66dec150e1ea78eeee18ebd2  /home/jie/m6003-b1-rerun/runs/setup_request/out/root_mapping.hpp
+71ebda230468d022d66e8b0e1dbe50f1ec90166cc75d00a61dda0a332efe363a  /home/jie/m6003-b1-rerun/runs/setup_request/out/root_codec.hpp
+
+case=setup_response
+bf66d1f8ad50826dfb2b4b90ee179f79ed21edd5718e2c204cf1c7f1d7117677  /home/jie/m6003-b1-rerun/runs/setup_response/out/root_types.hpp
+b6de445d1b4490a80ba79de50a7e7409263087689f47fa183d83db6b3875d354  /home/jie/m6003-b1-rerun/runs/setup_response/out/root_mapping.hpp
+b81f12211649b10c32369b226d2d340c2d221fd25be3278343c1b4e3094c5e72  /home/jie/m6003-b1-rerun/runs/setup_response/out/root_codec.hpp
+
+case=release_command
+d76c3fea7c8cf3e452c34e8b2ba8840d0517c4bee14d5d071011a04327ed2626  /home/jie/m6003-b1-rerun/runs/release_command/out/root_types.hpp
+327195324a5935197d9ff9ca0a2b92a3c45b9255eaca290e094c758b363c7524  /home/jie/m6003-b1-rerun/runs/release_command/out/root_mapping.hpp
+5d35e92dd89b374c087db1731708ee62afb6955f3afcd1b5606443588aa5c67e  /home/jie/m6003-b1-rerun/runs/release_command/out/root_codec.hpp
+
+case=release_response
+c1b57ead3311c611b682f45fc8afef919de2020e277b6c60afc75117101bdc3b  /home/jie/m6003-b1-rerun/runs/release_response/out/root_types.hpp
+7ba38d2ae70abf2648e49e0e8e9596ceec863a7cb7a82a9b3d5b8ea5c5ef0792  /home/jie/m6003-b1-rerun/runs/release_response/out/root_mapping.hpp
+ff54b94ffdaffe4193fb5468554749799e2beffdce67d47483ab9825fbce668d  /home/jie/m6003-b1-rerun/runs/release_response/out/root_codec.hpp

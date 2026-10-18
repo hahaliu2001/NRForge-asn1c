@@ -1,0 +1,94 @@
+{
+  "status": "PREPARATION_ONLY_OWNER_POLICY_PENDING",
+  "scope": {
+    "roots": [
+      "PDUSessionResourceSetupRequestTransfer",
+      "PDUSessionResourceSetupResponseTransfer",
+      "PDUSessionResourceReleaseCommandTransfer",
+      "PDUSessionResourceReleaseResponseTransfer"
+    ],
+    "standalone_root_only": true,
+    "outer_ngap_pdu_wrapping": false,
+    "sdk_or_wheel_delivery": false
+  },
+  "oracle_recommendation": {
+    "status": "OWNER_DECISION_REQUIRED",
+    "name": "pycrate",
+    "version": "0.7.11",
+    "git_tag": "0.7.11",
+    "git_commit": "c97546fda8d585e28347fe21bf629d496b2e6c5c",
+    "install_artifact": "pycrate-0.7.11-py2.py3-none-any.whl",
+    "install_artifact_sha256": "2f4169b132aad12693c628fe4a373d8ad35e52f9e8289edf8c7c30d1ed2386b3",
+    "install_isolated_venv": true,
+    "install_no_deps": true,
+    "basis": "Existing full-PDU/N11 qualification pins pycrate 0.7.11 and compiles all six frozen NGAP modules. This is a recommendation, not yet frozen for M6.003."
+  },
+  "schema_authority": {
+    "release": "TS 38.413 V18.10.0",
+    "ran_authority_commit": "d6e514a33ec3695925c24aa292900514b371b074",
+    "asn1c_source_manifest": "tools/n11-envelope-qualification/source-manifest.json",
+    "ordered_module_list": "tools/qualification/ngap-rel18.modules",
+    "equivalence_method": "Require exact module order, Git blob IDs and SHA-256 values for the six frozen source files; compile the unmodified six module texts into pycrate in the dedicated venv. Compare those same identities against the ASN.1 source authority used for the generated headers."
+  },
+  "approved_deviations": [
+    {
+      "id": "M6003-APER-4096-OCTET-CAP",
+      "approval": "M6.003 Gate A, Owner, 2026-10-16",
+      "input_limit_octets": 4096,
+      "output_limit_octets": 4096,
+      "valid_over_limit_classification": "resource_limit",
+      "asn1_invalidity_claim": false,
+      "matrix_registration": "NRForge-5GC/planning/references/R1_PROTOCOL_MATRIX.md §15 (added in this preparation)"
+    },
+    {
+      "id": "M6003-APER-ZERO-TERMINAL-PADDING",
+      "approval": "M6.003 Gate A, Owner, 2026-10-16",
+      "policy": "Strict inherited native SDK zero-padding check",
+      "nonzero_padding_classification": "nonzero_padding",
+      "asn1_universal_requirement_claim": false,
+      "matrix_registration": "NRForge-5GC/planning/references/R1_PROTOCOL_MATRIX.md §15 (added in this preparation)"
+    }
+  ],
+  "owner_policy_gates": {
+    "status": "OWNER_DECISION_REQUIRED",
+    "recommendation_only": {
+      "receive_directions": {
+        "amf": ["PDUSessionResourceSetupResponseTransfer", "PDUSessionResourceReleaseResponseTransfer"],
+        "simulator": ["PDUSessionResourceSetupRequestTransfer", "PDUSessionResourceReleaseCommandTransfer"]
+      },
+      "ordering": "Accept ASN.1-valid IE order on receive; retain exact order; emit the approved canonical order on local encode.",
+      "duplicates": "Reject duplicate singleton ProtocolIE/ProtocolExtension identities as invalid_transfer; generated collection codec itself still represents repeated entries.",
+      "known_criticality_mismatch": "Reject as invalid_transfer before semantic projection.",
+      "unknown_ie_or_extension": "For criticality=reject, reject as invalid_transfer. For criticality=ignore, structurally validate, retain raw identity/order/payload, and ignore only after the R1 adapter has established the field is semantically safe. For criticality=notify, reject as unsupported_profile until an approved Error Indication action exists. Unknown SEQUENCE additions have no IE criticality; retain their opaque payload and allow only the explicitly approved ignore behavior.",
+      "known_non_r1_optional_fields": "Do not discard fields that can affect R1 meaning; retain metadata and return unsupported_profile without success/event. In particular additional DL tunnel/failed-flow lists are outside the Setup Response R1 projection.",
+      "native_error_mapping": {
+        "truncated_input": "malformed_aper",
+        "nonzero_padding": "malformed_aper",
+        "trailing_data": "malformed_aper",
+        "constraint_violation": "malformed_aper on decode",
+        "resource_limit": "resource_limit",
+        "allocation_failure": "resource_limit",
+        "semantic_missing_duplicate_or_criticality_error": "invalid_transfer",
+        "asn1_valid_but_out_of_r1_projection": "unsupported_profile",
+        "invalid_argument": "local argument error; do not translate to malformed wire",
+        "invalid_state_or_unexpected_exception": "internal error; propagate and never convert to success"
+      }
+    },
+    "must_not_be_reported_as_approved": true
+  },
+  "coverage_plan": {
+    "status": "NOT_RUN",
+    "groups": [
+      "oracle minimum legal vector per root",
+      "representative optional fields, CHOICE arms, IPv4 address widths and nonzero TEID edges",
+      "D2 ARP labels and exact bit-rate boundaries",
+      "oracle encode -> native decode -> field-by-field semantic assertions",
+      "native encode -> independent pycrate decode -> field-by-field semantic assertions",
+      "canonical APER byte equality for explicitly frozen vectors only",
+      "IE/extension order, duplicate, unknown payload and criticality capability versus AMF/Simulator receive policy",
+      "oracle-seeded mutations: truncation, trailing octet, nonzero padding, malformed length/choice/constraint",
+      "4096 input acceptance boundary, 4097 valid input resource_limit, output cap boundary and over-cap non-publication"
+    ],
+    "qualification_claim": "No pass is recorded until the Owner-frozen receive/error policy is supplied and the terminal runner executes."
+  }
+}
