@@ -44,8 +44,8 @@ def main():
     write(out/'summary.json', summary)
     try:
         # git archive contains only tracked files, not local caches/libraries.
-        archive = git(repo, 'archive', '--format=tar', head, '--', '.', ':!verification',
-                      ':!_codeql_detected_source_root')
+        archive = git(repo, 'archive', '--format=tar', head, '--', '.', ':(exclude)verification',
+                      ':(exclude)_codeql_detected_source_root')
         source = out/'source'; source.mkdir()
         with tarfile.open(fileobj=io.BytesIO(archive)) as tar:
             members = tar.getmembers()
