@@ -331,3 +331,5 @@ EXTRA_DIST += tools/unified-sdk/README.md \
   python/ngap_sdk/root_catalog.py
 
 EXTRA_DIST += docs/unified-sdk-expanded-source-review.md
+
+EXTRA_DIST += tools/unified-sdk/test_component_identities.py

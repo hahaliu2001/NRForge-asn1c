@@ -22,6 +22,30 @@ VERSION='0.3.0'
 def git(*args):return subprocess.check_output(['git','-C',str(REPO),*args])
 
 
+
+def read_component_identities(prefix, source_revision):
+    """Read each producer's identity contract without weakening any component gate."""
+    identities={}
+    for profile in ('ngap','f1ap','e1ap','rrc'):
+        provenance=json.loads((prefix/('share/nrforge-'+profile+'/sdk-provenance.json')).read_text())
+        if not isinstance(provenance,dict):
+            raise ValueError('Malformed component provenance: '+profile)
+        identity=provenance.get('identity') if profile=='rrc' else provenance
+        if not isinstance(identity,dict):
+            raise ValueError('Missing component identity: '+profile)
+        if identity.get('version')!=VERSION:
+            raise ValueError('Mixed or missing component version: '+profile)
+        if identity.get('source_revision')!=source_revision:
+            raise ValueError('Component source revision mismatch: '+profile)
+        for key in ('fingerprint','schema_sha256','runtime_sha256'):
+            value=identity.get(key)
+            if not isinstance(value,str) or not re.fullmatch(r'[0-9a-f]{64}',value):
+                raise ValueError('Invalid component '+key+': '+profile)
+        identities[profile]={key:identity[key] for key in
+            ('version','source_revision','fingerprint','schema_sha256','runtime_sha256')}
+    return identities
+
+
 def merge(source,target):
     for path in sorted(source.rglob('*')):
         if path.is_symlink(): raise ValueError('Symlinks are not allowed in installed SDK bundle')
@@ -108,8 +132,8 @@ def main():
                  '  set_target_properties(NRForge::asn1 PROPERTIES INTERFACE_LINK_LIBRARIES "NRForge::ngap;NRForge::f1ap;NRForge::e1ap;NRForge::rrc")','endif()']
         (configs/'NRForgeASN1Config.cmake').write_text('\n'.join(config)+'\n')
         (configs/'NRForgeASN1ConfigVersion.cmake').write_text('set(PACKAGE_VERSION "'+VERSION+'")\nif(PACKAGE_FIND_VERSION VERSION_EQUAL PACKAGE_VERSION)\nset(PACKAGE_VERSION_EXACT TRUE)\nset(PACKAGE_VERSION_COMPATIBLE TRUE)\nendif()\n')
-        identity={p:json.loads((prefix/('share/nrforge-'+p+'/sdk-provenance.json')).read_text())['version'] for p in prefixes}
-        if set(identity.values())!={VERSION}:raise ValueError('Mixed component versions in unified SDK')
+        component_identities=read_component_identities(prefix,head)
+        identity={profile:row['version'] for profile,row in component_identities.items()}
         shutil.copyfile(source/'LICENSE',prefix/'LICENSE')
         write(prefix/'nrforge-asn1-bundle.json',dict(version=VERSION,protocols=list(prefixes),source_revision=head,scope=json.loads((source/'tools/unified-sdk/scope.json').read_text()),component_versions=identity,qualification='PENDING'))
         env=out/'tool-venv';command(out/'06-venv',[sys.executable,'-m','venv',env]);python=env/'bin/python'

@@ -71,3 +71,30 @@ The accepted four-root 250-check campaign remains exactly at source 460c790 and
 its recorded report digest. Its full campaign is not rerun. Installed consumers
 reuse finite independent fixtures at a different boundary, plus new descriptor
 cases. No full-standard or exhaustive-values coverage claim is made.
+
+## B1 provenance identity correction
+
+The independent read-only review of 9696461d..3f1cb904 found one deterministic
+blocker: produce.py read every component version at the provenance top level,
+whereas RRC's producer writes identity.version. Even successful component builds
+would fail at the merge identity gate before installed/wheel qualification.
+
+The correction reads the actual per-protocol contracts through
+read_component_identities: flat identity for NGAP/F1AP/E1AP, nested identity for
+RRC. Every one of the four components remains mandatory. Version must equal the
+unified candidate version, source_revision must equal the committed snapshot
+being built, and fingerprint/schema/runtime hashes must be 64 lowercase hex
+characters. A missing RRC identity never falls back to unrelated top-level data.
+The existing bundle component_versions field retains its original output shape.
+
+Author execution: eight offline Python regression tests PASS (temporary JSON
+fixtures only, no network/build/subprocess execution by the tests). They cover
+the actual flat/nested contracts, mixed RRC and APER versions, source mismatch
+for each component, missing RRC identity, missing component, malformed digest
+and malformed nested identity. git diff --check passes. These results close the
+author-side B1 regression only; they do not claim SDK generation, compilation,
+installed qualification, wheel creation, publication or Owner acceptance.
+Targeted independent read-only re-review concluded: B1 CLOSED, no new blocker.
+The reviewer inspected the source and regression cases without running tests
+or builds and without modifying files. This is source-review closure only;
+full native SDK/wheel qualification and Owner acceptance remain pending.
