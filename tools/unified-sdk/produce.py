@@ -76,7 +76,11 @@ def main():
     p.add_argument('--schema-root',type=Path,required=True)
     p.add_argument('--work',type=Path,required=True)
     p.add_argument('--resume-ngap', action='store_true', help='Recover the reviewed pre-install NGAP failure in --work, preserving its evidence')
+    p.add_argument('--resume-ngap-split', action='store_true', help='Recover the stopped monolithic NGAP check after --resume-ngap')
     a=p.parse_args()
+    if a.resume_ngap and a.resume_ngap_split:p.error('Choose only one recovery mode')
+    a.resume_ngap = a.resume_ngap or a.resume_ngap_split
+    recovery_name='split-check-recovery' if a.resume_ngap_split else 'namespace-recovery'
     resource=verify()
     if sys.platform!='linux' or sys.version_info[:2]!=(3,12):raise RuntimeError('Native Linux CPython 3.12 required')
     if git('status','--porcelain','--untracked-files=no').strip():raise ValueError('Commit producer changes before execution')
@@ -91,7 +95,7 @@ def main():
             CXXFLAGS='-O0 -g0 --param=ggc-min-expand=5 --param=ggc-min-heapsize=16384',LDFLAGS='-fuse-ld=lld -Wl,--threads=1',PYTHONDONTWRITEBYTECODE='1')
         if a.resume_ngap:
             from resume_ngap import recover
-            report['resumption']=recover(REPO,out,head,command,write)
+            report['resumption']=recover(REPO,out,head,command,write,split=a.resume_ngap_split)
             write(out/'producer.json',report)
         else:
             archive=git('archive',head,'--','.',':(exclude)verification',':(exclude)_codeql_detected_source_root',':(exclude).vscode')
@@ -189,7 +193,7 @@ def main():
     except BaseException as e:
         report.update(status='FAIL_OR_INTERRUPTED',diagnostic=str(e));raise
     finally:
-        if not a.resume_ngap or (out/'namespace-recovery/original-producer.json').exists():
+        if not a.resume_ngap or (out/recovery_name/'original-producer.json').exists():
             write(out/'producer.json',report)
 
 

@@ -21,6 +21,30 @@ def digest(value):
     return hashlib.sha256(json.dumps(value, sort_keys=True, separators=(',', ':')).encode()).hexdigest()
 
 
+def write_transfer_link_checks(generated, transfers):
+    """Keep each standalone codec in its own translation unit."""
+    if transfers is None:
+        return '', ''
+    directory = generated/'sdk-transfer-checks'
+    directory.mkdir()
+    declarations, calls, sources = [], [], []
+    for stem, entry in sorted(transfers['roots'].items()):
+        if not re.fullmatch(r'[a-z][a-z0-9_]*', stem):
+            raise ValueError('Unsafe Transfer check stem')
+        symbol = 'nrforge_sdk_transfer_check_'+stem
+        (directory/(stem+'.cpp')).write_text(
+            '#include <'+entry['headers'][0]+'>\n'
+            'void '+symbol+'() {\n'
+            '    (void)::'+entry['namespace']+'::'+entry['encode']+'('
+            +entry['cpp_type']+'{}, ::nrforge::aper::Limits{});\n}\n')
+        declarations.append('void '+symbol+'();')
+        calls.append('    '+symbol+'();')
+        sources.append('  "${CMAKE_CURRENT_SOURCE_DIR}/sdk-transfer-checks/'+stem+'.cpp"')
+    (generated/'sdk-transfer-checks.cmake').write_text(
+        'set(NRFORGE_TRANSFER_CHECK_SOURCES\n'+'\n'.join(sources)+'\n)\n')
+    return '\n'.join(declarations)+'\n', '\n'.join(calls)+'\n'
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--repo', type=Path, required=True)
@@ -36,7 +60,8 @@ def main():
     core_header = profile + "_pdu.hpp" if profile != "ngap" else "pdu.hpp"
     core_source = profile + "_pdu.cpp" if profile != "ngap" else "pdu.cpp"
     sealed_names = {'sdk-lock.cmake', 'sdk-provenance.json', 'sdk_version.hpp',
-                    'sdk_identity.cpp', 'sdk_link_check.cpp', 'sdk-public'}
+                    'sdk_identity.cpp', 'sdk_link_check.cpp', 'sdk-public',
+                    'sdk-transfer-checks.cmake', 'sdk-transfer-checks'}
     if any((generated / name).exists() for name in sealed_names):
         raise ValueError('SDK is already sealed; regenerate in a new empty directory')
     manifest = json.loads((generated / 'manifest.json').read_text())
@@ -140,14 +165,9 @@ inline constexpr SdkIdentity header_sdk_identity{
     (generated / 'sdk_identity.cpp').write_text('#include "sdk_version.hpp"\nnamespace nrforge::' + profile + ' {\n'
         'const SdkIdentity& sdk_identity() noexcept { return header_sdk_identity; }\n'
         'namespace detail { void ' + symbol + '() noexcept {} }\n}\n')
-    transfer_checks = ''
-    transfer_includes = ''
-    if transfers is not None:
-        for entry in transfers['roots'].values():
-            transfer_includes += '#include <'+entry['headers'][0]+'>\n'
-            transfer_checks += '    (void)::'+entry['namespace']+'::'+entry['encode']+'('+entry['cpp_type']+'{}, ::nrforge::aper::Limits{});\n'
+    transfer_declarations, transfer_checks = write_transfer_link_checks(generated, transfers)
     (generated / 'sdk_link_check.cpp').write_text(
-        transfer_includes + '#include <' + core_header + '>\n#include <sdk_version.hpp>\n'
+        '#include <' + core_header + '>\n#include <sdk_version.hpp>\n' + transfer_declarations +
         'int main() {\n' + transfer_checks +
         '    const auto& registry = ::nrforge::' + profile + '::' + profile + '_registry_state();\n'
         f'    if(!registry || registry.value().message_count() != {len(messages)}U) return 1;\n'
@@ -194,9 +214,12 @@ inline constexpr SdkIdentity header_sdk_identity{
         provenance['transfer_roots'] = transfers['roots']
     (generated / 'sdk-provenance.json').write_text(json.dumps(provenance, indent=2, sort_keys=True) + '\n')
     generated_hashes.update({name: sha(generated / name) for name in sealed_names
-                             if name not in {'sdk-lock.cmake', 'sdk-public'}})
+                             if name not in {'sdk-lock.cmake', 'sdk-public', 'sdk-transfer-checks'}
+                             and (generated/name).is_file()})
     generated_hashes.update({str(path.relative_to(generated)): sha(path)
                              for path in sorted(public.rglob('*')) if path.is_file()})
+    generated_hashes.update({str(path.relative_to(generated)): sha(path)
+                             for path in sorted((generated/'sdk-transfer-checks').rglob('*')) if path.is_file()})
     lock = ['# Generated immutable SDK consistency lock. Regenerate rather than editing.']
     for key, value in [('NRFORGE_SDK_VERSION', args.version), ('NRFORGE_SDK_FINGERPRINT', fingerprint),
                        ('NRFORGE_SCHEMA_SHA256', schema_sha), ('NRFORGE_RUNTIME_SHA256', runtime_sha)]:

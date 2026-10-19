@@ -44,6 +44,10 @@ function(nrforge_package_sdk target)
   # executable must resolve every registration and validate the registry before
   # this archive earns an installable build receipt.
   add_executable(${target}_sdk_link_check "${CMAKE_CURRENT_SOURCE_DIR}/sdk_link_check.cpp")
+  if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/sdk-transfer-checks.cmake")
+    include("${CMAKE_CURRENT_SOURCE_DIR}/sdk-transfer-checks.cmake")
+    target_sources(${target}_sdk_link_check PRIVATE ${NRFORGE_TRANSFER_CHECK_SOURCES})
+  endif()
   set_target_properties(${target}_sdk_link_check PROPERTIES CXX_EXTENSIONS OFF)
   target_link_libraries(${target}_sdk_link_check PRIVATE ${target})
   add_custom_command(TARGET ${target}_sdk_link_check POST_BUILD

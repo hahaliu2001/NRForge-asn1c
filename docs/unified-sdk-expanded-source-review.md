@@ -137,3 +137,40 @@ headers, two failing defect mutations, and mocked recovery evidence/object
 preservation. This does not build the SDK or rerun the accepted native campaign.
 The independent read-only reviewer passed the final source repair and recovery
 flow with no new confirmed blocker. Actual Ubuntu recovery remains pending.
+
+## Split standalone checks under the 4 GiB build limit (2026-10-19)
+
+Owner's recovered build reused the 131 adapters and linked the NGAP archive, but
+its combined 26-root check stayed in one GCC process for six hours. The supplied
+process snapshot showed `D/mem_cgroup_handle_over_h`, 29 minutes CPU time, about
+3.72 GiB cgroup memory versus a 3.5 GiB soft threshold and 4 GiB hard limit,
+~80% full memory pressure, and zero OOM events. This is sustained memory-high
+reclaim/throttling; no VM/platform change is assumed to resolve it.
+
+The sealer now emits one Transfer check translation unit per root. A small main
+calls every helper and retains the registry/identity check. CMake links all 26
+helpers into the same executable, executes that executable, then writes the
+build receipt as before. Generated helper sources and their CMake list are all
+hashed in the SDK lock; they are neither omitted from the gate nor exempted from
+integrity checks. Compilation remains serial. Splitting reduces the aggregate
+per-file input but does not certify the peak usage of each real root.
+
+`--resume-ngap-split` resumes only the stopped first recovery before installation.
+It rejects active compiler/build processes using the work path, excluding its own
+supervisor ancestry; obtains the current baseline from the sealed provenance,
+and requires it to match the previous recovery migration. It verifies the old
+seal, saves old evidence in `split-check-recovery/`, checks changed-source git
+preimages, and reseals/configures/builds at the existing paths. It preserves the
+first recovery directory, all raw root headers, adapter sources and objects.
+All remaining unified gates still execute. The original recovery remains a
+separate mode. A second interrupted recovery keeps its evidence and is not
+silently overwritten or retried.
+
+Split repair validation: all 26 lightweight checks passed. The 26 helper fixtures
+were actually compiled serially, linked and called through a small CMake project
+using the real runtime header; this is not an SDK/native protocol qualification.
+Seven recovery checks include supervisor ancestry, stale compiler refusal,
+current-seal baseline selection and preservation of previous recovery evidence.
+Independent final read-only review closed the supervisor-blocking issue and
+passed the final split implementation with no new confirmed blocker. Actual
+Ubuntu SDK execution, peak memory, wheel and release qualification remain pending.
