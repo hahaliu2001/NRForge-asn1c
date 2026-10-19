@@ -98,3 +98,42 @@ Targeted independent read-only re-review concluded: B1 CLOSED, no new blocker.
 The reviewer inspected the source and regression cases without running tests
 or builds and without modifying files. This is source-review closure only;
 full native SDK/wheel qualification and Owner acceptance remain pending.
+
+## NGAP standalone header failure and bounded recovery (2026-10-19 UTC)
+
+Owner's Ubuntu build at source `589781c1d2647da2cce5675612e9c6ab08909255`
+failed compiling `sdk_link_check.cpp`, reporting absent standalone encoders. The
+reported tail alone does not establish the earliest compiler diagnostic. Source
+review identified a concrete self-containment defect: `root.hpp` included types,
+mapping and codecs before either runtime header, although these generated headers
+use runtime types. Link checking includes roots before the protocol umbrella.
+Root entries now include `runtime.hpp` and `sequence_extensions.hpp` first.
+A small GCC syntax test also reproduced skipped root namespaces when all root
+forwarding headers have identical contents and `#pragma once`, even after adding
+runtime includes. Entries now use a distinct include guard per catalog stem.
+The regression includes all 26 entries together and independently verifies that
+removing runtime includes or restoring identical pragma-once headers fails.
+The initial proposal to add `::codec::` to public calls was withdrawn after
+independent review: owned compound public APIs live in the root namespace.
+Their existing API and manifest conventions are preserved.
+
+`produce.py --resume-ngap` validates the original SDK lock and changed source git
+preimages before mutation. It allows only the repair/recovery/test/review files;
+archives the original producer report, command failure, compiler log, seal,
+changed source files, and all 26 old root headers in `namespace-recovery/`.
+It updates the reviewed source delta and entry headers, reseals with the new
+revision, configures the same build directory, builds serially and installs.
+Raw adapters and their object paths are retained for dependency-based reuse;
+identity/check objects and affected dependencies may rebuild. It then continues
+all remaining protocols, installed consumers and wheel gates. No failed run or
+historical accepted campaign is relabeled PASS. Normal resource limits still
+apply. Recovery cannot be rerun in the same evidence directory after failure.
+
+No native Ubuntu qualification, publication or Owner acceptance is claimed here.
+
+Repair validation: 22 lightweight checks passed, including a small GCC
+`-fsyntax-only` compilation with all 26 entry fixtures against the real runtime
+headers, two failing defect mutations, and mocked recovery evidence/object
+preservation. This does not build the SDK or rerun the accepted native campaign.
+The independent read-only reviewer passed the final source repair and recovery
+flow with no new confirmed blocker. Actual Ubuntu recovery remains pending.

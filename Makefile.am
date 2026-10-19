@@ -333,3 +333,5 @@ EXTRA_DIST += tools/unified-sdk/README.md \
 EXTRA_DIST += docs/unified-sdk-expanded-source-review.md
 
 EXTRA_DIST += tools/unified-sdk/test_component_identities.py
+EXTRA_DIST += tools/ngap-transfer-sdk/test_root_header.py \
+ tools/unified-sdk/resume_ngap.py tools/unified-sdk/test_resume_ngap.py

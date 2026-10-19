@@ -17,6 +17,15 @@ from root_catalog import ROOTS, VERSION, cpp_type
 
 
 
+def root_header(stem):
+    # These roots must compile before a protocol umbrella is included. The
+    # generated declarations/codecs use both runtime and sequence extensions.
+    guard = 'NRFORGE_NGAP_TRANSFER_'+stem.upper()+'_HPP'
+    return ('#ifndef '+guard+'\n#define '+guard+'\n#include "runtime.hpp"\n'
+            '#include "sequence_extensions.hpp"\n#include "root_types.hpp"\n'
+            '#include "root_mapping.hpp"\n#include "root_codec.hpp"\n#endif\n')
+
+
 def prepare(repo, root, generated):
     authority = json.loads((repo/'tools/n11-envelope-qualification/source-manifest.json').read_text())
     for row in authority['modules']:
@@ -55,8 +64,7 @@ def prepare(repo, root, generated):
         encode, qualified = matches[0]
         decode = 'decode_'+encode[7:]
         # Four headers form one independently consumable public root entry.
-        (directory/'root.hpp').write_text('#pragma once\n#include "root_types.hpp"\n'
-            '#include "root_mapping.hpp"\n#include "root_codec.hpp"\n')
+        (directory/'root.hpp').write_text(root_header(stem))
         rows[stem] = dict(message=name, namespace=namespace, cpp_type=qualified,
                           encode=encode, decode=decode,
                           headers=[f'transfers/{stem}/{n}' for n in
