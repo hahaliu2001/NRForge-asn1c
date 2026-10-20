@@ -16,7 +16,8 @@ BUILD_PREFIXES = ('python/', 'cmake/', 'tools/', 'libaper/', 'libngap/')
 RECOVERY_FILES = {
     'tools/unified-sdk/recover_wheel.py', 'tools/unified-sdk/test_recover_wheel.py',
     'tools/unified-sdk/release.py', 'tools/ngap-transfer-sdk/resource_guard.py',
-    'tools/ngap-transfer-sdk/installed_check.py',
+    'tools/ngap-transfer-sdk/installed_check.py', 'tools/unified-sdk/build_rrc.py',
+    'tools/unified-sdk/split_rrc.py',
 }
 
 
