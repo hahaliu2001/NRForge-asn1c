@@ -40,12 +40,17 @@ def check_wheel(path, expected_digest=None):
     return actual
 
 def _tracked(repo):
-    return subprocess.check_output(['git', '-C', str(repo), 'ls-files'], text=True).splitlines()
+    try:
+        return subprocess.check_output(['git', '-C', str(repo), 'ls-files'], text=True).splitlines()
+    except subprocess.CalledProcessError:
+        return None
 
 def source_manifest(repo, source, baseline):
     """Compare exact bytes; only two named, hashed recovery patches are allowed."""
-    rows, patches = {}, {}; source_names = set(_tracked(source))
-    for name in _tracked(repo):
+    rows, patches = {}, {}
+    repo_names = _tracked(repo); require(repo_names is not None, 'Repository tracked input inventory unavailable')
+    source_names = _tracked(source)
+    for name in repo_names:
         if not name.startswith(BUILD_PREFIXES): continue
         repo_path, source_path = Path(repo) / name, Path(source) / name
         if not source_path.exists():
@@ -62,9 +67,10 @@ def source_manifest(repo, source, baseline):
                              'reason': 'R1-R3 recovery implementation/test revision'}
         rows[name] = {'sha256': sha(source_path), 'content_sha1': git_blob(old)}
     require(rows, 'No tracked build inputs were authenticated')
-    expected = {n for n in _tracked(repo) if n.startswith(BUILD_PREFIXES)}
-    extra = sorted(n for n in source_names if n.startswith(BUILD_PREFIXES) and n not in expected)
-    require(not extra, 'Qualification source contains unregistered build inputs: ' + ', '.join(extra))
+    if source_names is not None:
+        expected = {n for n in repo_names if n.startswith(BUILD_PREFIXES)}
+        extra = sorted(n for n in source_names if n.startswith(BUILD_PREFIXES) and n not in expected)
+        require(not extra, 'Qualification source contains unregistered build inputs: ' + ', '.join(extra))
     for name in QUALIFICATION_FILES:
         require(name in rows and name not in patches, 'Executed qualification input is not exact: ' + name)
     return {'baseline_revision': baseline, 'inputs': rows, 'registered_patches': patches}
@@ -74,7 +80,9 @@ def tool_hashes(repo, source):
     for name in ('tools/unified-sdk/recover_wheel.py', 'tools/unified-sdk/release.py',
                  'tools/ngap-transfer-sdk/resource_guard.py', 'python/ngap_sdk/generate_bindings.py',
                  'tools/ngap-transfer-sdk/installed_check.py'):
-        result[name] = {'repo': sha(Path(repo) / name), 'qualification': sha(Path(source) / name)}
+        qualification = Path(source) / name
+        result[name] = {'repo': sha(Path(repo) / name),
+                        'qualification': sha(qualification) if qualification.is_file() else None}
     return result
 
 def check_reports(work, outer, transfer, component_revisions):

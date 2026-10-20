@@ -69,7 +69,7 @@ class RecoveryGates(unittest.TestCase):
         (repo / 'python/a.py').write_text('same'); (source / 'python/a.py').write_text('same')
         (source / 'python/extra.py').write_text('extra')
         (repo / 'python/extra.py').write_text('extra')
-        with patch.object(recover, 'QUALIFICATION_FILES', ()), patch.object(recover, '_tracked', side_effect=[['python/a.py', 'python/extra.py'], ['python/a.py'], ['python/a.py']]):
+        with patch.object(recover, 'QUALIFICATION_FILES', ()), patch.object(recover, '_tracked', side_effect=[['python/a.py'], ['python/a.py', 'python/extra.py']]):
             with self.assertRaisesRegex(ValueError, 'unregistered build inputs'):
                 recover.source_manifest(repo, source, 'b' * 40)
 
