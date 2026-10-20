@@ -1,30 +1,32 @@
 # Unified SDK 0.3.0 wheel recovery
 
-The interrupted receipt remains byte-for-byte at
-`/home/jie/asn1-unified-wsl-nxFcGZdf/work/wheel-recovery-20261020T150500Z/original-producer.json`.
-The dedicated `tools/unified-sdk/recover_wheel.py` entry point validated that
-the failure was stage 13, checked the sealed `sdk` and `relocated-sdk`
-inventories, checked the two qualification-source copies of the reviewed
-fixes, and reused the existing Python build cache. The wheel rebuild ran under
-the existing `resource_guard.py` contract; no SDK component rebuild or
-benchmark ran.
+`tools/unified-sdk/recover_wheel.py` is the executable recovery entry point
+for the preserved stage-13 failure. It does not execute historical
+`command.json` files, resume `produce.py`, rebuild the four-protocol SDK, or
+run benchmarks. It verifies the old candidate, failure receipt, bundle,
+`sdk_files`, and the complete equality of `sdk` and `relocated-sdk` before
+building.
 
-The receipt records the original producer/component identities separately from
-the qualification snapshot. The NGAP/F1AP/E1AP checks remain finite scope;
-E1AP is explicitly not full-protocol coverage. The outer report is PASS for
-131 messages and 12 unit tests; Transfer is PASS for 143 vectors, with vector
-SHA256 `3db05f1a62a6ea981869cef91919d4cfc571d3bdda8c80cb001fc0e3b8d8bd62`.
+The recovery command is constructed from fixed arguments. Each run creates a
+new empty wheel-output directory and a new Python-extension build directory.
+The resource guard must succeed, and that output directory must contain exactly
+the expected wheel created by that invocation. The command argv and its SHA256
+are recorded. Installation and both installed-wheel checks run in a new venv;
+the wheel digest is checked again after all tests.
 
-The guarded rebuild produced wheel SHA256
-`f035d184cdf6c55b0763c2cc92cc3979456d2df2bc3d598163e7851f8932e4fb`.
-The earlier recorded wheel SHA256
-`6f0b521ea7a2b9f59387c132ddf2f0f4cf2a3ebe8dffc84771b719c1e6837c0a` is
-preserved as historical evidence; the candidate uses and hashes the actual
-guarded rebuild bytes. The local candidate is
-`/home/jie/asn1-unified-wsl-nxFcGZdf/work/local-candidate-20261020T151000Z`.
-Its `candidate.json` SHA256 is
-`dded6afac9bc283439101ccf70a0c9fee43138a9c71f963ac12ddb0960e68792`.
+Qualification inputs are byte-checked against the specified source snapshot.
+Only the recovery implementation and its tests may be registered as explicit
+before/after patches; executed qualification tools are required to match
+exactly. The old SDK is reused as authenticated input, while the Python
+extension is compiled in the fresh guarded build directory.
 
-`release.py package` completed with `publication: NOT_RUN` and
-`owner_acceptance: PENDING`; no publish, retire, review, or acceptance record
-was created.
+The scope is finite: outer NGAP has 131 messages and three independent NG
+Setup cases; Transfer has 143 vectors. Historical F1AP/E1AP evidence is
+checked for its recorded finite counts, and E1AP is not claimed as full
+protocol coverage. No live RAN, exhaustive value-domain, benchmark, or
+cross-platform qualification is implied.
+
+Run recovery from the commit that contains this tool and its tests. Package a
+candidate with `release.py package` only after recovery succeeds. Publication,
+retirement, push, merge, review PASS, and Owner ACCEPTED remain separate
+explicit actions and are not performed by recovery.
