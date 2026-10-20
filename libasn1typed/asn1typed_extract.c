@@ -1430,6 +1430,12 @@ populate_type_profile(asn1p_t *tree, asn1typed_type_t *out, asn1p_expr_t *decl,
                 rc = put_inline_constructed_ref(&ref, out, "@element");
             } else if(inline_constrained_primitive_element(member)) {
                 rc = put_inline_constructed_ref(&ref, out, "@element");
+            } else if(ordinary && member->expr_type == ASN_BASIC_ENUMERATED &&
+                    !member->lhs_params && !member->rhs_pspecs) {
+                /* Anonymous enum list elements need an owned declaration, just
+                 * like inline structures. Existing enum extraction validates
+                 * labels, extensions and constraints when closing this path. */
+                rc = put_inline_constructed_ref(&ref, out, "@element");
             } else if(!ordinary && member->rhs_pspecs) {
                 rc = put_parameterized_object_set_ref(tree, &ref, member, error, error_size);
             } else {

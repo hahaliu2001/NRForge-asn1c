@@ -345,3 +345,10 @@ TESTS += check_asn1typed_null_open
 check_asn1typed_null_open_SOURCES = $(top_srcdir)/tools/rrc-null-open/check_extract.c
 check_asn1typed_null_open_CPPFLAGS = $(check_asn1typed_extract_CPPFLAGS) -DNULL_FIXTURE=\"$(abs_top_srcdir)/tools/rrc-null-open/null.asn1\"
 check_asn1typed_null_open_LDADD = $(check_asn1typed_extract_LDADD)
+
+check_PROGRAMS += check_asn1typed_enum_elements
+TESTS += check_asn1typed_enum_elements
+check_asn1typed_enum_elements_SOURCES = check_asn1typed_enum_elements.c
+check_asn1typed_enum_elements_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/libasn1parser -I$(top_srcdir)/libasn1fix
+check_asn1typed_enum_elements_LDADD = $(check_asn1typed_extract_LDADD)
+check_asn1typed_enum_elements_LDFLAGS = -Wl,--wrap=malloc -Wl,--wrap=calloc -Wl,--wrap=realloc

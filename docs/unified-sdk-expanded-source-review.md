@@ -174,3 +174,33 @@ current-seal baseline selection and preservation of previous recovery evidence.
 Independent final read-only review closed the supervisor-blocking issue and
 passed the final split implementation with no new confirmed blocker. Actual
 Ubuntu SDK execution, peak memory, wheel and release qualification remain pending.
+
+## Anonymous RRC enum collection elements (2026-10-20 UTC)
+
+Owner's WSL run `asn1-unified-wsl-nxFcGZdf` completed the three APER SDK build
+and install stages, then stopped before RRC installation. Two roots failed
+extraction: CellGroupConfig through PDSCH-HARQ-ACK-CodebookList-r16, and
+UE-NR-Capability through FeatureSetDownlink-v1830's
+pdcch-RACH-AffectedBands-TargetBandList-r18. Both frozen ASN.1 declarations use
+`SEQUENCE OF ENUMERATED`. The extractor handled direct constrained INTEGER/BIT
+STRING list elements and inline constructed types, but not anonymous enum list
+elements. The repair promotes these enum elements to owned `@element` paths
+only in the ordinary RRC graph profile. Existing enum extraction continues to
+validate all labels, extensions and constraints. APER profile behavior is not
+expanded by this branch.
+
+The new C regression checks five graphs (direct enum list, two independent
+inline enum lists, extensible enum, nested list, SetupRelease specialization),
+then deletes the Parser tree before inspecting owned enums and rendering UPER.
+It also sweeps ownership extraction allocation failures. Native execution is an
+Owner-terminal gate; source syntax checking is not recorded as a native PASS.
+
+`check_rrc_closure.py` provides an isolated snapshot with serial C builds and
+the new and existing collection-element regressions, followed by selected
+91-root sealed generation. The existing builder must still reject incomplete
+closure and require the historical 85 header hashes to remain unchanged. The
+gate writes a distinct report and never alters the three already built SDKs,
+the failed unified workspace, or historical qualification. Its success would
+be generation evidence only, not an installed/wire-qualified SDK or a release.
+A full resumed qualification is not claimed or implemented by this diagnostic
+gate; the previous NGAP-specific recovery modes do not resume this RRC failure.
