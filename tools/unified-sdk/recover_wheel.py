@@ -8,6 +8,14 @@ WHEEL_NAME = 'nrforge_ngap-0.3.0-cp312-cp312-linux_x86_64.whl'
 BUILD_PREFIXES = ('python/', 'cmake/', 'tools/', 'libaper/', 'libngap/')
 QUALIFICATION_FILES = ('python/tests/run_installed.py', 'tools/ngap-transfer-sdk/installed_check.py')
 REGISTERED_SOURCE_PATCHES = {
+    'tools/ngap-transfer-sdk/check_delivery.py': {
+        'before_sha256': '6aeb1fe0e6cf88325c5510f9be88eeaa22d13b7f00c945bea0a2f4b52fa6b798',
+        'after_sha256': '5c862fd6dc71edae1c6636079f769e7cf667d91975dd2f8ffddc88e410568216',
+        'reason': '0590f5a1 recovery-contract tests; not executed by wheel recovery'},
+    'tools/unified-sdk/README.md': {
+        'before_sha256': 'e44f4bb03729c9b0e57dd07ea9d8e82e65e4cc8054ceff089c1401c4627e2449',
+        'after_sha256': 'f848bfcd97f3859470e4670e4ebd5494f29f4b58cd771cd9ff9bdaf0b6f2b73f',
+        'reason': '0590f5a1 recovery-contract documentation; not executed by wheel recovery'},
     'tools/unified-sdk/build_rrc.py': {'before_sha256': '087776820f70c0676d78d27b0b2274539ec4e2abeede16c659faa52f2aceb35f', 'after_sha256': '5195b924ff30aecbe9ff817d35f14fff2107ea633ec47e62ca65c5cbd02a4f2f', 'reason': 'historical recovery-chain input; not executed by this recovery'},
     'tools/unified-sdk/produce.py': {'before_sha256': 'e80b86b4ccce53bed52038ef5ad4eee39e8b588feb6a52665c4a053952f921f7', 'after_sha256': '5ab11faa6d28c98e1ac335001d8748c2123ed14d4f91846cb84f3935195175a1', 'reason': 'historical producer input; explicitly not resumed by R1'},
     'tools/unified-sdk/release.py': {'before_sha256': '4e89cc0e03f3cac0be28ea0b4e1e3604b117bc2e5a977da811696fc6172a40c2', 'after_sha256': '11cc1d247335c52857dc14594270a12fd498aa01009f70d949e315f6e7fca59d', 'reason': 'historical packaging-chain input; publish remains disabled'},
@@ -60,14 +68,18 @@ def check_wheel(path, expected_digest=None):
     return actual
 
 def _tracked(repo):
-    try:
-        return subprocess.check_output(['git', '-C', str(repo), 'ls-files'], text=True).splitlines()
-    except subprocess.CalledProcessError:
+    result = subprocess.run(['git', '-C', str(repo), 'ls-files'], text=True,
+                            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    if result.returncode == 0:
+        return result.stdout.splitlines()
+    detail = result.stderr.strip() or 'unknown git error'
+    if not (Path(repo) / '.git').exists() and 'not a git repository' in detail.lower():
         return None
+    raise ValueError('Git input inventory failed for ' + str(repo) + ': ' + detail)
 
 def source_manifest(repo, source, baseline):
     """Compare exact bytes; only two named, hashed recovery patches are allowed."""
-    rows, patches = {}, {}
+    rows, patches, problems = {}, {}, []
     repo_names = _tracked(repo); require(repo_names is not None, 'Repository tracked input inventory unavailable')
     source_names = _tracked(source)
     for name in repo_names:
@@ -75,12 +87,15 @@ def source_manifest(repo, source, baseline):
         repo_path, source_path = Path(repo) / name, Path(source) / name
         if not source_path.exists():
             registered = REGISTERED_SOURCE_PATCHES.get(name)
-            require(registered is not None or name in ('tools/unified-sdk/recover_wheel.py',
-                    'tools/unified-sdk/test_recover_wheel.py'), 'Qualification source missing tracked input: ' + name)
+            if registered is None and name not in ('tools/unified-sdk/recover_wheel.py',
+                                                   'tools/unified-sdk/test_recover_wheel.py'):
+                problems.append('Qualification source missing tracked input: ' + name)
+                continue
             if registered is not None:
-                require(registered['before_sha256'] is None and sha(repo_path) == registered['after_sha256'],
-                        'Registered absent qualification patch bytes do not match: ' + name)
-                patches[name] = dict(registered)
+                if registered['before_sha256'] is not None or sha(repo_path) != registered['after_sha256']:
+                    problems.append('Registered absent qualification patch bytes do not match: ' + name)
+                else:
+                    patches[name] = dict(registered)
             else:
                 patches[name] = {'before_sha256': None, 'after_sha256': sha(repo_path),
                                  'reason': 'new recovery implementation/test; not executed by qualification'}
@@ -88,12 +103,15 @@ def source_manifest(repo, source, baseline):
         old = source_path.read_bytes(); new = repo_path.read_bytes()
         if old != new:
             registered = REGISTERED_SOURCE_PATCHES.get(name)
-            require(registered is not None or name in ('tools/unified-sdk/recover_wheel.py',
-                    'tools/unified-sdk/test_recover_wheel.py'), 'Qualification source differs for unregistered input: ' + name)
-            if registered is not None:
-                require(sha(source_path) == registered['before_sha256'] and sha(repo_path) == registered['after_sha256'],
-                        'Registered qualification patch bytes do not match: ' + name)
-                patches[name] = dict(registered)
+            if registered is None and name not in ('tools/unified-sdk/recover_wheel.py',
+                                                   'tools/unified-sdk/test_recover_wheel.py'):
+                problems.append('Qualification source differs for unregistered input: %s (source_sha256=%s, repo_sha256=%s)' %
+                                (name, sha(source_path), sha(repo_path)))
+            elif registered is not None:
+                if sha(source_path) != registered['before_sha256'] or sha(repo_path) != registered['after_sha256']:
+                    problems.append('Registered qualification patch bytes do not match: ' + name)
+                else:
+                    patches[name] = dict(registered)
             else:
                 patches[name] = {'before_sha256': sha(source_path), 'after_sha256': sha(repo_path),
                                  'reason': 'R1-R3 recovery implementation/test revision'}
@@ -102,10 +120,13 @@ def source_manifest(repo, source, baseline):
     if source_names is not None:
         expected = {n for n in repo_names if n.startswith(BUILD_PREFIXES)}
         extra = sorted(n for n in source_names if n.startswith(BUILD_PREFIXES) and n not in expected)
-        require(not extra, 'Qualification source contains unregistered build inputs: ' + ', '.join(extra))
+        if extra:
+            problems.append('Qualification source contains unregistered build inputs: ' + ', '.join(extra))
     for name in QUALIFICATION_FILES:
-        require(name in rows and (name not in patches or name in REGISTERED_SOURCE_PATCHES),
-                'Executed qualification input is not exact: ' + name)
+        if name not in rows:
+            problems.append('Executed qualification input is missing: ' + name)
+    if problems:
+        raise ValueError('Qualification source input audit failed:\n- ' + '\n- '.join(problems))
     return {'baseline_revision': baseline, 'inputs': rows, 'registered_patches': patches}
 
 def tool_hashes(repo, source):

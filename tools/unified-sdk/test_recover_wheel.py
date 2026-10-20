@@ -65,6 +65,32 @@ class RecoveryGates(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, 'unregistered input'):
                 recover.source_manifest(repo, source, 'b' * 40)
 
+    def test_source_manifest_reports_all_unregistered_differences(self):
+        repo, source = self.root / 'repo', self.root / 'source'; repo.mkdir(); source.mkdir()
+        for directory in ('python', 'tools'):
+            (repo / directory).mkdir(); (source / directory).mkdir()
+        (repo / 'python/a.py').write_text('new-a'); (source / 'python/a.py').write_text('old-a')
+        (repo / 'tools/b.py').write_text('new-b'); (source / 'tools/b.py').write_text('old-b')
+        with patch.object(recover, 'QUALIFICATION_FILES', ()), patch.object(
+                recover, '_tracked', side_effect=[['python/a.py', 'tools/b.py'], None]):
+            with self.assertRaisesRegex(ValueError, r'a\.py[\s\S]*b\.py') as failure:
+                recover.source_manifest(repo, source, 'b' * 40)
+        self.assertIn('source_sha256=', str(failure.exception))
+
+    def test_snapshot_without_git_suppresses_expected_stderr(self):
+        with patch.object(recover.subprocess, 'run', return_value=type(
+                'R', (), {'returncode': 128, 'stdout': '',
+                          'stderr': "fatal: not a git repository (or any of the parent directories): .git\n"})()), \
+                patch.object(recover.Path, 'exists', return_value=False):
+            self.assertIsNone(recover._tracked(self.root / 'snapshot'))
+
+    def test_tracked_git_error_is_reported(self):
+        with patch.object(recover.subprocess, 'run', return_value=type(
+                'R', (), {'returncode': 128, 'stdout': '', 'stderr': 'fatal: bad object HEAD\n'})()), \
+                patch.object(recover.Path, 'exists', return_value=True):
+            with self.assertRaisesRegex(ValueError, 'Git input inventory failed.*bad object HEAD'):
+                recover._tracked(self.root / 'repo')
+
     def test_source_manifest_rejects_extra_source_input(self):
         repo, source = self.root / 'repo', self.root / 'source'; repo.mkdir(); source.mkdir()
         (repo / 'python').mkdir(); (source / 'python').mkdir()
