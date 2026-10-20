@@ -8,6 +8,10 @@ WHEEL_NAME = 'nrforge_ngap-0.3.0-cp312-cp312-linux_x86_64.whl'
 BUILD_PREFIXES = ('python/', 'cmake/', 'tools/', 'libaper/', 'libngap/')
 QUALIFICATION_FILES = ('python/tests/run_installed.py', 'tools/ngap-transfer-sdk/installed_check.py')
 REGISTERED_SOURCE_PATCHES = {
+    'tools/ngap-transfer-sdk/resource_guard.py': {
+        'before_sha256': 'aa62588c74070575aa2600923b3ec462061e243b5c2011504d4e649b8e4c697f',
+        'after_sha256': 'f21c21640c7ab56f3d74f5e032776db8a0e9f3654044f909de7e228b9cbfa973',
+        'reason': 'record CPU quota and period in guard evidence; required by R1 resource contract'},
     'tools/ngap-transfer-sdk/installed_check.py': {
         'before_sha256': 'aa8d0efd84eeeaf16cc425a34c103e231791d53cba98593a1e4fff5836afbb60',
         'after_sha256': 'e56447bc42237aebd6e3d950de05c1c5b6230671f8aa00a96a74b8def48119cc',
