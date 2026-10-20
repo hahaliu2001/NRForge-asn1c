@@ -202,7 +202,7 @@ def check_guard(evidence):
     return {'status': status, 'limit': limit}
 
 def fixed_build_argv(repo, work, wheel_output, extension_build):
-    return [sys.executable, '-I', '-m', 'build', '--wheel', '--no-isolation', str(repo / 'python'),
+    return ['/usr/bin/env', 'CMAKE_BUILD_PARALLEL_LEVEL=1', sys.executable, '-I', '-m', 'build', '--wheel', '--no-isolation', str(repo / 'python'),
             '--outdir', str(wheel_output), '-Cbuild-dir=' + str(extension_build),
             '-Ccmake.define.NRFORGE_PYTHON_SDK_PREFIX=' + str(work / 'relocated-sdk'),
             '-Ccmake.define.CMAKE_EXE_LINKER_FLAGS=-fuse-ld=lld -Wl,--threads=1']

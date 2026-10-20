@@ -52,6 +52,7 @@ class RecoveryGates(unittest.TestCase):
     def test_fixed_argv_has_no_historical_command(self):
         argv = recover.fixed_build_argv(Path('/repo'), Path('/work'), Path('/new-wheel'), Path('/new-ext'))
         self.assertNotIn('command.json', ' '.join(map(str, argv)))
+        self.assertIn('CMAKE_BUILD_PARALLEL_LEVEL=1', argv)
         self.assertIn('--no-isolation', argv); self.assertIn('--wheel', argv)
         self.assertIn('--outdir', argv); self.assertIn('/new-wheel', argv)
 
