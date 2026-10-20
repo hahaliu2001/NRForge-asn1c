@@ -259,3 +259,57 @@ three header/split-check fixture tests locally. Final independent read-only
 source review found no definite blockers. These checks authorize the bounded
 Owner continuation; RRC native SDK build and complete bundle qualification are
 still pending and are not implied by source review.
+
+## RRC monolithic compilation OOM and codec partition repair (2026-10-20 UTC)
+
+Owner's c59e7174 continuation reached `r085.cpp` (CellGroupConfig) and was
+terminated at 2026-10-19 20:58:58 America/Los_Angeles. The kernel explicitly
+reported `CONSTRAINT_MEMCG` OOM: cc1plus anonymous RSS 8,313,696 KiB. The scope
+had been raised live from 6 GiB to 8 GiB. systemd recorded `oom-kill`, the shell
+returned 143, and both the original 71712e41 producer failure receipt and the
+interrupted build's RUNNING marker remained stale. Neither is a qualification
+PASS; no RRC installation or publication completed.
+
+The six new root headers previously contained every dependent type's inline
+UPER reader/writer. `split_rrc.py` changes their compilation layout: per-type
+put/get and the unchecked root entry points become declarations in the public
+header and out-of-line definitions in units of at most 32 functions. Function
+bodies are copied exactly; only inline linkage and definition-side default
+arguments are removed. Types, public root API, runtime, schema, and algorithm
+bodies are unchanged. Unknown function signatures/defaults fail closed. The
+historical 85 root headers are not transformed. Fresh production includes the
+partitioner as a sealed source input and includes every partition in CMake.
+
+`--resume-rrc-generation CLOSURE_WORK --resume-rrc-split` accepts only the
+reviewed c59e7174 interrupted pre-install build, with its original passed b26
+closure receipt unchanged. It repeats the original three-component, matrix,
+source and generated-input authentication. It derives a copy in
+`rrc-split-generation/`, preserves the original generation/build/log directories,
+and writes a new lock, fingerprint, manifest header hashes and identity guard.
+The exact partitioner source and an explicit original-to-new layout record are
+locked with the generated files. The semantic source revision remains b26;
+`build_layout.producer_revision` identifies the new layout producer separately.
+The three APER components retain 71712e41 identities. The installation is still
+one version 0.3.0 SDK, not multiple maintained SDKs.
+
+The changed RRC identity guard prevents safe reuse of old RRC objects. Therefore
+only RRC is rebuilt in a new directory; the completed NGAP/F1AP/E1AP SDKs are
+reused, and the old RRC objects are retained as evidence. All remaining installed
+consumer, wire/oracle, wheel and coexistence gates remain mandatory. The
+relocated-consumer dependency audit now also rejects the external qualification
+source directory. No accepted historical campaign is rerun or relabeled.
+
+The local small compiler fixture compares original inline versus independently
+compiled codec partitions using the real UPER runtime: both bool wire encodings,
+semantic lengths, round trips and invalid padding match. Other tests check
+function-body preservation, brace handling, all-six partitioning, historical
+header preservation, CMake seal verification/tamper rejection, interrupted-build
+recovery and refusal after install/completion/receipt drift. Full RRC compilation
+memory and complete SDK qualification require Owner's bounded native run; these
+small tests do not demonstrate that every real root now fits the limit.
+
+Local validation: 34 unified/recovery/layout tests passed as one run, then the
+added install-started refusal and the other seven RRC recovery tests all passed
+(35 distinct tests total). Python syntax and whitespace checks passed. Independent
+read-only source review found no definite implementation blockers; actual native
+memory sufficiency, full SDK/wheel qualification and Owner acceptance remain open.

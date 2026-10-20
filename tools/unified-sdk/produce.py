@@ -69,6 +69,8 @@ def consumer(work, source, prefix, python, name):
     dependencies=list(build.rglob('*.o.d'))
     if not dependencies:raise ValueError('No compiler dependency evidence for '+name)
     forbidden=[str(work/'source')+'/',str(work/'schema')+'/',str(work/'sdk')+'/']+[str(work/(p+'-prefix'))+'/' for p in ('ngap','f1ap','e1ap','rrc')]
+    if os.environ.get('NRFORGE_QUALIFICATION_SOURCE'):
+        forbidden.append(os.environ['NRFORGE_QUALIFICATION_SOURCE']+'/')
     for dep in dependencies:
         if any(path in dep.read_text() for path in forbidden):raise ValueError('Consumer depends on original build/source/schema: '+str(dep))
     write(work/(name+'-dependency-audit.json'),{str(dep.relative_to(build)):sha(dep) for dep in dependencies})
@@ -82,12 +84,14 @@ def main():
     p.add_argument('--resume-ngap', action='store_true', help='Recover the reviewed pre-install NGAP failure in --work, preserving its evidence')
     p.add_argument('--resume-ngap-split', action='store_true', help='Recover the stopped monolithic NGAP check after --resume-ngap')
     p.add_argument('--resume-rrc-generation',type=Path, help='Reuse the passed RRC closure work directory and the three completed APER components')
+    p.add_argument('--resume-rrc-split', action='store_true', help='Partition the six new RRC codecs after the reviewed interrupted RRC build')
     a=p.parse_args()
+    if a.resume_rrc_split and not a.resume_rrc_generation:p.error('--resume-rrc-split requires --resume-rrc-generation')
     if a.resume_rrc_generation and (a.resume_ngap or a.resume_ngap_split):p.error('Choose only one recovery mode')
     if a.resume_ngap and a.resume_ngap_split:p.error('Choose only one recovery mode')
     a.resume_ngap = a.resume_ngap or a.resume_ngap_split
     resuming=a.resume_ngap or a.resume_rrc_generation is not None
-    recovery_name='rrc-recovery' if a.resume_rrc_generation else ('split-check-recovery' if a.resume_ngap_split else 'namespace-recovery')
+    recovery_name=('rrc-split-recovery' if a.resume_rrc_split else 'rrc-recovery') if a.resume_rrc_generation else ('split-check-recovery' if a.resume_ngap_split else 'namespace-recovery')
     resource=verify()
     if sys.platform!='linux' or sys.version_info[:2]!=(3,12):raise RuntimeError('Native Linux CPython 3.12 required')
     if git('status','--porcelain','--untracked-files=no').strip():raise ValueError('Commit producer changes before execution')
@@ -103,8 +107,9 @@ def main():
             CXXFLAGS='-O0 -g0 --param=ggc-min-expand=5 --param=ggc-min-heapsize=16384',LDFLAGS='-fuse-ld=lld -Wl,--threads=1',PYTHONDONTWRITEBYTECODE='1')
         if a.resume_rrc_generation:
             from resume_rrc import recover as recover_rrc
-            report['resumption']=recover_rrc(REPO,out,head,a.resume_rrc_generation.resolve(),command,write)
+            report['resumption']=recover_rrc(REPO,out,head,a.resume_rrc_generation.resolve(),command,write,split=a.resume_rrc_split)
             source=Path(report['resumption']['qualification_source'])
+            os.environ['NRFORGE_QUALIFICATION_SOURCE']=str(source)
             component_revisions=report['resumption']['component_source_revisions']
             report['component_source_revisions']=component_revisions
             report['qualification_source_revision']=report['resumption']['qualification_source_revision']

@@ -13,6 +13,7 @@ HERE = Path(__file__).resolve().parent
 REPO = HERE.parents[1]
 sys.path.insert(0, str(REPO / "tools/rrc-readiness"))
 from scan import authenticate
+from split_rrc import split_roots
 
 
 def sha(p):
@@ -74,6 +75,7 @@ def main():
         REPO / "tools/rrc-null-open/readiness.json",
         qpath,
         Path(__file__).resolve(),
+        HERE / "split_rrc.py",
         REPO / "tools/rrc-uper/check.py",
         REPO / "cmake/NrforgeRrcSdkExpanded.cmake",
         REPO / "cmake/VerifyNgapSdk.cmake",
@@ -237,6 +239,10 @@ namespace nrforge::rrc::detail {void root_anchor_"""
             installed_header_sha256=sha(target),
         )
         entries.append(entry)
+    codec_sources, codec_layout = split_roots(g, entries)
+    for entry in entries:
+        entry["installed_header_sha256"] = sha(inc / entry["header"].removeprefix("nrforge/rrc/"))
+    (g / "codec-layout.json").write_text(json.dumps(codec_layout, indent=2)+"\n")
     manifest = dict(
         version="0.3.0",
         protocol="RRC",
@@ -289,6 +295,7 @@ nrforge_verify_sdk_lock()
 add_library(nrforge_rrc STATIC runtime.cpp sdk_identity.cpp
 """
         + "".join(f' r{e["index"]:03}.cpp\n' for e in supported)
+        + "".join(" "+name+"\n" for name in codec_sources)
         + """)
 nrforge_package_rrc_sdk(nrforge_rrc)
 """

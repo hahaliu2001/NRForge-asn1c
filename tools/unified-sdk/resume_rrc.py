@@ -45,15 +45,26 @@ def qualification_source_hash(repo, source):
     return hashlib.sha256(archive).hexdigest()
 
 
-def recover(repo, out, head, closure, command, write):
+def recover(repo, out, head, closure, command, write, *, split=False):
     ensure_no_active_build(out)
     ensure_no_active_build(closure)
     previous=read(out/'producer.json')
     if (previous['status']!='FAIL_OR_INTERRUPTED' or previous['source_revision']!=APER_REVISION
             or (out/'05-rrc/status').read_text().strip()!='EXIT 1'):
         raise ValueError('Not the reviewed RRC extraction failure after three APER installs')
-    if any((out/name).exists() for name in ('sdk','rrc-prefix','06-venv','rrc-recovery-build')):
+    forbidden=('sdk','rrc-prefix','tool-venv','rrc-split-build','rrc-split-generation') if split else ('sdk','rrc-prefix','tool-venv','rrc-recovery-build')
+    if any((out/name).exists() for name in forbidden):
         raise ValueError('RRC installation or later unified stages already exist')
+    if split:
+        prior=read(out/'rrc-recovery/reuse-plan.json')
+        if prior['producer_revision']!='c59e7174a688ccdda100eeda7f7d3d30848298f1':
+            raise ValueError('Not the reviewed interrupted RRC build')
+        if (out/'rrc-recovery/04-build/status').read_text().strip()!='RUNNING' or 'Terminated' not in (out/'rrc-recovery/04-build/stderr.txt').read_text():
+            raise ValueError('Not the terminated pre-install RRC build')
+        if (out/'rrc-recovery/05-install').exists():
+            raise ValueError('RRC install already started')
+        if prior['rrc_generation_receipt']!=sha(closure/'report.json'):
+            raise ValueError('Original closure receipt changed')
     passed=read(closure/'report.json')
     if (passed['status']!='PASS_RRC_GENERATION_ONLY' or passed['source_revision']!=RRC_REVISION
             or passed['selected_roots']!=91 or passed['historical_85_headers']!='UNCHANGED'):
@@ -74,6 +85,8 @@ def recover(repo, out, head, closure, command, write):
     allowed={'tools/unified-sdk/produce.py','tools/unified-sdk/resume_rrc.py',
              'tools/unified-sdk/test_resume_rrc.py','tools/unified-sdk/test_component_identities.py',
              'docs/unified-sdk-expanded-source-review.md','Makefile.am'}
+    if split:
+        allowed.update({'tools/unified-sdk/split_rrc.py','tools/unified-sdk/test_split_rrc.py','tools/unified-sdk/build_rrc.py'})
     if not changes or set(changes)-allowed:
         raise ValueError('Unreviewed changes after the passed RRC source')
     qualification_archive_sha256=qualification_source_hash(repo,source)
@@ -95,7 +108,7 @@ def recover(repo, out, head, closure, command, write):
             if name.startswith(('libaper/','libngap/')) and sha(source/name)!=digest:
                 raise ValueError('Shared C++ source differs from reused SDK: '+name)
         receipts[profile]=sha(out/(profile+'-build/build-summary.json'))
-    evidence=out/'rrc-recovery';evidence.mkdir()
+    evidence=out/('rrc-split-recovery' if split else 'rrc-recovery');evidence.mkdir()
     write(evidence/'original-producer.json',previous)
     shutil.copytree(out/'05-rrc',evidence/'original-05-rrc')
     write(evidence/'reuse-plan.json',dict(producer_revision=head,qualification_source_revision=RRC_REVISION,
@@ -111,7 +124,19 @@ def recover(repo, out, head, closure, command, write):
             '-P',out/'source/cmake/VerifyNgapSdk.cmake'])
     command(evidence/'02-verify-rrc-generation',['cmake','-DNRFORGE_SOURCE_ROOT='+str(source),
         '-DNRFORGE_GENERATED_ROOT='+str(generated),'-P',source/'cmake/VerifyNgapSdk.cmake'])
-    build=out/'rrc-recovery-build';prefix=out/'rrc-prefix'
+    layout=None
+    if split:
+        from split_rrc import reseal_layout
+        derived=out/'rrc-split-generation'
+        shutil.copytree(generated,derived)
+        # Never edit the passed generation or the interrupted build. A new seal
+        # changes the identity guard; old RRC objects cannot be mixed with it.
+        layout=reseal_layout(derived,head)
+        generated=derived
+        write(evidence/'layout-migration.json',layout)
+        command(evidence/'02-verify-split-layout',['cmake','-DNRFORGE_SOURCE_ROOT='+str(source),
+            '-DNRFORGE_GENERATED_ROOT='+str(generated),'-P',source/'cmake/VerifyNgapSdk.cmake'])
+    build=out/('rrc-split-build' if split else 'rrc-recovery-build');prefix=out/'rrc-prefix'
     command(evidence/'03-configure',['cmake','-S',generated,'-B',build,
         '-DNRFORGE_SOURCE_ROOT='+str(source),'-DCMAKE_INSTALL_PREFIX='+str(prefix),
         '-DCMAKE_EXPORT_COMPILE_COMMANDS=ON',
@@ -119,8 +144,9 @@ def recover(repo, out, head, closure, command, write):
         '-DCMAKE_EXE_LINKER_FLAGS=-fuse-ld=lld -Wl,--threads=1'])
     command(evidence/'04-build',['cmake','--build',build,'--parallel','1'],timeout=43200,live=True)
     command(evidence/'05-install',['cmake','--install',build],timeout=3600)
-    if read(prefix/'share/nrforge-rrc/sdk-provenance.json')['identity']!=rrc:
+    expected=read(generated/'sdk-provenance.json')['identity']
+    if read(prefix/'share/nrforge-rrc/sdk-provenance.json')['identity']!=expected:
         raise ValueError('Installed RRC identity differs from passed generation')
     return dict(qualification_source=str(source),qualification_source_revision=RRC_REVISION,
         component_source_revisions={**{p:APER_REVISION for p in receipts},'rrc':RRC_REVISION},
-        evidence=str(evidence),rrc_generation_work=str(closure))
+        evidence=str(evidence),rrc_generation_work=str(closure),build_layout=layout)
