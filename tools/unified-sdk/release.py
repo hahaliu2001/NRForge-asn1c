@@ -59,6 +59,8 @@ def approval(path,digest):
 def package(a):
     report_path=a.work/'producer.json';r=read(report_path)
     if r['status']!='PASS_LOCAL_QUALIFICATION' or r['version']!=VERSION:raise ValueError('Unified qualification incomplete')
+    if r.get('source_revision')!=r.get('recovery_commit') or not r.get('recovery_commit'):
+        raise ValueError('Release source must be the recovery commit')
     prefix=Path(r['prefix']).resolve()
     actual={str(p.relative_to(prefix)):sha(p) for p in prefix.rglob('*') if p.is_file()}
     if any(p.is_symlink() for p in prefix.rglob('*')) or actual!=r['sdk_files']:raise ValueError('Installed SDK changed after qualification')
@@ -72,6 +74,11 @@ def package(a):
     with tarfile.open(archive,'w:gz') as tar:tar.add(prefix,arcname='nrforge-asn1-sdk-'+VERSION,recursive=True)
     shutil.copyfile(wheel,a.output/wheel.name)
     shutil.copyfile(report_path,a.output/'producer.json')
+    receipt=Path(r['recovery_receipt']).resolve(); evidence=Path(r['evidence_archive']).resolve()
+    if not receipt.is_file() or not receipt.is_relative_to(a.work.resolve()):raise ValueError('Missing qualification receipt')
+    if not evidence.is_file() or not evidence.is_relative_to(a.work.resolve()):raise ValueError('Missing recovery evidence archive')
+    shutil.copyfile(receipt,a.output/'qualification-receipt.json')
+    shutil.copyfile(evidence,a.output/'recovery-evidence.tar.gz')
     for kind,path in [('sdk',archive),('wheel',a.output/wheel.name)]:
         lock=dict(repository=REPO,version=VERSION,tag='asn1-sdk-v'+VERSION,asset=path.name,sha256=sha(path),source_revision=r['source_revision'])
         (a.output/(kind+'-consumer-lock.json')).write_text(json.dumps(lock,indent=2,sort_keys=True)+'\n')

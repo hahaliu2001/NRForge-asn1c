@@ -26,7 +26,8 @@ def verify():
     quota, period = (group/'cpu.max').read_text().split()
     if quota == 'max' or int(quota)*2 > int(period)*3:
         raise RuntimeError('Build scope lacks the CPU quota')
-    return dict(cgroup=str(group), memory_max=int(memory), tasks_max=int(tasks), swap_max=0)
+    return dict(cgroup=str(group), memory_max=int(memory), tasks_max=int(tasks),
+                swap_max=0, cpu_quota=quota, cpu_period=int(period))
 
 
 def main():

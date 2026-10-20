@@ -6,6 +6,8 @@ from pathlib import Path
 import sys
 import nrforge_ngap as sdk
 
+MAX_TRANSFER_OCTETS = 4096
+
 
 def restore(value):
     if isinstance(value, dict):
@@ -31,7 +33,7 @@ def main():
     checks = 0
     for row in vectors:
         root, wire, expected = row['root'], row['wire'], row['body']
-        if len(wire) > 4096:
+        if len(wire) > MAX_TRANSFER_OCTETS:
             try:
                 sdk.decode_transfer(root, wire, limits={'max_input_octets': 8192})
             except sdk.CodecError as error:
@@ -75,12 +77,12 @@ def main():
     else:
         raise AssertionError('Unknown SEQUENCE addition was re-emitted')
     for row in vectors:
-        if len(row['wire']) > 4096:
+        if len(row['wire']) > MAX_TRANSFER_OCTETS:
             continue
         try:
             sdk.decode_transfer(row['root'], row['wire']+b'\0')
         except sdk.CodecError as error:
-            if len(row['wire']) == 4096:
+            if len(row['wire']) == MAX_TRANSFER_OCTETS:
                 assert (error.code, error.bit_offset) == ('resource_limit', 0), row['name']
             else:
                 assert error.code == 'trailing_data', row['name']
