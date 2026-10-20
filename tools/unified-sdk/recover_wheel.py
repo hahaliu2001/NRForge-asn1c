@@ -8,6 +8,16 @@ WHEEL_NAME = 'nrforge_ngap-0.3.0-cp312-cp312-linux_x86_64.whl'
 BUILD_PREFIXES = ('python/', 'cmake/', 'tools/', 'libaper/', 'libngap/')
 QUALIFICATION_FILES = ('python/tests/run_installed.py', 'tools/ngap-transfer-sdk/installed_check.py')
 REGISTERED_SOURCE_PATCHES = {
+    'tools/unified-sdk/build_rrc.py': {'before_sha256': '087776820f70c0676d78d27b0b2274539ec4e2abeede16c659faa52f2aceb35f', 'after_sha256': '5195b924ff30aecbe9ff817d35f14fff2107ea633ec47e62ca65c5cbd02a4f2f', 'reason': 'historical recovery-chain input; not executed by this recovery'},
+    'tools/unified-sdk/produce.py': {'before_sha256': 'e80b86b4ccce53bed52038ef5ad4eee39e8b588feb6a52665c4a053952f921f7', 'after_sha256': '5ab11faa6d28c98e1ac335001d8748c2123ed14d4f91846cb84f3935195175a1', 'reason': 'historical producer input; explicitly not resumed by R1'},
+    'tools/unified-sdk/release.py': {'before_sha256': '4e89cc0e03f3cac0be28ea0b4e1e3604b117bc2e5a977da811696fc6172a40c2', 'after_sha256': '11cc1d247335c52857dc14594270a12fd498aa01009f70d949e315f6e7fca59d', 'reason': 'historical packaging-chain input; publish remains disabled'},
+    'tools/unified-sdk/test_component_identities.py': {'before_sha256': 'b2770718f24ee91b179ca6a63cfda38b71eb9b227fac65361006d4f0c4851a31', 'after_sha256': 'ba10cd2d778e7d005e3e4ee9c1d8b36af26a136fb1c26b19abed61b5193f9746', 'reason': 'historical recovery-chain test; not executed by this recovery'},
+    'tools/unified-sdk/test_release_guards.py': {'before_sha256': '9aac3af64b7c1870c4aa4ed234f00f34f209c89debc48389a64970159c337f47', 'after_sha256': '82e3ddb894cdb931e4f9157547a9cd6fcf7349bf0da6438219eb4b8fddf18081', 'reason': 'historical packaging-chain test; not executed by this recovery'},
+    'tools/unified-sdk/check_rrc_closure.py': {'before_sha256': None, 'after_sha256': '4e6a7c6df6bf7c3e02131cf01bd77afe18c240d51776a3762418692b3c867d56', 'reason': 'historical recovery-chain input absent from old snapshot; not executed'},
+    'tools/unified-sdk/resume_rrc.py': {'before_sha256': None, 'after_sha256': '3fde4046db5b6b90ac894b93907a4ca860feaca82a9c6b41e083c3122a11826d', 'reason': 'historical recovery-chain input absent from old snapshot; not executed'},
+    'tools/unified-sdk/split_rrc.py': {'before_sha256': None, 'after_sha256': 'bfb7c68814022dd85151d237c0a1bddfd27ab8614872b15cd5cd9716de6cd2c3', 'reason': 'historical recovery-chain input absent from old snapshot; not executed'},
+    'tools/unified-sdk/test_resume_rrc.py': {'before_sha256': None, 'after_sha256': '19298df16421a334d37b452873f0c788abda944e7fba1bbae114eef6d7fadb49', 'reason': 'historical recovery-chain test absent from old snapshot; not executed'},
+    'tools/unified-sdk/test_split_rrc.py': {'before_sha256': None, 'after_sha256': '9a3ef428c11289ba7748d10693523548b59b01857306433a3566b96708eca6a7', 'reason': 'historical recovery-chain test absent from old snapshot; not executed'},
     'tools/ngap-transfer-sdk/resource_guard.py': {
         'before_sha256': 'aa62588c74070575aa2600923b3ec462061e243b5c2011504d4e649b8e4c697f',
         'after_sha256': 'f21c21640c7ab56f3d74f5e032776db8a0e9f3654044f909de7e228b9cbfa973',
@@ -64,10 +74,16 @@ def source_manifest(repo, source, baseline):
         if not name.startswith(BUILD_PREFIXES): continue
         repo_path, source_path = Path(repo) / name, Path(source) / name
         if not source_path.exists():
-            require(name in ('tools/unified-sdk/recover_wheel.py', 'tools/unified-sdk/test_recover_wheel.py'),
-                    'Qualification source missing tracked input: ' + name)
-            patches[name] = {'before_sha256': None, 'after_sha256': sha(repo_path),
-                             'reason': 'new recovery implementation/test; not executed by qualification'}
+            registered = REGISTERED_SOURCE_PATCHES.get(name)
+            require(registered is not None or name in ('tools/unified-sdk/recover_wheel.py',
+                    'tools/unified-sdk/test_recover_wheel.py'), 'Qualification source missing tracked input: ' + name)
+            if registered is not None:
+                require(registered['before_sha256'] is None and sha(repo_path) == registered['after_sha256'],
+                        'Registered absent qualification patch bytes do not match: ' + name)
+                patches[name] = dict(registered)
+            else:
+                patches[name] = {'before_sha256': None, 'after_sha256': sha(repo_path),
+                                 'reason': 'new recovery implementation/test; not executed by qualification'}
             continue
         old = source_path.read_bytes(); new = repo_path.read_bytes()
         if old != new:
