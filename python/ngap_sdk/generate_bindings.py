@@ -235,6 +235,8 @@ def verify_installed_sdk(prefix, expected_fingerprint=None, profile="ngap"):
                 def original_include(match):
                     included = match[1]
                     if included not in expected: raise ValueError('unknown qualified include')
+                    if name.startswith('transfers/') and name.endswith('/root.hpp') and included in ('runtime.hpp', 'sequence_extensions.hpp'):
+                        return '#include "' + included + '"'
                     if name in pdu_headers or (name.startswith('transfers/') and included.startswith('transfers/')) or (name.startswith('messages/') and included.startswith('messages/')):
                         return '#include "' + Path(included).name + '"'
                     return '#include <' + included + '>'

@@ -80,7 +80,10 @@ def main():
         try:
             sdk.decode_transfer(row['root'], row['wire']+b'\0')
         except sdk.CodecError as error:
-            assert error.code == 'trailing_data'
+            if len(row['wire']) == 4096:
+                assert (error.code, error.bit_offset) == ('resource_limit', 0), row['name']
+            else:
+                assert error.code == 'trailing_data', row['name']
         else:
             raise AssertionError('Trailing bytes accepted')
     try:
