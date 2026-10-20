@@ -30,6 +30,13 @@ class ReleaseGuards(unittest.TestCase):
             release.publish(self.args)
         api.assert_not_called()
 
+    def test_package_requires_recovery_commit_source_identity(self):
+        work = self.root / 'work'; work.mkdir()
+        (work / 'producer.json').write_text(json.dumps({'status': 'PASS_LOCAL_QUALIFICATION', 'version': release.VERSION}))
+        args = type('Args', (), {'work': work, 'output': self.root / 'new-candidate'})()
+        with self.assertRaisesRegex(ValueError, 'recovery commit'):
+            release.package(args)
+
     def test_acceptance_binds_exact_candidate(self):
         self.manifest['source_revision']='b'*40
         (self.candidate/'candidate.json').write_text(json.dumps(self.manifest))
