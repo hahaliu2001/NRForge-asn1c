@@ -163,6 +163,10 @@ def validate_old_candidate(old_candidate, work):
     require(original.get('status') == 'FAIL_OR_INTERRUPTED' and '13-wheel' in original.get('diagnostic', ''),
             'Original failure receipt is not the recorded wheel failure')
     require((work / '13-wheel/status').read_text().strip() == 'EXIT 1', 'Original wheel stage status changed')
+    historical_wheel = old_candidate / WHEEL_NAME
+    require(historical_wheel.is_file() and sha(historical_wheel) == manifest.get('assets', {}).get(WHEEL_NAME),
+            'Old candidate wheel identity is missing or changed')
+    require(producer.get('wheel_sha256') == sha(historical_wheel), 'Old producer and candidate wheel differ')
     return producer, original_bytes, original_path
 
 
@@ -182,13 +186,10 @@ def validate_inputs(repo, source, work, old_candidate):
     source_inputs = source_manifest(repo, source, producer['qualification_source_revision'])
     tools = tool_hashes(repo, source)
     check_historical_scope(work)
-    old_wheel = Path(producer['wheel'])
-    require(old_wheel.is_file() and sha(old_wheel) == producer['wheel_sha256'],
-            'Pre-recovery wheel does not match old qualification receipt')
     require((work / 'vectors.json').is_file(), 'Missing Transfer vectors')
     return {'producer': producer, 'original_bytes': original_bytes, 'original_path': original_path,
             'sdk_files': sdk, 'bundle': bundle, 'source_inputs': source_inputs, 'tool_hashes': tools,
-            'old_wheel_sha256': producer['wheel_sha256']}
+            'old_wheel_sha256': producer['wheel_sha256'], 'historical_wheel': str(old_candidate / WHEEL_NAME)}
 
 
 def check_guard(evidence):
