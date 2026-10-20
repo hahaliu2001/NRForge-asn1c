@@ -337,3 +337,4 @@ EXTRA_DIST += tools/ngap-transfer-sdk/test_root_header.py \
  tools/unified-sdk/resume_ngap.py tools/unified-sdk/test_resume_ngap.py
 EXTRA_DIST += tools/ngap-transfer-sdk/test_split_link_checks.py
 EXTRA_DIST += tools/unified-sdk/check_rrc_closure.py
+EXTRA_DIST += tools/unified-sdk/resume_rrc.py tools/unified-sdk/test_resume_rrc.py

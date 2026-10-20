@@ -39,6 +39,21 @@ class ComponentIdentities(unittest.TestCase):
         self.assertEqual(result['rrc']['fingerprint'],'4'*64)
         self.assertTrue(all(row['source_revision']==self.revision for row in result.values()))
 
+    def test_explicit_component_revisions_preserved(self):
+        self.change('rrc','source_revision','d'*40)
+        expected={p:self.revision for p in ('ngap','f1ap','e1ap','rrc')}
+        expected['rrc']='d'*40
+        result=producer.read_component_identities(self.prefix,expected)
+        self.assertEqual(result['ngap']['source_revision'],self.revision)
+        self.assertEqual(result['rrc']['source_revision'],'d'*40)
+        expected['rrc']='e'*40
+        with self.assertRaisesRegex(ValueError,'revision mismatch: rrc'):
+            producer.read_component_identities(self.prefix,expected)
+
+    def test_incomplete_revision_map_rejected(self):
+        with self.assertRaisesRegex(ValueError,'revision map'):
+            producer.read_component_identities(self.prefix,{'ngap':self.revision})
+
     def test_rrc_mixed_version_rejected(self):
         self.change('rrc','version','0.2.0')
         with self.assertRaisesRegex(ValueError,'version: rrc'):producer.read_component_identities(self.prefix,self.revision)

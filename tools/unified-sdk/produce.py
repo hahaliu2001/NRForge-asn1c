@@ -25,6 +25,10 @@ def git(*args):return subprocess.check_output(['git','-C',str(REPO),*args])
 
 def read_component_identities(prefix, source_revision):
     """Read each producer's identity contract without weakening any component gate."""
+    profiles=('ngap','f1ap','e1ap','rrc')
+    revisions=source_revision if isinstance(source_revision,dict) else {p:source_revision for p in profiles}
+    if set(revisions)!=set(profiles) or any(not isinstance(v,str) or not re.fullmatch(r'[0-9a-f]{40}',v) for v in revisions.values()):
+        raise ValueError('Invalid expected component revision map')
     identities={}
     for profile in ('ngap','f1ap','e1ap','rrc'):
         provenance=json.loads((prefix/('share/nrforge-'+profile+'/sdk-provenance.json')).read_text())
@@ -35,7 +39,7 @@ def read_component_identities(prefix, source_revision):
             raise ValueError('Missing component identity: '+profile)
         if identity.get('version')!=VERSION:
             raise ValueError('Mixed or missing component version: '+profile)
-        if identity.get('source_revision')!=source_revision:
+        if identity.get('source_revision')!=revisions[profile]:
             raise ValueError('Component source revision mismatch: '+profile)
         for key in ('fingerprint','schema_sha256','runtime_sha256'):
             value=identity.get(key)
@@ -77,23 +81,35 @@ def main():
     p.add_argument('--work',type=Path,required=True)
     p.add_argument('--resume-ngap', action='store_true', help='Recover the reviewed pre-install NGAP failure in --work, preserving its evidence')
     p.add_argument('--resume-ngap-split', action='store_true', help='Recover the stopped monolithic NGAP check after --resume-ngap')
+    p.add_argument('--resume-rrc-generation',type=Path, help='Reuse the passed RRC closure work directory and the three completed APER components')
     a=p.parse_args()
+    if a.resume_rrc_generation and (a.resume_ngap or a.resume_ngap_split):p.error('Choose only one recovery mode')
     if a.resume_ngap and a.resume_ngap_split:p.error('Choose only one recovery mode')
     a.resume_ngap = a.resume_ngap or a.resume_ngap_split
-    recovery_name='split-check-recovery' if a.resume_ngap_split else 'namespace-recovery'
+    resuming=a.resume_ngap or a.resume_rrc_generation is not None
+    recovery_name='rrc-recovery' if a.resume_rrc_generation else ('split-check-recovery' if a.resume_ngap_split else 'namespace-recovery')
     resource=verify()
     if sys.platform!='linux' or sys.version_info[:2]!=(3,12):raise RuntimeError('Native Linux CPython 3.12 required')
     if git('status','--porcelain','--untracked-files=no').strip():raise ValueError('Commit producer changes before execution')
     head=git('rev-parse','HEAD').decode().strip()
-    out=a.work.expanduser().resolve();out.mkdir(parents=True,exist_ok=a.resume_ngap)
-    report=dict(status='RUNNING',version=VERSION,source_revision=head,resources=resource,publication='NOT_RUN',owner_acceptance='PENDING')
-    if not a.resume_ngap:write(out/'producer.json',report)
+    out=a.work.expanduser().resolve();out.mkdir(parents=True,exist_ok=resuming)
+    report=dict(status='RUNNING',version=VERSION,source_revision=head,producer_revision=head,resources=resource,publication='NOT_RUN',owner_acceptance='PENDING')
+    if not resuming:write(out/'producer.json',report)
+    component_revisions=head
     try:
         source=out/'source'
         schema=out/'schema'
         os.environ.update(CC='gcc-13',CXX='g++-13',CFLAGS='-O0 -g0',CMAKE_BUILD_PARALLEL_LEVEL='1',MAKEFLAGS='-j1',
             CXXFLAGS='-O0 -g0 --param=ggc-min-expand=5 --param=ggc-min-heapsize=16384',LDFLAGS='-fuse-ld=lld -Wl,--threads=1',PYTHONDONTWRITEBYTECODE='1')
-        if a.resume_ngap:
+        if a.resume_rrc_generation:
+            from resume_rrc import recover as recover_rrc
+            report['resumption']=recover_rrc(REPO,out,head,a.resume_rrc_generation.resolve(),command,write)
+            source=Path(report['resumption']['qualification_source'])
+            component_revisions=report['resumption']['component_source_revisions']
+            report['component_source_revisions']=component_revisions
+            report['qualification_source_revision']=report['resumption']['qualification_source_revision']
+            write(out/'producer.json',report)
+        elif a.resume_ngap:
             from resume_ngap import recover
             report['resumption']=recover(REPO,out,head,command,write,split=a.resume_ngap_split)
             write(out/'producer.json',report)
@@ -126,7 +142,7 @@ def main():
         prefixes={}
         for profile in ('ngap','f1ap','e1ap','rrc'):
             prefix=out/(profile+'-prefix');prefixes[profile]=prefix
-            if a.resume_ngap and profile=='ngap':continue
+            if a.resume_rrc_generation or (a.resume_ngap and profile=='ngap'):continue
             script=source/('tools/unified-sdk/build_rrc.py' if profile=='rrc' else 'tools/'+profile+'-sdk/build.py')
             argv=[sys.executable,script,'--asn1-root',schema,'--work',out/(profile+'-build'),'--prefix',prefix,'--jobs','1']
             if profile!='rrc':argv+=['--repo',source]
@@ -144,10 +160,10 @@ def main():
                  '  set_target_properties(NRForge::asn1 PROPERTIES INTERFACE_LINK_LIBRARIES "NRForge::ngap;NRForge::f1ap;NRForge::e1ap;NRForge::rrc")','endif()']
         (configs/'NRForgeASN1Config.cmake').write_text('\n'.join(config)+'\n')
         (configs/'NRForgeASN1ConfigVersion.cmake').write_text('set(PACKAGE_VERSION "'+VERSION+'")\nif(PACKAGE_FIND_VERSION VERSION_EQUAL PACKAGE_VERSION)\nset(PACKAGE_VERSION_EXACT TRUE)\nset(PACKAGE_VERSION_COMPATIBLE TRUE)\nendif()\n')
-        component_identities=read_component_identities(prefix,head)
+        component_identities=read_component_identities(prefix,component_revisions)
         identity={profile:row['version'] for profile,row in component_identities.items()}
         shutil.copyfile(source/'LICENSE',prefix/'LICENSE')
-        write(prefix/'nrforge-asn1-bundle.json',dict(version=VERSION,protocols=list(prefixes),source_revision=head,scope=json.loads((source/'tools/unified-sdk/scope.json').read_text()),component_versions=identity,qualification='PENDING'))
+        write(prefix/'nrforge-asn1-bundle.json',dict(version=VERSION,protocols=list(prefixes),source_revision=head,producer_revision=head,qualification_source_revision=report.get('qualification_source_revision',head),scope=json.loads((source/'tools/unified-sdk/scope.json').read_text()),component_versions=identity,component_source_revisions={p:r['source_revision'] for p,r in component_identities.items()},qualification='PENDING'))
         env=out/'tool-venv';command(out/'06-venv',[sys.executable,'-m','venv',env]);python=env/'bin/python'
         command(out/'07-build-tools',[python,'-I','-m','pip','install','build==1.3.0','scikit-build-core==0.11.6','pybind11==3.0.1'])
         command(out/'08-oracle-tools',[python,'-I','-m','pip','install','--no-deps','--require-hashes','-r',source/'tools/m6003-transfer-qualification/oracle-requirements.lock'])
@@ -193,7 +209,7 @@ def main():
     except BaseException as e:
         report.update(status='FAIL_OR_INTERRUPTED',diagnostic=str(e));raise
     finally:
-        if not a.resume_ngap or (out/recovery_name/'original-producer.json').exists():
+        if not resuming or (out/recovery_name/'original-producer.json').exists():
             write(out/'producer.json',report)
 
 

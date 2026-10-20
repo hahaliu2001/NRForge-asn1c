@@ -223,3 +223,39 @@ preimages in `test-input-recovery/`, and uses separate command logs. It rebuilds
 the changed test using existing C libraries, reruns both tests, then proceeds to
 91-root generation. The original failure command directory is preserved. It
 does not resume or modify the original unified SDK workspace.
+
+## Owner RRC generation PASS and authenticated continuation (2026-10-20 UTC)
+
+Owner ran the b26e206f repair in `asn1-rrc-closure-fZTwKNaO` under the 6 GiB
+aggregate limit. The enum ownership/render regression passed with 62 allocation
+rollback positions; the existing collection regression passed with 37. All 91
+selected roots generated and sealed; all historical 85 headers were unchanged.
+Matrix SHA256: `e31d44cb6e0492af3701907e98f6d77dcf9db677e88d0db076cb4d9fdfc04e2e`.
+Generation fingerprint: `91b498d87adef0c0f1be487cc21709e545ff376755a62f7e5e54069e398b35c7`.
+These are native C and generation results, not installed/wire qualification or
+Owner acceptance of the SDK.
+
+`produce.py --resume-rrc-generation CLOSURE_WORK` now supports this exact stopped
+71712e41 unified run. It verifies installed file sets and compile receipts for
+the three completed APER components, original source/generated/archive seals,
+and the passed b26e206f RRC matrix and source/generated seal. Qualification scripts
+and shared C++ inputs are also authenticated against the b26e206f archive; shared
+runtime/core inputs must match the old components' recorded hashes. Original
+failure evidence is saved separately under `rrc-recovery/`. It builds/installs
+only the existing sealed RRC generation, then executes all original consumer,
+oracle, wheel and coexistence gates. It does not rerun the three SDK builds or
+RRC generation. No partial result becomes an overall PASS.
+
+Source lineage is explicit: the three reused APER components retain revision
+71712e41; RRC retains b26e206f. The bundle and producer report record this exact
+component map, the b26e206f qualification source, and the current runner revision.
+Fresh builds still require every component's revision to equal HEAD. Resumption
+uses a complete, strictly checked expected map; no automatic revision fallback
+is allowed. A single 0.3.0 SDK bundle is produced, not separate maintained SDKs.
+Publication, retirement, main-branch merge and Owner SDK acceptance remain pending.
+
+The continuation batch passed 26 offline unified producer/recovery tests and
+three header/split-check fixture tests locally. Final independent read-only
+source review found no definite blockers. These checks authorize the bounded
+Owner continuation; RRC native SDK build and complete bundle qualification are
+still pending and are not implied by source review.
