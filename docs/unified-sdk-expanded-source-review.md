@@ -204,3 +204,22 @@ the failed unified workspace, or historical qualification. Its success would
 be generation evidence only, not an installed/wire-qualified SDK or a release.
 A full resumed qualification is not claimed or implemented by this diagnostic
 gate; the previous NGAP-specific recovery modes do not resume this RRC failure.
+
+### Parser assertion in the new regression input
+
+Owner's isolated check `asn1-rrc-closure-fZTwKNaO` built the C libraries/tests,
+then aborted parsing the new fixture at `asn1p_y.y`'s nested collection constraint
+assertion. The added direct list-of-list fixture has been replaced with a list
+of records containing an enum list, matching the nested shape already used by
+the accepted collection-element fixture. The test still checks the nested owned
+element path (`$inline$Nested$@element$values`). The parser is not changed and
+this change makes no claim to support the direct constrained list-of-list form.
+The enum collection extraction repair remains unchanged.
+
+`check_rrc_closure.py --resume-tests` only accepts the recorded enum parser
+assertion before probe/generation stages. It requires git preimages for a narrow
+allowlist of test/runner/review changes, archives the original report and source
+preimages in `test-input-recovery/`, and uses separate command logs. It rebuilds
+the changed test using existing C libraries, reruns both tests, then proceeds to
+91-root generation. The original failure command directory is preserved. It
+does not resume or modify the original unified SDK workspace.

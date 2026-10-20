@@ -34,7 +34,7 @@ int main(void) {
         "List ::= SEQUENCE (SIZE (1..2)) OF ENUMERATED {semiStatic, dynamic}\n"
         "Fields ::= SEQUENCE { first SEQUENCE (SIZE (1..3)) OF ENUMERATED {noInterruption, interruption}, second SEQUENCE (SIZE (1..2)) OF ENUMERATED {ms0, notSupported} OPTIONAL }\n"
         "ExtList ::= SEQUENCE (SIZE (1..2)) OF ENUMERATED {zero, one, ..., extra}\n"
-        "Nested ::= SEQUENCE (SIZE (1..2)) OF SEQUENCE (SIZE (1..2)) OF ENUMERATED {a, b}\n"
+        "Nested ::= SEQUENCE (SIZE (1..2)) OF SEQUENCE { values SEQUENCE (SIZE (1..2)) OF ENUMERATED {a, b} }\n"
         "SetupRelease {T} ::= CHOICE {release NULL, setup T}\n"
         "Wrapped ::= SEQUENCE {list SetupRelease {List} OPTIONAL}\nEND\n";
     const char *roots[] = {"List", "Fields", "ExtList", "Nested", "Wrapped"};
@@ -71,7 +71,7 @@ int main(void) {
     CHECK(e != other && !strcmp(other->enum_items[0].source_name, "ms0"));
     e = enum_element(&graphs[2], "ExtList");
     CHECK(e->is_extensible && e->enum_item_count == 3 && e->enum_items[2].is_extension_addition);
-    CHECK(enum_element(&graphs[3], "$inline$Nested$@element")->enum_item_count == 2);
+    CHECK(enum_element(&graphs[3], "$inline$Nested$@element$values")->enum_item_count == 2);
     CHECK(enum_element(&graphs[4], "List")->enum_item_count == 2);
     for(size_t i = 0; i < 5; ++i) {
         char *header = NULL;
