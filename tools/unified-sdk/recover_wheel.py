@@ -7,6 +7,12 @@ VERSION = '0.3.0'
 WHEEL_NAME = 'nrforge_ngap-0.3.0-cp312-cp312-linux_x86_64.whl'
 BUILD_PREFIXES = ('python/', 'cmake/', 'tools/', 'libaper/', 'libngap/')
 QUALIFICATION_FILES = ('python/tests/run_installed.py', 'tools/ngap-transfer-sdk/installed_check.py')
+REGISTERED_SOURCE_PATCHES = {
+    'tools/ngap-transfer-sdk/installed_check.py': {
+        'before_sha256': 'aa8d0efd84eeeaf16cc425a34c103e231791d53cba98593a1e4fff5836afbb60',
+        'after_sha256': 'e56447bc42237aebd6e3d950de05c1c5b6230671f8aa00a96a74b8def48119cc',
+        'reason': 'fixed MAX_TRANSFER_OCTETS spelling; behavior and executed vectors unchanged'},
+}
 
 def sha(path):
     h = hashlib.sha256()
@@ -61,10 +67,16 @@ def source_manifest(repo, source, baseline):
             continue
         old = source_path.read_bytes(); new = repo_path.read_bytes()
         if old != new:
-            require(name in ('tools/unified-sdk/recover_wheel.py', 'tools/unified-sdk/test_recover_wheel.py'),
-                    'Qualification source differs for unregistered input: ' + name)
-            patches[name] = {'before_sha256': sha(source_path), 'after_sha256': sha(repo_path),
-                             'reason': 'R1-R3 recovery implementation/test revision'}
+            registered = REGISTERED_SOURCE_PATCHES.get(name)
+            require(registered is not None or name in ('tools/unified-sdk/recover_wheel.py',
+                    'tools/unified-sdk/test_recover_wheel.py'), 'Qualification source differs for unregistered input: ' + name)
+            if registered is not None:
+                require(sha(source_path) == registered['before_sha256'] and sha(repo_path) == registered['after_sha256'],
+                        'Registered qualification patch bytes do not match: ' + name)
+                patches[name] = dict(registered)
+            else:
+                patches[name] = {'before_sha256': sha(source_path), 'after_sha256': sha(repo_path),
+                                 'reason': 'R1-R3 recovery implementation/test revision'}
         rows[name] = {'sha256': sha(source_path), 'content_sha1': git_blob(old)}
     require(rows, 'No tracked build inputs were authenticated')
     if source_names is not None:
@@ -72,7 +84,8 @@ def source_manifest(repo, source, baseline):
         extra = sorted(n for n in source_names if n.startswith(BUILD_PREFIXES) and n not in expected)
         require(not extra, 'Qualification source contains unregistered build inputs: ' + ', '.join(extra))
     for name in QUALIFICATION_FILES:
-        require(name in rows and name not in patches, 'Executed qualification input is not exact: ' + name)
+        require(name in rows and (name not in patches or name in REGISTERED_SOURCE_PATCHES),
+                'Executed qualification input is not exact: ' + name)
     return {'baseline_revision': baseline, 'inputs': rows, 'registered_patches': patches}
 
 def tool_hashes(repo, source):
