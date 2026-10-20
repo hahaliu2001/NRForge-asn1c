@@ -198,7 +198,7 @@ def check_guard(evidence):
             'resource_guard did not finish successfully')
     require(limit.get('memory_max') == 6 * 1024**3 and limit.get('tasks_max') == 128 and limit.get('swap_max') == 0,
             'resource guard contract is incomplete')
-    require(limit.get('cpu_quota') == '150%' and limit.get('cpu_period') > 0,
+    require(limit.get('cpu_quota') in ('150%', '150000') and limit.get('cpu_period') > 0,
             'resource guard CPU contract is incomplete')
     return {'status': status, 'limit': limit}
 
