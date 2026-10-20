@@ -27,7 +27,8 @@ class RecoveryGates(unittest.TestCase):
     def guard_files(self, evidence, code=0, complete=True):
         resource = evidence; resource.mkdir(parents=True, exist_ok=True)
         (resource / 'guard-status.json').write_text(json.dumps({'status': 'EXIT', 'exit_code': code}))
-        limit = {'memory_max': 6 * 1024**3, 'tasks_max': 128, 'swap_max': 0}
+        limit = {'memory_max': 10 * 1024**3, 'tasks_max': 128, 'swap_max': 0,
+                 'memory_peak': 123456, 'memory_events': {'low': 0, 'high': 0, 'max': 0, 'oom': 0, 'oom_kill': 0}}
         if complete: limit.update(cpu_quota='150%', cpu_period=100000)
         (resource / 'resource-limit.json').write_text(json.dumps(limit))
         for name in ('scope.stdout', 'scope.stderr'): (resource / name).write_text('')

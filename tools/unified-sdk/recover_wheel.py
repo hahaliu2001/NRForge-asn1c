@@ -20,7 +20,7 @@ REGISTERED_SOURCE_PATCHES = {
     'tools/unified-sdk/test_split_rrc.py': {'before_sha256': None, 'after_sha256': '9a3ef428c11289ba7748d10693523548b59b01857306433a3566b96708eca6a7', 'reason': 'historical recovery-chain test absent from old snapshot; not executed'},
     'tools/ngap-transfer-sdk/resource_guard.py': {
         'before_sha256': 'aa62588c74070575aa2600923b3ec462061e243b5c2011504d4e649b8e4c697f',
-        'after_sha256': 'f21c21640c7ab56f3d74f5e032776db8a0e9f3654044f909de7e228b9cbfa973',
+        'after_sha256': '8e1bb636650ecde6422190721497a469c789a46e2bcedeedd3d1161087a3e636',
         'reason': 'record CPU quota and period in guard evidence; required by R1 resource contract'},
     'tools/ngap-transfer-sdk/installed_check.py': {
         'before_sha256': 'aa8d0efd84eeeaf16cc425a34c103e231791d53cba98593a1e4fff5836afbb60',
@@ -195,10 +195,12 @@ def validate_inputs(repo, source, work, old_candidate):
 def check_guard(evidence):
     status, limit = read(evidence / 'guard-status.json'), read(evidence / 'resource-limit.json')
     require(status.get('status') == 'EXIT' and status.get('exit_code') == 0, 'resource_guard did not finish successfully')
-    require(limit.get('memory_max') == 6 * 1024**3 and limit.get('tasks_max') == 128 and limit.get('swap_max') == 0,
+    require(limit.get('memory_max') == 10 * 1024**3 and limit.get('tasks_max') == 128 and limit.get('swap_max') == 0,
             'resource guard contract is incomplete')
     require(limit.get('cpu_quota') in ('150%', '150000') and limit.get('cpu_period') > 0,
             'resource guard CPU contract is incomplete')
+    require(isinstance(limit.get('memory_peak'), int) and isinstance(limit.get('memory_events'), dict),
+            'resource guard memory accounting is incomplete')
     return {'status': status, 'limit': limit}
 
 def fixed_build_argv(repo, work, wheel_output, extension_build):

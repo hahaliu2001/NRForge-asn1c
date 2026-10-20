@@ -195,7 +195,8 @@ release IDs or hashes before artifacts exist.
 ChatGPT edits/pushes the authorized ASN1 feature branch. Heavy builds/tests run
 only in Owner's Ubuntu terminal when subsequently requested. Use serial compile,
 serial linker work, and a verified cgroup v2 limit over the entire descendant
-process group. Existing candidate guard specifies MemoryMax=6 GiB,
+process group. The WSL candidate guard specifies MemoryMax=10 GiB
+(10737418240 bytes),
 MemorySwapMax=0, TasksMax=128, CPUQuota=150%; verify those effective limits before
 launch and stop if delegation is unavailable. No sudo or unbounded fallback.
 A per-process ulimit alone is not an aggregate process-group memory bound.

@@ -14,6 +14,12 @@ the expected wheel created by that invocation. The command argv and its SHA256
 are recorded. Installation and both installed-wheel checks run in a new venv;
 the wheel digest is checked again after all tests.
 
+The WSL recovery scope uses `MemoryMax=10737418240` (10 GiB),
+`MemorySwapMax=0`, `TasksMax=128`, and `CPUQuota=150%`. The build keeps
+`CMAKE_BUILD_PARALLEL_LEVEL=1` and lld `--threads=1`. Evidence records the
+effective limits plus the cgroup's `memory.peak` and `memory.events`; the
+recovery rejects a different memory limit and never raises it automatically.
+
 Qualification inputs are byte-checked against the specified source snapshot.
 Only the recovery implementation and its tests may be registered as explicit
 before/after patches; executed qualification tools are required to match

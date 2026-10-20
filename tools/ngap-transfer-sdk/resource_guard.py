@@ -8,7 +8,7 @@ from pathlib import Path
 import subprocess
 import sys
 
-MAX_MEMORY = 6 * 1024**3
+MAX_MEMORY = 10 * 1024**3
 
 
 def verify():
@@ -27,7 +27,20 @@ def verify():
     if quota == 'max' or int(quota)*2 > int(period)*3:
         raise RuntimeError('Build scope lacks the CPU quota')
     return dict(cgroup=str(group), memory_max=int(memory), tasks_max=int(tasks),
-                swap_max=0, cpu_quota=quota, cpu_period=int(period))
+                swap_max=0, cpu_quota=quota, cpu_period=int(period),
+                _cgroup_path=str(group))
+
+
+def record_accounting(identity):
+    """Record post-build accounting from the same cgroup as the build."""
+    group = Path(identity.pop('_cgroup_path'))
+    identity['memory_peak'] = int((group/'memory.peak').read_text().strip())
+    events_text = (group/'memory.events').read_text()
+    identity['memory_events'] = {
+        key: int(value) for key, value in (line.split() for line in events_text.splitlines())
+    }
+    identity['memory_events_raw'] = events_text
+    return identity
 
 
 def main():
@@ -43,7 +56,13 @@ def main():
     if args.inside:
         identity = verify()
         (evidence/'resource-limit.json').write_text(json.dumps(identity, indent=2)+'\n')
-        os.execvp(command[0], command)
+        result = 1
+        try:
+            result = subprocess.run(command).returncode
+        finally:
+            record_accounting(identity)
+            (evidence/'resource-limit.json').write_text(json.dumps(identity, indent=2)+'\n')
+        raise SystemExit(result)
     evidence.mkdir(parents=True, exist_ok=False)
     status = evidence/'guard-status.json'
     status.write_text(json.dumps(dict(status='RUNNING', command=command))+'\n')

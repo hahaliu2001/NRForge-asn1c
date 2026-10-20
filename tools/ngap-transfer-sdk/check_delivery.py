@@ -3,6 +3,7 @@
 import importlib.util
 from pathlib import Path
 import sys
+import tempfile
 import unittest
 from unittest.mock import patch
 
@@ -52,6 +53,19 @@ class DeliveryChecks(unittest.TestCase):
             return {'cgroup': '0::/mock', 'memory.max': str(guard.MAX_MEMORY), 'pids.max': '128', 'memory.swap.max': '0', 'cpu.max': '150000 100000'}[path.name]
         with patch.object(Path, 'read_text', read):
             self.assertEqual(guard.verify()['memory_max'], guard.MAX_MEMORY)
+
+    def test_owner_memory_limit_is_exactly_ten_gib(self):
+        self.assertEqual(guard.MAX_MEMORY, 10737418240)
+
+    def test_accounting_records_peak_and_events(self):
+        with tempfile.TemporaryDirectory() as directory:
+            group = Path(directory)
+            (group/'memory.peak').write_text('987654321\n')
+            (group/'memory.events').write_text('low 0\nhigh 1\nmax 2\noom 0\noom_kill 0\n')
+            identity = {'_cgroup_path': str(group)}
+            self.assertEqual(guard.record_accounting(identity)['memory_peak'], 987654321)
+            self.assertEqual(identity['memory_events']['oom_kill'], 0)
+            self.assertEqual(identity['memory_events_raw'].splitlines()[1], 'high 1')
 
 
 if __name__ == '__main__':

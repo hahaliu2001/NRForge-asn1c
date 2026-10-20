@@ -65,8 +65,11 @@ Every output directory must be new. Inputs are authenticated again before the
 build; arbitrary current schema edits are refused. The snapshot identifies the
 exact committed ASN1 source, excluding historical verification binaries and
 local editor settings. The entire producer descendant tree must verify at most
-6 GiB memory, no swap, 128 tasks and 150% CPU. All compiler/link work is serial;
-lld uses one thread. Failures retain evidence and do not retry or publish.
+10 GiB (10737418240 bytes) memory, no swap, 128 tasks and 150% CPU. All
+compiler/link work is serial; `CMAKE_BUILD_PARALLEL_LEVEL=1` and lld's one
+thread are explicit controls. The guard records effective limits,
+`memory.peak`, and `memory.events` in its evidence. Failures retain evidence
+and do not retry or raise the limit.
 
 The pipeline builds/seals/installs four components, compiles independent public
 NGAP/RRC root consumers, audits dependencies against original input paths,
