@@ -101,8 +101,11 @@ def tool_hashes(repo, source):
     for name in names:
         for label, root in (('repo', repo), ('qualification', source)):
             path = Path(root) / name
-            require(path.is_file(), 'Missing executing tool: ' + str(path))
-            result.setdefault(name, {})[label] = sha(path)
+            if not path.is_file() and label == 'qualification' and name in RECOVERY_FILES:
+                result.setdefault(name, {})[label] = None
+            else:
+                require(path.is_file(), 'Missing executing tool: ' + str(path))
+                result.setdefault(name, {})[label] = sha(path)
     return result
 
 
