@@ -1,0 +1,31 @@
+{
+  "checked_before_delete": "2026-10-20",
+  "repositories": {
+    "hahaliu2001/NRForge-asn1c": {
+      "release_id": 418742565,
+      "tag": "asn1-sdk-v0.3.0",
+      "assets": [660162594, 660162535, 660162537, 660162538, 660162540, 660162539, 660162588, 660162587]
+    },
+    "hahaliu2001/NRForge-RAN": {
+      "release_id": 411867507,
+      "tag": "nrforge-asn1-linux-x86_64-gcc13-477c5affaee9-v1",
+      "assets": [
+        [637544628, "nrforge-asn1-linux-x86_64-gcc13.tar.zst", 387215990, "sha256:701f2dd4d524b05772335c8b31c67c94c1f0733c279c6ccf3554ddfae42a9508"],
+        [637544626, "nrforge-asn1-linux-x86_64-gcc13.tar.zst.sha256", 106, "sha256:fac6c8d2a043dc51a4670e5c70644ef591384b2e9e09969de0c02ef902fb69b6"]
+      ]
+    },
+    "hahaliu2001/NRForge-5GC": {
+      "release_id": 415526784,
+      "tag": "ngap-python-sdk-0.1.0-cp312-linux-x86_64-r1",
+      "assets": [
+        [649257895, "installed-upstream.json", 2236, "sha256:e5c1dfe23508f85ef37f4c9fc90fc294872838c911ba33904b0c09c4fc58ab91"],
+        [649257901, "installed.json", 1355, "sha256:d9583413b45868117bf7419aa7c2036c1c44d5470707a7a5032c82c1320d73e0"],
+        [649257897, "layout.json", 239429, "sha256:40b705637f365435ba30489dbf047c3cf6a4621cb8dbf328ad454fd200487221"],
+        [649257906, "nrforge_ngap-0.1.0-cp312-cp312-linux_x86_64.whl", 33813868, "sha256:0d304917fc885f0bf1b3d0976b4b88ac42d7b1e1a2b6df45eeabac2d33fae9e3"],
+        [649257896, "release.json", 1503, "sha256:d04df08e00380ce0fe08698d7c61bec2488e247b1096df02e962ac4a34a9c152"],
+        [649257934, "SHA256SUMS", 519, "sha256:3fcde7be5f412bb2e0f6e0f595541d310c5d73a563cd6fee222e1ddd1699b074"],
+        [649257933, "wheel.json", 1809, "sha256:c15dfc45302bd8944c36fb3440688f8754cd0aef51a3413b5bf414d2e7be77a3"]
+      ]
+    }
+  }
+}

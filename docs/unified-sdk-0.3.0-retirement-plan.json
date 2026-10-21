@@ -1,0 +1,34 @@
+{
+  "candidate_sha256": "2468a666ed5f670914328736bad68e3965e1cc68479c9e8b3521c3a87b84c93e",
+  "replacement": {
+    "repository": "hahaliu2001/NRForge-asn1c",
+    "release_id": 418742565,
+    "tag": "asn1-sdk-v0.3.0"
+  },
+  "assets": [
+    {
+      "repository": "hahaliu2001/NRForge-RAN",
+      "release_id": 411867507,
+      "tag": "nrforge-asn1-linux-x86_64-gcc13-477c5affaee9-v1",
+      "asset_id": 637544628,
+      "name": "nrforge-asn1-linux-x86_64-gcc13.tar.zst",
+      "size": 387215990,
+      "updated_at": "2026-10-13T16:08:04Z",
+      "sha256": "701f2dd4d524b05772335c8b31c67c94c1f0733c279c6ccf3554ddfae42a9508",
+      "replacement_reason": "Old standalone RAN SDK bundle replaced by the unified 0.3.0 C++ bundle.",
+      "consumer_reference_check": "RAN commit 89d1c34... locks the 0.3.0 archive and does not select this release/tag."
+    },
+    {
+      "repository": "hahaliu2001/NRForge-5GC",
+      "release_id": 415526784,
+      "tag": "ngap-python-sdk-0.1.0-cp312-linux-x86_64-r1",
+      "asset_id": 649257906,
+      "name": "nrforge_ngap-0.1.0-cp312-cp312-linux_x86_64.whl",
+      "size": 33813868,
+      "updated_at": "2026-10-17T02:09:36Z",
+      "sha256": "0d304917fc885f0bf1b3d0976b4b88ac42d7b1e1a2b6df45eeabac2d33fae9e3",
+      "replacement_reason": "Old 0.1.0 NGAP wheel replaced by the unified 0.3.0 wheel.",
+      "consumer_reference_check": "5GC commit af368e2... locks the 0.3.0 wheel and retains 0.1.0 as rollback history only."
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "candidate_sha256": "2468a666ed5f670914328736bad68e3965e1cc68479c9e8b3521c3a87b84c93e",
+  "deleted": [
+    {
+      "repository": "hahaliu2001/NRForge-RAN",
+      "release_id": 411867507,
+      "tag": "nrforge-asn1-linux-x86_64-gcc13-477c5affaee9-v1",
+      "asset_id": 637544628,
+      "name": "nrforge-asn1-linux-x86_64-gcc13.tar.zst",
+      "size": 387215990,
+      "updated_at": "2026-10-13T16:08:04Z",
+      "sha256": "701f2dd4d524b05772335c8b31c67c94c1f0733c279c6ccf3554ddfae42a9508"
+    },
+    {
+      "repository": "hahaliu2001/NRForge-5GC",
+      "release_id": 415526784,
+      "tag": "ngap-python-sdk-0.1.0-cp312-linux-x86_64-r1",
+      "asset_id": 649257906,
+      "name": "nrforge_ngap-0.1.0-cp312-cp312-linux_x86_64.whl",
+      "size": 33813868,
+      "updated_at": "2026-10-17T02:09:36Z",
+      "sha256": "0d304917fc885f0bf1b3d0976b4b88ac42d7b1e1a2b6df45eeabac2d33fae9e3"
+    }
+  ],
+  "tool": "tools/unified-sdk/release.py retire",
+  "tool_retirement_json": "candidate-side retirement.json was not writable after DELETE; this repository copy preserves the exact result"
+}

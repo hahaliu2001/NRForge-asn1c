@@ -1,0 +1,14 @@
+{
+  "RAN": {
+    "status": "PASS",
+    "version": "0.3.0",
+    "candidate_sha256": "2468a666ed5f670914328736bad68e3965e1cc68479c9e8b3521c3a87b84c93e",
+    "migration_commit": "89d1c34e8fd8e091131577ecc2b20ade8eea54eb"
+  },
+  "5GC": {
+    "status": "PASS",
+    "version": "0.3.0",
+    "candidate_sha256": "2468a666ed5f670914328736bad68e3965e1cc68479c9e8b3521c3a87b84c93e",
+    "migration_commit": "af368e22c20071eb7e6150c977fb6a0556b17b27"
+  }
+}
